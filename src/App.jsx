@@ -1,64 +1,83 @@
-import { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import './App.css'
+import { useState } from 'react';
+import { AuthProvider } from './contexts/AuthContext';
+import LoginPage from './components/LoginPage';
+import Navbar from './components/Navbar';
+import Dashboard from './components/Dashboard';
+import VideoPlayer from './components/VideoPlayer';
+import UserProfile from './components/UserProfile';
+import { useAuth } from './contexts/AuthContext';
+import './App.css';
 
-// Components
-import LoginPage from './components/LoginPage'
-import Dashboard from './components/Dashboard'
-import VideoPlayer from './components/VideoPlayer'
-import UserProfile from './components/UserProfile'
-import Navbar from './components/Navbar'
+function AppContent() {
+  const { user, isLoading } = useAuth();
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [selectedCourse, setSelectedCourse] = useState(null);
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [user, setUser] = useState({
-    name: 'Maria Gabriela',
-    email: 'maria@example.com',
-    discProfile: {
-      dominante: 23,
-      influente: 13,
-      estavel: 27,
-      conforme: 38,
-      predominant: 'Conforme'
-    },
-    progress: {
-      coursesCompleted: 12,
-      certifications: 8,
-      totalHours: 156,
-      currentProgress: 78
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
+  const handleCourseSelect = (course) => {
+    setSelectedCourse(course);
+    setCurrentView('video');
+  };
+
+  const handleBackToDashboard = () => {
+    setCurrentView('dashboard');
+    setSelectedCourse(null);
+  };
+
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <Dashboard onCourseSelect={handleCourseSelect} />;
+      case 'video':
+        return selectedCourse ? (
+          <VideoPlayer 
+            course={selectedCourse} 
+            onBack={handleBackToDashboard}
+          />
+        ) : (
+          <Dashboard onCourseSelect={handleCourseSelect} />
+        );
+      case 'profile':
+        return <UserProfile />;
+      default:
+        return <Dashboard onCourseSelect={handleCourseSelect} />;
     }
-  })
-
-  const handleLogin = (credentials) => {
-    // Simulate login
-    setIsAuthenticated(true)
-  }
-
-  const handleLogout = () => {
-    setIsAuthenticated(false)
-  }
-
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />
-  }
+  };
 
   return (
-    <Router>
-      <div className="min-h-screen bg-white">
-        <Navbar user={user} onLogout={handleLogout} />
-        <main className="pt-16">
-          <Routes>
-            <Route path="/" element={<Dashboard user={user} />} />
-            <Route path="/dashboard" element={<Dashboard user={user} />} />
-            <Route path="/video/:id" element={<VideoPlayer />} />
-            <Route path="/profile" element={<UserProfile user={user} />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
-  )
+    <div className="min-h-screen bg-black text-white">
+      {currentView !== 'video' && (
+        <Navbar 
+          currentView={currentView}
+          onViewChange={setCurrentView}
+        />
+      )}
+      {renderCurrentView()}
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
+export default App;
 
