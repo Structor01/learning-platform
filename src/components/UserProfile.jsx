@@ -14,13 +14,47 @@ import {
   TrendingUp,
   Target
 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
 
-const UserProfile = ({ user }) => {
+const UserProfile = () => {
+  const { user, isLoading } = useAuth()
+
+  // Mostrar loading enquanto carrega os dados do usuário
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-300 border-t-black rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando perfil...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Dados padrão caso user seja null
+  const userData = user || {
+    name: 'Usuário',
+    email: 'email@example.com',
+    discProfile: {
+      dominante: 23,
+      influente: 13,
+      estavel: 27,
+      conforme: 38,
+      predominant: 'Conforme'
+    },
+    progress: {
+      coursesCompleted: 0,
+      certifications: 0,
+      totalHours: 0,
+      currentProgress: 0
+    }
+  }
+
   const discProfiles = [
-    { name: 'Dominante', value: user.discProfile.dominante, color: 'bg-red-500', letter: 'D' },
-    { name: 'Influente', value: user.discProfile.influente, color: 'bg-green-500', letter: 'I' },
-    { name: 'Estável', value: user.discProfile.estavel, color: 'bg-blue-500', letter: 'S' },
-    { name: 'Conforme', value: user.discProfile.conforme, color: 'bg-orange-500', letter: 'C' }
+    { name: 'Dominante', value: userData.discProfile.dominante, color: 'bg-red-500', letter: 'D' },
+    { name: 'Influente', value: userData.discProfile.influente, color: 'bg-green-500', letter: 'I' },
+    { name: 'Estável', value: userData.discProfile.estavel, color: 'bg-blue-500', letter: 'S' },
+    { name: 'Conforme', value: userData.discProfile.conforme, color: 'bg-orange-500', letter: 'C' }
   ]
 
   const learningTracks = [
@@ -61,12 +95,12 @@ const UserProfile = ({ user }) => {
               <CardContent className="p-6">
                 <div className="text-center">
                   <Avatar className="w-24 h-24 mx-auto mb-4">
-                    <AvatarImage src="/placeholder-avatar.jpg" alt={user.name} />
+                    <AvatarImage src="/placeholder-avatar.jpg" alt={userData.name} />
                     <AvatarFallback className="bg-gray-600 text-white text-2xl">
-                      {user.name.split(' ').map(n => n[0]).join('')}
+                      {userData.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">{user.name}</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-1">{userData.name}</h2>
                   <p className="text-gray-600 mb-2">Executivo de Vendas</p>
                   <div className="flex items-center justify-center text-sm text-gray-500">
                     <Calendar className="w-4 h-4 mr-1" />
@@ -98,7 +132,7 @@ const UserProfile = ({ user }) => {
                 </div>
                 <div className="text-center p-4 bg-orange-50 rounded-lg">
                   <p className="text-sm text-gray-600 mb-1">Perfil predominante</p>
-                  <p className="text-lg font-bold text-orange-600">{user.discProfile.predominant}</p>
+                  <p className="text-lg font-bold text-orange-600">{userData.discProfile.predominant}</p>
                 </div>
                 <Button variant="outline" className="w-full mt-4">
                   <Download className="w-4 h-4 mr-2" />
@@ -117,7 +151,7 @@ const UserProfile = ({ user }) => {
                   <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
                     <BookOpen className="w-6 h-6 text-white" />
                   </div>
-                  <p className="text-3xl font-bold text-gray-900 mb-1">{user.progress.coursesCompleted}</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">{userData.progress.coursesCompleted}</p>
                   <p className="text-sm text-gray-600">Cursos Concluídos</p>
                 </CardContent>
               </Card>
@@ -127,7 +161,7 @@ const UserProfile = ({ user }) => {
                   <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Award className="w-6 h-6 text-white" />
                   </div>
-                  <p className="text-3xl font-bold text-gray-900 mb-1">{user.progress.certifications}</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">{userData.progress.certifications}</p>
                   <p className="text-sm text-gray-600">Certificações Obtidas</p>
                 </CardContent>
               </Card>
@@ -137,7 +171,7 @@ const UserProfile = ({ user }) => {
                   <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Clock className="w-6 h-6 text-white" />
                   </div>
-                  <p className="text-3xl font-bold text-gray-900 mb-1">{user.progress.totalHours}</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-1">{userData.progress.totalHours}</p>
                   <p className="text-sm text-gray-600">Horas Totais de Estudo</p>
                 </CardContent>
               </Card>
@@ -197,7 +231,7 @@ const UserProfile = ({ user }) => {
             {/* Characteristics */}
             <Card className="border-0 shadow-lg">
               <CardHeader>
-                <CardTitle>Características do Perfil Conforme</CardTitle>
+                <CardTitle>Características do Perfil {userData.discProfile.predominant}</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="prose prose-gray max-w-none">
