@@ -1,13 +1,14 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { Play, BookOpen, Award, Clock, TrendingUp, ChevronRight } from 'lucide-react'
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Play, BookOpen, Award, Clock, TrendingUp, ChevronRight } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
-const Dashboard = ({ user }) => {
-  const [hoveredCourse, setHoveredCourse] = useState(null)
+const Dashboard = ({ onCourseSelect }) => {
+  const { user } = useAuth();
+  const [hoveredCourse, setHoveredCourse] = useState(null);
 
   const recommendedCourses = [
     {
@@ -17,7 +18,9 @@ const Dashboard = ({ user }) => {
       duration: '45 min',
       thumbnail: '/api/placeholder/300/200',
       category: 'Liderança',
-      level: 'Avançado'
+      level: 'Avançado',
+      description: 'Desenvolva habilidades de liderança estratégica para impulsionar sua carreira e equipe.',
+      rating: '4.8'
     },
     {
       id: 2,
@@ -26,7 +29,9 @@ const Dashboard = ({ user }) => {
       duration: '32 min',
       thumbnail: '/api/placeholder/300/200',
       category: 'Gestão',
-      level: 'Intermediário'
+      level: 'Intermediário',
+      description: 'Aprenda técnicas eficazes para gerenciar equipes e maximizar a produtividade.',
+      rating: '4.7'
     },
     {
       id: 3,
@@ -35,7 +40,9 @@ const Dashboard = ({ user }) => {
       duration: '28 min',
       thumbnail: '/api/placeholder/300/200',
       category: 'Tecnologia',
-      level: 'Básico'
+      level: 'Básico',
+      description: 'Fundamentos de análise de dados para tomada de decisões estratégicas.',
+      rating: '4.6'
     },
     {
       id: 4,
@@ -44,7 +51,9 @@ const Dashboard = ({ user }) => {
       duration: '38 min',
       thumbnail: '/api/placeholder/300/200',
       category: 'Vendas',
-      level: 'Avançado'
+      level: 'Avançado',
+      description: 'Técnicas avançadas de negociação para fechar melhores acordos.',
+      rating: '4.9'
     },
     {
       id: 5,
@@ -53,9 +62,11 @@ const Dashboard = ({ user }) => {
       duration: '42 min',
       thumbnail: '/api/placeholder/300/200',
       category: 'Marketing',
-      level: 'Intermediário'
+      level: 'Intermediário',
+      description: 'Estratégias modernas de marketing digital para aumentar sua presença online.',
+      rating: '4.5'
     }
-  ]
+  ];
 
   const continueWatching = [
     {
@@ -64,7 +75,9 @@ const Dashboard = ({ user }) => {
       instructor: 'Tallis Gomes',
       progress: 65,
       thumbnail: '/api/placeholder/300/200',
-      timeLeft: '15 min restantes'
+      timeLeft: '15 min restantes',
+      description: 'Metodologias de planejamento estratégico para organizações.',
+      rating: '4.8'
     },
     {
       id: 7,
@@ -72,7 +85,9 @@ const Dashboard = ({ user }) => {
       instructor: 'Maria Silva',
       progress: 30,
       thumbnail: '/api/placeholder/300/200',
-      timeLeft: '25 min restantes'
+      timeLeft: '25 min restantes',
+      description: 'Desenvolva habilidades de comunicação para liderar com eficácia.',
+      rating: '4.7'
     },
     {
       id: 8,
@@ -80,9 +95,11 @@ const Dashboard = ({ user }) => {
       instructor: 'João Oliveira',
       progress: 85,
       thumbnail: '/api/placeholder/300/200',
-      timeLeft: '8 min restantes'
+      timeLeft: '8 min restantes',
+      description: 'Como implementar inovação em ambientes corporativos.',
+      rating: '4.6'
     }
-  ]
+  ];
 
   const getDiscColor = (profile) => {
     const colors = {
@@ -90,9 +107,13 @@ const Dashboard = ({ user }) => {
       'Influente': 'bg-green-500',
       'Estável': 'bg-blue-500',
       'Conforme': 'bg-orange-500'
-    }
-    return colors[profile] || 'bg-gray-500'
-  }
+    };
+    return colors[profile] || 'bg-gray-500';
+  };
+
+  const handleCourseClick = (course) => {
+    onCourseSelect?.(course);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -102,16 +123,16 @@ const Dashboard = ({ user }) => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Olá, {user.name.split(' ')[0]}!
+                Olá, {user?.name?.split(' ')[0] || 'Usuário'}!
               </h1>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <div className={`w-6 h-6 ${getDiscColor(user.discProfile.predominant)} rounded-full flex items-center justify-center`}>
+                  <div className={`w-6 h-6 ${getDiscColor(user?.discProfile?.predominant)} rounded-full flex items-center justify-center`}>
                     <span className="text-white text-xs font-bold">
-                      {user.discProfile.predominant[0]}
+                      {user?.discProfile?.predominant?.[0] || 'U'}
                     </span>
                   </div>
-                  <span className="text-gray-600">Perfil: {user.discProfile.predominant}</span>
+                  <span className="text-gray-600">Perfil: {user?.discProfile?.predominant || 'Conforme'}</span>
                 </div>
               </div>
             </div>
@@ -125,13 +146,13 @@ const Dashboard = ({ user }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Progresso Geral</p>
-                  <p className="text-3xl font-bold text-gray-900">{user.progress.currentProgress}%</p>
+                  <p className="text-3xl font-bold text-gray-900">{user?.progress?.currentProgress || 51}%</p>
                 </div>
                 <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
               </div>
-              <Progress value={user.progress.currentProgress} className="mt-4" />
+              <Progress value={user?.progress?.currentProgress || 51} className="mt-4" />
             </CardContent>
           </Card>
 
@@ -143,7 +164,11 @@ const Dashboard = ({ user }) => {
                   <p className="text-lg font-semibold text-gray-900">Liderança Estratégica</p>
                   <p className="text-sm text-gray-500">45 min</p>
                 </div>
-                <Button size="sm" className="bg-black hover:bg-gray-800">
+                <Button 
+                  size="sm" 
+                  className="bg-black hover:bg-gray-800"
+                  onClick={() => handleCourseClick(recommendedCourses[0])}
+                >
                   <Play className="w-4 h-4" />
                 </Button>
               </div>
@@ -182,6 +207,7 @@ const Dashboard = ({ user }) => {
                 className="flex-none w-72 group cursor-pointer"
                 onMouseEnter={() => setHoveredCourse(course.id)}
                 onMouseLeave={() => setHoveredCourse(null)}
+                onClick={() => handleCourseClick(course)}
               >
                 <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                   <div className="relative">
@@ -193,12 +219,17 @@ const Dashboard = ({ user }) => {
                     </div>
                     {hoveredCourse === course.id && (
                       <div className="absolute inset-0 bg-black bg-opacity-50 rounded-t-lg flex items-center justify-center">
-                        <Link to={`/video/${course.id}`}>
-                          <Button size="lg" className="bg-white text-black hover:bg-gray-100">
-                            <Play className="w-5 h-5 mr-2" />
-                            Assistir
-                          </Button>
-                        </Link>
+                        <Button 
+                          size="lg" 
+                          className="bg-white text-black hover:bg-gray-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCourseClick(course);
+                          }}
+                        >
+                          <Play className="w-5 h-5 mr-2" />
+                          Assistir
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -232,7 +263,11 @@ const Dashboard = ({ user }) => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {continueWatching.map((course) => (
-              <Card key={course.id} className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer">
+              <Card 
+                key={course.id} 
+                className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+                onClick={() => handleCourseClick(course)}
+              >
                 <div className="relative">
                   <div className="w-full h-32 bg-gray-800 rounded-t-lg flex items-center justify-center">
                     <div className="text-center text-white">
@@ -248,11 +283,15 @@ const Dashboard = ({ user }) => {
                   <h3 className="font-semibold text-gray-900 mb-1">{course.title}</h3>
                   <p className="text-sm text-gray-600 mb-2">Por {course.instructor}</p>
                   <p className="text-xs text-gray-500">{course.timeLeft}</p>
-                  <Link to={`/video/${course.id}`}>
-                    <Button className="w-full mt-3 bg-black hover:bg-gray-800">
-                      Continuar
-                    </Button>
-                  </Link>
+                  <Button 
+                    className="w-full mt-3 bg-black hover:bg-gray-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCourseClick(course);
+                    }}
+                  >
+                    Continuar
+                  </Button>
                 </CardContent>
               </Card>
             ))}
@@ -260,8 +299,8 @@ const Dashboard = ({ user }) => {
         </section>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;
 

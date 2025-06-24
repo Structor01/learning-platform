@@ -1,32 +1,47 @@
-import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Search, User, LogOut, Settings } from 'lucide-react'
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Search, User, LogOut, Settings } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
-const Navbar = ({ user, onLogout }) => {
-  const [searchQuery, setSearchQuery] = useState('')
-  const location = useLocation()
+const Navbar = ({ currentView, onViewChange }) => {
+  const { user, logout } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     // Implement search functionality
-    console.log('Searching for:', searchQuery)
-  }
+    console.log('Searching for:', searchQuery);
+  };
+
+  const handleLogoClick = () => {
+    onViewChange('dashboard');
+  };
+
+  const handleProfileClick = () => {
+    onViewChange('profile');
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/dashboard" className="flex items-center space-x-2">
+          <button 
+            onClick={handleLogoClick}
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+          >
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
               <span className="text-black text-lg font-bold">E</span>
             </div>
             <span className="text-xl font-semibold hidden sm:block">EduPlatform</span>
-          </Link>
+          </button>
 
           {/* Search Bar */}
           <div className="flex-1 max-w-md mx-8">
@@ -45,21 +60,25 @@ const Navbar = ({ user, onLogout }) => {
           {/* User Menu */}
           <div className="flex items-center space-x-4">
             {/* DISC Profile Badge */}
-            <div className="hidden md:flex items-center space-x-2">
-              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">C</span>
+            {user?.discProfile && (
+              <div className="hidden md:flex items-center space-x-2">
+                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">
+                    {user.discProfile.predominant.charAt(0)}
+                  </span>
+                </div>
+                <span className="text-sm text-gray-300">{user.discProfile.predominant}</span>
               </div>
-              <span className="text-sm text-gray-300">{user.discProfile.predominant}</span>
-            </div>
+            )}
 
             {/* User Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder-avatar.jpg" alt={user.name} />
+                    <AvatarImage src="/placeholder-avatar.jpg" alt={user?.name || 'User'} />
                     <AvatarFallback className="bg-gray-600 text-white">
-                      {user.name.split(' ').map(n => n[0]).join('')}
+                      {user?.name ? user.name.split(' ').map(n => n[0]).join('') : 'U'}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -67,23 +86,21 @@ const Navbar = ({ user, onLogout }) => {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{user.name}</p>
+                    <p className="font-medium">{user?.name || 'Usuário'}</p>
                     <p className="w-[200px] truncate text-sm text-muted-foreground">
-                      {user.email}
+                      {user?.email || 'email@example.com'}
                     </p>
                   </div>
                 </div>
-                <DropdownMenuItem asChild>
-                  <Link to="/profile" className="flex items-center">
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Perfil</span>
-                  </Link>
+                <DropdownMenuItem onClick={handleProfileClick}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Perfil</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Configurações</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onLogout}>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sair</span>
                 </DropdownMenuItem>
@@ -93,8 +110,8 @@ const Navbar = ({ user, onLogout }) => {
         </div>
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;
 
