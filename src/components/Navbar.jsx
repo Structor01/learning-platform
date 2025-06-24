@@ -10,6 +10,15 @@ const Navbar = ({ currentView, onViewChange }) => {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Dados padrão para quando user for undefined
+  const userData = user || {
+    name: 'Usuário',
+    email: 'email@example.com',
+    discProfile: {
+      predominant: 'Conforme'
+    }
+  };
+
   const handleSearch = (e) => {
     e.preventDefault();
     // Implement search functionality
@@ -60,25 +69,23 @@ const Navbar = ({ currentView, onViewChange }) => {
           {/* User Menu */}
           <div className="flex items-center space-x-4">
             {/* DISC Profile Badge */}
-            {user?.discProfile && (
-              <div className="hidden md:flex items-center space-x-2">
-                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">
-                    {user.discProfile.predominant.charAt(0)}
-                  </span>
-                </div>
-                <span className="text-sm text-gray-300">{user.discProfile.predominant}</span>
+            <div className="hidden md:flex items-center space-x-2">
+              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">
+                  {userData.discProfile.predominant.charAt(0)}
+                </span>
               </div>
-            )}
+              <span className="text-sm text-gray-300">{userData.discProfile.predominant}</span>
+            </div>
 
             {/* User Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder-avatar.jpg" alt={user?.name || 'User'} />
+                    <AvatarImage src="/placeholder-avatar.jpg" alt={userData.name} />
                     <AvatarFallback className="bg-gray-600 text-white">
-                      {user?.name ? user.name.split(' ').map(n => n[0]).join('') : 'U'}
+                      {userData.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -86,9 +93,9 @@ const Navbar = ({ currentView, onViewChange }) => {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{user?.name || 'Usuário'}</p>
+                    <p className="font-medium">{userData.name}</p>
                     <p className="w-[200px] truncate text-sm text-muted-foreground">
-                      {user?.email || 'email@example.com'}
+                      {userData.email}
                     </p>
                   </div>
                 </div>

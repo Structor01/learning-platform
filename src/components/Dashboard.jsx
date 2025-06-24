@@ -7,8 +7,31 @@ import { Play, BookOpen, Award, Clock, TrendingUp, ChevronRight } from 'lucide-r
 import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard = ({ onCourseSelect }) => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [hoveredCourse, setHoveredCourse] = useState(null);
+
+  // Mostrar loading enquanto carrega os dados do usuário
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-300 border-t-black rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Dados padrão caso user seja null
+  const userData = user || {
+    name: 'Usuário',
+    discProfile: {
+      predominant: 'Conforme'
+    },
+    progress: {
+      currentProgress: 0
+    }
+  };
 
   const recommendedCourses = [
     {
@@ -123,16 +146,16 @@ const Dashboard = ({ onCourseSelect }) => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Olá, {user?.name?.split(' ')[0] || 'Usuário'}!
+                Olá, {userData.name.split(' ')[0]}!
               </h1>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <div className={`w-6 h-6 ${getDiscColor(user?.discProfile?.predominant)} rounded-full flex items-center justify-center`}>
+                  <div className={`w-6 h-6 ${getDiscColor(userData.discProfile.predominant)} rounded-full flex items-center justify-center`}>
                     <span className="text-white text-xs font-bold">
-                      {user?.discProfile?.predominant?.[0] || 'U'}
+                      {userData.discProfile.predominant[0]}
                     </span>
                   </div>
-                  <span className="text-gray-600">Perfil: {user?.discProfile?.predominant || 'Conforme'}</span>
+                  <span className="text-gray-600">Perfil: {userData.discProfile.predominant}</span>
                 </div>
               </div>
             </div>
@@ -146,13 +169,13 @@ const Dashboard = ({ onCourseSelect }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Progresso Geral</p>
-                  <p className="text-3xl font-bold text-gray-900">{user?.progress?.currentProgress || 51}%</p>
+                  <p className="text-3xl font-bold text-gray-900">{userData.progress.currentProgress}%</p>
                 </div>
                 <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
               </div>
-              <Progress value={user?.progress?.currentProgress || 51} className="mt-4" />
+              <Progress value={userData.progress.currentProgress} className="mt-4" />
             </CardContent>
           </Card>
 
