@@ -47,9 +47,9 @@ const Navbar = ({ currentView, onViewChange }) => {
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <span className="text-black text-lg font-bold">E</span>
+              <span className="text-black text-lg font-bold">G</span>
             </div>
-            <span className="text-xl font-semibold hidden sm:block">EduPlatform</span>
+            <span className="text-xl font-semibold hidden sm:block">GSkills</span>
           </button>
 
           {/* Search Bar */}

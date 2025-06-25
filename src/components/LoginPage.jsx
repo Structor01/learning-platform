@@ -29,9 +29,9 @@ const LoginPage = () => {
         <CardContent className="p-8">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl font-bold text-black">E</span>
+              <span className="text-2xl font-bold text-black">G</span>
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">EduPlatform</h1>
+            <h1 className="text-2xl font-bold text-white mb-2">GSkills</h1>
             <p className="text-white/70">Aprendizado personalizado para sua carreira</p>
           </div>
 

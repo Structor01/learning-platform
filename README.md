@@ -1,4 +1,4 @@
-# EduPlatform - Plataforma de Ensino Personalizada
+# GSkills - Plataforma de Ensino Personalizada
 
 Uma plataforma de ensino moderna e personalizada inspirada nos princípios de design do Steve Jobs, com foco em experiência do usuário e estratégias de LTV (Lifetime Value).
 
