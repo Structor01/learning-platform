@@ -4,6 +4,7 @@ import LoginPage from './components/LoginPage';
 import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import VideoPlayer from './components/VideoPlayer';
+import VideoUpload from './components/VideoUpload';
 import UserProfile from './components/UserProfile';
 import { useAuth } from './contexts/AuthContext';
 import './App.css';
@@ -33,6 +34,16 @@ function AppContent() {
     setCurrentView('video');
   };
 
+  const handleSmartPlayerOpen = () => {
+    setCurrentView('smartPlayer');
+  };
+
+  const handleVideoUploaded = (video) => {
+    // Quando um vídeo é carregado, reproduzir no Smart Player
+    setSelectedCourse(video);
+    setCurrentView('smartVideo');
+  };
+
   const handleBackToDashboard = () => {
     setCurrentView('dashboard');
     setSelectedCourse(null);
@@ -41,26 +52,39 @@ function AppContent() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard onCourseSelect={handleCourseSelect} />;
+        return <Dashboard onCourseSelect={handleCourseSelect} onSmartPlayerOpen={handleSmartPlayerOpen} />;
       case 'video':
         return selectedCourse ? (
           <VideoPlayer 
             course={selectedCourse} 
             onBack={handleBackToDashboard}
           />
-        ) : (
-          <Dashboard onCourseSelect={handleCourseSelect} />
+        ) : null;
+      case 'smartPlayer':
+        return (
+          <VideoUpload 
+            onVideoUploaded={handleVideoUploaded}
+            onBack={handleBackToDashboard}
+          />
         );
+      case 'smartVideo':
+        return selectedCourse ? (
+          <VideoPlayer 
+            course={selectedCourse} 
+            onBack={() => setCurrentView('smartPlayer')}
+            isSmartPlayer={true}
+          />
+        ) : null;
       case 'profile':
         return <UserProfile />;
       default:
-        return <Dashboard onCourseSelect={handleCourseSelect} />;
+        return <Dashboard onCourseSelect={handleCourseSelect} onSmartPlayerOpen={handleSmartPlayerOpen} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {currentView !== 'video' && (
+      {currentView !== 'video' && currentView !== 'smartVideo' && (
         <Navbar 
           currentView={currentView}
           onViewChange={setCurrentView}

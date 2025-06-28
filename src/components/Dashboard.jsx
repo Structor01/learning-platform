@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Play, BookOpen, Award, Clock, TrendingUp, ChevronRight } from 'lucide-react';
+import { Play, BookOpen, Award, Clock, TrendingUp, ChevronRight, Video, Upload } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
-const Dashboard = ({ onCourseSelect }) => {
+const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
   const { user, isLoading } = useAuth();
   const [hoveredCourse, setHoveredCourse] = useState(null);
 
@@ -213,6 +213,46 @@ const Dashboard = ({ onCourseSelect }) => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Smart Player Section */}
+        <section className="mb-8">
+          <Card className="border-2 border-blue-500 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-r from-blue-50 to-cyan-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
+                    <Video className="w-8 h-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">Smart Player</h3>
+                    <p className="text-gray-600 mb-2">Faça upload e reproduza seus próprios vídeos educacionais</p>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span className="flex items-center">
+                        <Upload className="w-4 h-4 mr-1" />
+                        Upload seguro
+                      </span>
+                      <span className="flex items-center">
+                        <Play className="w-4 h-4 mr-1" />
+                        Player protegido
+                      </span>
+                      <span className="flex items-center">
+                        <Clock className="w-4 h-4 mr-1" />
+                        Anti-pirataria
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <Button 
+                  onClick={onSmartPlayerOpen}
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3"
+                >
+                  <Video className="w-4 h-4 mr-2" />
+                  Abrir Smart Player
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
 
         {/* Recommended Courses */}
         <section className="mb-12">
