@@ -1,17 +1,19 @@
-import { useState } from 'react';
-import { AuthProvider } from './contexts/AuthContext';
-import LoginPage from './components/LoginPage';
-import Navbar from './components/Navbar';
-import Dashboard from './components/Dashboard';
-import VideoPlayer from './components/VideoPlayer';
-import VideoUpload from './components/VideoUpload';
-import UserProfile from './components/UserProfile';
-import { useAuth } from './contexts/AuthContext';
-import './App.css';
+import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import LoginPage    from "./components/ui/LoginPage";
+import SignUpPage   from "./components/ui/SignUpPage";
+import Navbar       from "./components/ui/Navbar";
+import Dashboard    from "./components/ui/Dashboard";
+import VideoPlayer  from "./components/ui/VideoPlayer";
+import VideoUpload  from "./components/ui/VideoUpload";
+import UserProfile  from "./components/ui/UserProfile";
+import "./App.css";
 
+// Componente que gerencia as rotas privadas e a renderização principal
 function AppContent() {
   const { user, isLoading } = useAuth();
-  const [currentView, setCurrentView] = useState('dashboard');
+  const [currentView, setCurrentView] = useState("dashboard");
   const [selectedCourse, setSelectedCourse] = useState(null);
 
   if (isLoading) {
@@ -26,82 +28,98 @@ function AppContent() {
   }
 
   if (!user) {
-    return <LoginPage />;
+    // Se não estiver logado, redireciona para login
+    return <Navigate to="/login" replace />;
   }
 
   const handleCourseSelect = (course) => {
     setSelectedCourse(course);
-    setCurrentView('video');
+    setCurrentView("video");
   };
 
   const handleSmartPlayerOpen = () => {
-    setCurrentView('smartPlayer');
+    setCurrentView("smartPlayer");
   };
 
   const handleVideoUploaded = (video) => {
-    // Quando um vídeo é carregado, reproduzir no Smart Player
     setSelectedCourse(video);
-    setCurrentView('smartVideo');
+    setCurrentView("smartVideo");
   };
 
   const handleBackToDashboard = () => {
-    setCurrentView('dashboard');
+    setCurrentView("dashboard");
     setSelectedCourse(null);
   };
 
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'dashboard':
-        return <Dashboard onCourseSelect={handleCourseSelect} onSmartPlayerOpen={handleSmartPlayerOpen} />;
-      case 'video':
-        return selectedCourse ? (
-          <VideoPlayer 
-            course={selectedCourse} 
-            onBack={handleBackToDashboard}
-          />
-        ) : null;
-      case 'smartPlayer':
+      case "dashboard":
         return (
-          <VideoUpload 
+          <Dashboard
+            onCourseSelect={handleCourseSelect}
+            onSmartPlayerOpen={handleSmartPlayerOpen}
+          />
+        );
+      case "video":
+        return selectedCourse ? (
+          <VideoPlayer course={selectedCourse} onBack={handleBackToDashboard} />
+        ) : null;
+      case "smartPlayer":
+        return (
+          <VideoUpload
             onVideoUploaded={handleVideoUploaded}
             onBack={handleBackToDashboard}
           />
         );
-      case 'smartVideo':
+      case "smartVideo":
         return selectedCourse ? (
-          <VideoPlayer 
-            course={selectedCourse} 
-            onBack={() => setCurrentView('smartPlayer')}
+          <VideoPlayer
+            course={selectedCourse}
+            onBack={() => setCurrentView("smartPlayer")}
             isSmartPlayer={true}
           />
         ) : null;
-      case 'profile':
+      case "profile":
         return <UserProfile />;
       default:
-        return <Dashboard onCourseSelect={handleCourseSelect} onSmartPlayerOpen={handleSmartPlayerOpen} />;
+        return (
+          <Dashboard
+            onCourseSelect={handleCourseSelect}
+            onSmartPlayerOpen={handleSmartPlayerOpen}
+          />
+        );
     }
   };
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {currentView !== 'video' && currentView !== 'smartVideo' && (
-        <Navbar 
-          currentView={currentView}
-          onViewChange={setCurrentView}
-        />
+      {currentView !== "video" && currentView !== "smartVideo" && (
+        <Navbar currentView={currentView} onViewChange={setCurrentView} />
       )}
       {renderCurrentView()}
     </div>
   );
 }
 
+// Componente principal com roteamento
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          {/* Rotas públicas */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+
+          {/* Rota privada para o conteúdo principal */}
+          <Route path="/*" element={<AppContent />} />
+
+          {/* Qualquer outra rota */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
 export default App;
-

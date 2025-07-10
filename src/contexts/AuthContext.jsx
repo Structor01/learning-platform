@@ -1,11 +1,11 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -14,53 +14,66 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simular dados do usuário com informações de assinatura
+  // Carrega usuário do localStorage ao iniciar
   useEffect(() => {
-    // Simular carregamento inicial
-    setTimeout(() => {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
-      }
-      setIsLoading(false);
-    }, 1000);
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+    setIsLoading(false);
   }, []);
 
-  const login = (email, password) => {
-    // Simular login
-    const userData = {
-      id: '1',
-      name: 'Maria Gabriela',
-      email: email,
-      discProfile: {
-        dominante: 23,
-        influente: 13,
-        estavel: 27,
-        conforme: 38,
-        predominant: 'conforme'
-      },
-      subscription: {
-        status: 'free', // 'free', 'active', 'canceled', 'past_due'
-        plan: null, // 'basic', 'professional', 'corporate'
-        currentPeriodEnd: null,
-        cancelAtPeriodEnd: false
-      },
-      progress: {
-        coursesCompleted: 3,
-        certifications: 1,
-        totalHours: 24,
-        currentProgress: 78
-      }
-    };
+  // Função de login usando API NestJS
+  const login = async (email, password) => {
+    const response = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    return Promise.resolve(userData);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erro ao fazer login");
+    }
+
+    // Armazena user e tokens
+    setUser(data.user);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("accessToken", data.access_token);
+    localStorage.setItem("refreshToken", data.refresh_token);
+
+    return data.user;
+  };
+
+  // Função de signup usando API NestJS
+  const signup = async ({ name, email, password }) => {
+    const response = await fetch("/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erro ao criar conta");
+    }
+
+    // Opcional: já logar após cadastro
+    setUser(data.user);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("accessToken", data.access_token);
+    localStorage.setItem("refreshToken", data.refresh_token);
+
+    return data.user;
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
   };
 
   const updateSubscription = (subscriptionData) => {
@@ -69,36 +82,30 @@ export const AuthProvider = ({ children }) => {
         ...user,
         subscription: {
           ...user.subscription,
-          ...subscriptionData
-        }
+          ...subscriptionData,
+        },
       };
       setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
 
   const hasActiveSubscription = () => {
-    return user?.subscription?.status === 'active';
+    return user?.subscription?.status === "active";
   };
 
-  const canAccessContent = () => {
-    return hasActiveSubscription();
-  };
+  const canAccessContent = () => hasActiveSubscription();
 
   const value = {
     user,
     isLoading,
     login,
+    signup,
     logout,
     updateSubscription,
     hasActiveSubscription,
-    canAccessContent
+    canAccessContent,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
