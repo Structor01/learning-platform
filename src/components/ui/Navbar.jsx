@@ -1,3 +1,4 @@
+// src/components/ui/Navbar.jsx
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,9 @@ const Navbar = ({ currentView, onViewChange }) => {
     logout();
   };
 
+  // Protege o acesso ao campo predominant usando optional chaining
+  const predominant = userData.discProfile?.predominant ?? '—';
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -72,10 +76,10 @@ const Navbar = ({ currentView, onViewChange }) => {
             <div className="hidden md:flex items-center space-x-2">
               <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">
-                  {userData.discProfile.predominant.charAt(0)}
+                  {predominant.charAt(0)}
                 </span>
               </div>
-              <span className="text-sm text-gray-300">{userData.discProfile.predominant}</span>
+              <span className="text-sm text-gray-300">{predominant}</span>
             </div>
 
             {/* User Dropdown */}
@@ -121,4 +125,3 @@ const Navbar = ({ currentView, onViewChange }) => {
 };
 
 export default Navbar;
-

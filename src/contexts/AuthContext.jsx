@@ -1,3 +1,4 @@
+// src/contexts/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
 
 const AuthContext = createContext();
@@ -14,30 +15,43 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
   // Carrega usuário do localStorage ao iniciar
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
-    if (savedUser) {
+    const accessToken = localStorage.getItem("accessToken");
+
+    // Se não tiver token, forçamos user para null
+    if (savedUser && accessToken) {
       setUser(JSON.parse(savedUser));
+    } else {
+      setUser(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
     }
+
     setIsLoading(false);
   }, []);
 
-  // Função de login usando API NestJS
   const login = async (email, password) => {
-    const response = await fetch("/auth/login", {
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.message || "Erro ao fazer login");
+      let errMsg = "Erro ao fazer login";
+      try {
+        const errData = await response.json();
+        errMsg = errData.message || errMsg;
+      } catch {}
+      throw new Error(errMsg);
     }
 
-    // Armazena user e tokens
+    const data = await response.json();
     setUser(data.user);
     localStorage.setItem("user", JSON.stringify(data.user));
     localStorage.setItem("accessToken", data.access_token);
@@ -46,21 +60,23 @@ export const AuthProvider = ({ children }) => {
     return data.user;
   };
 
-  // Função de signup usando API NestJS
   const signup = async ({ name, email, password }) => {
-    const response = await fetch("/auth/signup", {
+    const response = await fetch(`${API_URL}/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-      throw new Error(data.message || "Erro ao criar conta");
+      let errMsg = "Erro ao criar conta";
+      try {
+        const errData = await response.json();
+        errMsg = errData.message || errMsg;
+      } catch {}
+      throw new Error(errMsg);
     }
 
-    // Opcional: já logar após cadastro
+    const data = await response.json();
     setUser(data.user);
     localStorage.setItem("user", JSON.stringify(data.user));
     localStorage.setItem("accessToken", data.access_token);
@@ -90,9 +106,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const hasActiveSubscription = () => {
-    return user?.subscription?.status === "active";
-  };
+  const hasActiveSubscription = () => user?.subscription?.status === "active";
 
   const canAccessContent = () => hasActiveSubscription();
 

@@ -46,7 +46,7 @@ const SignUpPage = () => {
             <div>
               <Input
                 type="text"
-                placeholder="Nome"
+                placeholder="Nome Completo"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50"

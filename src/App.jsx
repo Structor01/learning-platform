@@ -8,6 +8,7 @@ import Dashboard    from "./components/ui/Dashboard";
 import VideoPlayer  from "./components/ui/VideoPlayer";
 import VideoUpload  from "./components/ui/VideoUpload";
 import UserProfile  from "./components/ui/UserProfile";
+import PrivateRoute from "./components/ui/PrivateRoute"; // ✅ Certifique-se de ter isso criado
 import "./App.css";
 
 // Componente que gerencia as rotas privadas e a renderização principal
@@ -25,11 +26,6 @@ function AppContent() {
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    // Se não estiver logado, redireciona para login
-    return <Navigate to="/login" replace />;
   }
 
   const handleCourseSelect = (course) => {
@@ -107,14 +103,20 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Rotas públicas */}
-          <Route path="/login" element={<LoginPage />} />
+          {/* Página inicial = Login */}
+          <Route path="/" element={<LoginPage />} />
+          
+          {/* Página de cadastro */}
           <Route path="/signup" element={<SignUpPage />} />
 
-          {/* Rota privada para o conteúdo principal */}
-          <Route path="/*" element={<AppContent />} />
+          {/* Página de dashboard, protegida por autenticação */}
+          <Route path="/dashboard" element={
+            <PrivateRoute>
+              <AppContent />
+            </PrivateRoute>
+          } />
 
-          {/* Qualquer outra rota */}
+          {/* Catch-all: redireciona para "/" */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

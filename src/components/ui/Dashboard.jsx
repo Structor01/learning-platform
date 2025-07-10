@@ -25,13 +25,13 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
   // Dados padrão caso user seja null
   const userData = user || {
     name: 'Usuário',
-    discProfile: {
-      predominant: 'Conforme'
-    },
-    progress: {
-      currentProgress: 0
-    }
+    discProfile: { predominant: 'Conforme' },
+    progress: { currentProgress: 0 }
   };
+
+  // Protegendo acesso aos campos de DISC e progresso
+  const predominant     = userData.discProfile?.predominant  ?? 'Conforme';
+  const currentProgress = userData.progress?.currentProgress   ?? 0;
 
   const recommendedCourses = [
     {
@@ -150,12 +150,12 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
               </h1>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <div className={`w-6 h-6 ${getDiscColor(userData.discProfile.predominant)} rounded-full flex items-center justify-center`}>
+                  <div className={`w-6 h-6 ${getDiscColor(predominant)} rounded-full flex items-center justify-center`}>
                     <span className="text-white text-xs font-bold">
-                      {userData.discProfile.predominant[0]}
+                      {predominant.charAt(0)}
                     </span>
                   </div>
-                  <span className="text-gray-600">Perfil: {userData.discProfile.predominant}</span>
+                  <span className="text-gray-600">Perfil: {predominant}</span>
                 </div>
               </div>
             </div>
@@ -169,13 +169,13 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Progresso Geral</p>
-                  <p className="text-3xl font-bold text-gray-900">{userData.progress.currentProgress}%</p>
+                  <p className="text-3xl font-bold text-gray-900">{currentProgress}%</p>
                 </div>
                 <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
               </div>
-              <Progress value={userData.progress.currentProgress} className="mt-4" />
+              <Progress value={currentProgress} className="mt-4" />
             </CardContent>
           </Card>
 
