@@ -3,15 +3,21 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Search, User, LogOut, Settings } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { Search, User, LogOut, Settings, Layers } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = ({ currentView, onViewChange }) => {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
-  // Dados padrão para quando user for undefined
   const userData = user || {
     name: 'Usuário',
     email: 'email@example.com',
@@ -22,7 +28,6 @@ const Navbar = ({ currentView, onViewChange }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Implement search functionality
     console.log('Searching for:', searchQuery);
   };
 
@@ -38,7 +43,10 @@ const Navbar = ({ currentView, onViewChange }) => {
     logout();
   };
 
-  // Protege o acesso ao campo predominant usando optional chaining
+  const handleGoToTrilhas = () => {
+    navigate('/trilhas');
+  };
+
   const predominant = userData.discProfile?.predominant ?? '—';
 
   return (
@@ -46,7 +54,7 @@ const Navbar = ({ currentView, onViewChange }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <button 
+          <button
             onClick={handleLogoClick}
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
@@ -81,6 +89,16 @@ const Navbar = ({ currentView, onViewChange }) => {
               </div>
               <span className="text-sm text-gray-300">{predominant}</span>
             </div>
+
+            {/* Botão "Trilhas" */}
+            <Button
+              variant="outline"
+              className="text-white border-white hover:bg-gray-700"
+              onClick={handleGoToTrilhas}
+            >
+              <Layers className="w-4 h-4 mr-2" />
+              Trilhas
+            </Button>
 
             {/* User Dropdown */}
             <DropdownMenu>
