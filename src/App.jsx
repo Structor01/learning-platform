@@ -1,4 +1,6 @@
-import { useState } from "react";
+/* src/App.jsx */
+import axios from "axios";
+import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import LoginPage from "./components/ui/LoginPage";
@@ -10,13 +12,19 @@ import VideoUpload from "./components/ui/VideoUpload";
 import UserProfile from "./components/ui/UserProfile";
 import PrivateRoute from "./components/ui/PrivateRoute"; // ✅ Certifique-se de ter isso criado
 import TrilhasPage from "./components/ui/TrilhasPage"; // ✅ Adicionando o componente da rota
+import TrilhasForm from "./components/ui/TrilhasForm";
 import "./App.css";
 
 // Componente que gerencia as rotas privadas e a renderização principal
 function AppContent() {
-  const { user, isLoading } = useAuth();
   const [currentView, setCurrentView] = useState("dashboard");
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [isAddTrilhaOpen, setIsAddTrilhaOpen] = useState(false);
+  // === Estado global de trilhas ===
+  const [trilhas, setTrilhas] = useState([]);
+
+  const { user, accessToken, isLoading } = useAuth();
+  console.log("🔐 Auth user no AppContent:", user);
 
   if (isLoading) {
     return (
@@ -55,6 +63,7 @@ function AppContent() {
           <Dashboard
             onCourseSelect={handleCourseSelect}
             onSmartPlayerOpen={handleSmartPlayerOpen}
+            trilhas={trilhas}
           />
         );
       case "video":
@@ -83,6 +92,7 @@ function AppContent() {
           <Dashboard
             onCourseSelect={handleCourseSelect}
             onSmartPlayerOpen={handleSmartPlayerOpen}
+            trilhas={trilhas}
           />
         );
     }
@@ -91,9 +101,53 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-black text-white">
       {currentView !== "video" && currentView !== "smartVideo" && (
-        <Navbar currentView={currentView} onViewChange={setCurrentView} />
+        <Navbar
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          onAddTrilha={() => setIsAddTrilhaOpen(true)}
+        />
       )}
       {renderCurrentView()}
+
+      {/* Modal de Adicionar Trilhas */}
+      {isAddTrilhaOpen && (
+        <TrilhasForm
+          onClose={() => setIsAddTrilhaOpen(false)}
+          //NESTTTT
+          //onSubmit={(data) => {
+          //console.log("Dados da nova trilha:", data);
+          //setIsAddTrilhaOpen(false);
+          // Aqui você pode chamar sua API NestJS para salvar
+          //}}
+          onSubmit={async (data) => {
+            try {
+              const formData = new FormData();
+              formData.append("title", data.title);
+              formData.append("description", data.description);
+              formData.append("videoUrl", data.videoUrl);
+              formData.append("coverHorizontal", data.coverHorizontal);
+
+              const response = await axios.post(
+                "http://localhost:3001/videos",
+                formData,
+                {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                    Authorization: `Bearer ${accessToken}`,
+                  },
+                }
+              );
+
+              const newTrilha = response.data;
+
+              setTrilhas((prev) => [...prev, newTrilha]);
+              setIsAddTrilhaOpen(false);
+            } catch (err) {
+              console.error("Erro ao salvar trilha:", err.response || err);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -116,16 +170,6 @@ function App() {
             element={
               <PrivateRoute>
                 <AppContent />
-              </PrivateRoute>
-            }
-          />
-
-          {/* Página de trilhas */}
-          <Route
-            path="/trilhas"
-            element={
-              <PrivateRoute>
-                <TrilhasPage />
               </PrivateRoute>
             }
           />

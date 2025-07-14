@@ -1,14 +1,29 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Play, BookOpen, Award, Clock, TrendingUp, ChevronRight, Video, Upload } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from "react";
+import TrilhasForm from "@/components/ui/TrilhasForm";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  Play,
+  BookOpen,
+  Award,
+  Clock,
+  TrendingUp,
+  ChevronRight,
+  Video,
+  Upload,
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
-const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
+const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
+  //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, isLoading } = useAuth();
   const [hoveredCourse, setHoveredCourse] = useState(null);
+
+  // --- Estado para trilhas do usuário ---
+  //const [trilhas, setTrilhas] = useState([]);
+  //const [isTrilhaFormOpen, setIsTrilhaFormOpen] = useState(false);
 
   // Mostrar loading enquanto carrega os dados do usuário
   if (isLoading) {
@@ -24,119 +39,154 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
 
   // Dados padrão caso user seja null
   const userData = user || {
-    name: 'Usuário',
-    discProfile: { predominant: 'Conforme' },
-    progress: { currentProgress: 0 }
+    name: "Usuário",
+    discProfile: { predominant: "Conforme" },
+    progress: { currentProgress: 0 },
   };
 
   // Protegendo acesso aos campos de DISC e progresso
-  const predominant     = userData.discProfile?.predominant  ?? 'Conforme';
-  const currentProgress = userData.progress?.currentProgress   ?? 0;
+  const predominant = userData.discProfile?.predominant ?? "Conforme";
+  const currentProgress = userData.progress?.currentProgress ?? 0;
 
   const recommendedCourses = [
     {
       id: 1,
-      title: 'Liderança Estratégica',
-      instructor: 'Bruno Nardon',
-      duration: '45 min',
-      thumbnail: '/api/placeholder/300/200',
-      category: 'Liderança',
-      level: 'Avançado',
-      description: 'Desenvolva habilidades de liderança estratégica para impulsionar sua carreira e equipe.',
-      rating: '4.8'
+      title: "Liderança Estratégica",
+      instructor: "Bruno Nardon",
+      duration: "45 min",
+      thumbnail: "/api/placeholder/300/200",
+      category: "Liderança",
+      level: "Avançado",
+      description:
+        "Desenvolva habilidades de liderança estratégica para impulsionar sua carreira e equipe.",
+      rating: "4.8",
     },
     {
       id: 2,
-      title: 'Gestão de Pessoas',
-      instructor: 'Sofia Esteves',
-      duration: '32 min',
-      thumbnail: '/api/placeholder/300/200',
-      category: 'Gestão',
-      level: 'Intermediário',
-      description: 'Aprenda técnicas eficazes para gerenciar equipes e maximizar a produtividade.',
-      rating: '4.7'
+      title: "Gestão de Pessoas",
+      instructor: "Sofia Esteves",
+      duration: "32 min",
+      thumbnail: "/api/placeholder/300/200",
+      category: "Gestão",
+      level: "Intermediário",
+      description:
+        "Aprenda técnicas eficazes para gerenciar equipes e maximizar a produtividade.",
+      rating: "4.7",
     },
     {
       id: 3,
-      title: 'Análise de Dados',
-      instructor: 'Carlos Silva',
-      duration: '28 min',
-      thumbnail: '/api/placeholder/300/200',
-      category: 'Tecnologia',
-      level: 'Básico',
-      description: 'Fundamentos de análise de dados para tomada de decisões estratégicas.',
-      rating: '4.6'
+      title: "Análise de Dados",
+      instructor: "Carlos Silva",
+      duration: "28 min",
+      thumbnail: "/api/placeholder/300/200",
+      category: "Tecnologia",
+      level: "Básico",
+      description:
+        "Fundamentos de análise de dados para tomada de decisões estratégicas.",
+      rating: "4.6",
     },
     {
       id: 4,
-      title: 'Negociação Avançada',
-      instructor: 'Ana Costa',
-      duration: '38 min',
-      thumbnail: '/api/placeholder/300/200',
-      category: 'Vendas',
-      level: 'Avançado',
-      description: 'Técnicas avançadas de negociação para fechar melhores acordos.',
-      rating: '4.9'
+      title: "Negociação Avançada",
+      instructor: "Ana Costa",
+      duration: "38 min",
+      thumbnail: "/api/placeholder/300/200",
+      category: "Vendas",
+      level: "Avançado",
+      description:
+        "Técnicas avançadas de negociação para fechar melhores acordos.",
+      rating: "4.9",
     },
     {
       id: 5,
-      title: 'Marketing Digital',
-      instructor: 'Pedro Santos',
-      duration: '42 min',
-      thumbnail: '/api/placeholder/300/200',
-      category: 'Marketing',
-      level: 'Intermediário',
-      description: 'Estratégias modernas de marketing digital para aumentar sua presença online.',
-      rating: '4.5'
-    }
+      title: "Marketing Digital",
+      instructor: "Pedro Santos",
+      duration: "42 min",
+      thumbnail: "/api/placeholder/300/200",
+      category: "Marketing",
+      level: "Intermediário",
+      description:
+        "Estratégias modernas de marketing digital para aumentar sua presença online.",
+      rating: "4.5",
+    },
   ];
 
   const continueWatching = [
     {
       id: 6,
-      title: 'Planejamento Estratégico',
-      instructor: 'Tallis Gomes',
+      title: "Planejamento Estratégico",
+      instructor: "Tallis Gomes",
       progress: 65,
-      thumbnail: '/api/placeholder/300/200',
-      timeLeft: '15 min restantes',
-      description: 'Metodologias de planejamento estratégico para organizações.',
-      rating: '4.8'
+      thumbnail: "/api/placeholder/300/200",
+      timeLeft: "15 min restantes",
+      description:
+        "Metodologias de planejamento estratégico para organizações.",
+      rating: "4.8",
     },
     {
       id: 7,
-      title: 'Comunicação Eficaz',
-      instructor: 'Maria Silva',
+      title: "Comunicação Eficaz",
+      instructor: "Maria Silva",
       progress: 30,
-      thumbnail: '/api/placeholder/300/200',
-      timeLeft: '25 min restantes',
-      description: 'Desenvolva habilidades de comunicação para liderar com eficácia.',
-      rating: '4.7'
+      thumbnail: "/api/placeholder/300/200",
+      timeLeft: "25 min restantes",
+      description:
+        "Desenvolva habilidades de comunicação para liderar com eficácia.",
+      rating: "4.7",
     },
     {
       id: 8,
-      title: 'Inovação Empresarial',
-      instructor: 'João Oliveira',
+      title: "Inovação Empresarial",
+      instructor: "João Oliveira",
       progress: 85,
-      thumbnail: '/api/placeholder/300/200',
-      timeLeft: '8 min restantes',
-      description: 'Como implementar inovação em ambientes corporativos.',
-      rating: '4.6'
-    }
+      thumbnail: "/api/placeholder/300/200",
+      timeLeft: "8 min restantes",
+      description: "Como implementar inovação em ambientes corporativos.",
+      rating: "4.6",
+    },
   ];
 
   const getDiscColor = (profile) => {
     const colors = {
-      'Dominante': 'bg-red-500',
-      'Influente': 'bg-green-500',
-      'Estável': 'bg-blue-500',
-      'Conforme': 'bg-orange-500'
+      Dominante: "bg-red-500",
+      Influente: "bg-green-500",
+      Estável: "bg-blue-500",
+      Conforme: "bg-orange-500",
     };
-    return colors[profile] || 'bg-gray-500';
+    return colors[profile] || "bg-gray-500";
   };
 
   const handleCourseClick = (course) => {
     onCourseSelect?.(course);
   };
+
+  // Abre o form de nova trilha
+  //const handleAddTrilha = () => {
+  //setIsTrilhaFormOpen(true);
+  //};
+
+  // Fecha sem salvar
+  //const handleTrilhaClose = () => {
+  //setIsTrilhaFormOpen(false);
+  //};
+
+  // Recebe os dados do form e adiciona ao array de trilhas
+  //const handleTrilhaSubmit = (novaTrilha) => {
+  //setTrilhas((old) => [
+  //...old,
+  //{
+  //id: Date.now().toString(),
+  //title: novaTrilha.title,
+  //instructor: novaTrilha.instructor || "Comunidade",
+  //duration: "—",
+  //level: "Básico",
+  //category: "Trilha",
+  //coverHorizontal: novaTrilha.coverHorizontal,
+  //videoUrl: novaTrilha.videoUrl,
+  //},
+  //]);
+  //setIsTrilhaFormOpen(false);
+  //};
 
   return (
     <div className="min-h-screen bg-white pt-20">
@@ -146,11 +196,15 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Olá, {userData.name.split(' ')[0]}!
+                Olá, {userData.name.split(" ")[0]}!
               </h1>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <div className={`w-6 h-6 ${getDiscColor(predominant)} rounded-full flex items-center justify-center`}>
+                  <div
+                    className={`w-6 h-6 ${getDiscColor(
+                      predominant
+                    )} rounded-full flex items-center justify-center`}
+                  >
                     <span className="text-white text-xs font-bold">
                       {predominant.charAt(0)}
                     </span>
@@ -168,8 +222,12 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Progresso Geral</p>
-                  <p className="text-3xl font-bold text-gray-900">{currentProgress}%</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Progresso Geral
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {currentProgress}%
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-white" />
@@ -183,12 +241,16 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Próximo Conteúdo</p>
-                  <p className="text-lg font-semibold text-gray-900">Liderança Estratégica</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Próximo Conteúdo
+                  </p>
+                  <p className="text-lg font-semibold text-gray-900">
+                    Liderança Estratégica
+                  </p>
                   <p className="text-sm text-gray-500">45 min</p>
                 </div>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   className="bg-black hover:bg-gray-800"
                   onClick={() => handleCourseClick(recommendedCourses[0])}
                 >
@@ -202,7 +264,9 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Meta Semanal</p>
+                  <p className="text-sm font-medium text-gray-600">
+                    Meta Semanal
+                  </p>
                   <p className="text-3xl font-bold text-gray-900">4/5</p>
                   <p className="text-sm text-gray-500">dias de estudo</p>
                 </div>
@@ -224,8 +288,12 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
                     <Video className="w-8 h-8 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">Smart Player</h3>
-                    <p className="text-gray-600 mb-2">Faça upload e reproduza seus próprios vídeos educacionais</p>
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">
+                      Smart Player
+                    </h3>
+                    <p className="text-gray-600 mb-2">
+                      Faça upload e reproduza seus próprios vídeos educacionais
+                    </p>
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <span className="flex items-center">
                         <Upload className="w-4 h-4 mr-1" />
@@ -242,7 +310,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
                     </div>
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={onSmartPlayerOpen}
                   className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3"
                 >
@@ -257,12 +325,14 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
         {/* Recommended Courses */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Recomendado para você</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Recomendado para você
+            </h2>
             <Button variant="ghost" className="text-gray-600 hover:text-black">
               Ver todos <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
-          
+
           <div className="flex space-x-4 overflow-x-auto pb-4">
             {recommendedCourses.map((course) => (
               <div
@@ -282,8 +352,8 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
                     </div>
                     {hoveredCourse === course.id && (
                       <div className="absolute inset-0 bg-black bg-opacity-50 rounded-t-lg flex items-center justify-center">
-                        <Button 
-                          size="lg" 
+                        <Button
+                          size="lg"
                           className="bg-white text-black hover:bg-gray-100"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -297,12 +367,18 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
                     )}
                   </div>
                   <CardContent className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-1">{course.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">Por {course.instructor}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1">
+                      {course.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Por {course.instructor}
+                    </p>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-500">{course.duration}</span>
+                        <span className="text-sm text-gray-500">
+                          {course.duration}
+                        </span>
                       </div>
                       <Badge variant="secondary" className="text-xs">
                         {course.level}
@@ -315,19 +391,81 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
           </div>
         </section>
 
+        {/* Recommended Courses */}
+        {/* Suas Trilhas Cadastradas */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Suas Trilhas</h2>
+            <Button variant="ghost" className="text-gray-600 hover:text-black">
+              Ver todas <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+
+          <div className="flex space-x-4 overflow-x-auto pb-4">
+            {trilhas.length > 0 ? (
+              trilhas.map((t) => (
+                <div
+                  key={t.id}
+                  className="flex-none w-72 group cursor-pointer"
+                  onMouseEnter={() => setHoveredCourse(t.id)}
+                  onMouseLeave={() => setHoveredCourse(null)}
+                  onClick={() => handleCourseClick(t)}
+                >
+                  <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                    <div
+                      className="w-full h-40 bg-cover rounded-t-lg"
+                      style={{
+                        backgroundImage: t.coverHorizontalUrl
+                          ? `url(http://localhost:3001${t.coverHorizontalUrl})`
+                          : `url(/api/placeholder/300/200)`, // fallback para placeholder
+                      }}
+                    />
+
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        {t.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Por {t.instructor}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-500">
+                            {t.duration}
+                          </span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {t.level}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">
+                Você ainda não adicionou nenhuma trilha.
+              </p>
+            )}
+          </div>
+        </section>
+
         {/* Continue Watching */}
         <section>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Continue assistindo</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Continue assistindo
+            </h2>
             <Button variant="ghost" className="text-gray-600 hover:text-black">
               Ver todos <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {continueWatching.map((course) => (
-              <Card 
-                key={course.id} 
+              <Card
+                key={course.id}
                 className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
                 onClick={() => handleCourseClick(course)}
               >
@@ -335,18 +473,27 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
                   <div className="w-full h-32 bg-gray-800 rounded-t-lg flex items-center justify-center">
                     <div className="text-center text-white">
                       <Play className="w-8 h-8 mx-auto mb-1 opacity-60" />
-                      <p className="text-xs opacity-80">{course.progress}% concluído</p>
+                      <p className="text-xs opacity-80">
+                        {course.progress}% concluído
+                      </p>
                     </div>
                   </div>
                   <div className="absolute bottom-0 left-0 right-0">
-                    <Progress value={course.progress} className="h-1 rounded-none" />
+                    <Progress
+                      value={course.progress}
+                      className="h-1 rounded-none"
+                    />
                   </div>
                 </div>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-1">{course.title}</h3>
-                  <p className="text-sm text-gray-600 mb-2">Por {course.instructor}</p>
+                  <h3 className="font-semibold text-gray-900 mb-1">
+                    {course.title}
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Por {course.instructor}
+                  </p>
                   <p className="text-xs text-gray-500">{course.timeLeft}</p>
-                  <Button 
+                  <Button
                     className="w-full mt-3 bg-black hover:bg-gray-800"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -366,4 +513,3 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen }) => {
 };
 
 export default Dashboard;
-

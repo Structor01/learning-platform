@@ -13,6 +13,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [accessToken, setAccessToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -25,8 +26,10 @@ export const AuthProvider = ({ children }) => {
     // Se não tiver token, forçamos user para null
     if (savedUser && accessToken) {
       setUser(JSON.parse(savedUser));
+      setAccessToken(accessToken);
     } else {
       setUser(null);
+      setAccessToken(null);
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
@@ -53,6 +56,7 @@ export const AuthProvider = ({ children }) => {
 
     const data = await response.json();
     setUser(data.user);
+    setAccessToken(data.access_token);
     localStorage.setItem("user", JSON.stringify(data.user));
     localStorage.setItem("accessToken", data.access_token);
     localStorage.setItem("refreshToken", data.refresh_token);
@@ -78,6 +82,7 @@ export const AuthProvider = ({ children }) => {
 
     const data = await response.json();
     setUser(data.user);
+    setAccessToken(data.access_token);
     localStorage.setItem("user", JSON.stringify(data.user));
     localStorage.setItem("accessToken", data.access_token);
     localStorage.setItem("refreshToken", data.refresh_token);
@@ -112,6 +117,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    accessToken,
     isLoading,
     login,
     signup,
