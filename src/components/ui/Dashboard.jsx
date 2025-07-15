@@ -217,7 +217,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -276,10 +276,10 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
 
         {/* Smart Player Section */}
-        <section className="mb-8">
+        {/* <section className="mb-8">
           <Card className="border-2 border-blue-500 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-r from-blue-50 to-cyan-50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -320,7 +320,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
               </div>
             </CardContent>
           </Card>
-        </section>
+        </section> */}
 
         {/* Vídeo Externo (tamanho aumentado) */}
         <section className="mb-12">
