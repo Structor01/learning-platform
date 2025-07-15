@@ -13,6 +13,11 @@ import UserProfile from "./components/ui/UserProfile";
 import PrivateRoute from "./components/ui/PrivateRoute"; // ✅ Certifique-se de ter isso criado
 import TrilhasPage from "./components/ui/TrilhasPage"; // ✅ Adicionando o componente da rota
 import TrilhasForm from "./components/ui/TrilhasForm";
+import TrilhaPreviewModal from "./components/ui/TrilhaPreviewModal";
+import ForgotPassword from "./components/ui/ForgotPassword"; // ajuste o caminho conforme seu projeto
+import ResetPassword from './components/ui/ResetPassword'; // ajuste o caminho conforme seu projeto
+
+
 import "./App.css";
 
 // Componente que gerencia as rotas privadas e a renderização principal
@@ -23,8 +28,25 @@ function AppContent() {
   // === Estado global de trilhas ===
   const [trilhas, setTrilhas] = useState([]);
 
+  const [previewTrilha, setPreviewTrilha] = useState(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
   const { user, accessToken, isLoading } = useAuth();
   console.log("🔐 Auth user no AppContent:", user);
+
+  useEffect(() => {
+    if (!accessToken) return;
+    axios
+      .get("http://localhost:3001/videos", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      .then((res) => {
+        setTrilhas(res.data);
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar trilhas:", err.response || err);
+      });
+  }, [accessToken]);
 
   if (isLoading) {
     return (
@@ -38,8 +60,10 @@ function AppContent() {
   }
 
   const handleCourseSelect = (course) => {
-    setSelectedCourse(course);
-    setCurrentView("video");
+    // em vez de navegar para o vídeo,
+    // guardamos a trilha e abrimos o modal de preview
+    setPreviewTrilha(course);
+    setIsPreviewOpen(true);
   };
 
   const handleSmartPlayerOpen = () => {
@@ -109,6 +133,18 @@ function AppContent() {
       )}
       {renderCurrentView()}
 
+      {/* Modal de Preview */}
+      <TrilhaPreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        trilha={previewTrilha}
+        onAccess={(t) => {
+          // futuramente navegar para a página de curso completo
+          setIsPreviewOpen(false);
+          // ex: navigate(`/trilha/${t.id}`)
+        }}
+      />
+
       {/* Modal de Adicionar Trilhas */}
       {isAddTrilhaOpen && (
         <TrilhasForm
@@ -173,6 +209,8 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Catch-all: redireciona para "/" */}
           <Route path="*" element={<Navigate to="/" replace />} />

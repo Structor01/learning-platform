@@ -12,7 +12,6 @@ import {
 import { Search, User, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-
 const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,7 +54,11 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <span className="text-black text-lg font-bold">G</span>
+              <img
+                src="/2.png"
+                alt="Logo da empresa"
+                className="w-full h-full object-contain"
+              />
             </div>
             <span className="text-xl font-semibold hidden sm:block">
               GSkills

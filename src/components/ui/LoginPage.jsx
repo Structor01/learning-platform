@@ -1,37 +1,37 @@
 // src/components/ui/LoginPage.jsx
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrorMsg('');
+    setErrorMsg("");
 
     try {
       await login(email, password);
-      navigate('/Dashboard');
+      navigate("/Dashboard");
     } catch (error) {
-      console.error('Erro no login:', error);
-      setErrorMsg(error.message || 'Falha no login');
+      console.error("Erro no login:", error);
+      setErrorMsg(error.message || "Falha no login");
     } finally {
       setIsLoading(false);
     }
   };
 
   const goToSignup = () => {
-    navigate('/signup');
+    navigate("/signup");
   };
 
   return (
@@ -41,10 +41,16 @@ const LoginPage = () => {
           {/* Cabeçalho */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl font-bold text-black">G</span>
+              <img
+                src="/1.png"
+                alt="Logo da empresa"
+                className="w-full h-full object-contain"
+              />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2">GSkills</h1>
-            <p className="text-white/70">Aprendizado personalizado para sua carreira</p>
+            <h1 className="text-2xl font-bold text-white mb-2">AgroSkills</h1>
+            <p className="text-white/70">
+              Aprendizado personalizado para sua carreira
+            </p>
           </div>
 
           {/* Formulário */}
@@ -74,7 +80,7 @@ const LoginPage = () => {
               disabled={isLoading}
               className="w-full bg-white text-black hover:bg-white/90 font-medium py-3"
             >
-              {isLoading ? 'Entrando...' : 'Sign In'}
+              {isLoading ? "Entrando..." : "Sign In"}
             </Button>
 
             {/* Opções extras */}
@@ -84,11 +90,15 @@ const LoginPage = () => {
                 onClick={goToSignup}
                 className="text-white/90 hover:text-white text-sm"
               >
-                Não tem uma conta? <span className="underline">Cadastre-se</span>
+                Não tem uma conta?{" "}
+                <span className="underline">Cadastre-se</span>
               </button>
 
               <div>
-                <a href="#" className="text-white/70 hover:text-white text-sm">
+                <a
+                  href="/forgot-password"
+                  className="text-white/70 hover:text-white text-sm"
+                >
                   Forgot password?
                 </a>
               </div>

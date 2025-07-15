@@ -322,6 +322,23 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
           </Card>
         </section>
 
+        {/* Vídeo Externo (tamanho aumentado) */}
+        <section className="mb-12">
+          <div className="w-full max-w-5xl mx-auto">
+            <div className="w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/HJtbkEWrKp8?si=t4vSbpwyGHjuWQlJ"
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </section>
+
         {/* Recommended Courses */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
@@ -409,7 +426,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
                   className="flex-none w-72 group cursor-pointer"
                   onMouseEnter={() => setHoveredCourse(t.id)}
                   onMouseLeave={() => setHoveredCourse(null)}
-                  onClick={() => handleCourseClick(t)}
+                  onClick={() => onCourseSelect(t)}
                 >
                   <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                     <div
