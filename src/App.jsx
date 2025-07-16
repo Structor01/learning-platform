@@ -15,8 +15,8 @@ import TrilhasPage from "./components/ui/TrilhasPage"; // ✅ Adicionando o comp
 import TrilhasForm from "./components/ui/TrilhasForm";
 import TrilhaPreviewModal from "./components/ui/TrilhaPreviewModal";
 import ForgotPassword from "./components/ui/ForgotPassword"; // ajuste o caminho conforme seu projeto
-import ResetPassword from './components/ui/ResetPassword'; // ajuste o caminho conforme seu projeto
-
+import ResetPassword from "./components/ui/ResetPassword"; // ajuste o caminho conforme seu projeto
+import Conteudo from "./components/ui/Conteudo";
 
 import "./App.css";
 
@@ -196,22 +196,14 @@ function App() {
         <Routes>
           {/* Página inicial = Login */}
           <Route path="/" element={<LoginPage />} />
-
           {/* Página de cadastro */}
           <Route path="/signup" element={<SignUpPage />} />
-
           {/* Página de dashboard, protegida por autenticação */}
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <AppContent />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/dashboard"element={<PrivateRoute><AppContent /></PrivateRoute>}/>
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-
+          <Route path="/conteudo" element={<Conteudo />} />
+          <Route path="/conteudo/:id" element={<Conteudo />} />
           {/* Catch-all: redireciona para "/" */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

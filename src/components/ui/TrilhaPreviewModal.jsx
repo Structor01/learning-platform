@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { useNavigate } from 'react-router-dom'
 
 export default function TrilhaPreviewModal({
   isOpen,
@@ -9,10 +10,12 @@ export default function TrilhaPreviewModal({
   trilha,
   onAccess,
 }) {
+  const navigate = useNavigate();
+
   if (!isOpen || !trilha) return null;
 
   // URL de background padrão
-  let backgroundUrl = "/placeholder-ministrante.jpg";
+  let backgroundUrl = "/1.png";
   if (typeof trilha.instructorPhoto === "string" && trilha.instructorPhoto) {
     backgroundUrl = `http://localhost:3001${trilha.instructorPhoto}`;
   } else if (
@@ -51,13 +54,13 @@ export default function TrilhaPreviewModal({
             <div className="relative w-full max-w-3xl min-h-[50vh] p-0 rounded-lg overflow-hidden shadow-2xl">
               {/* Imagem de fundo como "cabeçalho" */}
               <div
-                className="w-full h-64 bg-cover bg-center"
+                className="w-full h-135 bg-cover bg-center bg-white"
                 style={{ backgroundImage: `url(${backgroundUrl})` }}
               />
               {/* Conteúdo branco */}
               <div className="p-8 bg-white text-gray-800">
                 <button
-                  className="absolute top-3 right-3 text-white hover:text-gray-200"
+                  className="absolute top-3 right-3 text-black hover:text-gray-200"
                   onClick={onClose}
                 >
                   <X size={24} />
@@ -72,6 +75,7 @@ export default function TrilhaPreviewModal({
                     onClick={() => {
                       onClose();
                       onAccess(trilha);
+                      navigate(`/conteudo/${trilha.id}`);
                     }}
                   >
                     Acessar agora

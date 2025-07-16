@@ -217,69 +217,76 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
         </div>
 
         {/* Stats Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Progresso Geral
-                  </p>
-                  <p className="text-3xl font-bold text-gray-900">
-                    {currentProgress}%
-                  </p>
+        <section className="mb-8">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-4 flex flex-wrap justify-center gap-10 mb-8">
+            {/* Card 1 */}
+            <Card className="w-92 h-56 border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
+              <CardContent className="p-6 flex-1 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      Progresso Geral
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900">
+                      {currentProgress}%
+                    </p>
+                  </div>
+                  <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
                 </div>
-                <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-              </div>
-              <Progress value={currentProgress} className="mt-4" />
-            </CardContent>
-          </Card>
+                <Progress value={currentProgress} className="mt-4" />
+              </CardContent>
+            </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Próximo Conteúdo
-                  </p>
-                  <p className="text-lg font-semibold text-gray-900">
-                    Liderança Estratégica
-                  </p>
-                  <p className="text-sm text-gray-500">45 min</p>
+            {/* Card 2 */}
+            <Card className="w-92 h-56 border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
+              <CardContent className="p-6 flex-1 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      Próximo Conteúdo
+                    </p>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {recommendedCourses[0].title}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {recommendedCourses[0].duration}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-black hover:bg-gray-800"
+                    onClick={() => handleCourseClick(recommendedCourses[0])}
+                  >
+                    <Play className="w-4 h-4" />
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  className="bg-black hover:bg-gray-800"
-                  onClick={() => handleCourseClick(recommendedCourses[0])}
-                >
-                  <Play className="w-4 h-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Meta Semanal
-                  </p>
-                  <p className="text-3xl font-bold text-gray-900">4/5</p>
-                  <p className="text-sm text-gray-500">dias de estudo</p>
+            {/* Card 3 */}
+            <Card className="w-92 h-56 border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
+              <CardContent className="p-6 flex-1 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      Meta Semanal
+                    </p>
+                    <p className="text-3xl font-bold text-gray-900">4/5</p>
+                    <p className="text-sm text-gray-500">dias de estudo</p>
+                  </div>
+                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                    <Award className="w-6 h-6 text-white" />
+                  </div>
                 </div>
-                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                  <Award className="w-6 h-6 text-white" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div> */}
+              </CardContent>
+            </Card>
+          </div>
+        </section>
 
         {/* Smart Player Section */}
-        {/* <section className="mb-8">
+        <section className="mb-8">
           <Card className="border-2 border-blue-500 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-r from-blue-50 to-cyan-50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -320,23 +327,6 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
               </div>
             </CardContent>
           </Card>
-        </section> */}
-
-        {/* Vídeo Externo (tamanho aumentado) */}
-        <section className="mb-12">
-          <div className="w-full max-w-5xl mx-auto">
-            <div className="w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
-              <iframe
-                className="w-full h-full"
-                src="https://www.youtube.com/embed/HJtbkEWrKp8?si=t4vSbpwyGHjuWQlJ"
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
-            </div>
-          </div>
         </section>
 
         {/* Recommended Courses */}
