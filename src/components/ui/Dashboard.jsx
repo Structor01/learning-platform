@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState } from 'react';
 import TrilhasForm from "@/components/ui/TrilhasForm";
+import WelcomeAnimation from "@/components/ui/WelcomeAnimation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -20,10 +21,16 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, isLoading } = useAuth();
   const [hoveredCourse, setHoveredCourse] = useState(null);
+  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(true);
 
   // --- Estado para trilhas do usuário ---
   //const [trilhas, setTrilhas] = useState([]);
   //const [isTrilhaFormOpen, setIsTrilhaFormOpen] = useState(false);
+
+  // Função para completar a animação de boas-vindas
+  const handleWelcomeComplete = () => {
+    setShowWelcomeAnimation(false);
+  };
 
   // Mostrar loading enquanto carrega os dados do usuário
   if (isLoading) {
@@ -189,7 +196,16 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
   //};
 
   return (
-    <div className="min-h-screen bg-white pt-20">
+    <>
+      {/* Animação de Boas-vindas */}
+      {showWelcomeAnimation && (
+        <WelcomeAnimation 
+          userName={userData.name.split(" ")[0]} 
+          onComplete={handleWelcomeComplete}
+        />
+      )}
+      
+      <div className="min-h-screen bg-white pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
@@ -516,6 +532,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
         </section>
       </div>
     </div>
+    </>
   );
 };
 
