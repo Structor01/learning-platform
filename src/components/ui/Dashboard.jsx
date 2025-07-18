@@ -17,10 +17,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
+const Dashboard = ({ onCourseSelect, trilhas = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, isLoading } = useAuth();
-  const [hoveredCourse, setHoveredCourse] = useState(null);
+  const [setHoveredCourse] = useState(null);
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(true);
 
   // --- Estado para trilhas do usuário ---
@@ -310,34 +310,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
             </Card>
           </div>
         </section>
-
-        {/* Última Aula - Nova Seção */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">
-              Última Aula
-            </h2>
-          </div>
-          
-          <div className="relative">
-            <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
-              <iframe
-                src="https://www.youtube.com/embed/DogH89e7Ib0"
-                title="Última Aula - AgroSkills"
-                className="w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </div>
-            <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-sm">
-              🔴 AO VIVO
-            </div>
-          </div>
-        </section>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-3 md:grid-cols-3 gap-6 mb-8">
           <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -370,9 +343,9 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
                   <p className="text-sm text-gray-500">45 min</p>
                 </div>
                 <Button
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={() => handleCourseClick(recommendedCourses[0])}
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => handleCourseClick(recommendedCourses[0])}
                 >
                   <Play className="w-4 h-4" />
                 </Button>
@@ -398,135 +371,32 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
           </Card>
         </div>
 
-        {/* Smart Player Section */}
-        <section className="mb-8">
-          <Card className="border-2 border-blue-500 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-r from-blue-50 to-cyan-50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center">
-                    <Video className="w-8 h-8 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-1">
-                      Smart Player
-                    </h3>
-                    <p className="text-gray-600 mb-2">
-                      Faça upload e reproduza seus próprios vídeos educacionais
-                    </p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
-                      <span className="flex items-center">
-                        <Upload className="w-4 h-4 mr-1" />
-                        Upload seguro
-                      </span>
-                      <span className="flex items-center">
-                        <Play className="w-4 h-4 mr-1" />
-                        Player protegido
-                      </span>
-                      <span className="flex items-center">
-                        <Clock className="w-4 h-4 mr-1" />
-                        Anti-pirataria
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  onClick={onSmartPlayerOpen}
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3"
-                >
-                  <Video className="w-4 h-4 mr-2" />
-                  Abrir Smart Player
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* Vídeo Externo (tamanho aumentado) */}
+        {/* Última Aula - Nova Seção */}
         <section className="mb-12">
-          <div className="w-full max-w-5xl mx-auto">
-            <div className="w-full h-64 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">
+              Última Aula
+            </h2>
+          </div>
+          
+          <div className="relative">
+            <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
               <iframe
+                src="https://www.youtube.com/embed/DogH89e7Ib0"
+                title="Última Aula - AgroSkills"
                 className="w-full h-full"
-                src="https://www.youtube.com/embed/HJtbkEWrKp8?si=t4vSbpwyGHjuWQlJ"
-                title="YouTube video player"
                 frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
-              />
+              ></iframe>
+            </div>
+            <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-sm">
+              🔴 AO VIVO
             </div>
           </div>
         </section>
 
-        {/* Recommended Courses */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">
-              Recomendado para você
-            </h2>
-            <Button variant="ghost" className="text-gray-300 hover:text-white">
-              Ver todos <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendedCourses.map((course) => (
-              <div
-                key={course.id}
-                className="group cursor-pointer"
-                onMouseEnter={() => setHoveredCourse(course.id)}
-                onMouseLeave={() => setHoveredCourse(null)}
-                onClick={() => handleCourseClick(course)}
-              >
-                <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105">
-                  <div className="relative">
-                    <div className="w-full h-40 bg-gray-800 rounded-t-lg flex items-center justify-center">
-                      <div className="text-center text-white">
-                        <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-60" />
-                        <p className="text-sm opacity-80">{course.category}</p>
-                      </div>
-                    </div>
-                    {hoveredCourse === course.id && (
-                      <div className="absolute inset-0 bg-black bg-opacity-50 rounded-t-lg flex items-center justify-center">
-                        <Button
-                          size="lg"
-                          className="bg-green-600 text-white hover:bg-green-700"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCourseClick(course);
-                          }}
-                        >
-                          <Play className="w-5 h-5 mr-2" />
-                          Assistir
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-white mb-1">
-                      {course.title}
-                    </h3>
-                    <p className="text-sm text-gray-400 mb-2">
-                      Por {course.instructor}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm text-gray-400">
-                          {course.duration}
-                        </span>
-                      </div>
-                      <Badge variant="secondary" className="text-xs bg-gray-700 text-gray-300">
-                        {course.level}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            ))}
-          </div>
-        </section>
+        {/* Stats Cards */}
 
         {/* Recommended Courses */}
         {/* Suas Trilhas Cadastradas */}
@@ -585,142 +455,6 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen, trilhas = [] }) => {
                 Você ainda não adicionou nenhuma trilha.
               </p>
             )}
-          </div>
-        </section>
-
-        {/* Biblioteca de Aplicativos */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Biblioteca de Aplicativos
-            </h2>
-            <Button variant="ghost" className="text-gray-600 hover:text-black">
-              Ver todos <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {/* Meu Cartão Virtual */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V4a2 2 0 114 0v2m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-6 0" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Meu Cartão Virtual</h3>
-                <p className="text-sm text-gray-600">Crie e compartilhe seu cartão de visita digital</p>
-              </CardContent>
-            </Card>
-
-            {/* Agenda de Eventos */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Agenda de Eventos</h3>
-                <p className="text-sm text-gray-600">Gerencie seus eventos e compromissos</p>
-              </CardContent>
-            </Card>
-
-            {/* Entrevista Simulada */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Entrevista Simulada</h3>
-                <p className="text-sm text-gray-600">Pratique suas habilidades de entrevista</p>
-              </CardContent>
-            </Card>
-
-            {/* Video Pitch */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Video Pitch</h3>
-                <p className="text-sm text-gray-600">Grave e compartilhe seu pitch profissional</p>
-              </CardContent>
-            </Card>
-
-            {/* Meus Testes */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-pointer">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                  </svg>
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Meus Testes</h3>
-                <p className="text-sm text-gray-600">Acesse seus testes e avaliações</p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Continue Watching */}
-        <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">
-              Continue assistindo
-            </h2>
-            <Button variant="ghost" className="text-gray-300 hover:text-white">
-              Ver todos <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {continueWatching.map((course) => (
-              <Card
-                key={course.id}
-                className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 group cursor-pointer"
-                onClick={() => handleCourseClick(course)}
-              >
-                <div className="relative">
-                  <div className="w-full h-32 bg-gray-800 rounded-t-lg flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <Play className="w-8 h-8 mx-auto mb-1 opacity-60" />
-                      <p className="text-xs opacity-80">
-                        {course.progress}% concluído
-                      </p>
-                    </div>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0">
-                    <Progress
-                      value={course.progress}
-                      className="h-1 rounded-none"
-                    />
-                  </div>
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-white mb-1">
-                    {course.title}
-                  </h3>
-                  <p className="text-sm text-gray-400 mb-2">
-                    Por {course.instructor}
-                  </p>
-                  <p className="text-xs text-gray-500">{course.timeLeft}</p>
-                  <Button
-                    className="w-full mt-3 bg-green-600 hover:bg-green-700"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCourseClick(course);
-                    }}
-                  >
-                    Continuar
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </section>
       </div>
