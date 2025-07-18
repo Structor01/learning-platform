@@ -41,8 +41,9 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
     const timer2 = setTimeout(() => setCurrentStep(2), 2500);
     const timer3 = setTimeout(() => setCurrentStep(3), 4000);
     const timer4 = setTimeout(() => setCurrentStep(4), 5500);
-    const timer5 = setTimeout(() => setShowConfiguration(true), 7000);
-    const timer6 = setTimeout(() => setShowGift(true), 10000);
+    const timer5 = setTimeout(() => setShowConfiguration(true), 6000);
+    const timer6 = setTimeout(() => setShowConfiguration(false), 9000);
+    const timer7 = setTimeout(() => setShowGift(true), 9500);
 
     return () => {
       clearTimeout(timer1);
@@ -51,6 +52,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
       clearTimeout(timer4);
       clearTimeout(timer5);
       clearTimeout(timer6);
+      clearTimeout(timer7);
     };
   }, []);
 
@@ -130,8 +132,13 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
               scale: showConfiguration ? 1 : 0,
               opacity: showConfiguration ? 1 : 0
             }}
+            exit={{ 
+              scale: 0,
+              opacity: 0,
+              y: -50
+            }}
             transition={{ 
-              duration: 0.8,
+              duration: 0.6,
               type: "spring",
               stiffness: 120,
               damping: 15
@@ -198,7 +205,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
                   <motion.div
                     initial={{ width: "0%" }}
                     animate={{ width: showConfiguration ? "100%" : "0%" }}
-                    transition={{ duration: 2.5, delay: 0.5 }}
+                    transition={{ duration: 2, delay: 0.3 }}
                     className="bg-gradient-to-r from-yellow-400 to-orange-400 h-2 rounded-full"
                   />
                 </div>
@@ -207,7 +214,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
                   <motion.span
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
-                    transition={{ delay: 1 }}
+                    transition={{ delay: 0.5 }}
                     className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
                   >
                     🎯 Personalizando conteúdo
@@ -215,7 +222,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
                   <motion.span
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
-                    transition={{ delay: 1.5 }}
+                    transition={{ delay: 1 }}
                     className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
                   >
                     🚀 Otimizando trilhas
@@ -223,7 +230,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
                   <motion.span
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
-                    transition={{ delay: 2 }}
+                    transition={{ delay: 1.5 }}
                     className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
                   >
                     ✨ Preparando surpresas
