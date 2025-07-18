@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {useRef, useState} from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,9 +9,10 @@ const TrilhaPage = () => {
   const [currentModule, setCurrentModule] = useState('boas-vindas');
   const [expandedModules, setExpandedModules] = useState(['boas-vindas']);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState('0:01');
+  const [currentTime, setCurrentTime] = useState('0:00');
   const [totalTime] = useState('3:20');
   const [activeTab, setActiveTab] = useState('descricao');
+  const videoRef = useRef(null);
 
   const trilhaData = {
     title: "Autoconhecimento para Aceleração de Carreiras",
@@ -110,59 +111,119 @@ const TrilhaPage = () => {
           <div className="lg:col-span-2">
             <Card className="bg-gray-900 border-gray-800 overflow-hidden">
               <CardContent className="p-0">
-                {/* Video Player */}
-                <div className="relative aspect-video bg-gradient-to-br from-green-600 to-green-800">
-                  {/* Placeholder for video - replace with actual video component */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4 mx-auto">
-                        {isPlaying ? (
-                          <Pause className="w-8 h-8 text-white" />
-                        ) : (
-                          <Play className="w-8 h-8 text-white ml-1" />
-                        )}
-                      </div>
-                      <p className="text-white text-lg">Vídeo: Boas Vindas</p>
+                {/* Container principal com group para hover */}
+                <div className="relative aspect-video bg-gradient-to-br from-green-600 to-green-800 group">
+
+                  {/* Vídeo sem controles nativos */}
+                  <video
+                      ref={videoRef}
+                      className="w-full h-full object-cover"
+                      poster="https://img.youtube.com/vi/DogH89e7Ib0/hqdefault.jpg"
+                      preload="metadata"
+                      src="https://d1u9wzo9e1p031.cloudfront.net/undefined/5d326a96-3536-44b8-9361-7387a15e5669/5d326a96-3536-44b8-9361-7387a15e5669.mp4#t=1"
+                      onPlay={() => setIsPlaying(true)}
+                      onPause={() => setIsPlaying(false)}
+                      onTimeUpdate={(e) => {
+                        const time = e.target.currentTime;
+                        const minutes = Math.floor(time / 60);
+                        const seconds = Math.floor(time % 60)
+                            .toString()
+                            .padStart(2, '0');
+                        setCurrentTime(`${minutes}:${seconds}`);
+                      }}
+                  />
+
+                  {/* Overlay de play/pause clicável */}
+                  <button
+                      type="button"
+                      onClick={() => {
+                        if (videoRef.current) {
+                          if (isPlaying) videoRef.current.pause();
+                          else videoRef.current.play();
+                        }
+                        setIsPlaying(!isPlaying);
+                      }}
+                      className="absolute inset-0 flex items-center justify-center pointer-events-auto transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+                  >
+                    <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center">
+                      {isPlaying ? (
+                          <Pause className="w-10 h-10 text-white" />
+                      ) : (
+                          <Play className="w-10 h-10 text-white ml-1" />
+                      )}
                     </div>
-                  </div>
-                  
-                  {/* Video Controls */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  </button>
+
+                  {/* Controles customizados */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-200 opacity-0 group-hover:opacity-100">
                     <div className="flex items-center justify-between text-white">
                       <div className="flex items-center space-x-4">
                         <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsPlaying(!isPlaying)}
-                          className="text-white hover:bg-white/20"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (videoRef.current)
+                                videoRef.current[isPlaying ? 'pause' : 'play']();
+                              setIsPlaying(!isPlaying);
+                            }}
+                            className="text-white hover:bg-white/20"
                         >
-                          {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                          {isPlaying ? (
+                              <Pause className="w-5 h-5" />
+                          ) : (
+                              <Play className="w-5 h-5" />
+                          )}
                         </Button>
-                        <span className="text-sm">{currentTime} / {totalTime}</span>
+                        <span className="text-sm">
+                            {currentTime} / {totalTime}
+                          </span>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2">
-                        <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-white hover:bg-white/20"
+                        >
                           <Volume2 className="w-5 h-5" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => videoRef.current?.requestFullscreen()}
+                            className="text-white hover:bg-white/20"
+                        >
                           <Maximize className="w-5 h-5" />
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-white hover:bg-white/20"
+                        >
                           <MoreHorizontal className="w-5 h-5" />
                         </Button>
                       </div>
                     </div>
-                    
-                    {/* Progress Bar */}
+
+                    {/* Barra de progresso dinâmica */}
                     <div className="w-full bg-white/20 rounded-full h-1 mt-3">
-                      <div className="bg-green-500 h-1 rounded-full" style={{ width: '5%' }}></div>
+                      <div
+                          className="bg-green-500 h-1 rounded-full"
+                          style={{
+                            width: `${
+                                ((parseFloat(currentTime.split(':')[0]) * 60 +
+                                        parseFloat(currentTime.split(':')[1])) /
+                                    (parseFloat(totalTime.split(':')[0]) * 60 +
+                                        parseFloat(totalTime.split(':')[1]))) *
+                                100
+                            }%`
+                          }}
+                      />
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
             {/* Lesson Info and Actions */}
             <div className="mt-6">
               <div className="flex items-center justify-between mb-4">
