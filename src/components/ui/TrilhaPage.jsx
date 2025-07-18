@@ -97,7 +97,9 @@ const TrilhaPage = () => {
         <nav className="flex items-center space-x-2 text-sm text-gray-400 mb-6">
           <span className="hover:text-white cursor-pointer">Início</span>
           <ChevronRight className="w-4 h-4" />
-          <span className="hover:text-white cursor-pointer">Conteúdos</span>
+          <span className="hover:text-white cursor-pointer">Trilhas</span>
+          <ChevronRight className="w-4 h-4" />
+          <span className="hover:text-white cursor-pointer">Autoconhecimento para Aceleração de Carreiras</span>
           <ChevronRight className="w-4 h-4" />
           <span className="text-white">Boas Vindas</span>
         </nav>

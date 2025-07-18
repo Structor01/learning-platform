@@ -29,9 +29,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
     console.log("Searching for:", searchQuery);
   };
 
-  const handleLogoClick = () => {
-    onViewChange("dashboard");
-  };
+  const handleLogoClick = () => window.location.href = '/Dashboard';
 
   const handleProfileClick = () => {
     onViewChange("profile");

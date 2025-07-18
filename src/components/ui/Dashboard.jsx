@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -19,14 +18,17 @@ import {
   Clipboard,
   CreditCard,
   BarChart3,
+    X
 } from "lucide-react";
 import WelcomeAnimation from "./WelcomeAnimation";
 import { useAuth } from "@/contexts/AuthContext";
+import {Progress} from "@radix-ui/react-progress";
 
-const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
+const Dashboard = ({ onCourseSelect = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, isLoading } = useAuth();
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
 
   // Verificar se é a primeira vez do usuário
   useEffect(() => {
@@ -89,12 +91,12 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
     <>
       {/* Animação de Boas-vindas */}
       {showWelcomeAnimation && (
-        <WelcomeAnimation 
-          userName={userData.name.split(" ")[0]} 
+        <WelcomeAnimation
+          userName={userData.name.split(" ")[0]}
           onComplete={handleWelcomeComplete}
         />
       )}
-      
+
       <div className="min-h-screen bg-black pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
@@ -119,7 +121,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
                 </div>
               </div>
             </div>
-            
+
             {/* Card Gestão de Carreira - Acesso Gratuito */}
             <div className="lg:!w-80 flex-shrink-0">
               <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-xl">
@@ -136,18 +138,18 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <h3 className="text-xl font-bold text-white mb-2">
                     Gestão de Carreira
                   </h3>
                   <p className="text-gray-400 text-sm mb-4 leading-relaxed">
                     Estratégias avançadas para acelerar sua carreira no agro
                   </p>
-                  
+
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500 text-sm">6 módulos</span>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       onClick={() => window.location.href = '/trilha'}
                       className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold"
                     >
@@ -406,28 +408,27 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
           </div>
         </section>
 
+
         {/* Última Aula - Nova Seção */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">
-              Última Aula
-            </h2>
+            <h2 className="text-2xl font-bold text-white">Última Aula</h2>
           </div>
-          
+
           <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
             <div className="flex md:flex-row">
-              {/* Thumbnail do vídeo */}
+              {/* Thumbnail estática */}
               <div className="md:w-1/3 relative">
-                <div className="aspect-video bg-gray-800 rounded-l-lg flex items-center justify-center">
-                  <div className="text-center text-white">
-                    <Play className="w-16 h-16 mx-auto mb-2 opacity-60" />
-                    <div className="absolute top-4 right-4 bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">
-                      🔴 AO VIVO
-                    </div>
-                  </div>
+                <img
+                    src="https://img.youtube.com/vi/DogH89e7Ib0/hqdefault.jpg"
+                    alt="Thumbnail Aulão"
+                    className="w-full aspect-video rounded-l-lg object-cover"
+                />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Play className="w-16 h-16 text-white opacity-75" />
                 </div>
               </div>
-              
+
               {/* Conteúdo da aula */}
               <div className="md:w-2/3 p-6">
                 <CardContent className="p-0">
@@ -435,11 +436,11 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
                     Aulão - Etapas de processo seletivo e sua carreira no Agro
                   </h3>
                   <p className="text-gray-300 mb-4 leading-relaxed">
-                    Neste aulão ao vivo, você vai descobrir todas as etapas do processo seletivo no agronegócio e como 
-                    construir uma carreira sólida no setor. Aprenda estratégias para se destacar em entrevistas, 
+                    Neste aulão ao vivo, você vai descobrir todas as etapas do processo seletivo no agronegócio e como
+                    construir uma carreira sólida no setor. Aprenda estratégias para se destacar em entrevistas,
                     desenvolver competências técnicas e comportamentais essenciais para o sucesso no agro.
                   </p>
-                  
+
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-4 text-sm text-gray-400">
                       <div className="flex items-center space-x-1">
@@ -447,24 +448,49 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
                         <span>45 min</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                          <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
                         </svg>
                         <span>Samantha Andrade</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                          <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
                         </svg>
                         <span>1.2k assistindo</span>
                       </div>
                     </div>
                   </div>
-                  
-                  <Button 
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-semibold"
-                    onClick={() => onSmartPlayerOpen && onSmartPlayerOpen('https://youtube.com/live/DogH89e7Ib0?feature=share')}
+
+                  <Button
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-semibold"
+                      onClick={() => setIsVideoOpen(true)}
                   >
                     <Play className="w-5 h-5 mr-2" />
                     Assistir Aula
@@ -474,6 +500,37 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
             </div>
           </Card>
         </section>
+
+        {/* Modal */}
+        {isVideoOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+              <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
+                <button
+                    className="absolute top-2 right-2 text-white p-1 rounded-full hover:bg-white/20"
+                    onClick={() => setIsVideoOpen(false)}
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                <div className="relative pb-[56.25%]">
+                  <iframe
+                      src="https://www.youtube.com/embed/DogH89e7Ib0"
+                      title="Aulão - Etapas de processo seletivo e sua carreira no Agro"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="absolute top-0 left-0 w-full h-full"
+                  />
+                </div>
+                <div className="p-4 flex justify-end">
+                  <Button
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                      onClick={() => setIsVideoOpen(false)}
+                  >
+                    Sair da aula
+                  </Button>
+                </div>
+              </div>
+            </div>
+        )}
       </div>
     </div>
     </>
