@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Forçar responsividade para biblioteca de aplicativos */
+@media (min-width: 640px) {
+  .biblioteca-apps {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .biblioteca-apps {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .biblioteca-apps {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .biblioteca-apps {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+}
+
