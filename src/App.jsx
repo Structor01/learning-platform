@@ -38,7 +38,7 @@ function AppContent() {
   useEffect(() => {
     if (!accessToken) return;
     axios
-      .get("http://localhost:3001/videos", {
+      .get("https://learning-platform-backend-2x39.onrender.com/videos", {
         headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((res) => {
@@ -165,7 +165,7 @@ function AppContent() {
               formData.append("coverHorizontal", data.coverHorizontal);
 
               const response = await axios.post(
-                "http://localhost:3001/videos",
+                "https://learning-platform-backend-2x39.onrender.com/videos",
                 formData,
                 {
                   headers: {

@@ -10,7 +10,7 @@ export default function ForgotPassword() {
 
     try {
       const response = await fetch(
-        "http://localhost:3001/auth/forgot-password",
+        "https://learning-platform-backend-2x39.onrender.com/auth/forgot-password",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

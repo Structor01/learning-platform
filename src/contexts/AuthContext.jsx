@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+  const API_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
 
   // Carrega usuário do localStorage ao iniciar
   useEffect(() => {

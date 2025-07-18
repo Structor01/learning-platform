@@ -14,7 +14,7 @@ export default function TrilhaPreviewModal({
   // URL de background padrão
   let backgroundUrl = "/placeholder-ministrante.jpg";
   if (typeof trilha.instructorPhoto === "string" && trilha.instructorPhoto) {
-    backgroundUrl = `http://localhost:3001${trilha.instructorPhoto}`;
+    backgroundUrl = `https://learning-platform-backend-2x39.onrender.com${trilha.instructorPhoto}`;
   } else if (
     trilha.instructorPhoto instanceof File ||
     trilha.instructorPhoto instanceof Blob
