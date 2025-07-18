@@ -17,15 +17,10 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-const Dashboard = ({ onCourseSelect, trilhas = [] }) => {
+const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, isLoading } = useAuth();
-  const [setHoveredCourse] = useState(null);
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(true);
-
-  // --- Estado para trilhas do usuário ---
-  //const [trilhas, setTrilhas] = useState([]);
-  //const [isTrilhaFormOpen, setIsTrilhaFormOpen] = useState(false);
 
   // Função para completar a animação de boas-vindas
   const handleWelcomeComplete = () => {
@@ -55,109 +50,6 @@ const Dashboard = ({ onCourseSelect, trilhas = [] }) => {
   const predominant = userData.discProfile?.predominant ?? "Conforme";
   const currentProgress = userData.progress?.currentProgress ?? 0;
 
-  const recommendedCourses = [
-    {
-      id: 1,
-      title: "Autoconhecimento para Carreiras",
-      instructor: "Samantha Andrade",
-      duration: "2h 30min",
-      thumbnail: "/api/placeholder/300/200",
-      category: "Desenvolvimento Pessoal",
-      level: "Iniciante",
-      description:
-        "Descubra seus pontos fortes e desenvolva uma carreira alinhada com seu perfil no agronegócio.",
-      rating: "4.9",
-    },
-    {
-      id: 2,
-      title: "Finanças Pessoais no Agronegócio",
-      instructor: "Carlos Silva",
-      duration: "3h 15min",
-      thumbnail: "/api/placeholder/300/200",
-      category: "Finanças",
-      level: "Intermediário",
-      description:
-        "Aprenda a gerenciar suas finanças pessoais e investimentos no setor agrícola.",
-      rating: "4.8",
-    },
-    {
-      id: 3,
-      title: "Metas & Objetivos Profissionais",
-      instructor: "Ana Costa",
-      duration: "1h 45min",
-      thumbnail: "/api/placeholder/300/200",
-      category: "Planejamento",
-      level: "Iniciante",
-      description:
-        "Defina metas claras e alcance seus objetivos profissionais no agronegócio.",
-      rating: "4.7",
-    },
-    {
-      id: 4,
-      title: "Gestão de Carreira no Agro",
-      instructor: "Bruno Nardon",
-      duration: "4h 20min",
-      thumbnail: "/api/placeholder/300/200",
-      category: "Carreira",
-      level: "Avançado",
-      description:
-        "Estratégias avançadas para acelerar sua carreira no setor do agronegócio.",
-      rating: "4.9",
-    },
-    {
-      id: 5,
-      title: "Preparação para Processos Seletivos",
-      instructor: "Samantha Andrade",
-      duration: "2h 50min",
-      thumbnail: "/api/placeholder/300/200",
-      category: "Empregabilidade",
-      level: "Intermediário",
-      description:
-        "Domine todas as etapas dos processos seletivos no agronegócio.",
-      rating: "4.8",
-    },
-    {
-      id: 6,
-      title: "LinkedIn para Profissionais do Agro",
-      instructor: "Maria Santos",
-      duration: "1h 30min",
-      thumbnail: "/api/placeholder/300/200",
-      category: "Networking",
-      level: "Iniciante",
-      description:
-        "Otimize seu perfil no LinkedIn e expanda sua rede de contatos no agronegócio.",
-      rating: "4.6",
-    },
-  ];
-
-  // Cursos para "Continue assistindo" baseados na AgroSkills
-  const continueWatching = [
-    {
-      id: 1,
-      title: "Autoconhecimento para Carreiras",
-      instructor: "Samantha Andrade",
-      progress: 65,
-      timeLeft: "35 min restantes",
-      thumbnail: "/api/placeholder/300/200",
-    },
-    {
-      id: 2,
-      title: "Finanças Pessoais no Agronegócio",
-      instructor: "Carlos Silva",
-      progress: 30,
-      timeLeft: "2h 15min restantes",
-      thumbnail: "/api/placeholder/300/200",
-    },
-    {
-      id: 3,
-      title: "Preparação para Processos Seletivos",
-      instructor: "Samantha Andrade",
-      progress: 80,
-      timeLeft: "25 min restantes",
-      thumbnail: "/api/placeholder/300/200",
-    },
-  ];
-
   // Função para lidar com clique em curso
   const handleCourseClick = (course) => {
     onCourseSelect && onCourseSelect(course);
@@ -173,38 +65,6 @@ const Dashboard = ({ onCourseSelect, trilhas = [] }) => {
     };
     return colors[profile] || "bg-gray-500";
   };
-
-  const handleCourseClick = (course) => {
-    onCourseSelect?.(course);
-  };
-
-  // Abre o form de nova trilha
-  //const handleAddTrilha = () => {
-  //setIsTrilhaFormOpen(true);
-  //};
-
-  // Fecha sem salvar
-  //const handleTrilhaClose = () => {
-  //setIsTrilhaFormOpen(false);
-  //};
-
-  // Recebe os dados do form e adiciona ao array de trilhas
-  //const handleTrilhaSubmit = (novaTrilha) => {
-  //setTrilhas((old) => [
-  //...old,
-  //{
-  //id: Date.now().toString(),
-  //title: novaTrilha.title,
-  //instructor: novaTrilha.instructor || "Comunidade",
-  //duration: "—",
-  //level: "Básico",
-  //category: "Trilha",
-  //coverHorizontal: novaTrilha.coverHorizontal,
-  //videoUrl: novaTrilha.videoUrl,
-  //},
-  //]);
-  //setIsTrilhaFormOpen(false);
-  //};
 
   return (
     <>
@@ -356,7 +216,7 @@ const Dashboard = ({ onCourseSelect, trilhas = [] }) => {
                 <Button
                     size="sm"
                     className="bg-green-600 hover:bg-green-700"
-                    onClick={() => handleCourseClick(recommendedCourses[0])}
+                    onClick={() => handleCourseClick()}
                 >
                   <Play className="w-4 h-4" />
                 </Button>
@@ -449,68 +309,6 @@ const Dashboard = ({ onCourseSelect, trilhas = [] }) => {
               </div>
             </div>
           </Card>
-        </section>
-
-        {/* Stats Cards */}
-
-        {/* Recommended Courses */}
-        {/* Suas Trilhas Cadastradas */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Suas Trilhas</h2>
-            <Button variant="ghost" className="text-gray-600 hover:text-black">
-              Ver todas <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
-
-          <div className="flex space-x-4 overflow-x-auto pb-4">
-            {trilhas.length > 0 ? (
-              trilhas.map((t) => (
-                <div
-                  key={t.id}
-                  className="flex-none w-72 group cursor-pointer"
-                  onMouseEnter={() => setHoveredCourse(t.id)}
-                  onMouseLeave={() => setHoveredCourse(null)}
-                  onClick={() => onCourseSelect(t)}
-                >
-                  <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                    <div
-                      className="w-full h-40 bg-cover rounded-t-lg"
-                      style={{
-                        backgroundImage: t.coverHorizontalUrl
-                          ? `url(http://localhost:3001${t.coverHorizontalUrl})`
-                          : `url(/api/placeholder/300/200)`, // fallback para placeholder
-                      }}
-                    />
-
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        {t.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-2">
-                        Por {t.instructor}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-500">
-                            {t.duration}
-                          </span>
-                        </div>
-                        <Badge variant="secondary" className="text-xs">
-                          {t.level}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500">
-                Você ainda não adicionou nenhuma trilha.
-              </p>
-            )}
-          </div>
         </section>
       </div>
     </div>
