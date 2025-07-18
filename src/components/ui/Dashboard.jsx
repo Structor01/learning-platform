@@ -397,12 +397,12 @@ const Dashboard = ({ onCourseSelect, trilhas = [] }) => {
               <div className="md:w-2/3 p-6">
                 <CardContent className="p-0">
                   <h3 className="text-xl font-bold text-white mb-3">
-                    Estratégias de Liderança no Agronegócio
+                    Aulão - Etapas de processo seletivo e sua carreira no Agro
                   </h3>
                   <p className="text-gray-300 mb-4 leading-relaxed">
-                    Nesta aula ao vivo, exploramos as principais estratégias de liderança aplicadas ao setor do agronegócio. 
-                    Aprenda técnicas modernas de gestão de equipes, tomada de decisões estratégicas e como desenvolver 
-                    uma mentalidade de liderança transformadora no campo.
+                    Neste aulão ao vivo, você vai descobrir todas as etapas do processo seletivo no agronegócio e como 
+                    construir uma carreira sólida no setor. Aprenda estratégias para se destacar em entrevistas, 
+                    desenvolver competências técnicas e comportamentais essenciais para o sucesso no agro.
                   </p>
                   
                   <div className="flex items-center justify-between mb-4">
@@ -415,7 +415,7 @@ const Dashboard = ({ onCourseSelect, trilhas = [] }) => {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <span>Bruno Nardon</span>
+                        <span>Samantha Andrade</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -429,7 +429,7 @@ const Dashboard = ({ onCourseSelect, trilhas = [] }) => {
                   
                   <Button 
                     className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-semibold"
-                    onClick={() => onSmartPlayerOpen && onSmartPlayerOpen('https://www.youtube.com/watch?v=DogH89e7Ib0')}
+                    onClick={() => onSmartPlayerOpen && onSmartPlayerOpen('https://youtube.com/live/DogH89e7Ib0?feature=share')}
                   >
                     <Play className="w-5 h-5 mr-2" />
                     Assistir Aula
