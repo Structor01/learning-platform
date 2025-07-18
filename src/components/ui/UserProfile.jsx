@@ -148,7 +148,7 @@ const UserProfile = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:!grid-cols-3 gap-8">
           {/* Left Column */}
           <div className="lg:col-span-1 space-y-6">
             {/* Profile Card */}
@@ -259,7 +259,7 @@ const UserProfile = () => {
           {/* Right Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:!grid-cols-3 gap-6">
               <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
