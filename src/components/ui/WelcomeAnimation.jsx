@@ -41,9 +41,9 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
     const timer2 = setTimeout(() => setCurrentStep(2), 2500);
     const timer3 = setTimeout(() => setCurrentStep(3), 4000);
     const timer4 = setTimeout(() => setCurrentStep(4), 5500);
-    const timer5 = setTimeout(() => setShowConfiguration(true), 6000);
-    const timer6 = setTimeout(() => setShowConfiguration(false), 9000);
-    const timer7 = setTimeout(() => setShowGift(true), 9500);
+    const timer5 = setTimeout(() => setShowConfiguration(true), 0);
+    const timer6 = setTimeout(() => setShowConfiguration(false), 6000);
+    const timer7 = setTimeout(() => setShowGift(true), 7000);
 
     return () => {
       clearTimeout(timer1);
@@ -126,119 +126,122 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
           </motion.div>
 
           {/* Configuration Animation */}
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ 
-              scale: showConfiguration ? 1 : 0,
-              opacity: showConfiguration ? 1 : 0
-            }}
-            exit={{ 
-              scale: 0,
-              opacity: 0,
-              y: -50
-            }}
-            transition={{ 
-              duration: 0.6,
-              type: "spring",
-              stiffness: 120,
-              damping: 15
-            }}
-            className="mb-8"
-          >
-            <div className="bg-gradient-to-r from-blue-600/90 to-purple-600/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border-2 border-blue-400/50 relative overflow-hidden">
-              {/* Loading dots animation */}
-              <div className="absolute top-4 right-4">
-                <div className="flex space-x-1">
-                  {[...Array(3)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ scale: 0.8, opacity: 0.3 }}
-                      animate={{ 
-                        scale: [0.8, 1.2, 0.8],
-                        opacity: [0.3, 1, 0.3]
-                      }}
-                      transition={{
-                        duration: 1.5,
-                        delay: i * 0.2,
-                        repeat: Infinity,
-                        repeatType: "loop"
-                      }}
-                      className="w-2 h-2 bg-white rounded-full"
-                    />
-                  ))}
-                </div>
-              </div>
-              
-              {/* Gear animation */}
-              <motion.div
-                initial={{ rotate: 0 }}
-                animate={{ rotate: showConfiguration ? 360 : 0 }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
-                className="text-6xl mb-4"
+            {
+              !showGift && (<motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{
+                    scale: showConfiguration ? 1 : 0,
+                    opacity: showConfiguration ? 1 : 0
+                  }}
+                  exit={{
+                    scale: 0,
+                    opacity: 0,
+                    y: -50
+                  }}
+                  transition={{
+                    duration: 0.6,
+                    type: "spring",
+                    stiffness: 120,
+                    damping: 15
+                  }}
+                  className="mb-8"
               >
-                ⚙️
-              </motion.div>
-              
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ 
-                  y: showConfiguration ? 0 : 20,
-                  opacity: showConfiguration ? 1 : 0
-                }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="relative z-10"
-              >
-                <h3 className="text-2xl font-bold text-white mb-3">
-                  Configurando sua experiência...
-                </h3>
-                <p className="text-blue-100 text-lg mb-4 leading-relaxed">
-                  Estamos preparando tudo para que você tenha a<br/>
-                  <span className="font-bold text-yellow-300">MELHOR EXPERIÊNCIA</span> para crescimento!
-                </p>
-                
-                {/* Progress bar */}
-                <div className="w-full bg-white/20 rounded-full h-2 mb-4">
+                <div className="bg-gradient-to-r from-blue-600/90 to-purple-600/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border-2 border-blue-400/50 relative overflow-hidden">
+                  {/* Loading dots animation */}
+                  <div className="absolute top-4 right-4">
+                    <div className="flex space-x-1">
+                      {[...Array(3)].map((_, i) => (
+                          <motion.div
+                              key={i}
+                              initial={{ scale: 0.8, opacity: 0.3 }}
+                              animate={{
+                                scale: [0.8, 1.2, 0.8],
+                                opacity: [0.3, 1, 0.3]
+                              }}
+                              transition={{
+                                duration: 1.5,
+                                delay: i * 0.2,
+                                repeat: Infinity,
+                                repeatType: "loop"
+                              }}
+                              className="w-2 h-2 bg-white rounded-full"
+                          />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Gear animation */}
                   <motion.div
-                    initial={{ width: "0%" }}
-                    animate={{ width: showConfiguration ? "100%" : "0%" }}
-                    transition={{ duration: 2, delay: 0.3 }}
-                    className="bg-gradient-to-r from-yellow-400 to-orange-400 h-2 rounded-full"
-                  />
+                      initial={{ rotate: 0 }}
+                      animate={{ rotate: showConfiguration ? 360 : 0 }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }}
+                      className="text-6xl mb-4"
+                  >
+                    ⚙️
+                  </motion.div>
+
+                  <motion.div
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{
+                        y: showConfiguration ? 0 : 20,
+                        opacity: showConfiguration ? 1 : 0
+                      }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                      className="relative z-10"
+                  >
+                    <h3 className="text-2xl font-bold text-white mb-3">
+                      Configurando sua experiência...
+                    </h3>
+                    <p className="text-blue-100 text-lg mb-4 leading-relaxed">
+                      Estamos preparando tudo para que você tenha a<br/>
+                      <span className="font-bold text-yellow-300">MELHOR EXPERIÊNCIA</span> para crescimento!
+                    </p>
+
+                    {/* Progress bar */}
+                    <div className="w-full bg-white/20 rounded-full h-2 mb-4">
+                      <motion.div
+                          initial={{ width: "0%" }}
+                          animate={{ width: showConfiguration ? "100%" : "0%" }}
+                          transition={{ duration: 6, delay: 0.3 }}
+                          className="bg-gradient-to-r from-yellow-400 to-orange-400 h-2 rounded-full"
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-3 text-sm">
+                      <motion.span
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
+                          transition={{ delay: 0.5 }}
+                          className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
+                      >
+                        🎯 Personalizando conteúdo
+                      </motion.span>
+                      <motion.span
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
+                          transition={{ delay: 1 }}
+                          className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
+                      >
+                        🚀 Otimizando trilhas
+                      </motion.span>
+                      <motion.span
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
+                          transition={{ delay: 1.5 }}
+                          className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
+                      >
+                        ✨ Preparando surpresas
+                      </motion.span>
+                    </div>
+                  </motion.div>
                 </div>
-                
-                <div className="flex flex-wrap justify-center gap-3 text-sm">
-                  <motion.span
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
-                    transition={{ delay: 0.5 }}
-                    className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
-                  >
-                    🎯 Personalizando conteúdo
-                  </motion.span>
-                  <motion.span
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
-                    transition={{ delay: 1 }}
-                    className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
-                  >
-                    🚀 Otimizando trilhas
-                  </motion.span>
-                  <motion.span
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
-                    transition={{ delay: 1.5 }}
-                    className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
-                  >
-                    ✨ Preparando surpresas
-                  </motion.span>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
+              </motion.div>)
+            }
+
 
           {/* Gift Animation */}
           <motion.div
@@ -256,7 +259,65 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
             className="mb-8"
           >
             {/* Card Gestão de Carreira - Acesso Gratuito */}
-            <div className="lg:!w-full mb-5">
+            <div className="bg-gradient-to-r from-yellow-600/90 to-orange-600/90 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border-2 border-yellow-400/50 relative overflow-hidden">
+              {/* Sparkle effects */}
+              <div className="absolute inset-0">
+                {[...Array(15)].map((_, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{
+                          scale: [0, 1, 0],
+                          opacity: [0, 1, 0],
+                          x: Math.random() * 300 - 150,
+                          y: Math.random() * 200 - 100
+                        }}
+                        transition={{
+                          duration: 2,
+                          delay: Math.random() * 2,
+                          repeat: Infinity,
+                          repeatDelay: Math.random() * 3
+                        }}
+                        className="absolute w-2 h-2 bg-yellow-300 rounded-full"
+                        style={{
+                          left: '50%',
+                          top: '50%'
+                        }}
+                    />
+                ))}
+              </div>
+
+              <motion.div
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{
+                    y: showGift ? 0 : 20,
+                    opacity: showGift ? 1 : 0
+                  }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                  className="relative z-10"
+              >
+                <div className="text-6xl mb-4">🎁</div>
+                <h3 className="text-2xl font-bold text-white mb-3">
+                  Parabéns! Você ganhou um presente!
+                </h3>
+                <p className="text-yellow-100 text-lg mb-4 leading-relaxed mt-3">
+                  Acesso <span className="font-bold text-yellow-300">GRATUITO</span> a uma trilha completa<br/>
+                  e todos os aplicativos da plataforma!
+                </p>
+                <div className="flex flex-wrap justify-center gap-3 text-sm">
+                  <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
+                    🚀 Trilhas de Carreira
+                  </span>
+                  <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
+                    📱 Vagas de Emprego
+                  </span>
+                  <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
+                    🎯 Conteúdo Exclusivo e Aplicativos
+                  </span>
+                </div>
+              </motion.div>
+            </div>
+            <div className="lg:!w-full mt-5">
               <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-xl">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
@@ -282,6 +343,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
                   <div className="flex items-center justify-between">
                     <span className="text-gray-500 text-sm">6 módulos</span>
                     <Button
+                        onClick={handleOkClick}
                         size="sm"
                         className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold"
                     >
@@ -290,64 +352,6 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-            <div className="bg-gradient-to-r from-yellow-600/90 to-orange-600/90 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border-2 border-yellow-400/50 relative overflow-hidden">
-              {/* Sparkle effects */}
-              <div className="absolute inset-0">
-                {[...Array(15)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ 
-                      scale: [0, 1, 0],
-                      opacity: [0, 1, 0],
-                      x: Math.random() * 300 - 150,
-                      y: Math.random() * 200 - 100
-                    }}
-                    transition={{
-                      duration: 2,
-                      delay: Math.random() * 2,
-                      repeat: Infinity,
-                      repeatDelay: Math.random() * 3
-                    }}
-                    className="absolute w-2 h-2 bg-yellow-300 rounded-full"
-                    style={{
-                      left: '50%',
-                      top: '50%'
-                    }}
-                  />
-                ))}
-              </div>
-
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ 
-                  y: showGift ? 0 : 20,
-                  opacity: showGift ? 1 : 0
-                }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="relative z-10"
-              >
-                <div className="text-6xl mb-4">🎁</div>
-                <h3 className="text-2xl font-bold text-white mb-3">
-                  Parabéns! Você ganhou um presente!
-                </h3>
-                <p className="text-yellow-100 text-lg mb-4 leading-relaxed mt-3">
-                  Acesso <span className="font-bold text-yellow-300">GRATUITO</span> a uma trilha completa<br/>
-                  e todos os aplicativos da plataforma!
-                </p>
-                <div className="flex flex-wrap justify-center gap-3 text-sm">
-                  <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
-                    🚀 Trilhas de Carreira
-                  </span>
-                  <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
-                    📱 Vagas de Emprego
-                  </span>
-                  <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
-                    🎯 Conteúdo Exclusivo e Aplicativos
-                  </span>
-                </div>
-              </motion.div>
             </div>
           </motion.div>
 
@@ -360,12 +364,6 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
             }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <Button
-              onClick={handleOkClick}
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-semibold rounded-xl shadow-lg"
-            >
-              OK, Vamos Começar!
-            </Button>
           </motion.div>
         </div>
         </div>
