@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import {Card, CardContent} from "@/components/ui/card.jsx";
 
 const WelcomeAnimation = ({ userName, onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -116,14 +117,6 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mb-8"
           >
-            <div className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-green-500/30">
-              <h2 className="text-2xl font-semibold text-green-400 mb-3">
-                🌱 A Maior Comunidade de Desenvolvimento
-              </h2>
-              <p className="text-lg text-green-300 leading-relaxed">
-                de Pessoas para o <span className="font-bold text-green-400">Agronegócio</span>
-              </p>
-            </div>
           </motion.div>
 
           {/* Gift Animation */}
@@ -141,6 +134,42 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
             }}
             className="mb-8"
           >
+            {/* Card Gestão de Carreira - Acesso Gratuito */}
+            <div className="lg:!w-full mb-5">
+              <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                        GRÁTIS
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    Gestão de Carreira
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                    Estratégias avançadas para acelerar sua carreira no agro
+                  </p>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500 text-sm">6 módulos</span>
+                    <Button
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold"
+                    >
+                      Iniciar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
             <div className="bg-gradient-to-r from-yellow-600/90 to-orange-600/90 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border-2 border-yellow-400/50 relative overflow-hidden">
               {/* Sparkle effects */}
               <div className="absolute inset-0">
@@ -168,7 +197,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
                   />
                 ))}
               </div>
-              
+
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ 
@@ -182,7 +211,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
                 <h3 className="text-2xl font-bold text-white mb-3">
                   Parabéns! Você ganhou um presente!
                 </h3>
-                <p className="text-yellow-100 text-lg mb-4 leading-relaxed">
+                <p className="text-yellow-100 text-lg mb-4 leading-relaxed mt-3">
                   Acesso <span className="font-bold text-yellow-300">GRATUITO</span> a uma trilha completa<br/>
                   e todos os aplicativos da plataforma!
                 </p>
@@ -191,10 +220,10 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
                     🚀 Trilhas de Carreira
                   </span>
                   <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
-                    📱 Aplicativos Premium
+                    📱 Vagas de Emprego
                   </span>
                   <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
-                    🎯 Conteúdo Exclusivo
+                    🎯 Conteúdo Exclusivo e Aplicativos
                   </span>
                 </div>
               </motion.div>
