@@ -58,101 +58,112 @@ const Dashboard = ({ onCourseSelect, trilhas = [] }) => {
   const recommendedCourses = [
     {
       id: 1,
-      title: "Liderança Estratégica",
-      instructor: "Bruno Nardon",
-      duration: "45 min",
+      title: "Autoconhecimento para Carreiras",
+      instructor: "Samantha Andrade",
+      duration: "2h 30min",
       thumbnail: "/api/placeholder/300/200",
-      category: "Liderança",
-      level: "Avançado",
+      category: "Desenvolvimento Pessoal",
+      level: "Iniciante",
       description:
-        "Desenvolva habilidades de liderança estratégica para impulsionar sua carreira e equipe.",
-      rating: "4.8",
+        "Descubra seus pontos fortes e desenvolva uma carreira alinhada com seu perfil no agronegócio.",
+      rating: "4.9",
     },
     {
       id: 2,
-      title: "Gestão de Pessoas",
-      instructor: "Sofia Esteves",
-      duration: "32 min",
+      title: "Finanças Pessoais no Agronegócio",
+      instructor: "Carlos Silva",
+      duration: "3h 15min",
       thumbnail: "/api/placeholder/300/200",
-      category: "Gestão",
+      category: "Finanças",
       level: "Intermediário",
       description:
-        "Aprenda técnicas eficazes para gerenciar equipes e maximizar a produtividade.",
-      rating: "4.7",
+        "Aprenda a gerenciar suas finanças pessoais e investimentos no setor agrícola.",
+      rating: "4.8",
     },
     {
       id: 3,
-      title: "Análise de Dados",
-      instructor: "Carlos Silva",
-      duration: "28 min",
+      title: "Metas & Objetivos Profissionais",
+      instructor: "Ana Costa",
+      duration: "1h 45min",
       thumbnail: "/api/placeholder/300/200",
-      category: "Tecnologia",
-      level: "Básico",
+      category: "Planejamento",
+      level: "Iniciante",
       description:
-        "Fundamentos de análise de dados para tomada de decisões estratégicas.",
-      rating: "4.6",
+        "Defina metas claras e alcance seus objetivos profissionais no agronegócio.",
+      rating: "4.7",
     },
     {
       id: 4,
-      title: "Negociação Avançada",
-      instructor: "Ana Costa",
-      duration: "38 min",
+      title: "Gestão de Carreira no Agro",
+      instructor: "Bruno Nardon",
+      duration: "4h 20min",
       thumbnail: "/api/placeholder/300/200",
-      category: "Vendas",
+      category: "Carreira",
       level: "Avançado",
       description:
-        "Técnicas avançadas de negociação para fechar melhores acordos.",
+        "Estratégias avançadas para acelerar sua carreira no setor do agronegócio.",
       rating: "4.9",
     },
     {
       id: 5,
-      title: "Marketing Digital",
-      instructor: "Pedro Santos",
-      duration: "42 min",
+      title: "Preparação para Processos Seletivos",
+      instructor: "Samantha Andrade",
+      duration: "2h 50min",
       thumbnail: "/api/placeholder/300/200",
-      category: "Marketing",
+      category: "Empregabilidade",
       level: "Intermediário",
       description:
-        "Estratégias modernas de marketing digital para aumentar sua presença online.",
-      rating: "4.5",
-    },
-  ];
-
-  const continueWatching = [
-    {
-      id: 6,
-      title: "Planejamento Estratégico",
-      instructor: "Tallis Gomes",
-      progress: 65,
-      thumbnail: "/api/placeholder/300/200",
-      timeLeft: "15 min restantes",
-      description:
-        "Metodologias de planejamento estratégico para organizações.",
+        "Domine todas as etapas dos processos seletivos no agronegócio.",
       rating: "4.8",
     },
     {
-      id: 7,
-      title: "Comunicação Eficaz",
-      instructor: "Maria Silva",
-      progress: 30,
+      id: 6,
+      title: "LinkedIn para Profissionais do Agro",
+      instructor: "Maria Santos",
+      duration: "1h 30min",
       thumbnail: "/api/placeholder/300/200",
-      timeLeft: "25 min restantes",
+      category: "Networking",
+      level: "Iniciante",
       description:
-        "Desenvolva habilidades de comunicação para liderar com eficácia.",
-      rating: "4.7",
-    },
-    {
-      id: 8,
-      title: "Inovação Empresarial",
-      instructor: "João Oliveira",
-      progress: 85,
-      thumbnail: "/api/placeholder/300/200",
-      timeLeft: "8 min restantes",
-      description: "Como implementar inovação em ambientes corporativos.",
+        "Otimize seu perfil no LinkedIn e expanda sua rede de contatos no agronegócio.",
       rating: "4.6",
     },
   ];
 
+  // Cursos para "Continue assistindo" baseados na AgroSkills
+  const continueWatching = [
+    {
+      id: 1,
+      title: "Autoconhecimento para Carreiras",
+      instructor: "Samantha Andrade",
+      progress: 65,
+      timeLeft: "35 min restantes",
+      thumbnail: "/api/placeholder/300/200",
+    },
+    {
+      id: 2,
+      title: "Finanças Pessoais no Agronegócio",
+      instructor: "Carlos Silva",
+      progress: 30,
+      timeLeft: "2h 15min restantes",
+      thumbnail: "/api/placeholder/300/200",
+    },
+    {
+      id: 3,
+      title: "Preparação para Processos Seletivos",
+      instructor: "Samantha Andrade",
+      progress: 80,
+      timeLeft: "25 min restantes",
+      thumbnail: "/api/placeholder/300/200",
+    },
+  ];
+
+  // Função para lidar com clique em curso
+  const handleCourseClick = (course) => {
+    onCourseSelect && onCourseSelect(course);
+  };
+
+  // Função para obter cor do perfil DISC
   const getDiscColor = (profile) => {
     const colors = {
       Dominante: "bg-red-500",
