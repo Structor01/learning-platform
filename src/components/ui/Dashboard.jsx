@@ -181,7 +181,8 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
             </Card>
           </div>
         </section>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+
+        <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 gap-6 mb-8">
           <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -253,7 +254,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-4 gap-6">
             {/* Trilha 1: Autoconhecimento para Aceleração de Carreiras */}
             <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
               <CardContent className="p-6">
@@ -357,7 +358,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
           </div>
           
           <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
-            <div className="flex flex-col md:flex-row">
+            <div className="flex md:flex-row">
               {/* Thumbnail do vídeo */}
               <div className="md:w-1/3 relative">
                 <div className="aspect-video bg-gray-800 rounded-l-lg flex items-center justify-center">
