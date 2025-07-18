@@ -242,6 +242,112 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
           </Card>
         </div>
 
+        {/* Trilhas para acelerar sua carreira */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">
+              Trilhas para acelerar sua carreira
+            </h2>
+            <Button variant="ghost" className="text-gray-300 hover:text-white">
+              Ver todas <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Trilha 1: Autoconhecimento para Aceleração de Carreiras */}
+            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Autoconhecimento para Aceleração de Carreiras
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  Descubra seus pontos fortes e acelere sua carreira no agronegócio
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">4 módulos</span>
+                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                    Iniciar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Trilha 2: Introdução a Finanças Pessoais */}
+            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Introdução a Finanças Pessoais
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  Fundamentos para gerenciar suas finanças no agronegócio
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">5 módulos</span>
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                    Iniciar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Trilha 3: Auto análise e Foco em metas */}
+            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Auto análise e Foco em metas
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  Defina objetivos claros e alcance suas metas profissionais
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">3 módulos</span>
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                    Iniciar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Trilha 4: Gestão de Carreira */}
+            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  Gestão de Carreira
+                </h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  Estratégias avançadas para acelerar sua carreira no agro
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">6 módulos</span>
+                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
+                    Iniciar
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         {/* Última Aula - Nova Seção */}
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
