@@ -146,9 +146,9 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
             <h2 className="text-2xl font-bold text-white">
               Biblioteca de Aplicativos
             </h2>
-            <Button variant="ghost" className="text-gray-300 hover:text-white">
-              Ver todos <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+            {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
+            {/*  Ver todos <ChevronRight className="w-4 h-4 ml-1" />*/}
+            {/*</Button>*/}
           </div>
 
           <div className="biblioteca-apps grid grid-cols-2 sm:!grid-cols-3 md:!grid-cols-4 lg:!grid-cols-5 xl:!grid-cols-5 gap-4">
@@ -247,7 +247,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
                     Próximo Conteúdo
                   </p>
                   <p className="text-lg font-semibold text-white">
-                    Liderança Estratégica
+                    Autoconhecimento para Aceleração de Carreiras
                   </p>
                   <p className="text-sm text-gray-500">45 min</p>
                 </div>
@@ -286,9 +286,9 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
             <h2 className="text-2xl font-bold text-white">
               Trilhas para acelerar sua carreira
             </h2>
-            <Button variant="ghost" className="text-gray-300 hover:text-white">
-              Ver todas <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+            {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
+            {/*  Ver todas <ChevronRight className="w-4 h-4 ml-1" />*/}
+            {/*</Button>*/}
           </div>
 
           <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-4 gap-6">

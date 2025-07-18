@@ -82,13 +82,13 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
           {/* User Menu & Ações */}
           <div className="flex items-center space-x-4">
             {/* Botão Adicionar Trilhas */}
-            <Button
-              variant="secondary"
-              onClick={onAddTrilha}
-              className="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"
-            >
-              Adicionar Trilhas
-            </Button>
+            {/*<Button*/}
+            {/*  variant="secondary"*/}
+            {/*  onClick={onAddTrilha}*/}
+            {/*  className="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"*/}
+            {/*>*/}
+            {/*  Adicionar Trilhas*/}
+            {/*</Button>*/}
 
             {/* DISC Profile Badge */}
             <div className="hidden md:flex items-center space-x-2">
@@ -134,10 +134,10 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
                   <User className="mr-2 h-4 w-4" />
                   <span>Perfil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Configurações</span>
-                </DropdownMenuItem>
+                {/*<DropdownMenuItem>*/}
+                {/*  <Settings className="mr-2 h-4 w-4" />*/}
+                {/*  <span>Configurações</span>*/}
+                {/*</DropdownMenuItem>*/}
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sair</span>

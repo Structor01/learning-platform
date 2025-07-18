@@ -259,6 +259,42 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
             className="mb-8"
           >
             {/* Card Gestão de Carreira - Acesso Gratuito */}
+            <div className="lg:!w-full mb-5">
+              <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-xl">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                        GRÁTIS
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    Gestão de Carreira
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                    Estratégias avançadas para acelerar sua carreira no agro
+                  </p>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-500 text-sm">6 módulos</span>
+                    <Button
+                        onClick={handleOkClick}
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold"
+                    >
+                      Iniciar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
             <div className="bg-gradient-to-r from-yellow-600/90 to-orange-600/90 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border-2 border-yellow-400/50 relative overflow-hidden">
               {/* Sparkle effects */}
               <div className="absolute inset-0">
@@ -316,42 +352,6 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
                   </span>
                 </div>
               </motion.div>
-            </div>
-            <div className="lg:!w-full mt-5">
-              <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-xl">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                      </div>
-                      <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                        GRÁTIS
-                      </div>
-                    </div>
-                  </div>
-
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    Gestão de Carreira
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-4 leading-relaxed">
-                    Estratégias avançadas para acelerar sua carreira no agro
-                  </p>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 text-sm">6 módulos</span>
-                    <Button
-                        onClick={handleOkClick}
-                        size="sm"
-                        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold"
-                    >
-                      Iniciar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </motion.div>
 
