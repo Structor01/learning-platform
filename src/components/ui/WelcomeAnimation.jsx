@@ -6,6 +6,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [timeUntilClass, setTimeUntilClass] = useState('');
+  const [showGift, setShowGift] = useState(false);
 
   // Calcular tempo até 17h
   useEffect(() => {
@@ -38,12 +39,14 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
     const timer2 = setTimeout(() => setCurrentStep(2), 2500);
     const timer3 = setTimeout(() => setCurrentStep(3), 4000);
     const timer4 = setTimeout(() => setCurrentStep(4), 5500);
+    const timer5 = setTimeout(() => setShowGift(true), 7000);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
       clearTimeout(timer4);
+      clearTimeout(timer5);
     };
   }, []);
 
@@ -99,7 +102,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
               Bem-vindo, {userName}!
             </h1>
             <p className="text-xl text-green-400">
-              à AgroSkills
+              à Melhor Aceleradora de Carreiras
             </p>
           </motion.div>
 
@@ -153,7 +156,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
               opacity: currentStep >= 3 ? 1 : 0
             }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
+            className="grid grid-cols-1 md:!grid-cols-3 gap-4 mb-8"
           >
             <motion.div
               initial={{ x: -50, opacity: 0 }}
@@ -195,12 +198,87 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
             </motion.div>
           </motion.div>
 
+          {/* Gift Animation */}
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ 
+              scale: showGift ? 1 : 0,
+              opacity: showGift ? 1 : 0
+            }}
+            transition={{ 
+              duration: 0.8,
+              type: "spring",
+              stiffness: 150,
+              damping: 12
+            }}
+            className="mb-8"
+          >
+            <div className="bg-gradient-to-r from-yellow-600/90 to-orange-600/90 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border-2 border-yellow-400/50 relative overflow-hidden">
+              {/* Sparkle effects */}
+              <div className="absolute inset-0">
+                {[...Array(15)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ 
+                      scale: [0, 1, 0],
+                      opacity: [0, 1, 0],
+                      x: Math.random() * 300 - 150,
+                      y: Math.random() * 200 - 100
+                    }}
+                    transition={{
+                      duration: 2,
+                      delay: Math.random() * 2,
+                      repeat: Infinity,
+                      repeatDelay: Math.random() * 3
+                    }}
+                    className="absolute w-2 h-2 bg-yellow-300 rounded-full"
+                    style={{
+                      left: '50%',
+                      top: '50%'
+                    }}
+                  />
+                ))}
+              </div>
+              
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ 
+                  y: showGift ? 0 : 20,
+                  opacity: showGift ? 1 : 0
+                }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="relative z-10"
+              >
+                <div className="text-6xl mb-4">🎁</div>
+                <h3 className="text-2xl font-bold text-white mb-3">
+                  Parabéns! Você ganhou um presente!
+                </h3>
+                <p className="text-yellow-100 text-lg mb-4 leading-relaxed">
+                  Acesso <span className="font-bold text-yellow-300">GRATUITO</span> a uma trilha completa<br/>
+                  e todos os aplicativos da plataforma!
+                </p>
+                <div className="flex flex-wrap justify-center gap-3 text-sm">
+                  <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
+                    🚀 Trilhas de Carreira
+                  </span>
+                  <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
+                    📱 Aplicativos Premium
+                  </span>
+                  <span className="bg-white/20 px-3 py-1 rounded-full text-yellow-100">
+                    🎯 Conteúdo Exclusivo
+                  </span>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+
           {/* Botão OK */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ 
-              opacity: currentStep >= 4 ? 1 : 0,
-              y: currentStep >= 4 ? 0 : 20
+              opacity: showGift ? 1 : 0,
+              y: showGift ? 0 : 20
             }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
