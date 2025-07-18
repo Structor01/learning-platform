@@ -12,6 +12,7 @@ import VideoUpload from "./components/ui/VideoUpload";
 import UserProfile from "./components/ui/UserProfile";
 import PrivateRoute from "./components/ui/PrivateRoute"; // ✅ Certifique-se de ter isso criado
 import TrilhasPage from "./components/ui/TrilhasPage"; // ✅ Adicionando o componente da rota
+import TrilhaPage from "./components/ui/TrilhaPage"; // ✅ Nova página da trilha
 import TrilhasForm from "./components/ui/TrilhasForm";
 import TrilhaPreviewModal from "./components/ui/TrilhaPreviewModal";
 import ForgotPassword from "./components/ui/ForgotPassword"; // ajuste o caminho conforme seu projeto
@@ -209,13 +210,23 @@ function App() {
               </PrivateRoute>
             }
           />
+
+          {/* Página da trilha */}
+          <Route
+            path="/trilha"
+            element={
+              <PrivateRoute>
+                <TrilhaPage />
+              </PrivateRoute>
+            }
+          />
+
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Catch-all: redireciona para "/" */}
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
+        </Routes>      </AuthProvider>
     </BrowserRouter>
   );
 }

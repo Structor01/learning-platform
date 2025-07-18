@@ -129,6 +129,7 @@ const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
                     <span className="text-gray-500 text-sm">6 módulos</span>
                     <Button 
                       size="sm" 
+                      onClick={() => window.location.href = '/trilha'}
                       className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold"
                     >
                       Iniciar
