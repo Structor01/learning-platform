@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -21,6 +22,8 @@ import {
     X
 } from "lucide-react";
 import WelcomeAnimation from "./WelcomeAnimation";
+import AppAccessModal from "./AppAccessModal";
+import TrilhaRequirementModal from "./TrilhaRequirementModal";
 import { useAuth } from "@/contexts/AuthContext";
 import {Progress} from "@radix-ui/react-progress";
 
@@ -29,6 +32,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const { user, isLoading } = useAuth();
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [showAppModal, setShowAppModal] = useState(false);
+  const [selectedApp, setSelectedApp] = useState('');
+  const [showTrilhaModal, setShowTrilhaModal] = useState(false);
+  const [selectedTrilha, setSelectedTrilha] = useState('');
 
   // Verificar se é a primeira vez do usuário
   useEffect(() => {
@@ -46,6 +53,18 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     if (user?.email) {
       localStorage.setItem(`welcome_seen_${user.email}`, 'true');
     }
+  };
+
+  // Função para abrir modal de aplicativo
+  const handleAppClick = (appName) => {
+    setSelectedApp(appName);
+    setShowAppModal(true);
+  };
+
+  // Função para abrir modal de trilha
+  const handleTrilhaClick = (trilhaName) => {
+    setSelectedTrilha(trilhaName);
+    setShowTrilhaModal(true);
   };
 
   // Mostrar loading enquanto carrega os dados do usuário
@@ -175,7 +194,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
           <div className="biblioteca-apps grid grid-cols-2 sm:!grid-cols-3 md:!grid-cols-4 lg:!grid-cols-5 xl:!grid-cols-5 gap-4">
             {/* Meu Cartão Virtual */}
-            <Card className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+            <Card 
+              onClick={() => handleAppClick('Cartão Virtual')}
+              className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+            >
               <CardContent className="p-4 text-center">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,7 +210,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </Card>
 
             {/* Agenda de Eventos */}
-            <Card className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+            <Card 
+              onClick={() => handleAppClick('Agenda de Eventos')}
+              className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+            >
               <CardContent className="p-4 text-center">
                 <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +226,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </Card>
 
             {/* Entrevista Simulada */}
-            <Card className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+            <Card 
+              onClick={() => handleAppClick('Entrevista Simulada')}
+              className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+            >
               <CardContent className="p-4 text-center">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +242,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </Card>
 
             {/* Video Pitch */}
-            <Card className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+            <Card 
+              onClick={() => handleAppClick('Video Pitch')}
+              className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+            >
               <CardContent className="p-4 text-center">
                 <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +258,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </Card>
 
             {/* Meus Testes */}
-            <Card className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+            <Card 
+              onClick={() => handleAppClick('Meus Testes')}
+              className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+            >
               <CardContent className="p-4 text-center">
                 <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -330,7 +364,11 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">4 módulos</span>
-                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleTrilhaClick('Autoconhecimento para Aceleração de Carreiras')}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
                     Iniciar
                   </Button>
                 </div>
@@ -353,7 +391,11 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">5 módulos</span>
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleTrilhaClick('Introdução a Finanças Pessoais')}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
                     Iniciar
                   </Button>
                 </div>
@@ -376,7 +418,11 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">3 módulos</span>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleTrilhaClick('Auto análise e Foco em metas')}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
                     Iniciar
                   </Button>
                 </div>
@@ -533,6 +579,19 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         )}
       </div>
     </div>
+
+    {/* Modais */}
+    <AppAccessModal 
+      isOpen={showAppModal}
+      onClose={() => setShowAppModal(false)}
+      appName={selectedApp}
+    />
+    
+    <TrilhaRequirementModal 
+      isOpen={showTrilhaModal}
+      onClose={() => setShowTrilhaModal(false)}
+      trilhaName={selectedTrilha}
+    />
     </>
   );
 };
