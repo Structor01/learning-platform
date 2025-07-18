@@ -7,6 +7,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [timeUntilClass, setTimeUntilClass] = useState('');
+  const [showConfiguration, setShowConfiguration] = useState(false);
   const [showGift, setShowGift] = useState(false);
 
   // Calcular tempo até 17h
@@ -40,7 +41,8 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
     const timer2 = setTimeout(() => setCurrentStep(2), 2500);
     const timer3 = setTimeout(() => setCurrentStep(3), 4000);
     const timer4 = setTimeout(() => setCurrentStep(4), 5500);
-    const timer5 = setTimeout(() => setShowGift(true), 7000);
+    const timer5 = setTimeout(() => setShowConfiguration(true), 7000);
+    const timer6 = setTimeout(() => setShowGift(true), 10000);
 
     return () => {
       clearTimeout(timer1);
@@ -48,6 +50,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
       clearTimeout(timer3);
       clearTimeout(timer4);
       clearTimeout(timer5);
+      clearTimeout(timer6);
     };
   }, []);
 
@@ -64,9 +67,10 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+        className="fixed inset-0 bg-black z-50 overflow-y-auto welcome-container"
       >
-        <div className="text-center max-w-2xl mx-auto px-8">
+        <div className="min-h-screen flex items-center justify-center py-8 px-4">
+          <div className="text-center max-w-2xl mx-auto w-full space-y-6">
           {/* Logo Animation */}
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
@@ -117,6 +121,116 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mb-8"
           >
+          </motion.div>
+
+          {/* Configuration Animation */}
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ 
+              scale: showConfiguration ? 1 : 0,
+              opacity: showConfiguration ? 1 : 0
+            }}
+            transition={{ 
+              duration: 0.8,
+              type: "spring",
+              stiffness: 120,
+              damping: 15
+            }}
+            className="mb-8"
+          >
+            <div className="bg-gradient-to-r from-blue-600/90 to-purple-600/90 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border-2 border-blue-400/50 relative overflow-hidden">
+              {/* Loading dots animation */}
+              <div className="absolute top-4 right-4">
+                <div className="flex space-x-1">
+                  {[...Array(3)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 0.8, opacity: 0.3 }}
+                      animate={{ 
+                        scale: [0.8, 1.2, 0.8],
+                        opacity: [0.3, 1, 0.3]
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        delay: i * 0.2,
+                        repeat: Infinity,
+                        repeatType: "loop"
+                      }}
+                      className="w-2 h-2 bg-white rounded-full"
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              {/* Gear animation */}
+              <motion.div
+                initial={{ rotate: 0 }}
+                animate={{ rotate: showConfiguration ? 360 : 0 }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                className="text-6xl mb-4"
+              >
+                ⚙️
+              </motion.div>
+              
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ 
+                  y: showConfiguration ? 0 : 20,
+                  opacity: showConfiguration ? 1 : 0
+                }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="relative z-10"
+              >
+                <h3 className="text-2xl font-bold text-white mb-3">
+                  Configurando sua experiência...
+                </h3>
+                <p className="text-blue-100 text-lg mb-4 leading-relaxed">
+                  Estamos preparando tudo para que você tenha a<br/>
+                  <span className="font-bold text-yellow-300">MELHOR EXPERIÊNCIA</span> para crescimento!
+                </p>
+                
+                {/* Progress bar */}
+                <div className="w-full bg-white/20 rounded-full h-2 mb-4">
+                  <motion.div
+                    initial={{ width: "0%" }}
+                    animate={{ width: showConfiguration ? "100%" : "0%" }}
+                    transition={{ duration: 2.5, delay: 0.5 }}
+                    className="bg-gradient-to-r from-yellow-400 to-orange-400 h-2 rounded-full"
+                  />
+                </div>
+                
+                <div className="flex flex-wrap justify-center gap-3 text-sm">
+                  <motion.span
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
+                    transition={{ delay: 1 }}
+                    className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
+                  >
+                    🎯 Personalizando conteúdo
+                  </motion.span>
+                  <motion.span
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
+                    transition={{ delay: 1.5 }}
+                    className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
+                  >
+                    🚀 Otimizando trilhas
+                  </motion.span>
+                  <motion.span
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: showConfiguration ? 1 : 0, x: showConfiguration ? 0 : -20 }}
+                    transition={{ delay: 2 }}
+                    className="bg-white/20 px-3 py-1 rounded-full text-blue-100"
+                  >
+                    ✨ Preparando surpresas
+                  </motion.span>
+                </div>
+              </motion.div>
+            </div>
           </motion.div>
 
           {/* Gift Animation */}
@@ -246,6 +360,7 @@ const WelcomeAnimation = ({ userName, onComplete }) => {
               OK, Vamos Começar!
             </Button>
           </motion.div>
+        </div>
         </div>
 
         {/* Background Particles */}
