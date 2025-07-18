@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronRight, ChevronDown, Star, Play, Pause, Volume2, Maximize, MoreHorizontal, ArrowLeft, ArrowRight, Lock, Award } from 'lucide-react';
+import Navbar from './Navbar';
 
 const TrilhaPage = () => {
   const [currentModule, setCurrentModule] = useState('boas-vindas');
@@ -87,7 +88,9 @@ const TrilhaPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black pt-20">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-black pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
         {/* Breadcrumb */}
@@ -315,7 +318,8 @@ const TrilhaPage = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -1,30 +1,49 @@
-import { useState } from 'react';
-import TrilhasForm from "@/components/ui/TrilhasForm";
-import WelcomeAnimation from "@/components/ui/WelcomeAnimation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  Play,
-  BookOpen,
-  Award,
-  Clock,
-  TrendingUp,
   ChevronRight,
+  TrendingUp,
+  Users,
+  BookOpen,
+  Play,
+  Star,
+  Clock,
+  Award,
+  Target,
+  Zap,
+  Calendar,
+  MessageSquare,
   Video,
-  Upload,
+  Clipboard,
+  CreditCard,
+  BarChart3,
 } from "lucide-react";
+import WelcomeAnimation from "./WelcomeAnimation";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = ({ onCourseSelect, onSmartPlayerOpen = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, isLoading } = useAuth();
-  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(true);
+  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
+
+  // Verificar se é a primeira vez do usuário
+  useEffect(() => {
+    if (user?.email) {
+      const hasSeenWelcome = localStorage.getItem(`welcome_seen_${user.email}`);
+      if (!hasSeenWelcome) {
+        setShowWelcomeAnimation(true);
+      }
+    }
+  }, [user]);
 
   // Função para completar a animação de boas-vindas
   const handleWelcomeComplete = () => {
     setShowWelcomeAnimation(false);
+    if (user?.email) {
+      localStorage.setItem(`welcome_seen_${user.email}`, 'true');
+    }
   };
 
   // Mostrar loading enquanto carrega os dados do usuário
