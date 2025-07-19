@@ -12,7 +12,7 @@ export default function ResetPassword() {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/auth/reset-password/${token}`,
+        `https://learning-platform-backend-2x39.onrender.com/auth/reset-password/${token}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

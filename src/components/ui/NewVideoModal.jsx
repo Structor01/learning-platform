@@ -41,7 +41,7 @@ export default function NewVideoModal({ isOpen, onClose }) {
     if (data.file?.[0]) formData.append('file', data.file[0]);
 
     const token = localStorage.getItem('accessToken');
-    await fetch('http://localhost:3001/videos', {
+    await fetch('https://learning-platform-backend-2x39.onrender.com/videos', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
