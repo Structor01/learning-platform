@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -22,7 +23,6 @@ import {
     X
 } from "lucide-react";
 import WelcomeAnimation from "./WelcomeAnimation";
-import AppAccessModal from "./AppAccessModal";
 import TrilhaRequirementModal from "./TrilhaRequirementModal";
 import { useAuth } from "@/contexts/AuthContext";
 import {Progress} from "@radix-ui/react-progress";
@@ -30,10 +30,9 @@ import {Progress} from "@radix-ui/react-progress";
 const Dashboard = ({ onCourseSelect = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
-  const [showAppModal, setShowAppModal] = useState(false);
-  const [selectedApp, setSelectedApp] = useState('');
   const [showTrilhaModal, setShowTrilhaModal] = useState(false);
   const [selectedTrilha, setSelectedTrilha] = useState('');
 
@@ -55,10 +54,20 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     }
   };
 
-  // Função para abrir modal de aplicativo
+  // Função para redirecionar para página do aplicativo
   const handleAppClick = (appName) => {
-    setSelectedApp(appName);
-    setShowAppModal(true);
+    const routes = {
+      'Cartão Virtual': '/cartao-virtual',
+      'Agenda de Eventos': '/agenda-eventos', 
+      'Entrevista Simulada': '/entrevista-simulada',
+      'Video Pitch': '/video-pitch',
+      'Meus Testes': '/meus-testes'
+    };
+    
+    const route = routes[appName];
+    if (route) {
+      navigate(route);
+    }
   };
 
   // Função para abrir modal de trilha
@@ -581,12 +590,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     </div>
 
     {/* Modais */}
-    <AppAccessModal 
-      isOpen={showAppModal}
-      onClose={() => setShowAppModal(false)}
-      appName={selectedApp}
-    />
-    
     <TrilhaRequirementModal 
       isOpen={showTrilhaModal}
       onClose={() => setShowTrilhaModal(false)}
