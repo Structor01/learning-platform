@@ -48,12 +48,9 @@ const CRMPage = () => {
   const fetchCRMData = async () => {
     try {
       setLoading(true);
-      
-      // Configurar URLs da API
-      const API_BASE_URL = process.env.NODE_ENV === 'production' 
-        ? 'https://learning-platform-backend-2x39.onrender.com'
-        : 'https://3001-i0i34mly27zw354o7dxo5-f4ac7591.manusvm.computer';
-      
+
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
+
       // Buscar dados reais da API
       const [leadsResponse, analyticsResponse, pipelineResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/api/crm/leads`),
