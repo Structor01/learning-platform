@@ -92,4 +92,4 @@ jspm_packages/
 # OS
 .DS_Store
 Thumbs.db
-
+../learning-platform-backend/foxk8s-kubeconfig.yaml
