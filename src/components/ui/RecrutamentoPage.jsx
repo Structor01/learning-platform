@@ -259,7 +259,7 @@ const RecrutamentoPage = () => {
               className="space-y-6"
             >
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:!grid-cols-4 gap-6 mb-8">
                 <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
                   <div className="flex items-center justify-between">
                     <div>
@@ -320,7 +320,7 @@ const RecrutamentoPage = () => {
               </div>
 
               {/* Jobs List */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:!grid-cols-2 gap-6">
                 {jobs.map((job) => (
                   <motion.div
                     key={job.id}
@@ -534,7 +534,7 @@ const RecrutamentoPage = () => {
               animate={{ opacity: 1 }}
               className="space-y-6"
             >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:!grid-cols-2 gap-6">
                 <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
                   <h3 className="text-xl font-semibold text-white mb-4">Performance de Buscas</h3>
                   <div className="space-y-4">
