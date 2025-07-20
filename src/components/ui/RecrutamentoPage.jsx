@@ -49,10 +49,9 @@ const RecrutamentoPage = () => {
     try {
       setLoading(true);
       
-      // Configurar URLs da API
-      const API_BASE_URL = process.env.NODE_ENV === 'production' 
-        ? 'https://learning-platform-backend-2x39.onrender.com'
-        : 'https://3001-ikjlsjh5wfosw5vrl3xjt-f4ac7591.manusvm.computer';
+
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
+
       
       // Buscar dados reais da API
       const [jobsResponse, analyticsResponse, historyResponse] = await Promise.all([
