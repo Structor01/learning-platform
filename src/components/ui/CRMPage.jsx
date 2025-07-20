@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import Navbar from './Navbar';
 import { 
   Users, 
   TrendingUp, 
@@ -14,7 +15,11 @@ import {
   Phone,
   Mail,
   Building,
-  Calendar
+  Calendar,
+  MessageCircle,
+  GraduationCap,
+  Briefcase,
+  User
 } from 'lucide-react';
 
 const CRMPage = () => {
@@ -107,17 +112,19 @@ const CRMPage = () => {
   }
 
   return (
-    <div className="min-h-screen !important bg-gray-900 !important text-white !important p-4 !important">
-      <div className="max-w-7xl !important mx-auto !important">
-        {/* Header */}
-        <div className="mb-8 !important">
-          <h1 className="text-3xl !important font-bold !important text-white !important mb-2 !important">
-            CRM - Gestão de Leads
-          </h1>
-          <p className="text-gray-400 !important">
-            Dados em tempo real da tabela users via API NestJS
-          </p>
-        </div>
+    <>
+      <Navbar />
+      <div className="min-h-screen !important bg-gray-900 !important text-white !important p-4 !important pt-20 !important">
+        <div className="max-w-7xl !important mx-auto !important">
+          {/* Header */}
+          <div className="mb-8 !important">
+            <h1 className="text-3xl !important font-bold !important text-white !important mb-2 !important">
+              CRM - Gestão de Leads
+            </h1>
+            <p className="text-gray-400 !important">
+              Dados em tempo real da tabela users via API NestJS
+            </p>
+          </div>
 
         {/* Analytics Cards */}
         {analytics && (
@@ -398,6 +405,7 @@ const CRMPage = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 
