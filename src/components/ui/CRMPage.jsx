@@ -28,7 +28,15 @@ import {
   GraduationCap,
   Briefcase,
   User,
-  ExternalLink
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  X
 } from 'lucide-react';
 
 const CRMPage = () => {
@@ -40,6 +48,15 @@ const CRMPage = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterArea, setFilterArea] = useState('all');
   const [filterEducation, setFilterEducation] = useState('all');
+  const [filterDisc, setFilterDisc] = useState('all');
+  const [filterLideranca, setFilterLideranca] = useState('all');
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
+  
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetchCRMData();
@@ -120,13 +137,92 @@ const CRMPage = () => {
     const matchesFilter = filterStatus === 'all' || lead.classification === filterStatus;
     const matchesArea = filterArea === 'all' || lead.acting_area === filterArea;
     const matchesEducation = filterEducation === 'all' || lead.educational_background === filterEducation;
+    const matchesDisc = filterDisc === 'all' || lead.perfil_disc === filterDisc || lead.disc_profile === filterDisc;
+    const matchesLideranca = filterLideranca === 'all' || lead.perfil_lideranca === filterLideranca;
     
-    return matchesSearch && matchesFilter && matchesArea && matchesEducation;
+    return matchesSearch && matchesFilter && matchesArea && matchesEducation && matchesDisc && matchesLideranca;
   });
+
+  // Ordenação
+  const sortedLeads = [...filteredLeads].sort((a, b) => {
+    let aValue = a[sortField] || '';
+    let bValue = b[sortField] || '';
+    
+    // Tratamento especial para campos numéricos
+    if (sortField === 'engagement_level') {
+      aValue = Number(aValue);
+      bValue = Number(bValue);
+    }
+    
+    // Tratamento para datas
+    if (sortField === 'created_at') {
+      aValue = new Date(aValue);
+      bValue = new Date(bValue);
+    }
+    
+    if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+    
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
+  // Paginação
+  const totalFilteredLeads = sortedLeads.length;
+  const totalPagesCalculated = Math.ceil(totalFilteredLeads / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedLeads = sortedLeads.slice(startIndex, endIndex);
+
+  // Atualizar total de páginas quando filtros mudarem
+  useEffect(() => {
+    setTotalPages(totalPagesCalculated);
+    if (currentPage > totalPagesCalculated && totalPagesCalculated > 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPagesCalculated, currentPage]);
 
   // Extrair valores únicos para filtros
   const uniqueAreas = [...new Set(leads.map(lead => lead.acting_area).filter(Boolean))];
   const uniqueEducation = [...new Set(leads.map(lead => lead.educational_background).filter(Boolean))];
+  const uniqueDisc = [...new Set(leads.map(lead => lead.perfil_disc || lead.disc_profile).filter(Boolean))];
+  const uniqueLideranca = [...new Set(leads.map(lead => lead.perfil_lideranca).filter(Boolean))];
+
+  // Função para ordenação
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Funções de paginação
+  const goToPage = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToFirstPage = () => goToPage(1);
+  const goToLastPage = () => goToPage(totalPages);
+  const goToPreviousPage = () => goToPage(currentPage - 1);
+  const goToNextPage = () => goToPage(currentPage + 1);
+
+  // Limpar filtros
+  const clearFilters = () => {
+    setSearchTerm('');
+    setFilterStatus('all');
+    setFilterArea('all');
+    setFilterEducation('all');
+    setFilterDisc('all');
+    setFilterLideranca('all');
+    setCurrentPage(1);
+  };
 
   if (loading) {
     return (
@@ -371,6 +467,76 @@ const CRMPage = () => {
                       </select>
                     </div>
                   )}
+
+                  {/* Filtro por DISC */}
+                  {uniqueDisc.length > 0 && (
+                    <div className="flex gap-2 !important flex-wrap !important">
+                      <span className="text-sm !important text-gray-400 !important self-center !important">DISC:</span>
+                      <select
+                        value={filterDisc}
+                        onChange={(e) => setFilterDisc(e.target.value)}
+                        className="bg-gray-700 !important border-gray-600 !important text-white !important rounded px-3 py-1 !important text-sm !important"
+                      >
+                        <option value="all">Todos os perfis</option>
+                        {uniqueDisc.map(disc => (
+                          <option key={disc} value={disc}>{disc}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Filtro por Liderança */}
+                  {uniqueLideranca.length > 0 && (
+                    <div className="flex gap-2 !important flex-wrap !important">
+                      <span className="text-sm !important text-gray-400 !important self-center !important">Liderança:</span>
+                      <select
+                        value={filterLideranca}
+                        onChange={(e) => setFilterLideranca(e.target.value)}
+                        className="bg-gray-700 !important border-gray-600 !important text-white !important rounded px-3 py-1 !important text-sm !important"
+                      >
+                        <option value="all">Todos os perfis</option>
+                        {uniqueLideranca.map(lideranca => (
+                          <option key={lideranca} value={lideranca}>{lideranca}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Botão Limpar Filtros */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="border-gray-600 !important text-gray-300 !important hover:bg-gray-700 !important"
+                  >
+                    <X className="h-4 w-4 !important mr-1 !important" />
+                    Limpar
+                  </Button>
+                </div>
+
+                {/* Controles de Paginação e Itens por Página */}
+                <div className="flex flex-col sm:flex-row !important justify-between !important items-center !important gap-4 !important">
+                  <div className="flex items-center !important gap-2 !important">
+                    <span className="text-sm !important text-gray-400 !important">Itens por página:</span>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="bg-gray-700 !important border-gray-600 !important text-white !important rounded px-2 py-1 !important text-sm !important"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                  </div>
+                  
+                  <div className="text-sm !important text-gray-400 !important">
+                    Mostrando {startIndex + 1}-{Math.min(endIndex, totalFilteredLeads)} de {totalFilteredLeads} leads
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -380,7 +546,7 @@ const CRMPage = () => {
           <Card className="bg-gray-800 !important border-gray-700 !important">
             <CardHeader>
               <CardTitle className="text-white !important">
-                Leads ({filteredLeads.length})
+                Leads ({totalFilteredLeads})
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 !important">
@@ -388,21 +554,105 @@ const CRMPage = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-gray-700 !important">
-                      <TableHead className="text-gray-300 !important">Nome</TableHead>
-                      <TableHead className="text-gray-300 !important">Email</TableHead>
+                      <TableHead 
+                        className="text-gray-300 !important cursor-pointer !important hover:text-white !important"
+                        onClick={() => handleSort('name')}
+                      >
+                        <div className="flex items-center !important gap-1 !important">
+                          Nome
+                          {sortField === 'name' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 !important" /> : <ArrowDown className="h-3 w-3 !important" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 !important" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-gray-300 !important cursor-pointer !important hover:text-white !important"
+                        onClick={() => handleSort('email')}
+                      >
+                        <div className="flex items-center !important gap-1 !important">
+                          Email
+                          {sortField === 'email' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 !important" /> : <ArrowDown className="h-3 w-3 !important" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 !important" />
+                          )}
+                        </div>
+                      </TableHead>
                       <TableHead className="text-gray-300 !important">Telefone</TableHead>
-                      <TableHead className="text-gray-300 !important">Empresa</TableHead>
-                      <TableHead className="text-gray-300 !important">Área</TableHead>
-                      <TableHead className="text-gray-300 !important">Educação</TableHead>
+                      <TableHead 
+                        className="text-gray-300 !important cursor-pointer !important hover:text-white !important"
+                        onClick={() => handleSort('current_company')}
+                      >
+                        <div className="flex items-center !important gap-1 !important">
+                          Empresa
+                          {sortField === 'current_company' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 !important" /> : <ArrowDown className="h-3 w-3 !important" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 !important" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-gray-300 !important cursor-pointer !important hover:text-white !important"
+                        onClick={() => handleSort('acting_area')}
+                      >
+                        <div className="flex items-center !important gap-1 !important">
+                          Área
+                          {sortField === 'acting_area' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 !important" /> : <ArrowDown className="h-3 w-3 !important" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 !important" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-gray-300 !important cursor-pointer !important hover:text-white !important"
+                        onClick={() => handleSort('educational_background')}
+                      >
+                        <div className="flex items-center !important gap-1 !important">
+                          Educação
+                          {sortField === 'educational_background' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 !important" /> : <ArrowDown className="h-3 w-3 !important" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 !important" />
+                          )}
+                        </div>
+                      </TableHead>
                       <TableHead className="text-gray-300 !important">DISC</TableHead>
                       <TableHead className="text-gray-300 !important">Liderança</TableHead>
-                      <TableHead className="text-gray-300 !important">Status</TableHead>
-                      <TableHead className="text-gray-300 !important">Engajamento</TableHead>
+                      <TableHead 
+                        className="text-gray-300 !important cursor-pointer !important hover:text-white !important"
+                        onClick={() => handleSort('classification')}
+                      >
+                        <div className="flex items-center !important gap-1 !important">
+                          Status
+                          {sortField === 'classification' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 !important" /> : <ArrowDown className="h-3 w-3 !important" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 !important" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead 
+                        className="text-gray-300 !important cursor-pointer !important hover:text-white !important"
+                        onClick={() => handleSort('engagement_level')}
+                      >
+                        <div className="flex items-center !important gap-1 !important">
+                          Engajamento
+                          {sortField === 'engagement_level' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3 !important" /> : <ArrowDown className="h-3 w-3 !important" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3 !important" />
+                          )}
+                        </div>
+                      </TableHead>
                       <TableHead className="text-gray-300 !important">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredLeads.map((lead) => (
+                    {paginatedLeads.map((lead) => (
                       <TableRow key={lead.id} className="border-gray-700 !important hover:bg-gray-750 !important">
                         <TableCell className="text-white !important font-medium !important">
                           <div className="flex items-center !important gap-2 !important">
@@ -523,7 +773,89 @@ const CRMPage = () => {
                 </Table>
               </div>
 
-              {filteredLeads.length === 0 && (
+              {/* Controles de Paginação */}
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row !important justify-between !important items-center !important gap-4 !important p-4 !important border-t !important border-gray-700 !important">
+                  <div className="text-sm !important text-gray-400 !important">
+                    Página {currentPage} de {totalPages}
+                  </div>
+                  
+                  <div className="flex items-center !important gap-2 !important">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToFirstPage}
+                      disabled={currentPage === 1}
+                      className="border-gray-600 !important text-gray-300 !important hover:bg-gray-700 !important disabled:opacity-50 !important"
+                    >
+                      <ChevronsLeft className="h-4 w-4 !important" />
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToPreviousPage}
+                      disabled={currentPage === 1}
+                      className="border-gray-600 !important text-gray-300 !important hover:bg-gray-700 !important disabled:opacity-50 !important"
+                    >
+                      <ChevronLeft className="h-4 w-4 !important" />
+                    </Button>
+                    
+                    {/* Números das páginas */}
+                    <div className="flex items-center !important gap-1 !important">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => goToPage(pageNum)}
+                            className={currentPage === pageNum 
+                              ? "bg-blue-600 !important text-white !important"
+                              : "border-gray-600 !important text-gray-300 !important hover:bg-gray-700 !important"
+                            }
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToNextPage}
+                      disabled={currentPage === totalPages}
+                      className="border-gray-600 !important text-gray-300 !important hover:bg-gray-700 !important disabled:opacity-50 !important"
+                    >
+                      <ChevronRight className="h-4 w-4 !important" />
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToLastPage}
+                      disabled={currentPage === totalPages}
+                      className="border-gray-600 !important text-gray-300 !important hover:bg-gray-700 !important disabled:opacity-50 !important"
+                    >
+                      <ChevronsRight className="h-4 w-4 !important" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {paginatedLeads.length === 0 && (
                 <div className="text-center !important py-12 !important">
                   <Users className="h-12 w-12 !important text-gray-400 !important mx-auto !important mb-4 !important" />
                   <h3 className="text-lg !important font-medium !important text-white !important mb-2 !important">
