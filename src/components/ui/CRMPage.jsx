@@ -33,89 +33,37 @@ const CRMPage = () => {
     try {
       setLoading(true);
       
-      // Simular dados da tabela users
-      const mockLeads = [
-        {
-          id: '1',
-          name: 'João Silva',
-          email: 'joao.silva@agro.com',
-          phone: '+55 11 99999-1234',
-          company: 'AgroTech Solutions',
-          position: 'Gerente Comercial',
-          disc_profile: 'Dominance',
-          classification: 'Hot Lead',
-          priority: 'High',
-          engagement_level: 95,
-          lead_source: 'Plataforma AgroSkills',
-          lead_status: 'qualified',
-          created_at: new Date('2025-07-19'),
-          last_login: new Date('2025-07-20')
-        },
-        {
-          id: '2',
-          name: 'Maria Santos',
-          email: 'maria.santos@fazenda.com',
-          phone: '+55 19 98888-5678',
-          company: 'Fazenda Santa Clara',
-          position: 'Proprietária',
-          disc_profile: 'Influence',
-          classification: 'Warm Lead',
-          priority: 'Medium',
-          engagement_level: 78,
-          lead_source: 'Plataforma AgroSkills',
-          lead_status: 'contacted',
-          created_at: new Date('2025-07-18'),
-          last_login: new Date('2025-07-19')
-        },
-        {
-          id: '3',
-          name: 'Carlos Oliveira',
-          email: 'carlos.oliveira@coop.com',
-          phone: '+55 16 97777-9012',
-          company: 'Cooperativa Regional',
-          position: 'Diretor Técnico',
-          disc_profile: 'Steadiness',
-          classification: 'Cold Lead',
-          priority: 'Low',
-          engagement_level: 45,
-          lead_source: 'Plataforma AgroSkills',
-          lead_status: 'new',
-          created_at: new Date('2025-07-15'),
-          last_login: new Date('2025-07-16')
-        }
-      ];
+      // Configurar URLs da API
+      const API_BASE_URL = process.env.NODE_ENV === 'production' 
+        ? 'https://learning-platform-backend-2x39.onrender.com'
+        : 'https://3001-i0i34mly27zw354o7dxo5-f4ac7591.manusvm.computer';
+      
+      // Buscar dados reais da API
+      const [leadsResponse, analyticsResponse, pipelineResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/crm/leads`),
+        fetch(`${API_BASE_URL}/api/crm/analytics`),
+        fetch(`${API_BASE_URL}/api/crm/pipeline`)
+      ]);
 
-      const mockAnalytics = {
-        totalLeads: 3,
-        leadsByStatus: [
-          { status: 'Hot Lead', count: 1 },
-          { status: 'Warm Lead', count: 1 },
-          { status: 'Cold Lead', count: 1 }
-        ],
-        leadsBySource: [
-          { source: 'Plataforma AgroSkills', count: 3 },
-          { source: 'Cadastro Direto', count: 2 },
-          { source: 'Indicação', count: 1 }
-        ],
-        conversionTrend: [
-          { month: '2025-07', total_leads: 3, converted: 1 }
-        ]
-      };
+      if (leadsResponse.ok && analyticsResponse.ok && pipelineResponse.ok) {
+        const leadsData = await leadsResponse.json();
+        const analyticsData = await analyticsResponse.json();
+        const pipelineData = await pipelineResponse.json();
 
-      const mockPipeline = {
-        new: 1,
-        contacted: 1,
-        qualified: 1,
-        proposal: 0,
-        closed_won: 0,
-        closed_lost: 0
-      };
-
-      setLeads(mockLeads);
-      setAnalytics(mockAnalytics);
-      setPipeline(mockPipeline);
+        setLeads(leadsData);
+        setAnalytics(analyticsData);
+        setPipeline(pipelineData);
+      } else {
+        console.error('Erro ao carregar dados da API');
+        setLeads([]);
+        setAnalytics({ totalLeads: 0, leadsByStatus: [], leadsBySource: [], conversionTrend: [] });
+        setPipeline({ new: 0, contacted: 0, qualified: 0, proposal: 0, closed_won: 0, closed_lost: 0 });
+      }
     } catch (error) {
       console.error('Erro ao carregar dados do CRM:', error);
+      setLeads([]);
+      setAnalytics({ totalLeads: 0, leadsByStatus: [], leadsBySource: [], conversionTrend: [] });
+      setPipeline({ new: 0, contacted: 0, qualified: 0, proposal: 0, closed_won: 0, closed_lost: 0 });
     } finally {
       setLoading(false);
     }
@@ -141,8 +89,8 @@ const CRMPage = () => {
   };
 
   const filteredLeads = leads.filter(lead => {
-    const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = lead.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lead.company?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesFilter = filterStatus === 'all' || lead.classification === filterStatus;
@@ -153,7 +101,7 @@ const CRMPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen !important bg-gray-900 !important p-4 !important flex items-center justify-center !important">
-        <div className="text-white !important text-xl !important">Carregando dados do CRM...</div>
+        <div className="text-white !important text-xl !important">Carregando dados do CRM da API...</div>
       </div>
     );
   }
@@ -167,7 +115,7 @@ const CRMPage = () => {
             CRM - Gestão de Leads
           </h1>
           <p className="text-gray-400 !important">
-            Dados extraídos da tabela users da plataforma AgroSkills
+            Dados em tempo real da tabela users via API NestJS
           </p>
         </div>
 
@@ -186,7 +134,7 @@ const CRMPage = () => {
                   {analytics.totalLeads}
                 </div>
                 <p className="text-xs !important text-green-400 !important">
-                  Usuários cadastrados
+                  Usuários da plataforma
                 </p>
               </CardContent>
             </Card>
@@ -234,7 +182,7 @@ const CRMPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl !important font-bold !important text-white !important">
-                  R$ 45.2K
+                  R$ {(analytics.totalLeads * 15).toFixed(1)}K
                 </div>
                 <p className="text-xs !important text-green-400 !important">
                   Pipeline estimado
@@ -337,6 +285,13 @@ const CRMPage = () => {
                 >
                   Cold
                 </Button>
+                <Button
+                  variant={filterStatus === 'Customer' ? 'default' : 'outline'}
+                  onClick={() => setFilterStatus('Customer')}
+                  className="bg-green-600 hover:bg-green-700 !important text-white !important border-green-600 !important"
+                >
+                  Customer
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -382,7 +337,9 @@ const CRMPage = () => {
                       )}
                       <div className="flex items-center !important gap-2 !important">
                         <Calendar className="h-4 w-4 !important flex-shrink-0 !important" />
-                        <span className="truncate !important">{new Date(lead.created_at).toLocaleDateString('pt-BR')}</span>
+                        <span className="truncate !important">
+                          {lead.created_at ? new Date(lead.created_at).toLocaleDateString('pt-BR') : 'N/A'}
+                        </span>
                       </div>
                     </div>
                     
@@ -428,10 +385,13 @@ const CRMPage = () => {
             <CardContent className="text-center !important py-12 !important">
               <Users className="h-12 w-12 !important text-gray-400 !important mx-auto !important mb-4 !important" />
               <h3 className="text-lg !important font-medium !important text-white !important mb-2 !important">
-                Nenhum lead encontrado
+                {leads.length === 0 ? 'Nenhum dado encontrado na API' : 'Nenhum lead encontrado'}
               </h3>
               <p className="text-gray-400 !important">
-                Tente ajustar os filtros ou termo de busca
+                {leads.length === 0 
+                  ? 'Verifique se a API está funcionando corretamente'
+                  : 'Tente ajustar os filtros ou termo de busca'
+                }
               </p>
             </CardContent>
           </Card>
