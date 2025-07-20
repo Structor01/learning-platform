@@ -20,7 +20,6 @@ import {
   Calendar,
   Filter,
   ExternalLink,
-  LinkedIn,
   Mail,
   Phone,
   Star,
@@ -351,7 +350,7 @@ const RecrutamentoPage = () => {
                                 disabled={searchLoading}
                                 className="bg-blue-600 hover:bg-blue-700 !important text-white !important"
                               >
-                                <LinkedIn className="h-4 w-4 !important mr-2 !important" />
+                                <ExternalLink className="h-4 w-4 !important mr-2 !important" />
                                 {searchLoading ? 'Buscando...' : 'Buscar no LinkedIn'}
                               </Button>
                               <Button
@@ -490,7 +489,7 @@ const RecrutamentoPage = () => {
                                   className="bg-blue-600 hover:bg-blue-700 !important text-white !important"
                                   onClick={() => window.open(candidate.linkedin_url, '_blank')}
                                 >
-                                  <LinkedIn className="h-4 w-4 !important mr-1 !important" />
+                                  <ExternalLink className="h-4 w-4 !important mr-1 !important" />
                                   LinkedIn
                                 </Button>
                                 <Button
