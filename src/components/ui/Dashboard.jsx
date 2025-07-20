@@ -1,25 +1,12 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  ChevronRight,
   TrendingUp,
-  Users,
-  BookOpen,
   Play,
-  Star,
   Clock,
   Award,
-  Target,
-  Zap,
-  Calendar,
-  MessageSquare,
-  Video,
-  Clipboard,
-  CreditCard,
-  BarChart3,
     X
 } from "lucide-react";
 import WelcomeAnimation from "./WelcomeAnimation";
@@ -152,7 +139,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
             {/* Card Gestão de Carreira - Acesso Gratuito */}
             <div className="lg:!w-80 flex-shrink-0">
-              <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-xl">
+              <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-90 cursor-pointer shadow-xl">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">

@@ -32,11 +32,7 @@ const CRMPage = () => {
   const fetchCRMData = async () => {
     try {
       setLoading(true);
-      
-      // Configurar URLs da API
-      const API_BASE_URL = process.env.NODE_ENV === 'production' 
-        ? 'https://learning-platform-backend-2x39.onrender.com'
-        : 'https://3001-i0i34mly27zw354o7dxo5-f4ac7591.manusvm.computer';
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
       
       // Buscar dados reais da API
       const [leadsResponse, analyticsResponse, pipelineResponse] = await Promise.all([
@@ -71,20 +67,20 @@ const CRMPage = () => {
 
   const getClassificationColor = (classification) => {
     switch (classification) {
-      case 'Hot Lead': return 'bg-red-500 !important';
-      case 'Warm Lead': return 'bg-orange-500 !important';
-      case 'Cold Lead': return 'bg-blue-500 !important';
-      case 'Customer': return 'bg-green-500 !important';
-      default: return 'bg-gray-500 !important';
+      case 'Hot Lead': return 'bg-red-500';
+      case 'Warm Lead': return 'bg-orange-500';
+      case 'Cold Lead': return 'bg-blue-500';
+      case 'Customer': return 'bg-green-500';
+      default: return 'bg-gray-500';
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'High': return 'bg-red-100 text-red-800 !important';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800 !important';
-      case 'Low': return 'bg-green-100 text-green-800 !important';
-      default: return 'bg-gray-100 text-gray-800 !important';
+      case 'High': return 'bg-red-100 text-red-800';
+      case 'Medium': return 'bg-yellow-100 text-yellow-800';
+      case 'Low': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -100,91 +96,91 @@ const CRMPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen !important bg-gray-900 !important p-4 !important flex items-center justify-center !important">
-        <div className="text-white !important text-xl !important">Carregando dados do CRM da API...</div>
+      <div className="min-h-screen bg-gray-900 p-4 flex items-center justify-center">
+        <div className="text-white text-xl">Carregando dados do CRM da API...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen !important bg-gray-900 !important text-white !important p-4 !important">
-      <div className="max-w-7xl !important mx-auto !important">
+    <div className="min-h-screen bg-gray-900 text-white p-4">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 !important">
-          <h1 className="text-3xl !important font-bold !important text-white !important mb-2 !important">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">
             CRM - Gestão de Leads
           </h1>
-          <p className="text-gray-400 !important">
+          <p className="text-gray-400">
             Dados em tempo real da tabela users via API NestJS
           </p>
         </div>
 
         {/* Analytics Cards */}
         {analytics && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 !important gap-6 !important mb-8 !important">
-            <Card className="bg-gray-800 !important border-gray-700 !important">
-              <CardHeader className="flex flex-row !important items-center justify-between !important space-y-0 !important pb-2 !important">
-                <CardTitle className="text-sm !important font-medium !important text-gray-400 !important">
+          <div className="grid grid-cols-1 md:!grid-cols-2 lg:!!grid-cols-4 gap-6 mb-8">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-400">
                   Total de Leads
                 </CardTitle>
-                <Users className="h-4 w-4 !important text-blue-400 !important" />
+                <Users className="h-4 w-4 text-blue-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl !important font-bold !important text-white !important">
+                <div className="text-2xl font-bold text-white">
                   {analytics.totalLeads}
                 </div>
-                <p className="text-xs !important text-green-400 !important">
+                <p className="text-xs text-green-400">
                   Usuários da plataforma
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-800 !important border-gray-700 !important">
-              <CardHeader className="flex flex-row !important items-center justify-between !important space-y-0 !important pb-2 !important">
-                <CardTitle className="text-sm !important font-medium !important text-gray-400 !important">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-400">
                   Taxa de Conversão
                 </CardTitle>
-                <TrendingUp className="h-4 w-4 !important text-green-400 !important" />
+                <TrendingUp className="h-4 w-4 text-green-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl !important font-bold !important text-white !important">
+                <div className="text-2xl font-bold text-white">
                   15%
                 </div>
-                <p className="text-xs !important text-green-400 !important">
+                <p className="text-xs text-green-400">
                   Estimativa baseada em dados
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-800 !important border-gray-700 !important">
-              <CardHeader className="flex flex-row !important items-center justify-between !important space-y-0 !important pb-2 !important">
-                <CardTitle className="text-sm !important font-medium !important text-gray-400 !important">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-400">
                   Leads Qualificados
                 </CardTitle>
-                <Target className="h-4 w-4 !important text-orange-400 !important" />
+                <Target className="h-4 w-4 text-orange-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl !important font-bold !important text-white !important">
+                <div className="text-2xl font-bold text-white">
                   {pipeline?.qualified || 0}
                 </div>
-                <p className="text-xs !important text-orange-400 !important">
+                <p className="text-xs text-orange-400">
                   Prontos para proposta
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-800 !important border-gray-700 !important">
-              <CardHeader className="flex flex-row !important items-center justify-between !important space-y-0 !important pb-2 !important">
-                <CardTitle className="text-sm !important font-medium !important text-gray-400 !important">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-400">
                   Receita Potencial
                 </CardTitle>
-                <DollarSign className="h-4 w-4 !important text-green-400 !important" />
+                <DollarSign className="h-4 w-4 text-green-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl !important font-bold !important text-white !important">
+                <div className="text-2xl font-bold text-white">
                   R$ {(analytics.totalLeads * 15).toFixed(1)}K
                 </div>
-                <p className="text-xs !important text-green-400 !important">
+                <p className="text-xs text-green-400">
                   Pipeline estimado
                 </p>
               </CardContent>
@@ -194,47 +190,47 @@ const CRMPage = () => {
 
         {/* Pipeline */}
         {pipeline && (
-          <Card className="bg-gray-800 !important border-gray-700 !important mb-8 !important">
+          <Card className="bg-gray-800 border-gray-700 mb-8">
             <CardHeader>
-              <CardTitle className="text-white !important">Pipeline de Vendas</CardTitle>
+              <CardTitle className="text-white">Pipeline de Vendas</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 !important gap-4 !important">
-                <div className="text-center !important">
-                  <div className="text-2xl !important font-bold !important text-blue-400 !important">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:!!grid-cols-6 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-400">
                     {pipeline.new}
                   </div>
-                  <div className="text-sm !important text-gray-400 !important">Novos</div>
+                  <div className="text-sm text-gray-400">Novos</div>
                 </div>
-                <div className="text-center !important">
-                  <div className="text-2xl !important font-bold !important text-yellow-400 !important">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-400">
                     {pipeline.contacted}
                   </div>
-                  <div className="text-sm !important text-gray-400 !important">Contatados</div>
+                  <div className="text-sm text-gray-400">Contatados</div>
                 </div>
-                <div className="text-center !important">
-                  <div className="text-2xl !important font-bold !important text-orange-400 !important">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-400">
                     {pipeline.qualified}
                   </div>
-                  <div className="text-sm !important text-gray-400 !important">Qualificados</div>
+                  <div className="text-sm text-gray-400">Qualificados</div>
                 </div>
-                <div className="text-center !important">
-                  <div className="text-2xl !important font-bold !important text-purple-400 !important">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-400">
                     {pipeline.proposal}
                   </div>
-                  <div className="text-sm !important text-gray-400 !important">Proposta</div>
+                  <div className="text-sm text-gray-400">Proposta</div>
                 </div>
-                <div className="text-center !important">
-                  <div className="text-2xl !important font-bold !important text-green-400 !important">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-400">
                     {pipeline.closed_won}
                   </div>
-                  <div className="text-sm !important text-gray-400 !important">Fechados</div>
+                  <div className="text-sm text-gray-400">Fechados</div>
                 </div>
-                <div className="text-center !important">
-                  <div className="text-2xl !important font-bold !important text-red-400 !important">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-400">
                     {pipeline.closed_lost}
                   </div>
-                  <div className="text-sm !important text-gray-400 !important">Perdidos</div>
+                  <div className="text-sm text-gray-400">Perdidos</div>
                 </div>
               </div>
             </CardContent>
@@ -242,53 +238,53 @@ const CRMPage = () => {
         )}
 
         {/* Filtros e Busca */}
-        <Card className="bg-gray-800 !important border-gray-700 !important mb-6 !important">
-          <CardContent className="pt-6 !important">
-            <div className="flex flex-col md:flex-row !important gap-4 !important">
-              <div className="flex-1 !important">
-                <div className="relative !important">
-                  <Search className="absolute left-3 top-1/2 !important transform -translate-y-1/2 !important text-gray-400 !important h-4 w-4 !important" />
+        <Card className="bg-gray-800 border-gray-700 mb-6">
+          <CardContent className="pt-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     placeholder="Buscar leads por nome, email ou empresa..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 !important bg-gray-700 !important border-gray-600 !important text-white !important placeholder-gray-400 !important"
+                    className="pl-10 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
               </div>
-              <div className="flex gap-2 !important flex-wrap !important">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   variant={filterStatus === 'all' ? 'default' : 'outline'}
                   onClick={() => setFilterStatus('all')}
-                  className="bg-blue-600 hover:bg-blue-700 !important text-white !important border-blue-600 !important"
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                 >
                   Todos
                 </Button>
                 <Button
                   variant={filterStatus === 'Hot Lead' ? 'default' : 'outline'}
                   onClick={() => setFilterStatus('Hot Lead')}
-                  className="bg-red-600 hover:bg-red-700 !important text-white !important border-red-600 !important"
+                  className="bg-red-600 hover:bg-red-700 text-white border-red-600"
                 >
                   Hot
                 </Button>
                 <Button
                   variant={filterStatus === 'Warm Lead' ? 'default' : 'outline'}
                   onClick={() => setFilterStatus('Warm Lead')}
-                  className="bg-orange-600 hover:bg-orange-700 !important text-white !important border-orange-600 !important"
+                  className="bg-orange-600 hover:bg-orange-700 text-white border-orange-600"
                 >
                   Warm
                 </Button>
                 <Button
                   variant={filterStatus === 'Cold Lead' ? 'default' : 'outline'}
                   onClick={() => setFilterStatus('Cold Lead')}
-                  className="bg-blue-600 hover:bg-blue-700 !important text-white !important border-blue-600 !important"
+                  className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
                 >
                   Cold
                 </Button>
                 <Button
                   variant={filterStatus === 'Customer' ? 'default' : 'outline'}
                   onClick={() => setFilterStatus('Customer')}
-                  className="bg-green-600 hover:bg-green-700 !important text-white !important border-green-600 !important"
+                  className="bg-green-600 hover:bg-green-700 text-white border-green-600"
                 >
                   Customer
                 </Button>
@@ -298,18 +294,18 @@ const CRMPage = () => {
         </Card>
 
         {/* Lista de Leads */}
-        <div className="grid gap-4 !important">
+        <div className="grid gap-4">
           {filteredLeads.map((lead) => (
-            <Card key={lead.id} className="bg-gray-800 !important border-gray-700 !important hover:bg-gray-750 !important transition-colors !important">
-              <CardContent className="p-6 !important">
-                <div className="flex flex-col lg:flex-row !important items-start lg:items-center !important justify-between !important gap-4 !important">
-                  <div className="flex-1 !important">
-                    <div className="flex flex-col sm:flex-row !important items-start sm:items-center !important gap-3 !important mb-3 !important">
-                      <h3 className="text-lg !important font-semibold !important text-white !important">
+            <Card key={lead.id} className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-colors">
+              <CardContent className="p-6">
+                <div className="flex flex-col lg:!flex-row items-start lg:!items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-3">
+                      <h3 className="text-lg font-semibold text-white">
                         {lead.name}
                       </h3>
-                      <div className="flex gap-2 !important flex-wrap !important">
-                        <Badge className={`${getClassificationColor(lead.classification)} text-white !important`}>
+                      <div className="flex gap-2 flex-wrap">
+                        <Badge className={`${getClassificationColor(lead.classification)} text-white`}>
                           {lead.classification}
                         </Badge>
                         <Badge variant="outline" className={getPriorityColor(lead.priority)}>
@@ -318,60 +314,60 @@ const CRMPage = () => {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 !important gap-3 !important text-sm !important text-gray-400 !important">
-                      <div className="flex items-center !important gap-2 !important">
-                        <Mail className="h-4 w-4 !important flex-shrink-0 !important" />
-                        <span className="truncate !important">{lead.email}</span>
+                    <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-4 gap-3 text-sm text-gray-400">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">{lead.email}</span>
                       </div>
                       {lead.phone && (
-                        <div className="flex items-center !important gap-2 !important">
-                          <Phone className="h-4 w-4 !important flex-shrink-0 !important" />
-                          <span className="truncate !important">{lead.phone}</span>
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{lead.phone}</span>
                         </div>
                       )}
                       {lead.company && (
-                        <div className="flex items-center !important gap-2 !important">
-                          <Building className="h-4 w-4 !important flex-shrink-0 !important" />
-                          <span className="truncate !important">{lead.company}</span>
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4 flex-shrink-0" />
+                          <span className="truncate">{lead.company}</span>
                         </div>
                       )}
-                      <div className="flex items-center !important gap-2 !important">
-                        <Calendar className="h-4 w-4 !important flex-shrink-0 !important" />
-                        <span className="truncate !important">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">
                           {lead.created_at ? new Date(lead.created_at).toLocaleDateString('pt-BR') : 'N/A'}
                         </span>
                       </div>
                     </div>
                     
-                    <div className="mt-3 !important">
-                      <div className="flex items-center !important gap-2 !important mb-1 !important">
-                        <span className="text-sm !important text-gray-400 !important">Engajamento:</span>
-                        <span className="text-sm !important font-medium !important text-white !important">
+                    <div className="mt-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm text-gray-400">Engajamento:</span>
+                        <span className="text-sm font-medium text-white">
                           {lead.engagement_level}%
                         </span>
                       </div>
-                      <div className="w-full !important bg-gray-700 !important rounded-full !important h-2 !important">
+                      <div className="w-full bg-gray-700 rounded-full h-2">
                         <div 
-                          className="bg-blue-500 !important h-2 !important rounded-full !important transition-all !important"
+                          className="bg-blue-500 h-2 rounded-full transition-all"
                           style={{ width: `${lead.engagement_level}%` }}
                         ></div>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex gap-2 !important flex-wrap !important">
+                  <div className="flex gap-2 flex-wrap">
                     <Button 
                       size="sm" 
-                      className="bg-blue-600 hover:bg-blue-700 !important text-white !important"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       Contatar
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
-                      className="border-gray-600 !important text-gray-300 !important hover:bg-gray-700 !important"
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700"
                     >
-                      <MoreVertical className="h-4 w-4 !important" />
+                      <MoreVertical className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -381,13 +377,13 @@ const CRMPage = () => {
         </div>
 
         {filteredLeads.length === 0 && (
-          <Card className="bg-gray-800 !important border-gray-700 !important">
-            <CardContent className="text-center !important py-12 !important">
-              <Users className="h-12 w-12 !important text-gray-400 !important mx-auto !important mb-4 !important" />
-              <h3 className="text-lg !important font-medium !important text-white !important mb-2 !important">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardContent className="text-center py-12">
+              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-white mb-2">
                 {leads.length === 0 ? 'Nenhum dado encontrado na API' : 'Nenhum lead encontrado'}
               </h3>
-              <p className="text-gray-400 !important">
+              <p className="text-gray-400">
                 {leads.length === 0 
                   ? 'Verifique se a API está funcionando corretamente'
                   : 'Tente ajustar os filtros ou termo de busca'
