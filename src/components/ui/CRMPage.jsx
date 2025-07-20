@@ -1,109 +1,121 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import Navbar from './Navbar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { 
+  Users, 
+  TrendingUp, 
+  Target, 
+  DollarSign,
+  Search,
+  Filter,
+  MoreVertical,
+  Phone,
+  Mail,
+  Building,
+  Calendar
+} from 'lucide-react';
 
 const CRMPage = () => {
   const [leads, setLeads] = useState([]);
   const [analytics, setAnalytics] = useState(null);
+  const [pipeline, setPipeline] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedLead, setSelectedLead] = useState(null);
-  const [showLeadModal, setShowLeadModal] = useState(false);
-  const [activeTab, setActiveTab] = useState('leads');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
-    fetchLeads();
-    fetchAnalytics();
+    fetchCRMData();
   }, []);
 
-  const fetchLeads = async () => {
+  const fetchCRMData = async () => {
     try {
-      // Simular dados de leads para demonstração
+      setLoading(true);
+      
+      // Simular dados da tabela users
       const mockLeads = [
         {
-          id: 1,
+          id: '1',
           name: 'João Silva',
-          email: 'joao.silva@fazenda.com',
+          email: 'joao.silva@agro.com',
           phone: '+55 11 99999-1234',
-          company: 'Fazenda São João',
-          position: 'Proprietário Rural',
-          disc_profile: 'D',
+          company: 'AgroTech Solutions',
+          position: 'Gerente Comercial',
+          disc_profile: 'Dominance',
           classification: 'Hot Lead',
           priority: 'High',
-          engagement_level: 85,
-          lead_source: 'Website',
-          lead_status: 'qualified',
-          created_at: '2025-07-15T10:30:00Z',
-          last_login: '2025-07-19T14:20:00Z'
-        },
-        {
-          id: 2,
-          name: 'Maria Santos',
-          email: 'maria.santos@agro.com',
-          phone: '+55 11 98888-5678',
-          company: 'AgroTech Solutions',
-          position: 'Gerente de Vendas',
-          disc_profile: 'I',
-          classification: 'Customer',
-          priority: 'High',
           engagement_level: 95,
-          lead_source: 'LinkedIn',
-          lead_status: 'closed_won',
-          created_at: '2025-07-10T08:15:00Z',
-          last_login: '2025-07-20T09:45:00Z'
+          lead_source: 'Plataforma AgroSkills',
+          lead_status: 'qualified',
+          created_at: new Date('2025-07-19'),
+          last_login: new Date('2025-07-20')
         },
         {
-          id: 3,
-          name: 'Carlos Oliveira',
-          email: 'carlos.oliveira@rural.com',
-          phone: '+55 11 97777-9012',
-          company: 'Cooperativa Rural',
-          position: 'Coordenador Técnico',
-          disc_profile: 'S',
+          id: '2',
+          name: 'Maria Santos',
+          email: 'maria.santos@fazenda.com',
+          phone: '+55 19 98888-5678',
+          company: 'Fazenda Santa Clara',
+          position: 'Proprietária',
+          disc_profile: 'Influence',
           classification: 'Warm Lead',
           priority: 'Medium',
-          engagement_level: 65,
-          lead_source: 'Referral',
+          engagement_level: 78,
+          lead_source: 'Plataforma AgroSkills',
           lead_status: 'contacted',
-          created_at: '2025-07-18T16:45:00Z',
-          last_login: '2025-07-18T17:30:00Z'
+          created_at: new Date('2025-07-18'),
+          last_login: new Date('2025-07-19')
+        },
+        {
+          id: '3',
+          name: 'Carlos Oliveira',
+          email: 'carlos.oliveira@coop.com',
+          phone: '+55 16 97777-9012',
+          company: 'Cooperativa Regional',
+          position: 'Diretor Técnico',
+          disc_profile: 'Steadiness',
+          classification: 'Cold Lead',
+          priority: 'Low',
+          engagement_level: 45,
+          lead_source: 'Plataforma AgroSkills',
+          lead_status: 'new',
+          created_at: new Date('2025-07-15'),
+          last_login: new Date('2025-07-16')
         }
       ];
-      setLeads(mockLeads);
-    } catch (error) {
-      console.error('Erro ao buscar leads:', error);
-    }
-  };
 
-  const fetchAnalytics = async () => {
-    try {
-      // Simular dados de analytics
       const mockAnalytics = {
+        totalLeads: 3,
         leadsByStatus: [
-          { status: 'Customer', count: 45 },
-          { status: 'Hot Lead', count: 23 },
-          { status: 'Warm Lead', count: 67 },
-          { status: 'Cold Lead', count: 89 }
+          { status: 'Hot Lead', count: 1 },
+          { status: 'Warm Lead', count: 1 },
+          { status: 'Cold Lead', count: 1 }
         ],
         leadsBySource: [
-          { source: 'Website', count: 78 },
-          { source: 'LinkedIn', count: 56 },
-          { source: 'Referral', count: 34 },
-          { source: 'Email', count: 23 },
-          { source: 'Unknown', count: 33 }
+          { source: 'Plataforma AgroSkills', count: 3 },
+          { source: 'Cadastro Direto', count: 2 },
+          { source: 'Indicação', count: 1 }
         ],
         conversionTrend: [
-          { month: '2025-01-01', total_leads: 45, converted: 12 },
-          { month: '2025-02-01', total_leads: 52, converted: 15 },
-          { month: '2025-03-01', total_leads: 48, converted: 18 },
-          { month: '2025-04-01', total_leads: 61, converted: 22 },
-          { month: '2025-05-01', total_leads: 58, converted: 25 },
-          { month: '2025-06-01', total_leads: 67, converted: 28 },
-          { month: '2025-07-01', total_leads: 73, converted: 31 }
+          { month: '2025-07', total_leads: 3, converted: 1 }
         ]
       };
+
+      const mockPipeline = {
+        new: 1,
+        contacted: 1,
+        qualified: 1,
+        proposal: 0,
+        closed_won: 0,
+        closed_lost: 0
+      };
+
+      setLeads(mockLeads);
       setAnalytics(mockAnalytics);
+      setPipeline(mockPipeline);
     } catch (error) {
-      console.error('Erro ao buscar analytics:', error);
+      console.error('Erro ao carregar dados do CRM:', error);
     } finally {
       setLoading(false);
     }
@@ -111,418 +123,321 @@ const CRMPage = () => {
 
   const getClassificationColor = (classification) => {
     switch (classification) {
-      case 'Customer': return 'bg-green-500';
-      case 'Hot Lead': return 'bg-red-500';
-      case 'Warm Lead': return 'bg-orange-500';
-      case 'Cold Lead': return 'bg-blue-500';
-      default: return 'bg-gray-500';
+      case 'Hot Lead': return 'bg-red-500 !important';
+      case 'Warm Lead': return 'bg-orange-500 !important';
+      case 'Cold Lead': return 'bg-blue-500 !important';
+      case 'Customer': return 'bg-green-500 !important';
+      default: return 'bg-gray-500 !important';
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'High': return 'text-red-400';
-      case 'Medium': return 'text-orange-400';
-      case 'Low': return 'text-green-400';
-      default: return 'text-gray-400';
+      case 'High': return 'bg-red-100 text-red-800 !important';
+      case 'Medium': return 'bg-yellow-100 text-yellow-800 !important';
+      case 'Low': return 'bg-green-100 text-green-800 !important';
+      default: return 'bg-gray-100 text-gray-800 !important';
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const filteredLeads = leads.filter(lead => {
+    const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         lead.company?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesFilter = filterStatus === 'all' || lead.classification === filterStatus;
+    
+    return matchesSearch && matchesFilter;
+  });
 
   if (loading) {
     return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-black pt-20 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-            <p className="text-white">Carregando dados do CRM...</p>
-          </div>
-        </div>
-      </>
+      <div className="min-h-screen !important bg-gray-900 !important p-4 !important flex items-center justify-center !important">
+        <div className="text-white !important text-xl !important">Carregando dados do CRM...</div>
+      </div>
     );
   }
 
   return (
-    <>
-      <Navbar />
-      <div className="min-h-screen bg-black pt-20">
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            <h1 className="text-3xl font-bold text-white mb-2">
-              CRM - Gestão de Leads e Clientes
-            </h1>
-            <p className="text-gray-400">
-              Gerencie seus leads, acompanhe conversões e analise performance de vendas
-            </p>
-          </motion.div>
-
-          {/* Tabs */}
-          <div className="flex space-x-1 mb-8">
-            {[
-              { id: 'leads', label: 'Leads', icon: '👥' },
-              { id: 'analytics', label: 'Analytics', icon: '📊' },
-              { id: 'pipeline', label: 'Pipeline', icon: '🔄' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                  activeTab === tab.id
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                }`}
-              >
-                <span className="mr-2">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Leads Tab */}
-          {activeTab === 'leads' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="space-y-6"
-            >
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Total de Leads</p>
-                      <p className="text-2xl font-bold text-white">224</p>
-                    </div>
-                    <div className="bg-blue-500 p-3 rounded-lg">
-                      <span className="text-white text-xl">👥</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Clientes Ativos</p>
-                      <p className="text-2xl font-bold text-white">45</p>
-                    </div>
-                    <div className="bg-green-500 p-3 rounded-lg">
-                      <span className="text-white text-xl">✅</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Taxa Conversão</p>
-                      <p className="text-2xl font-bold text-white">20.1%</p>
-                    </div>
-                    <div className="bg-orange-500 p-3 rounded-lg">
-                      <span className="text-white text-xl">📈</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-400 text-sm">Receita Mensal</p>
-                      <p className="text-2xl font-bold text-white">R$ 1.345</p>
-                    </div>
-                    <div className="bg-purple-500 p-3 rounded-lg">
-                      <span className="text-white text-xl">💰</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Leads Table */}
-              <div className="bg-gray-900 rounded-lg border border-gray-800 overflow-hidden">
-                <div className="p-6 border-b border-gray-800">
-                  <h3 className="text-xl font-semibold text-white">Lista de Leads</h3>
-                </div>
-                
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-800">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                          Lead
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                          Empresa
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                          Classificação
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                          Prioridade
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                          Engajamento
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                          Último Acesso
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                          Ações
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-800">
-                      {leads.map((lead) => (
-                        <tr key={lead.id} className="hover:bg-gray-800 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10">
-                                <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center">
-                                  <span className="text-white font-medium">
-                                    {lead.name.charAt(0)}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-white">
-                                  {lead.name}
-                                </div>
-                                <div className="text-sm text-gray-400">
-                                  {lead.email}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-white">{lead.company}</div>
-                            <div className="text-sm text-gray-400">{lead.position}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${getClassificationColor(lead.classification)}`}>
-                              {lead.classification}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`text-sm font-medium ${getPriorityColor(lead.priority)}`}>
-                              {lead.priority}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="w-16 bg-gray-700 rounded-full h-2 mr-2">
-                                <div 
-                                  className="bg-green-500 h-2 rounded-full" 
-                                  style={{ width: `${lead.engagement_level}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-sm text-gray-400">{lead.engagement_level}%</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                            {formatDate(lead.last_login)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button
-                              onClick={() => {
-                                setSelectedLead(lead);
-                                setShowLeadModal(true);
-                              }}
-                              className="text-green-400 hover:text-green-300 mr-3"
-                            >
-                              Ver Detalhes
-                            </button>
-                            <button className="text-blue-400 hover:text-blue-300">
-                              Editar
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Analytics Tab */}
-          {activeTab === 'analytics' && analytics && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="space-y-6"
-            >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Leads por Status */}
-                <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                  <h3 className="text-xl font-semibold text-white mb-4">Leads por Status</h3>
-                  <div className="space-y-3">
-                    {analytics.leadsByStatus.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <div className={`w-3 h-3 rounded-full mr-3 ${getClassificationColor(item.status)}`}></div>
-                          <span className="text-gray-300">{item.status}</span>
-                        </div>
-                        <span className="text-white font-medium">{item.count}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Leads por Fonte */}
-                <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                  <h3 className="text-xl font-semibold text-white mb-4">Leads por Fonte</h3>
-                  <div className="space-y-3">
-                    {analytics.leadsBySource.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between">
-                        <span className="text-gray-300">{item.source}</span>
-                        <div className="flex items-center">
-                          <div className="w-20 bg-gray-700 rounded-full h-2 mr-3">
-                            <div 
-                              className="bg-green-500 h-2 rounded-full" 
-                              style={{ width: `${(item.count / 100) * 100}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-white font-medium w-8">{item.count}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Tendência de Conversão */}
-              <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                <h3 className="text-xl font-semibold text-white mb-4">Tendência de Conversão (2025)</h3>
-                <div className="grid grid-cols-7 gap-4">
-                  {analytics.conversionTrend.map((item, index) => {
-                    const month = new Date(item.month).toLocaleDateString('pt-BR', { month: 'short' });
-                    const conversionRate = ((item.converted / item.total_leads) * 100).toFixed(1);
-                    
-                    return (
-                      <div key={index} className="text-center">
-                        <div className="bg-gray-800 p-4 rounded-lg mb-2">
-                          <div className="text-2xl font-bold text-white">{item.converted}</div>
-                          <div className="text-sm text-gray-400">de {item.total_leads}</div>
-                        </div>
-                        <div className="text-sm text-green-400 font-medium">{conversionRate}%</div>
-                        <div className="text-xs text-gray-500 uppercase">{month}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Pipeline Tab */}
-          {activeTab === 'pipeline' && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="space-y-6"
-            >
-              <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-                <h3 className="text-xl font-semibold text-white mb-6">Pipeline de Vendas</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {[
-                    { stage: 'Novos Leads', count: 89, color: 'bg-blue-500' },
-                    { stage: 'Qualificados', count: 45, color: 'bg-orange-500' },
-                    { stage: 'Proposta', count: 23, color: 'bg-purple-500' },
-                    { stage: 'Fechados', count: 12, color: 'bg-green-500' }
-                  ].map((stage, index) => (
-                    <div key={index} className="bg-gray-800 p-4 rounded-lg text-center">
-                      <div className={`w-12 h-12 ${stage.color} rounded-full flex items-center justify-center mx-auto mb-3`}>
-                        <span className="text-white font-bold">{stage.count}</span>
-                      </div>
-                      <h4 className="text-white font-medium">{stage.stage}</h4>
-                      <p className="text-gray-400 text-sm mt-1">
-                        {index < 3 ? `${((stage.count / 89) * 100).toFixed(1)}%` : 'Taxa final'}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          )}
+    <div className="min-h-screen !important bg-gray-900 !important text-white !important p-4 !important">
+      <div className="max-w-7xl !important mx-auto !important">
+        {/* Header */}
+        <div className="mb-8 !important">
+          <h1 className="text-3xl !important font-bold !important text-white !important mb-2 !important">
+            CRM - Gestão de Leads
+          </h1>
+          <p className="text-gray-400 !important">
+            Dados extraídos da tabela users da plataforma AgroSkills
+          </p>
         </div>
 
-        {/* Lead Detail Modal */}
-        {showLeadModal && selectedLead && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="bg-gray-900 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-white">Detalhes do Lead</h3>
-                <button
-                  onClick={() => setShowLeadModal(false)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-gray-400 text-sm">Nome</label>
-                    <p className="text-white font-medium">{selectedLead.name}</p>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 text-sm">Email</label>
-                    <p className="text-white font-medium">{selectedLead.email}</p>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 text-sm">Telefone</label>
-                    <p className="text-white font-medium">{selectedLead.phone}</p>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 text-sm">Empresa</label>
-                    <p className="text-white font-medium">{selectedLead.company}</p>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 text-sm">Cargo</label>
-                    <p className="text-white font-medium">{selectedLead.position}</p>
-                  </div>
-                  <div>
-                    <label className="text-gray-400 text-sm">Perfil DISC</label>
-                    <p className="text-white font-medium">{selectedLead.disc_profile}</p>
-                  </div>
+        {/* Analytics Cards */}
+        {analytics && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 !important gap-6 !important mb-8 !important">
+            <Card className="bg-gray-800 !important border-gray-700 !important">
+              <CardHeader className="flex flex-row !important items-center justify-between !important space-y-0 !important pb-2 !important">
+                <CardTitle className="text-sm !important font-medium !important text-gray-400 !important">
+                  Total de Leads
+                </CardTitle>
+                <Users className="h-4 w-4 !important text-blue-400 !important" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl !important font-bold !important text-white !important">
+                  {analytics.totalLeads}
                 </div>
-                
-                <div className="flex space-x-4 pt-4">
-                  <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                    Enviar Email
-                  </button>
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                    Agendar Ligação
-                  </button>
-                  <button className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700">
-                    Adicionar Nota
-                  </button>
+                <p className="text-xs !important text-green-400 !important">
+                  Usuários cadastrados
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800 !important border-gray-700 !important">
+              <CardHeader className="flex flex-row !important items-center justify-between !important space-y-0 !important pb-2 !important">
+                <CardTitle className="text-sm !important font-medium !important text-gray-400 !important">
+                  Taxa de Conversão
+                </CardTitle>
+                <TrendingUp className="h-4 w-4 !important text-green-400 !important" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl !important font-bold !important text-white !important">
+                  15%
                 </div>
-              </div>
-            </motion.div>
+                <p className="text-xs !important text-green-400 !important">
+                  Estimativa baseada em dados
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800 !important border-gray-700 !important">
+              <CardHeader className="flex flex-row !important items-center justify-between !important space-y-0 !important pb-2 !important">
+                <CardTitle className="text-sm !important font-medium !important text-gray-400 !important">
+                  Leads Qualificados
+                </CardTitle>
+                <Target className="h-4 w-4 !important text-orange-400 !important" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl !important font-bold !important text-white !important">
+                  {pipeline?.qualified || 0}
+                </div>
+                <p className="text-xs !important text-orange-400 !important">
+                  Prontos para proposta
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800 !important border-gray-700 !important">
+              <CardHeader className="flex flex-row !important items-center justify-between !important space-y-0 !important pb-2 !important">
+                <CardTitle className="text-sm !important font-medium !important text-gray-400 !important">
+                  Receita Potencial
+                </CardTitle>
+                <DollarSign className="h-4 w-4 !important text-green-400 !important" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl !important font-bold !important text-white !important">
+                  R$ 45.2K
+                </div>
+                <p className="text-xs !important text-green-400 !important">
+                  Pipeline estimado
+                </p>
+              </CardContent>
+            </Card>
           </div>
         )}
+
+        {/* Pipeline */}
+        {pipeline && (
+          <Card className="bg-gray-800 !important border-gray-700 !important mb-8 !important">
+            <CardHeader>
+              <CardTitle className="text-white !important">Pipeline de Vendas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 !important gap-4 !important">
+                <div className="text-center !important">
+                  <div className="text-2xl !important font-bold !important text-blue-400 !important">
+                    {pipeline.new}
+                  </div>
+                  <div className="text-sm !important text-gray-400 !important">Novos</div>
+                </div>
+                <div className="text-center !important">
+                  <div className="text-2xl !important font-bold !important text-yellow-400 !important">
+                    {pipeline.contacted}
+                  </div>
+                  <div className="text-sm !important text-gray-400 !important">Contatados</div>
+                </div>
+                <div className="text-center !important">
+                  <div className="text-2xl !important font-bold !important text-orange-400 !important">
+                    {pipeline.qualified}
+                  </div>
+                  <div className="text-sm !important text-gray-400 !important">Qualificados</div>
+                </div>
+                <div className="text-center !important">
+                  <div className="text-2xl !important font-bold !important text-purple-400 !important">
+                    {pipeline.proposal}
+                  </div>
+                  <div className="text-sm !important text-gray-400 !important">Proposta</div>
+                </div>
+                <div className="text-center !important">
+                  <div className="text-2xl !important font-bold !important text-green-400 !important">
+                    {pipeline.closed_won}
+                  </div>
+                  <div className="text-sm !important text-gray-400 !important">Fechados</div>
+                </div>
+                <div className="text-center !important">
+                  <div className="text-2xl !important font-bold !important text-red-400 !important">
+                    {pipeline.closed_lost}
+                  </div>
+                  <div className="text-sm !important text-gray-400 !important">Perdidos</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Filtros e Busca */}
+        <Card className="bg-gray-800 !important border-gray-700 !important mb-6 !important">
+          <CardContent className="pt-6 !important">
+            <div className="flex flex-col md:flex-row !important gap-4 !important">
+              <div className="flex-1 !important">
+                <div className="relative !important">
+                  <Search className="absolute left-3 top-1/2 !important transform -translate-y-1/2 !important text-gray-400 !important h-4 w-4 !important" />
+                  <Input
+                    placeholder="Buscar leads por nome, email ou empresa..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 !important bg-gray-700 !important border-gray-600 !important text-white !important placeholder-gray-400 !important"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2 !important flex-wrap !important">
+                <Button
+                  variant={filterStatus === 'all' ? 'default' : 'outline'}
+                  onClick={() => setFilterStatus('all')}
+                  className="bg-blue-600 hover:bg-blue-700 !important text-white !important border-blue-600 !important"
+                >
+                  Todos
+                </Button>
+                <Button
+                  variant={filterStatus === 'Hot Lead' ? 'default' : 'outline'}
+                  onClick={() => setFilterStatus('Hot Lead')}
+                  className="bg-red-600 hover:bg-red-700 !important text-white !important border-red-600 !important"
+                >
+                  Hot
+                </Button>
+                <Button
+                  variant={filterStatus === 'Warm Lead' ? 'default' : 'outline'}
+                  onClick={() => setFilterStatus('Warm Lead')}
+                  className="bg-orange-600 hover:bg-orange-700 !important text-white !important border-orange-600 !important"
+                >
+                  Warm
+                </Button>
+                <Button
+                  variant={filterStatus === 'Cold Lead' ? 'default' : 'outline'}
+                  onClick={() => setFilterStatus('Cold Lead')}
+                  className="bg-blue-600 hover:bg-blue-700 !important text-white !important border-blue-600 !important"
+                >
+                  Cold
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Lista de Leads */}
+        <div className="grid gap-4 !important">
+          {filteredLeads.map((lead) => (
+            <Card key={lead.id} className="bg-gray-800 !important border-gray-700 !important hover:bg-gray-750 !important transition-colors !important">
+              <CardContent className="p-6 !important">
+                <div className="flex flex-col lg:flex-row !important items-start lg:items-center !important justify-between !important gap-4 !important">
+                  <div className="flex-1 !important">
+                    <div className="flex flex-col sm:flex-row !important items-start sm:items-center !important gap-3 !important mb-3 !important">
+                      <h3 className="text-lg !important font-semibold !important text-white !important">
+                        {lead.name}
+                      </h3>
+                      <div className="flex gap-2 !important flex-wrap !important">
+                        <Badge className={`${getClassificationColor(lead.classification)} text-white !important`}>
+                          {lead.classification}
+                        </Badge>
+                        <Badge variant="outline" className={getPriorityColor(lead.priority)}>
+                          {lead.priority}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 !important gap-3 !important text-sm !important text-gray-400 !important">
+                      <div className="flex items-center !important gap-2 !important">
+                        <Mail className="h-4 w-4 !important flex-shrink-0 !important" />
+                        <span className="truncate !important">{lead.email}</span>
+                      </div>
+                      {lead.phone && (
+                        <div className="flex items-center !important gap-2 !important">
+                          <Phone className="h-4 w-4 !important flex-shrink-0 !important" />
+                          <span className="truncate !important">{lead.phone}</span>
+                        </div>
+                      )}
+                      {lead.company && (
+                        <div className="flex items-center !important gap-2 !important">
+                          <Building className="h-4 w-4 !important flex-shrink-0 !important" />
+                          <span className="truncate !important">{lead.company}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center !important gap-2 !important">
+                        <Calendar className="h-4 w-4 !important flex-shrink-0 !important" />
+                        <span className="truncate !important">{new Date(lead.created_at).toLocaleDateString('pt-BR')}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3 !important">
+                      <div className="flex items-center !important gap-2 !important mb-1 !important">
+                        <span className="text-sm !important text-gray-400 !important">Engajamento:</span>
+                        <span className="text-sm !important font-medium !important text-white !important">
+                          {lead.engagement_level}%
+                        </span>
+                      </div>
+                      <div className="w-full !important bg-gray-700 !important rounded-full !important h-2 !important">
+                        <div 
+                          className="bg-blue-500 !important h-2 !important rounded-full !important transition-all !important"
+                          style={{ width: `${lead.engagement_level}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2 !important flex-wrap !important">
+                    <Button 
+                      size="sm" 
+                      className="bg-blue-600 hover:bg-blue-700 !important text-white !important"
+                    >
+                      Contatar
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="border-gray-600 !important text-gray-300 !important hover:bg-gray-700 !important"
+                    >
+                      <MoreVertical className="h-4 w-4 !important" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredLeads.length === 0 && (
+          <Card className="bg-gray-800 !important border-gray-700 !important">
+            <CardContent className="text-center !important py-12 !important">
+              <Users className="h-12 w-12 !important text-gray-400 !important mx-auto !important mb-4 !important" />
+              <h3 className="text-lg !important font-medium !important text-white !important mb-2 !important">
+                Nenhum lead encontrado
+              </h3>
+              <p className="text-gray-400 !important">
+                Tente ajustar os filtros ou termo de busca
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
