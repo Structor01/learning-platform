@@ -79,6 +79,27 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
 
           {/* User Menu & Ações */}
           <div className="flex items-center space-x-4">
+            {/* Links de Navegação */}
+            <div className="hidden md:flex items-center space-x-4">
+              <a
+                href="/dashboard"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                Dashboard
+              </a>
+              <a
+                href="/crm"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                CRM
+              </a>
+              <a
+                href="/recrutamento"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                Recrutamento
+              </a>
+            </div>
             {/* Botão Adicionar Trilhas */}
             {/*<Button*/}
             {/*  variant="secondary"*/}

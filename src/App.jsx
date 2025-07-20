@@ -22,6 +22,8 @@ import AgendaEventosPage from "./components/ui/AgendaEventosPage";
 import EntrevistaSimuladaPage from "./components/ui/EntrevistaSimuladaPage";
 import VideoPitchPage from "./components/ui/VideoPitchPage";
 import MeusTestesPage from "./components/ui/MeusTestesPage";
+import CRMPage from "./components/ui/CRMPage";
+import RecrutamentoPage from "./components/ui/RecrutamentoPage";
 
 
 import "./App.css";
@@ -264,6 +266,24 @@ function App() {
             element={
               <PrivateRoute>
                 <MeusTestesPage />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Páginas CRM e Recrutamento */}
+          <Route
+            path="/crm"
+            element={
+              <PrivateRoute>
+                <CRMPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/recrutamento"
+            element={
+              <PrivateRoute>
+                <RecrutamentoPage />
               </PrivateRoute>
             }
           />
