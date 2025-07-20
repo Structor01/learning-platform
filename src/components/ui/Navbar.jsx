@@ -87,18 +87,33 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
               >
                 Dashboard
               </a>
-              <a
-                href="/crm"
-                className="text-gray-300 hover:text-white transition-colors text-sm"
-              >
-                CRM
-              </a>
-              <a
-                href="/recrutamento"
-                className="text-gray-300 hover:text-white transition-colors text-sm"
-              >
-                Recrutamento
-              </a>
+              
+              {/* Menu Administrador */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="text-gray-300 hover:text-white transition-colors text-sm px-3 py-2"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Administrador
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48" align="start">
+                  <DropdownMenuItem asChild>
+                    <a href="/crm" className="flex items-center w-full">
+                      <span className="mr-2">📊</span>
+                      CRM - Gestão de Leads
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="/recrutamento" className="flex items-center w-full">
+                      <span className="mr-2">👥</span>
+                      Recrutamento LinkedIn
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             {/* Botão Adicionar Trilhas */}
             {/*<Button*/}
