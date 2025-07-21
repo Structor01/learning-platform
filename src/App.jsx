@@ -17,6 +17,13 @@ import TrilhasForm from "./components/ui/TrilhasForm";
 import TrilhaPreviewModal from "./components/ui/TrilhaPreviewModal";
 import ForgotPassword from "./components/ui/ForgotPassword"; // ajuste o caminho conforme seu projeto
 import ResetPassword from './components/ui/ResetPassword'; // ajuste o caminho conforme seu projeto
+import CartaoVirtualPage from "./components/ui/CartaoVirtualPage";
+import AgendaEventosPage from "./components/ui/AgendaEventosPage";
+import EntrevistaSimuladaPage from "./components/ui/EntrevistaSimuladaPage";
+import VideoPitchPage from "./components/ui/VideoPitchPage";
+import MeusTestesPage from "./components/ui/MeusTestesPage";
+import CRMPage from "./components/ui/CRMPage";
+import RecrutamentoPage from "./components/ui/RecrutamentoPage";
 
 
 import "./App.css";
@@ -217,6 +224,66 @@ function App() {
             element={
               <PrivateRoute>
                 <TrilhaPage />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Páginas dos Aplicativos */}
+          <Route
+            path="/cartao-virtual"
+            element={
+              <PrivateRoute>
+                <CartaoVirtualPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/agenda-eventos"
+            element={
+              <PrivateRoute>
+                <AgendaEventosPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/entrevista-simulada"
+            element={
+              <PrivateRoute>
+                <EntrevistaSimuladaPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/video-pitch"
+            element={
+              <PrivateRoute>
+                <VideoPitchPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/meus-testes"
+            element={
+              <PrivateRoute>
+                <MeusTestesPage />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Páginas CRM e Recrutamento */}
+          <Route
+            path="/crm"
+            element={
+              <PrivateRoute>
+                <CRMPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/recrutamento"
+            element={
+              <PrivateRoute>
+                <RecrutamentoPage />
               </PrivateRoute>
             }
           />

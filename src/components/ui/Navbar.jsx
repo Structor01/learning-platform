@@ -69,7 +69,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 type="text"
-                placeholder="Buscar cursos, mentores..."
+                placeholder="Buscar cursos, mentores... "
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-gray-800 border-gray-700 text-white placeholder-gray-400 rounded-lg focus:border-white focus:ring-white"
@@ -79,6 +79,42 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
 
           {/* User Menu & Ações */}
           <div className="flex items-center space-x-4">
+            {/* Links de Navegação */}
+            <div className="md:flex items-center space-x-4">
+              <a
+                href="/dashboard"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                Dashboard
+              </a>
+
+              {/* Menu Administrador */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="text-gray-300 hover:text-black transition-colors text-sm px-3 py-2"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Administrador
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48" align="start">
+                  <DropdownMenuItem asChild>
+                    <a href="/crm" className="flex items-center w-full">
+                      <span className="mr-2">📊</span>
+                      CRM - Gestão de Leads
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="/recrutamento" className="flex items-center w-full">
+                      <span className="mr-2">👥</span>
+                      Recrutamento LinkedIn
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             {/* Botão Adicionar Trilhas */}
             {/*<Button*/}
             {/*  variant="secondary"*/}

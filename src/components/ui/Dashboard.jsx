@@ -1,28 +1,15 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  ChevronRight,
   TrendingUp,
-  Users,
-  BookOpen,
   Play,
-  Star,
   Clock,
   Award,
-  Target,
-  Zap,
-  Calendar,
-  MessageSquare,
-  Video,
-  Clipboard,
-  CreditCard,
-  BarChart3,
     X
 } from "lucide-react";
 import WelcomeAnimation from "./WelcomeAnimation";
-import AppAccessModal from "./AppAccessModal";
 import TrilhaRequirementModal from "./TrilhaRequirementModal";
 import { useAuth } from "@/contexts/AuthContext";
 import {Progress} from "@radix-ui/react-progress";
@@ -30,10 +17,9 @@ import {Progress} from "@radix-ui/react-progress";
 const Dashboard = ({ onCourseSelect = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
-  const [showAppModal, setShowAppModal] = useState(false);
-  const [selectedApp, setSelectedApp] = useState('');
   const [showTrilhaModal, setShowTrilhaModal] = useState(false);
   const [selectedTrilha, setSelectedTrilha] = useState('');
 
@@ -55,10 +41,20 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     }
   };
 
-  // Função para abrir modal de aplicativo
+  // Função para redirecionar para página do aplicativo
   const handleAppClick = (appName) => {
-    setSelectedApp(appName);
-    setShowAppModal(true);
+    const routes = {
+      'Cartão Virtual': '/cartao-virtual',
+      'Agenda de Eventos': '/agenda-eventos', 
+      'Entrevista Simulada': '/entrevista-simulada',
+      'Video Pitch': '/video-pitch',
+      'Meus Testes': '/meus-testes'
+    };
+    
+    const route = routes[appName];
+    if (route) {
+      navigate(route);
+    }
   };
 
   // Função para abrir modal de trilha
@@ -143,7 +139,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
             {/* Card Gestão de Carreira - Acesso Gratuito */}
             <div className="lg:!w-80 flex-shrink-0">
-              <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-105 cursor-pointer shadow-xl">
+              <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-90 cursor-pointer shadow-xl">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-3">
@@ -581,12 +577,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     </div>
 
     {/* Modais */}
-    <AppAccessModal 
-      isOpen={showAppModal}
-      onClose={() => setShowAppModal(false)}
-      appName={selectedApp}
-    />
-    
     <TrilhaRequirementModal 
       isOpen={showTrilhaModal}
       onClose={() => setShowTrilhaModal(false)}
