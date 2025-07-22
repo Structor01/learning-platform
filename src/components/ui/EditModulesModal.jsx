@@ -1,51 +1,58 @@
-import React, { useState } from 'react';
-import { X, GripVertical } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import React, { useEffect, useState } from "react";
+import { X, GripVertical } from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
-export function EditModulesModal({ open, modules, onClose, onSave }) {
-  const [draft, setDraft] = useState(modules);
-  const [newTitle, setNewTitle] = useState('');
+export function EditModulesModal({
+  open,
+  modules,
+  onClose,
+  onAdd,
+  onEdit,
+  onDelete,
+  onReorder,
+}) {
+  const [draft, setDraft] = useState([]);
+  const [newTitle, setNewTitle] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setDraft(modules);
+    }
+  }, [open, modules]);
 
   if (!open) return null;
 
-  // Função para adicionar novo módulo
   const handleAdd = () => {
     if (!newTitle.trim()) return;
-    setDraft([
-      ...draft,
-      { id: Date.now().toString(), title: newTitle.trim() }
-    ]);
-    setNewTitle('');
+    onAdd(newTitle.trim());
+    setNewTitle("");
   };
 
-  // Função para editar título no draft
   const handleEdit = (id) => {
-    const title = prompt('Novo nome do módulo:');
+    const title = prompt("Novo nome do módulo:");
     if (title != null) {
-      setDraft(draft.map(m => m.id === id ? { ...m, title } : m));
+      onEdit(id, title);
     }
   };
 
-  // Função para excluir um módulo
   const handleDelete = (id) => {
-    if (window.confirm('Deseja mesmo excluir este módulo?')) {
-      setDraft(draft.filter(m => m.id !== id));
+    if (window.confirm("Deseja mesmo excluir este módulo?")) {
+      onDelete(id);
     }
   };
 
-  // Reordena ao soltar
-  const onDragEnd = result => {
+  const onDragEnd = (result) => {
     if (!result.destination) return;
     const items = Array.from(draft);
     const [moved] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, moved);
     setDraft(items);
+    onReorder(items);
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 z-50">
       <div className="bg-white rounded-lg w-full max-w-md p-6 shadow-lg">
-        {/* Cabeçalho */}
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Editar módulos</h3>
           <button onClick={onClose}>
@@ -53,35 +60,34 @@ export function EditModulesModal({ open, modules, onClose, onSave }) {
           </button>
         </div>
 
-        {/* Novo módulo */}
         <div className="flex mb-4 space-x-2">
           <input
             type="text"
             placeholder="Nome"
             value={newTitle}
-            onChange={e => setNewTitle(e.target.value)}
+            onChange={(e) => setNewTitle(e.target.value)}
             className="flex-1 border px-3 py-2 rounded focus:outline-none"
           />
-          <button
-            onClick={handleAdd}
-            className="text-blue-600 hover:underline"
-          >
+          <button onClick={handleAdd} className="text-blue-600 hover:underline">
             Adicionar
           </button>
         </div>
 
-        {/* Lista com drag-and-drop */}
         <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="modules">
-            {provided => (
+          <Droppable droppableId="modules" isDropDisabled={false}>
+            {(provided) => (
               <ul
                 {...provided.droppableProps}
                 ref={provided.innerRef}
                 className="space-y-2 max-h-60 overflow-auto"
               >
                 {draft.map((mod, idx) => (
-                  <Draggable key={mod.id} draggableId={mod.id} index={idx}>
-                    {prov => (
+                  <Draggable
+                    key={mod.id}
+                    draggableId={mod.id.toString()}
+                    index={idx}
+                  >
+                    {(prov) => (
                       <li
                         ref={prov.innerRef}
                         {...prov.draggableProps}
@@ -120,19 +126,12 @@ export function EditModulesModal({ open, modules, onClose, onSave }) {
           </Droppable>
         </DragDropContext>
 
-        {/* Ações finais */}
-        <div className="mt-6 flex justify-end space-x-4">
+        <div className="mt-6 flex justify-end">
           <button
             onClick={onClose}
             className="px-4 py-2 rounded border hover:bg-gray-50"
           >
-            Cancelar
-          </button>
-          <button
-            onClick={() => onSave(draft)}
-            className="px-4 py-2 rounded bg-green-800 text-white hover:bg-green-700"
-          >
-            Salvar
+            Fechar
           </button>
         </div>
       </div>

@@ -1,13 +1,13 @@
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { Card, CardContent } from "@/components/ui/card";
 import { EditModulesModal } from "@/components/ui/EditModulesModal";
-import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   ChevronRight,
   Settings,
   ChevronDown,
-  Star,
   Play,
   Pause,
   Volume2,
@@ -17,156 +17,60 @@ import {
   ArrowRight,
   Lock,
   Award,
+  Star,
 } from "lucide-react";
-
 import Navbar from "./Navbar";
 
 const TrilhaPage = () => {
-  const [currentModule, setCurrentModule] = useState("boas-vindas");
+  const [modules, setModules] = useState([]); // ← vazio, vira do servidor
   const [expandedModules, setExpandedModules] = useState(["boas-vindas"]);
+  const [currentModule, setCurrentModule] = useState("boas-vindas");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState("0:00");
   const [totalTime] = useState("3:20");
   const [activeTab, setActiveTab] = useState("descricao");
   const videoRef = useRef(null);
-  const [showCreateModule, setShowCreateModule] = useState(false);
-
- 
   const [showEditModules, setShowEditModules] = useState(false);
+  const courseTitle = "Autoconhecimento para Aceleração de Carreiras";
 
-  const handleSaveModules = (newModules) => {
-    // Aqui você poderia salvar no backend depois, por enquanto apenas atualiza o state local
-    setModules(newModules);
-    setShowEditModules(false);
+  // 1) Carrega os módulos do backend ao montar
+  useEffect(() => {
+    axios;
+    axios
+      .get("http://localhost:3001/modules")
+      .then((res) => {
+        console.log("🚀 modules payload:", res.data);
+        setModules(res.data);
+      })
+      .catch((err) => console.error(err));
+  }, []);
+
+  // 2) Callbacks para o modal
+  const handleAdd = async (title) => {
+    const res = await axios.post("http://localhost:3001/modules", { title });
+    setModules((old) => [...old, res.data]);
   };
 
-  const trilhaData = {
-    title: "Autoconhecimento para Aceleração de Carreiras",
-    modules: [
-      {
-        id: "boas-vindas",
-        title: "Boas Vindas",
-        lessons: [
-          {
-            id: "boas-vindas-1",
-            title: "Boas Vindas",
-            duration: "3:20",
-            completed: false,
-          },
-        ],
-      },
-      {
-        id: "introducao",
-        title: "Introdução",
-        lessons: [
-          {
-            id: "intro-1",
-            title: "O que é Autoconhecimento",
-            duration: "5:45",
-            completed: false,
-          },
-          {
-            id: "intro-2",
-            title: "Importância na Carreira",
-            duration: "4:30",
-            completed: false,
-          },
-        ],
-      },
-      {
-        id: "dominante",
-        title: "Dominante",
-        lessons: [
-          {
-            id: "dom-1",
-            title: "Características do Perfil D",
-            duration: "6:15",
-            completed: false,
-          },
-          {
-            id: "dom-2",
-            title: "Aplicação no Agronegócio",
-            duration: "7:20",
-            completed: false,
-          },
-        ],
-      },
-      {
-        id: "influente",
-        title: "Influente",
-        lessons: [
-          {
-            id: "inf-1",
-            title: "Características do Perfil I",
-            duration: "5:50",
-            completed: false,
-          },
-          {
-            id: "inf-2",
-            title: "Liderança e Comunicação",
-            duration: "6:40",
-            completed: false,
-          },
-        ],
-      },
-      {
-        id: "estavel",
-        title: "Estável",
-        lessons: [
-          {
-            id: "est-1",
-            title: "Características do Perfil S",
-            duration: "5:30",
-            completed: false,
-          },
-          {
-            id: "est-2",
-            title: "Trabalho em Equipe",
-            duration: "6:10",
-            completed: false,
-          },
-        ],
-      },
-      {
-        id: "conforme",
-        title: "Conforme",
-        lessons: [
-          {
-            id: "conf-1",
-            title: "Características do Perfil C",
-            duration: "5:45",
-            completed: false,
-          },
-          {
-            id: "conf-2",
-            title: "Análise e Precisão",
-            duration: "6:25",
-            completed: false,
-          },
-        ],
-      },
-      {
-        id: "encerramento",
-        title: "Encerramento",
-        lessons: [
-          {
-            id: "enc-1",
-            title: "Aplicando o Conhecimento",
-            duration: "4:15",
-            completed: false,
-          },
-          {
-            id: "enc-2",
-            title: "Próximos Passos",
-            duration: "3:45",
-            completed: false,
-          },
-        ],
-      },
-    ],
+  const handleEdit = async (id, title) => {
+    await axios.put(`http://localhost:3001/modules/${id}`, { title });
+    setModules((old) => old.map((m) => (m.id === id ? { ...m, title } : m)));
   };
-   const [modules, setModules] = useState(trilhaData.modules);
 
+  const handleDelete = async (id) => {
+    await axios.delete(`http://localhost:3001/modules/${id}`);
+    setModules((old) => old.filter((m) => m.id !== id));
+  };
+
+  const handleReorder = async (newOrder) => {
+    await axios.put("http://localhost:3001/modules/reorder", {
+      modules: newOrder,
+    });
+    // opcional: recarregar tudo
+    const res = await axios.get("http://localhost:3001/modules");
+    setModules(res.data);
+  };
+
+  // 3) Funções de UI
   const toggleModule = (moduleId) => {
     setExpandedModules((prev) =>
       prev.includes(moduleId)
@@ -177,7 +81,7 @@ const TrilhaPage = () => {
 
   const selectLesson = (moduleId, lessonId) => {
     setCurrentModule(moduleId);
-    // Aqui você pode adicionar lógica para carregar o vídeo específico
+    // aqui carregar o vídeo, se quiser
   };
 
   return (
@@ -411,7 +315,7 @@ const TrilhaPage = () => {
               <Card className="bg-gray-900 border-gray-800">
                 <CardContent className="p-6">
                   <h2 className="text-xl font-bold text-white mb-6">
-                    {trilhaData.title}
+                    {courseTitle}
                   </h2>
 
                   <div>
@@ -426,70 +330,73 @@ const TrilhaPage = () => {
                       >
                         <Settings className="w-5 h-5 text-gray-400 hover:text-green-500" />
                       </button>
-                      </div>
-
-                      {/* Lista de módulos */}
-                      <div className="space-y-2">
-                        {trilhaData.modules.map((module) => (
-                          <div
-                            key={module.id}
-                            className="border border-gray-800 rounded-lg"
-                          >
-                            <button
-                              onClick={() => toggleModule(module.id)}
-                              className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-800 transition-colors"
-                            >
-                              <span className="text-gray-300 font-medium">
-                                {module.title}
-                              </span>
-                              {expandedModules.includes(module.id) ? (
-                                <ChevronDown className="w-5 h-5 text-gray-400" />
-                              ) : (
-                                <ChevronRight className="w-5 h-5 text-gray-400" />
-                              )}
-                            </button>
-                            {expandedModules.includes(module.id) && (
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="border-t border-gray-800"
-                              >
-                                {module.lessons.map((lesson) => (
-                                  <button
-                                    key={lesson.id}
-                                    onClick={() =>
-                                      selectLesson(module.id, lesson.id)
-                                    }
-                                    className="w-full flex items-center justify-between p-3 pl-6 text-left hover:bg-gray-800 transition-colors group"
-                                  >
-                                    <div className="flex items-center space-x-3">
-                                      <div className="w-2 h-2 bg-gray-600 rounded-full group-hover:bg-green-500"></div>
-                                      <span className="text-gray-400 text-sm group-hover:text-white">
-                                        {lesson.title}
-                                      </span>
-                                    </div>
-                                    <span className="text-xs text-gray-500">
-                                      {lesson.duration}
-                                    </span>
-                                  </button>
-                                ))}
-                              </motion.div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      <EditModulesModal
-                        open={showEditModules}
-                        modules={modules}
-                        onClose={() => setShowEditModules(false)}
-                        onSave={handleSaveModules}
-                      />
                     </div>
 
-                    {/* 4) Aqui você pode renderizar condicionalmente o formulário/modal */}
-                    {/* {showCreateModule && (
+                    {/* Lista de módulos */}
+                    <div className="space-y-2">
+                      {modules.map((module) => (
+                        <div
+                          key={module.id}
+                          className="border border-gray-800 rounded-lg"
+                        >
+                          <button
+                            onClick={() => toggleModule(module.id)}
+                            className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-800 transition-colors"
+                          >
+                            <span className="text-gray-300 font-medium">
+                              {module.title}
+                            </span>
+                            {expandedModules.includes(module.id) ? (
+                              <ChevronDown className="w-5 h-5 text-gray-400" />
+                            ) : (
+                              <ChevronRight className="w-5 h-5 text-gray-400" />
+                            )}
+                          </button>
+                          {expandedModules.includes(module.id) && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="border-t border-gray-800"
+                            >
+                              {module.lessons.map((lesson) => (
+                                <button
+                                  key={lesson.id}
+                                  onClick={() =>
+                                    selectLesson(module.id, lesson.id)
+                                  }
+                                  className="w-full flex items-center justify-between p-3 pl-6 text-left hover:bg-gray-800 transition-colors group"
+                                >
+                                  <div className="flex items-center space-x-3">
+                                    <div className="w-2 h-2 bg-gray-600 rounded-full group-hover:bg-green-500"></div>
+                                    <span className="text-gray-400 text-sm group-hover:text-white">
+                                      {lesson.title}
+                                    </span>
+                                  </div>
+                                  <span className="text-xs text-gray-500">
+                                    {lesson.duration}
+                                  </span>
+                                </button>
+                              ))}
+                            </motion.div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <EditModulesModal
+                      open={showEditModules}
+                      modules={modules}
+                      onClose={() => setShowEditModules(false)}
+                      onAdd={handleAdd}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onReorder={handleReorder}
+                    />
+                  </div>
+
+                  {/* 4) Aqui você pode renderizar condicionalmente o formulário/modal */}
+                  {/* {showCreateModule && (
                       <CreateModuleModal
                         onClose={() => setShowCreateModule(false)}
                         onSave={(newModuleTitle) => {
@@ -501,7 +408,6 @@ const TrilhaPage = () => {
                         }}
                       />
                     )} */}
-                  
 
                   {/* Assessment Section */}
                   <div className="mt-8 space-y-4">
