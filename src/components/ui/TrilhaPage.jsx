@@ -37,7 +37,7 @@ const TrilhaPage = () => {
   useEffect(() => {
     axios;
     axios
-      .get("http://localhost:3001/modules")
+      .get("http://localhost:3001/api/modules")
       .then((res) => {
         console.log("🚀 modules payload:", res.data);
         setModules(res.data);
@@ -47,26 +47,26 @@ const TrilhaPage = () => {
 
   // 2) Callbacks para o modal
   const handleAdd = async (title) => {
-    const res = await axios.post("http://localhost:3001/modules", { title });
+    const res = await axios.post("http://localhost:3001/api/modules", { title });
     setModules((old) => [...old, res.data]);
   };
 
   const handleEdit = async (id, title) => {
-    await axios.put(`http://localhost:3001/modules/${id}`, { title });
+    await axios.put(`http://localhost:3001/api/modules/${id}`, { title });
     setModules((old) => old.map((m) => (m.id === id ? { ...m, title } : m)));
   };
 
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:3001/modules/${id}`);
+    await axios.delete(`http://localhost:3001/api/modules/${id}`);
     setModules((old) => old.filter((m) => m.id !== id));
   };
 
   const handleReorder = async (newOrder) => {
-    await axios.put("http://localhost:3001/modules/reorder", {
+    await axios.put("http://localhost:3001/api/modules/reorder", {
       modules: newOrder,
     });
     // opcional: recarregar tudo
-    const res = await axios.get("http://localhost:3001/modules");
+    const res = await axios.get("http://localhost:3001/api/modules");
     setModules(res.data);
   };
 
@@ -209,13 +209,12 @@ const TrilhaPage = () => {
                         <div
                           className="bg-green-500 h-1 rounded-full"
                           style={{
-                            width: `${
-                              ((parseFloat(currentTime.split(":")[0]) * 60 +
-                                parseFloat(currentTime.split(":")[1])) /
-                                (parseFloat(totalTime.split(":")[0]) * 60 +
-                                  parseFloat(totalTime.split(":")[1]))) *
+                            width: `${((parseFloat(currentTime.split(":")[0]) * 60 +
+                              parseFloat(currentTime.split(":")[1])) /
+                              (parseFloat(totalTime.split(":")[0]) * 60 +
+                                parseFloat(totalTime.split(":")[1]))) *
                               100
-                            }%`,
+                              }%`,
                           }}
                         />
                       </div>
@@ -260,21 +259,19 @@ const TrilhaPage = () => {
                   <nav className="flex space-x-8">
                     <button
                       onClick={() => setActiveTab("descricao")}
-                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                        activeTab === "descricao"
-                          ? "border-green-500 text-green-500"
-                          : "border-transparent text-gray-400 hover:text-gray-300"
-                      }`}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "descricao"
+                        ? "border-green-500 text-green-500"
+                        : "border-transparent text-gray-400 hover:text-gray-300"
+                        }`}
                     >
                       Descrição
                     </button>
                     <button
                       onClick={() => setActiveTab("comentarios")}
-                      className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                        activeTab === "comentarios"
-                          ? "border-green-500 text-green-500"
-                          : "border-transparent text-gray-400 hover:text-gray-300"
-                      }`}
+                      className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "comentarios"
+                        ? "border-green-500 text-green-500"
+                        : "border-transparent text-gray-400 hover:text-gray-300"
+                        }`}
                     >
                       Comentários (0)
                     </button>

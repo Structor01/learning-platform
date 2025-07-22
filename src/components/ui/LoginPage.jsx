@@ -23,7 +23,6 @@ const LoginPage = () => {
       await login(email, password);
       navigate("/Dashboard");
     } catch (error) {
-      console.error("Erro no login:", error);
       setErrorMsg(error.message || "Falha no login");
     } finally {
       setIsLoading(false);
