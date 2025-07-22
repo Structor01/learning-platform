@@ -39,7 +39,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
+    console.log(">>> [DEBUG] Tentando conectar à API em:", API_URL);
+    const response = await fetch(`${API_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -50,7 +51,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const errData = await response.json();
         errMsg = errData.message || errMsg;
-      } catch {}
+      } catch { }
       throw new Error(errMsg);
     }
 
@@ -65,7 +66,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signup = async ({ name, email, password }) => {
-    const response = await fetch(`${API_URL}/auth/signup`, {
+    const response = await fetch(`${API_URL}/api/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
@@ -76,7 +77,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const errData = await response.json();
         errMsg = errData.message || errMsg;
-      } catch {}
+      } catch { }
       throw new Error(errMsg);
     }
 
