@@ -22,6 +22,7 @@ import AgendaEventosPage from "./components/ui/AgendaEventosPage";
 import EntrevistaSimuladaPage from "./components/ui/EntrevistaSimuladaPage";
 import VideoPitchPage from "./components/ui/VideoPitchPage";
 import MeusTestesPage from "./components/ui/MeusTestesPage";
+import TesteDISCPage from "./components/ui/TesteDISCPage";
 import CRMPage from "./components/ui/CRMPage";
 import RecrutamentoPage from "./components/ui/RecrutamentoPage";
 
@@ -266,6 +267,14 @@ function App() {
             element={
               <PrivateRoute>
                 <MeusTestesPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/teste-disc"
+            element={
+              <PrivateRoute>
+                <TesteDISCPage />
               </PrivateRoute>
             }
           />
