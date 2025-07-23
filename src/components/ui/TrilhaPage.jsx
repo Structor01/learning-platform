@@ -70,11 +70,22 @@ const TrilhaPage = () => {
 
   const handleSaveNewLesson = async (formData) => {
     // sua lógica de salvar aula...
+    const finalUrl = `${import.meta.env.VITE_API_URL}/api/videos`;
+    console.log("Enviando requisição para a URL:", finalUrl)
     try {
-      const response = await axios.post('http://localhost:3001/api/videos', formData);
+      const response = await axios.post(finalUrl, formData);
+      const token = localStorage.getItem('accessToken')
+      const API_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
+      console.log('Token encontrado:', localStorage.getItem('accessToken'));
+      // const response = await axios.post(`${API_URL}/api/videos`, formData, {
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`,
+      //     'Content-Type': 'application/json'
+      //   }
+      // });
       setModules(prevModules =>
         prevModules.map(module => {
-          if (module.id === NumberformData.get('moduleId')) {
+          if (module.id === Number(formData.get('moduleId'))) {
             return { ...module, lessons: [...(module.lessons || []), response.data] };
           }
           return module;
@@ -83,7 +94,7 @@ const TrilhaPage = () => {
       setIsAddLessonModalOpen(false);
     } catch (error) {
       console.error("Erro ao salvar a nova aula:", error.response?.data || error.message);
-      alert("Não foi possível salvar a aula.");
+      // alert("Não foi possível salvar a aula.");
     }
   };
 
