@@ -197,7 +197,7 @@ const TesteDISCPage = () => {
     }
   };
 
-  const finishTest = () => {
+  const finishTest = async () => {
     // Calcular resultados DISC
     const scores = { D: 0, I: 0, S: 0, C: 0 };
     
@@ -217,6 +217,60 @@ const TesteDISCPage = () => {
     const dominantType = Object.keys(percentages).reduce((a, b) => 
       percentages[a] > percentages[b] ? a : b
     );
+
+    const completedAt = new Date();
+    const durationSeconds = Math.floor((completedAt - startTime) / 1000);
+
+    // Preparar dados para salvar no backend
+    const testResultData = {
+      userId: 1, // TODO: Pegar do contexto de autenticação
+      testTypeId: 7, // ID do teste DISC na tabela test_types
+      testName: "Teste DISC - Perfil Comportamental",
+      testCategory: "Comportamental",
+      startedAt: startTime.toISOString(),
+      completedAt: completedAt.toISOString(),
+      durationSeconds: durationSeconds,
+      totalQuestions: discQuestions.length,
+      discDPercentage: percentages.D,
+      discIPercentage: percentages.I,
+      discSPercentage: percentages.S,
+      discCPercentage: percentages.C,
+      dominantProfile: dominantType,
+      rawAnswers: answers,
+      detailedResults: {
+        scores,
+        percentages,
+        dominantType,
+        completionTime: durationSeconds
+      },
+      testAnswers: discQuestions.map((question, index) => ({
+        questionId: question.id,
+        questionText: question.question,
+        selectedOption: answers[index] ? question.options.findIndex(opt => opt.text === answers[index].text) : null,
+        selectedText: answers[index] ? answers[index].text : null,
+        answerTimeSeconds: Math.floor(Math.random() * 30) + 10 // Tempo simulado por pergunta
+      }))
+    };
+
+    try {
+      // Salvar resultado no backend
+      const response = await fetch('https://3001-ikjlsjh5wfosw5vrl3xjt-f4ac7591.manusvm.computer/api/api/tests/results', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(testResultData)
+      });
+
+      if (response.ok) {
+        const savedResult = await response.json();
+        console.log('Resultado salvo com sucesso:', savedResult);
+      } else {
+        console.error('Erro ao salvar resultado:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Erro ao conectar com o backend:', error);
+    }
 
     const profiles = {
       D: {
@@ -326,8 +380,8 @@ const TesteDISCPage = () => {
       percentages,
       dominantType,
       profile: profiles[dominantType],
-      completionTime: timeElapsed,
-      completedAt: new Date().toISOString()
+      completionTime: durationSeconds,
+      completedAt: completedAt.toISOString()
     });
 
     setCurrentPhase('results');
