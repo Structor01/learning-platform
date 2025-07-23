@@ -370,19 +370,18 @@ const EntrevistaSimuladaPage = () => {
 
               {/* Question Card with Integrated Video */}
               <div className="mb-8">
-                <div className="bg-gray-800 rounded-xl p-6">
-                  <h3 className="text-2xl font-semibold mb-6 text-center">
-                    {currentQuestions[currentQuestion]}
-                  </h3>
-                  
-                  {/* Integrated Video Section */}
-                  <div className="relative mb-6">
-                    <div className="aspect-video bg-gray-900 rounded-lg relative overflow-hidden border-2 border-gray-700">
+                <div className="bg-gray-800 rounded-xl overflow-hidden shadow-2xl">
+                  {/* Video Section - Full Width */}
+                  <div className="relative">
+                    <div className="aspect-video bg-gray-900 relative overflow-hidden">
                       {isPreparingCamera ? (
-                        <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                           <div className="text-center">
-                            <Camera className="h-12 w-12 text-gray-400 mx-auto mb-2 animate-pulse" />
-                            <p className="text-gray-400">Preparando câmera...</p>
+                            <Camera className="h-16 w-16 text-gray-400 mx-auto mb-4 animate-pulse" />
+                            <p className="text-gray-300 text-lg">Preparando câmera...</p>
+                            <div className="mt-4">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                            </div>
                           </div>
                         </div>
                       ) : cameraEnabled ? (
@@ -395,54 +394,55 @@ const EntrevistaSimuladaPage = () => {
                             className="w-full h-full object-cover"
                           />
                           
-                          {/* Question Overlay when Recording */}
+                          {/* Question Overlay - Always visible during interview */}
+                          <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/90 via-black/50 to-transparent p-6">
+                            <h3 className="text-white text-xl font-semibold text-center leading-relaxed">
+                              {currentQuestions[currentQuestion]}
+                            </h3>
+                          </div>
+                          
+                          {/* Recording Status Overlay */}
                           {isRecording && (
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                              <p className="text-white text-lg font-medium text-center">
-                                {currentQuestions[currentQuestion]}
-                              </p>
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                              <div className="flex items-center justify-center space-x-4">
+                                <div className="flex items-center bg-red-600 px-4 py-2 rounded-full shadow-lg">
+                                  <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
+                                  <span className="text-white text-sm font-bold">GRAVANDO</span>
+                                </div>
+                                <div className="bg-black/75 px-4 py-2 rounded-full">
+                                  <span className="text-white font-mono text-sm flex items-center">
+                                    <Clock className="h-4 w-4 mr-2" />
+                                    {formatTime(recordingTime)} / 2:00
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           )}
                         </>
                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                           <div className="text-center">
-                            <VideoOff className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                            <p className="text-gray-300 text-lg mb-4">Ative sua câmera para começar</p>
+                            <VideoOff className="h-20 w-20 text-gray-400 mx-auto mb-6" />
+                            <h3 className="text-white text-2xl font-semibold mb-4">
+                              {currentQuestions[currentQuestion]}
+                            </h3>
+                            <p className="text-gray-300 text-lg mb-6">Ative sua câmera para começar a gravação</p>
                             <button
                               onClick={initializeCamera}
-                              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors font-medium"
+                              className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-colors font-semibold text-lg shadow-lg"
                             >
-                              <Camera className="h-5 w-5 inline mr-2" />
+                              <Camera className="h-6 w-6 inline mr-3" />
                               Ligar Câmera
                             </button>
                           </div>
                         </div>
                       )}
                       
-                      {/* Recording Indicator */}
-                      {isRecording && (
-                        <div className="absolute top-4 left-4 flex items-center bg-red-600 px-3 py-1 rounded-full shadow-lg">
-                          <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
-                          <span className="text-white text-sm font-medium">GRAVANDO</span>
-                        </div>
-                      )}
-                      
-                      {/* Recording Time */}
-                      {isRecording && (
-                        <div className="absolute top-4 right-4 bg-black bg-opacity-75 px-3 py-1 rounded-lg">
-                          <span className="text-white font-mono text-sm flex items-center">
-                            <Clock className="h-4 w-4 mr-1" />
-                            {formatTime(recordingTime)}
-                          </span>
-                        </div>
-                      )}
-                      
                       {/* Progress Bar when Recording */}
                       {isRecording && (
-                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-800">
+                        <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-800">
                           <div 
-                            className="h-full bg-red-500 transition-all duration-1000"
+                            className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-1000 shadow-lg"
                             style={{ width: `${Math.min((recordingTime / 120) * 100, 100)}%` }}
                           ></div>
                         </div>
@@ -450,66 +450,68 @@ const EntrevistaSimuladaPage = () => {
                     </div>
                   </div>
                   
-                  {/* Controls */}
-                  <div className="flex justify-center items-center space-x-6">
-                    {/* Mic Control */}
-                    <button
-                      onClick={toggleMic}
-                      className={`p-3 rounded-full transition-colors ${
-                        micEnabled 
-                          ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                          : 'bg-red-600 hover:bg-red-700 text-white'
-                      }`}
-                      disabled={!cameraEnabled}
-                      title={micEnabled ? 'Desligar microfone' : 'Ligar microfone'}
-                    >
-                      {micEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
-                    </button>
+                  {/* Controls Section */}
+                  <div className="p-6 bg-gray-800">
+                    <div className="flex justify-center items-center space-x-6">
+                      {/* Mic Control */}
+                      <button
+                        onClick={toggleMic}
+                        className={`p-4 rounded-full transition-all duration-300 shadow-lg ${
+                          micEnabled 
+                            ? 'bg-gray-700 hover:bg-gray-600 text-white hover:scale-105' 
+                            : 'bg-red-600 hover:bg-red-700 text-white scale-105'
+                        }`}
+                        disabled={!cameraEnabled}
+                        title={micEnabled ? 'Desligar microfone' : 'Ligar microfone'}
+                      >
+                        {micEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
+                      </button>
+                      
+                      {/* Main Recording Button */}
+                      <button
+                        onClick={isRecording ? stopRecording : startRecording}
+                        disabled={!cameraEnabled}
+                        className={`px-10 py-5 rounded-xl font-bold text-xl transition-all duration-300 flex items-center shadow-xl ${
+                          isRecording
+                            ? 'bg-red-600 hover:bg-red-700 text-white scale-105 animate-pulse'
+                            : 'bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-600 disabled:cursor-not-allowed hover:scale-105'
+                        }`}
+                      >
+                        {isRecording ? (
+                          <>
+                            <Square className="h-7 w-7 mr-3" />
+                            Parar Gravação
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-7 w-7 mr-3" />
+                            Iniciar Gravação
+                          </>
+                        )}
+                      </button>
+                      
+                      {/* Camera Control */}
+                      <button
+                        onClick={cameraEnabled ? stopCamera : initializeCamera}
+                        className={`p-4 rounded-full transition-all duration-300 shadow-lg ${
+                          cameraEnabled 
+                            ? 'bg-gray-700 hover:bg-gray-600 text-white hover:scale-105' 
+                            : 'bg-purple-600 hover:bg-purple-700 text-white hover:scale-105'
+                        }`}
+                        title={cameraEnabled ? 'Desligar câmera' : 'Ligar câmera'}
+                      >
+                        {cameraEnabled ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
+                      </button>
+                    </div>
                     
-                    {/* Main Recording Button */}
-                    <button
-                      onClick={isRecording ? stopRecording : startRecording}
-                      disabled={!cameraEnabled}
-                      className={`px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center ${
-                        isRecording
-                          ? 'bg-red-600 hover:bg-red-700 text-white shadow-lg scale-105'
-                          : 'bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-600 disabled:cursor-not-allowed'
-                      }`}
-                    >
-                      {isRecording ? (
-                        <>
-                          <Square className="h-6 w-6 mr-2" />
-                          Parar Gravação
-                        </>
-                      ) : (
-                        <>
-                          <Play className="h-6 w-6 mr-2" />
-                          Iniciar Gravação
-                        </>
-                      )}
-                    </button>
-                    
-                    {/* Camera Control */}
-                    <button
-                      onClick={cameraEnabled ? stopCamera : initializeCamera}
-                      className={`p-3 rounded-full transition-colors ${
-                        cameraEnabled 
-                          ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                          : 'bg-purple-600 hover:bg-purple-700 text-white'
-                      }`}
-                      title={cameraEnabled ? 'Desligar câmera' : 'Ligar câmera'}
-                    >
-                      {cameraEnabled ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  
-                  {/* Instructions */}
-                  <div className="mt-4 text-center">
-                    <p className="text-gray-400 text-sm">
-                      {!cameraEnabled ? 'Ative sua câmera para começar a gravação' :
-                       !isRecording ? 'Clique em "Iniciar Gravação" quando estiver pronto' :
-                       'Responda à pergunta olhando para a câmera. Máximo 2 minutos.'}
-                    </p>
+                    {/* Instructions */}
+                    <div className="mt-6 text-center">
+                      <p className="text-gray-400">
+                        {!cameraEnabled ? 'Ative sua câmera para começar a gravação da entrevista' :
+                         !isRecording ? 'Clique em "Iniciar Gravação" quando estiver pronto para responder' :
+                         'Responda à pergunta olhando diretamente para a câmera. Você tem até 2 minutos.'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
