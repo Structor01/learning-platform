@@ -165,7 +165,7 @@ const TrilhaPage = () => {
                   {selectedLesson?.title || "Bem-vindo!"}
                 </h1>
                 <p className="text-gray-400 mt-4 leading-relaxed">
-                  {selectedLesson?.description || "Escolha um módulo e uma aula na lista à direita para iniciar seus estudos."}
+                  {selectedLesson?.description || "Escolha um módulo e uma aula na lista abaixo para iniciar seus estudos."}
                 </p>
               </div>
             </div>
