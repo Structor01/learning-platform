@@ -157,7 +157,7 @@ const TesteDISCPage = () => {
     let interval;
     if (currentPhase === 'test' && startTime) {
       interval = setInterval(() => {
-        setTimeElapsed(Date.now() - startTime);
+        setTimeElapsed(Date.now() - startTime.getTime());
       }, 1000);
     }
     return () => clearInterval(interval);
@@ -171,7 +171,7 @@ const TesteDISCPage = () => {
 
   const startTest = () => {
     setCurrentPhase('test');
-    setStartTime(Date.now());
+    setStartTime(new Date());
     setCurrentQuestion(0);
     setAnswers({});
   };
@@ -219,7 +219,7 @@ const TesteDISCPage = () => {
     );
 
     const completedAt = new Date();
-    const durationSeconds = Math.floor((completedAt - startTime) / 1000);
+    const durationSeconds = Math.floor((completedAt.getTime() - startTime.getTime()) / 1000);
 
     // Preparar dados para salvar no backend
     const testResultData = {
@@ -254,7 +254,7 @@ const TesteDISCPage = () => {
 
     try {
       // Salvar resultado no backend
-      const response = await fetch('https://3001-ikjlsjh5wfosw5vrl3xjt-f4ac7591.manusvm.computer/api/api/tests/results', {
+      const response = await fetch('https://learning-platform-backend-2x39.onrender.com/api/api/tests/results', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
