@@ -17,7 +17,6 @@ export const AddLessonModal = ({ moduleId, onClose, onSave }) => {
     };
 
     const handleSave = () => {
-        // Validações básicas
         if (!title || !videoUrl || !moduleId) {
             alert('Título, URL do Vídeo e ID do Módulo são obrigatórios.');
             return;
@@ -43,9 +42,8 @@ export const AddLessonModal = ({ moduleId, onClose, onSave }) => {
 
         // 4. Chamar a função onSave, passando o objeto FormData completo.
         onSave(formData);
-        // --- FIM DA CORREÇÃO ---
+        // --- FIM DA CORREÇÃO --- // Fecha o modal após o envio
 
-        onSave(formData); // Fecha o modal após o envio
     };
 
     return (
@@ -69,7 +67,7 @@ export const AddLessonModal = ({ moduleId, onClose, onSave }) => {
                     />
                     <input
                         type="text"
-                        placeholder="URL do Vídeo (ex: https://...)"
+                        placeholder="URL do Vídeo"
                         value={videoUrl}
                         onChange={(e) => setVideoUrl(e.target.value)}
                         className="w-full bg-gray-800 border-gray-700 rounded p-2 text-white"
