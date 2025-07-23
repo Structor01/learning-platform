@@ -254,7 +254,7 @@ const TesteDISCPage = () => {
 
     try {
       // Salvar resultado no backend
-      const response = await fetch('https://3001-ikjlsjh5wfosw5vrl3xjt-f4ac7591.manusvm.computer/api/api/tests/results', {
+      const response = await fetch('https://learning-platform-backend-2x39.onrender.com/api/api/tests/results', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
