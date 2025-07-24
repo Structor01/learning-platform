@@ -103,10 +103,16 @@ const EntrevistaSimuladaPage = () => {
       });
       
       setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
       setCameraEnabled(true);
+      
+      // Aguardar um pouco para garantir que o elemento video esteja renderizado
+      setTimeout(() => {
+        if (videoRef.current && mediaStream) {
+          videoRef.current.srcObject = mediaStream;
+          videoRef.current.play().catch(console.error);
+        }
+      }, 100);
+      
     } catch (error) {
       console.error('Erro ao acessar câmera:', error);
       alert('Erro ao acessar câmera. Verifique as permissões.');
@@ -222,6 +228,14 @@ const EntrevistaSimuladaPage = () => {
       initializeCamera();
     }
   }, [currentStep]);
+
+  // Garantir que o stream seja atribuído ao elemento video
+  useEffect(() => {
+    if (stream && videoRef.current && cameraEnabled) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(console.error);
+    }
+  }, [stream, cameraEnabled]);
 
   // Cleanup ao desmontar componente
   useEffect(() => {
@@ -392,6 +406,16 @@ const EntrevistaSimuladaPage = () => {
                             muted
                             playsInline
                             className="w-full h-full object-cover"
+                            onLoadedMetadata={() => {
+                              if (videoRef.current) {
+                                videoRef.current.play().catch(console.error);
+                              }
+                            }}
+                            onCanPlay={() => {
+                              if (videoRef.current) {
+                                videoRef.current.play().catch(console.error);
+                              }
+                            }}
                           />
                           
                           {/* Question Overlay - Always visible during interview */}
