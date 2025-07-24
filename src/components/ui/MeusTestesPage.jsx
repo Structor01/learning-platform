@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 
 const MeusTestesPage = () => {
@@ -75,6 +76,18 @@ const MeusTestesPage = () => {
       category: 'Segurança',
       icon: '🦺',
       color: 'from-red-500 to-red-600'
+    },
+    {
+      id: 7,
+      title: 'Teste DISC - Perfil Comportamental',
+      description: 'Descubra seu perfil comportamental e potencialize seu desenvolvimento profissional',
+      questions: 12,
+      duration: '8 min',
+      difficulty: 'Autoavaliação',
+      category: 'Comportamental',
+      icon: '🧠',
+      color: 'from-purple-500 to-purple-600',
+      route: '/teste-disc'
     }
   ];
 
@@ -123,6 +136,13 @@ const MeusTestesPage = () => {
   ];
 
   const startTest = (test) => {
+    // Se o teste tem uma rota específica (como o DISC), navegar para ela
+    if (test.route) {
+      window.location.href = test.route;
+      return;
+    }
+    
+    // Para outros testes, usar o sistema atual
     setSelectedTest(test);
     setTestInProgress(true);
     setCurrentQuestion(0);

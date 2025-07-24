@@ -93,3 +93,6 @@ jspm_packages/
 .DS_Store
 Thumbs.db
 ../learning-platform-backend/foxk8s-kubeconfig.yaml
+yarn.lock
+package-lock.json
+pnpm-lock.yaml

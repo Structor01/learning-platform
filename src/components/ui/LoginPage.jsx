@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import DISCIncentiveModal from "./DISCIncentiveModal";
 
 const LoginPage = () => {
   const { login } = useAuth();
@@ -13,6 +14,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showDISCModal, setShowDISCModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,12 +23,43 @@ const LoginPage = () => {
 
     try {
       await login(email, password);
-      navigate("/Dashboard");
+      
+      // Verificar se usuário completou teste DISC
+      await checkDISCCompletion();
+      
     } catch (error) {
       setErrorMsg(error.message || "Falha no login");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const checkDISCCompletion = async () => {
+    try {
+      // TODO: Pegar userId real do contexto de autenticação
+      const userId = 3; // Usar ID 3 para simular usuário que não fez teste
+      
+      // Simular verificação - para demonstração, sempre mostrar modal
+      // Em produção, usar: const response = await fetch(`${API_URL}/api/api/tests/check-disc/${userId}`);
+      const hasCompletedDISC = false; // Simular que não completou
+      
+      if (!hasCompletedDISC) {
+        // Usuário não completou o teste DISC, mostrar modal
+        setShowDISCModal(true);
+      } else {
+        // Usuário já completou, ir direto para dashboard
+        navigate("/Dashboard");
+      }
+    } catch (error) {
+      console.error('Erro ao verificar teste DISC:', error);
+      // Em caso de erro, ir direto para dashboard
+      navigate("/Dashboard");
+    }
+  };
+
+  const handleDISCModalClose = () => {
+    setShowDISCModal(false);
+    navigate("/Dashboard");
   };
 
   const goToSignup = () => {
@@ -105,6 +138,12 @@ const LoginPage = () => {
           </form>
         </CardContent>
       </Card>
+
+      {/* Modal de Incentivo ao Teste DISC */}
+      <DISCIncentiveModal 
+        isOpen={showDISCModal} 
+        onClose={handleDISCModalClose} 
+      />
     </div>
   );
 };
