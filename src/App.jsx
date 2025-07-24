@@ -16,7 +16,7 @@ import TrilhaPage from "./components/ui/TrilhaPage"; // ✅ Nova página da tril
 import TrilhasForm from "./components/ui/TrilhasForm";
 import TrilhaPreviewModal from "./components/ui/TrilhaPreviewModal";
 import ForgotPassword from "./components/ui/ForgotPassword"; // ajuste o caminho conforme seu projeto
-import ResetPassword from './components/ui/ResetPassword'; // ajuste o caminho conforme seu projeto
+import ResetPassword from "./components/ui/ResetPassword"; // ajuste o caminho conforme seu projeto
 import CartaoVirtualPage from "./components/ui/CartaoVirtualPage";
 import AgendaEventosPage from "./components/ui/AgendaEventosPage";
 import EntrevistaSimuladaPage from "./components/ui/EntrevistaSimuladaPage";
@@ -25,7 +25,7 @@ import MeusTestesPage from "./components/ui/MeusTestesPage";
 import TesteDISCPage from "./components/ui/TesteDISCPage";
 import CRMPage from "./components/ui/CRMPage";
 import RecrutamentoPage from "./components/ui/RecrutamentoPage";
-
+import TrilhaDetalhes from "@/components/ui/TrilhaDetalhes";
 
 import "./App.css";
 
@@ -210,99 +210,29 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
 
           {/* Página de dashboard, protegida por autenticação */}
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <AppContent />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/dashboard"element={<PrivateRoute><AppContent /></PrivateRoute>}/>
 
           {/* Página da trilha */}
-          <Route
-            path="/trilha"
-            element={
-              <PrivateRoute>
-                <TrilhaPage />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/trilha/:id" element={<PrivateRoute><TrilhaPage /></PrivateRoute>}/>
 
           {/* Páginas dos Aplicativos */}
-          <Route
-            path="/cartao-virtual"
-            element={
-              <PrivateRoute>
-                <CartaoVirtualPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/agenda-eventos"
-            element={
-              <PrivateRoute>
-                <AgendaEventosPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/entrevista-simulada"
-            element={
-              <PrivateRoute>
-                <EntrevistaSimuladaPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/video-pitch"
-            element={
-              <PrivateRoute>
-                <VideoPitchPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/meus-testes"
-            element={
-              <PrivateRoute>
-                <MeusTestesPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/teste-disc"
-            element={
-              <PrivateRoute>
-                <TesteDISCPage />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/cartao-virtual"element={<PrivateRoute><CartaoVirtualPage /> </PrivateRoute> }/>
+          <Route path="/agenda-eventos" element={<PrivateRoute> <AgendaEventosPage /> </PrivateRoute> }/>
+          <Route path="/entrevista-simulada"element={<PrivateRoute><EntrevistaSimuladaPage /></PrivateRoute>}/>
+          <Route path="/video-pitch"element={<PrivateRoute><VideoPitchPage /></PrivateRoute>}/>
+          <Route path="/meus-testes"element={<PrivateRoute><MeusTestesPage /></PrivateRoute>}/>
+          <Route path="/teste-disc"element={<PrivateRoute><TesteDISCPage /></PrivateRoute>}/>
 
           {/* Páginas CRM e Recrutamento */}
-          <Route
-            path="/crm"
-            element={
-              <PrivateRoute>
-                <CRMPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/recrutamento"
-            element={
-              <PrivateRoute>
-                <RecrutamentoPage />
-              </PrivateRoute>
-            }
-          />
-
+          <Route path="/crm"element={<PrivateRoute><CRMPage /></PrivateRoute>}/>
+          <Route path="/recrutamento"element={<PrivateRoute><RecrutamentoPage /></PrivateRoute>}/>
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Catch-all: redireciona para "/" */}
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>      </AuthProvider>
+        </Routes>{" "}
+      </AuthProvider>
     </BrowserRouter>
   );
 }
