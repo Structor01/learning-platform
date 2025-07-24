@@ -14,6 +14,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import Navbar from './Navbar';
+import FaceAnalysis from './FaceAnalysis';
 
 const EntrevistaSimuladaPage = () => {
   const [currentStep, setCurrentStep] = useState('setup'); // setup, interview, feedback
@@ -539,6 +540,16 @@ const EntrevistaSimuladaPage = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Face Analysis */}
+              {cameraEnabled && (
+                <div className="mb-6">
+                  <FaceAnalysis 
+                    videoRef={videoRef} 
+                    isActive={cameraEnabled && !isRecording} 
+                  />
+                </div>
+              )}
 
               {/* Video Playback */}
               {videoUrl && !isRecording && (
