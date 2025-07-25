@@ -96,7 +96,7 @@ const RecrutamentoPage = () => {
       
       const API_BASE_URL = process.env.NODE_ENV === 'production' 
         ? 'https://learning-platform-backend-2x39.onrender.com'
-        : 'https://3001-ikjlsjh5wfosw5vrl3xjt-f4ac7591.manusvm.computer';
+        : 'https://learning-platform-backend-2x39.onrender.com';
 
       const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/${jobId}/search-linkedin`, {
         method: 'POST',

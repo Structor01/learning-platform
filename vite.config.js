@@ -1,13 +1,19 @@
+// vite.config.js
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
+// Importe as ferramentas corretas do Node.js para lidar com URLs
+import { fileURLToPath, URL } from "node:url";
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      // <-- CORREÇÃO APLICADA AQUI
+      // Usamos import.meta.url para obter o caminho do arquivo atual
+      // e fileURLToPath para convertê-lo em um caminho de sistema de arquivos.
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   server: {
