@@ -169,7 +169,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       <span className="text-gray-500 text-sm">6 módulos</span>
                       <Button
                         size="sm"
-                        onClick={() => (window.location.href = "/trilha")}
+                        onClick={() => navigate("/trilha/2")}
                         className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold"
                       >
                         Iniciar
