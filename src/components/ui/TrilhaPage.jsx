@@ -56,7 +56,7 @@ const TrilhaPage = () => {
 
   // Funções de CRUD (já estão corretas)
   const handleAdd = async (title) => {
-    const res = await axios.post("http://localhost:3001/api/modules/${id}", {
+    const res = await axios.post("http://localhost:3001/api/modules/", {
       title,
       trilhaId: Number(trilhaId),
     });
@@ -79,23 +79,13 @@ const TrilhaPage = () => {
     setIsAddLessonModalOpen(true);
   };
 
-  const handleSaveNewLesson = async (formData, id) => {
-    // sua lógica de salvar aula...
-    const finalUrl = `${import.meta.env.VITE_API_URL}/trilha/${id}/api/videos`;
-    console.log("Enviando requisição para a URL:", finalUrl);
+  const handleSaveNewLesson = async (formData) => {
     try {
-      const response = await axios.post(finalUrl, formData);
-      const token = localStorage.getItem("accessToken");
-      const API_URL =
-        import.meta.env.VITE_API_URL ||
-        "https://learning-platform-backend-2x39.onrender.com";
-      console.log("Token encontrado:", localStorage.getItem("accessToken"));
-      // const response = await axios.post(`${API_URL}/api/videos`, formData, {
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json'
-      //   }
-      // });
+      // URL simples e direta
+      const API_URL = "http://localhost:3001";
+      const response = await axios.post(`${API_URL}/api/videos`, formData);
+
+      // Atualizar o módulo correto com a nova aula
       setModules((prevModules) =>
         prevModules.map((module) => {
           if (module.id === Number(formData.get("moduleId"))) {
@@ -107,13 +97,11 @@ const TrilhaPage = () => {
           return module;
         })
       );
+
       setIsAddLessonModalOpen(false);
+      console.log("Aula salva com sucesso!");
     } catch (error) {
-      console.error(
-        "Erro ao salvar a nova aula:",
-        error.response?.data || error.message
-      );
-      // alert("Não foi possível salvar a aula.");
+      console.error("Erro ao salvar a nova aula:", error.response?.data || error.message);
     }
   };
 
@@ -181,12 +169,8 @@ const TrilhaPage = () => {
                   {selectedLesson?.title || "Bem-vindo!"}
                 </h1>
                 <p className="text-gray-400 mt-4 leading-relaxed">
-<<<<<<< HEAD
-                  {selectedLesson?.description || "Escolha um módulo e uma aula na lista abaixo para iniciar seus estudos."}
-=======
                   {selectedLesson?.description ||
                     "Escolha um módulo e uma aula na lista à direita para iniciar seus estudos."}
->>>>>>> origin/dev2
                 </p>
               </div>
             </div>
@@ -239,18 +223,16 @@ const TrilhaPage = () => {
                                 <button
                                   key={lesson.id}
                                   onClick={() => selectLesson(lesson)}
-                                  className={`w-full flex items-center gap-3 p-3 pl-5 text-left transition-colors ${
-                                    selectedLesson?.id === lesson.id
-                                      ? "bg-green-600/20 text-green-400"
-                                      : "hover:bg-gray-700/50 text-gray-300"
-                                  }`}
+                                  className={`w-full flex items-center gap-3 p-3 pl-5 text-left transition-colors ${selectedLesson?.id === lesson.id
+                                    ? "bg-green-600/20 text-green-400"
+                                    : "hover:bg-gray-700/50 text-gray-300"
+                                    }`}
                                 >
                                   <Play
-                                    className={`w-4 h-4 transition-all ${
-                                      selectedLesson?.id === lesson.id
-                                        ? "text-green-500"
-                                        : "text-gray-500"
-                                    }`}
+                                    className={`w-4 h-4 transition-all ${selectedLesson?.id === lesson.id
+                                      ? "text-green-500"
+                                      : "text-gray-500"
+                                      }`}
                                   />
                                   <span className="text-sm">
                                     {lesson.title}
