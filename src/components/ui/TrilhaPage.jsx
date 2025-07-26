@@ -5,8 +5,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EditModulesModal } from "@/components/ui/EditModulesModal";
 import { AddLessonModal } from "./AddLessonModal";
 import { motion } from "framer-motion";
-import { ChevronRight, Settings, ChevronDown, Play, Pause } from "lucide-react";
+import { ChevronRight, Settings, ChevronDown, Play, Pause, Edit2 } from "lucide-react";
 import Navbar from "./Navbar";
+
+const getApiUrl = () => {
+  if (window.location.hostname !== 'localhost') {
+    return 'https://learning-platform-backend-2x39.onrender.com';
+  }
+  return import.meta.env.VITE_API_URL || 'http://localhost:3001';
+};
+
+const API_URL = getApiUrl();
+
 
 const TrilhaPage = () => {
   const [modules, setModules] = useState([]);
@@ -24,30 +34,23 @@ const TrilhaPage = () => {
   const [currentModuleForAddingLesson, setCurrentModuleForAddingLesson] =
     useState(null);
 
-  // Carrega os dados iniciais
-
   useEffect(() => {
     axios
-      .get("http://localhost:3001/api/modules")
+      .get(`http://localhost:3001/api/modules/trilha/${trilhaId}`) // ✅ Nova URL específica
       .then((res) => {
-        const fetchedModules = res.data;
+        const fetchedModules = res.data; // ✅ Já vem filtrado e ordenado!
 
-        // 🔴 Filtra os módulos com base no trilhaId
-        const filteredModules = fetchedModules.filter(
-          (mod) => mod.trilha_id === Number(trilhaId)
-        );
+        setModules(fetchedModules); // ✅ Remove o filter, usa direto
 
-        setModules(filteredModules);
-
-        if (filteredModules.length > 0) {
-          const firstModuleWithLessons = filteredModules.find(
+        if (fetchedModules.length > 0) {
+          const firstModuleWithLessons = fetchedModules.find(
             (m) => m.lessons && m.lessons.length > 0
           );
           if (firstModuleWithLessons) {
             selectLesson(firstModuleWithLessons.lessons[0]);
             setExpandedModules([firstModuleWithLessons.id]);
           } else {
-            setExpandedModules([filteredModules[0].id]);
+            setExpandedModules([fetchedModules[0].id]);
           }
         }
       })
@@ -63,15 +66,58 @@ const TrilhaPage = () => {
     setModules((old) => [...old, res.data]);
   };
 
-  const handleEdit = async (id, title) => {
-    // sua lógica
+  // TrilhaPage.jsx - Adicionar esta função
+  const handleEditLesson = async (lesson) => {
+    const newTitle = prompt("Novo nome da aula:", lesson.title);
+
+    if (newTitle && newTitle.trim() && newTitle !== lesson.title) {
+      try {
+        await axios.put(`${API_URL}/api/videos/${lesson.id}`, {
+          title: newTitle.trim()
+        });
+
+        // Atualizar estado local
+        setModules(prevModules =>
+          prevModules.map(module => ({
+            ...module,
+            lessons: module.lessons?.map(l =>
+              l.id === lesson.id ? { ...l, title: newTitle.trim() } : l
+            )
+          }))
+        );
+
+        console.log('Aula editada com sucesso!');
+      } catch (error) {
+        console.error('Erro ao editar aula:', error);
+        alert('Erro ao editar aula');
+      }
+    }
   };
   const handleDelete = async (id) => {
     await axios.delete(`http://localhost:3001/api/modules/${id}`);
     setModules((old) => old.filter((m) => m.id !== id));
   };
-  const handleReorder = async (newOrder) => {
-    // sua lógica
+  // TrilhaPage.jsx - Substitua o handleReorder
+  const handleReorder = async (reorderedModules) => {
+    try {
+      // Mapear módulos com nova ordem
+      const modulesWithOrder = reorderedModules.map((module, index) => ({
+        id: module.id,
+        order: index // Nova ordem baseada na posição
+      }));
+
+      // Chamar API para salvar nova ordem
+      await axios.put(`${API_URL}/api/modules/reorder`, {
+        modules: modulesWithOrder
+      });
+
+      // Atualizar estado local
+      setModules(reorderedModules);
+
+      console.log('Ordem atualizada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao reordenar módulos:', error);
+    }
   };
 
   const handleShowAddLessonModal = (moduleId) => {
@@ -220,24 +266,35 @@ const TrilhaPage = () => {
                           >
                             {module.lessons?.length > 0 ? (
                               module.lessons.map((lesson) => (
-                                <button
-                                  key={lesson.id}
-                                  onClick={() => selectLesson(lesson)}
-                                  className={`w-full flex items-center gap-3 p-3 pl-5 text-left transition-colors ${selectedLesson?.id === lesson.id
-                                    ? "bg-green-600/20 text-green-400"
-                                    : "hover:bg-gray-700/50 text-gray-300"
-                                    }`}
-                                >
-                                  <Play
-                                    className={`w-4 h-4 transition-all ${selectedLesson?.id === lesson.id
-                                      ? "text-green-500"
-                                      : "text-gray-500"
+                                <div key={lesson.id} className="flex items-center">
+                                  {/* Botão principal da aula */}
+                                  <button
+                                    onClick={() => selectLesson(lesson)}
+                                    className={`flex-1 flex items-center gap-3 p-3 pl-5 text-left transition-colors ${selectedLesson?.id === lesson.id
+                                      ? "bg-green-600/20 text-green-400"
+                                      : "hover:bg-gray-700/50 text-gray-300"
                                       }`}
-                                  />
-                                  <span className="text-sm">
-                                    {lesson.title}
-                                  </span>
-                                </button>
+                                  >
+                                    <Play
+                                      className={`w-4 h-4 transition-all ${selectedLesson?.id === lesson.id
+                                        ? "text-green-500"
+                                        : "text-gray-500"
+                                        }`}
+                                    />
+                                    <span className="text-sm">
+                                      {lesson.title}
+                                    </span>
+                                  </button>
+
+                                  {/* Botão de editar */}
+                                  <button
+                                    onClick={() => handleEditLesson(lesson)}
+                                    className="p-2 mr-2 text-gray-400 hover:text-blue-400 transition-colors"
+                                    title="Editar aula"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                </div>
                               ))
                             ) : (
                               <div className="p-3 pl-5 text-gray-500 text-sm">
@@ -274,7 +331,7 @@ const TrilhaPage = () => {
         modules={modules}
         onClose={() => setShowEditModules(false)}
         onAdd={handleAdd}
-        onEdit={handleEdit}
+        // onEdit={handleEdit}
         onDelete={handleDelete}
         onReorder={handleReorder}
       />
