@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { EditModulesModal } from "@/components/ui/EditModulesModal";
@@ -52,11 +52,11 @@ const TrilhaPage = () => {
         }
       })
       .catch((err) => console.error(err));
-  }, [trilhaId, selectedLesson]);
+  }, [trilhaId]);
 
   // Funções de CRUD (já estão corretas)
   const handleAdd = async (title) => {
-    const res = await axios.post("http://localhost:3001/api/modules/", {
+    const res = await axios.post("http://localhost:3001/api/modules", {
       title,
       trilhaId: Number(trilhaId),
     });
@@ -110,15 +110,15 @@ const TrilhaPage = () => {
     setExpandedModules((prev) =>
       prev.includes(moduleId)
         ? prev.filter((id) => id !== moduleId)
-        : [moduleId]
+        : [...prev, moduleId] // Com o prev permite vários módulos abertos
     );
   };
 
   // Função simplificada para selecionar a aula. Apenas atualiza o estado.
-  const selectLesson = (lesson) => {
+  const selectLesson = useCallback((lesson) => {
     setSelectedLesson(lesson);
-    setIsPlaying(false); // Pausa ao trocar de vídeo
-  };
+    setIsPlaying(false);
+  }, []);
 
   // Efeito para atualizar o tempo do vídeo (já está correto)
 
@@ -170,7 +170,7 @@ const TrilhaPage = () => {
                 </h1>
                 <p className="text-gray-400 mt-4 leading-relaxed">
                   {selectedLesson?.description ||
-                    "Escolha um módulo e uma aula na lista à direita para iniciar seus estudos."}
+                    "Escolha um módulo e uma aula na lista abaixo para iniciar seus estudos."}
                 </p>
               </div>
             </div>
