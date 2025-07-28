@@ -434,7 +434,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     agronegócio
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">4 módulos</span>
+                    <span className="text-xs text-gray-500">7 módulos</span>
                     <Button
                       size="sm"
                       onClick={() => navigate("/trilha/3")}
@@ -508,7 +508,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     Defina objetivos claros e alcance suas metas profissionais
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">3 módulos</span>
+                    <span className="text-xs text-gray-500">7 módulos</span>
                     <Button
                       size="sm"
                       onClick={() => navigate("/trilha/5")}
@@ -545,7 +545,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     Estratégias avançadas para acelerar sua carreira no agro
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">6 módulos</span>
+                    <span className="text-xs text-gray-500">17 módulos</span>
                     <Button
                       size="sm"
                       className="bg-orange-600 hover:bg-orange-700"

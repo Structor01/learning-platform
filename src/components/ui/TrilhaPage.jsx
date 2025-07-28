@@ -66,7 +66,7 @@ const TrilhaPage = () => {
     setModules((old) => [...old, res.data]);
   };
 
-  // TrilhaPage.jsx - Adicionar esta função
+  // Função para editar uma aula
   const handleEditLesson = async (lesson) => {
     const newTitle = prompt("Novo nome da aula:", lesson.title);
 
@@ -93,11 +93,12 @@ const TrilhaPage = () => {
       }
     }
   };
+  // Função para deletar um módulo
   const handleDelete = async (id) => {
     await axios.delete(`http://localhost:3001/api/modules/${id}`);
     setModules((old) => old.filter((m) => m.id !== id));
   };
-  // TrilhaPage.jsx - Substitua o handleReorder
+  // Função para reordenar módulos
   const handleReorder = async (reorderedModules) => {
     try {
       // Mapear módulos com nova ordem
@@ -124,7 +125,7 @@ const TrilhaPage = () => {
     setCurrentModuleForAddingLesson(moduleId);
     setIsAddLessonModalOpen(true);
   };
-
+  // Função para salvar nova aula
   const handleSaveNewLesson = async (formData) => {
     try {
       // URL simples e direta
@@ -148,6 +149,27 @@ const TrilhaPage = () => {
       console.log("Aula salva com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar a nova aula:", error.response?.data || error.message);
+    }
+  };
+
+  // Função para editar nome do módulo
+  const handleEdit = async (id, title) => {
+    try {
+      await axios.put(`${API_URL}/api/modules/${id}`, {
+        title: title
+      });
+
+      // Atualizar estado local
+      setModules(prevModules =>
+        prevModules.map(module =>
+          module.id === id ? { ...module, title: title } : module
+        )
+      );
+
+      console.log('Módulo editado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao editar módulo:', error);
+      alert('Erro ao editar módulo');
     }
   };
 
@@ -331,7 +353,7 @@ const TrilhaPage = () => {
         modules={modules}
         onClose={() => setShowEditModules(false)}
         onAdd={handleAdd}
-        // onEdit={handleEdit}
+        onEdit={handleEdit}
         onDelete={handleDelete}
         onReorder={handleReorder}
       />
