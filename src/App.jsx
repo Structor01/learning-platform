@@ -27,6 +27,7 @@ import CRMPage from "./components/ui/CRMPage";
 import RecrutamentoPage from "./components/ui/RecrutamentoPage";
 import TrilhaDetalhes from "@/components/ui/TrilhaDetalhes";
 import VagasPage from './components/ui/VagasPage'; // Importando a nova página de
+import CompanyPage from "./components/ui/CompanyPage";
 import "./App.css";
 
 const getApiUrl = () => {
@@ -217,6 +218,9 @@ function App() {
         <Routes>
           {/* Página inicial = Login */}
           <Route path="/" element={<LoginPage />} />
+
+          {/* Página de Empresas */}
+          <Route path="/empresa/:id" element={<PrivateRoute><CompanyPage /></PrivateRoute>} />
 
           {/* Página de Vagas */}
           <Route path="/vagas" element={<VagasPage />} />
