@@ -327,7 +327,15 @@ const CompanyPage = () => {
                                             </div>
 
                                             <p className="text-gray-700 mb-4 leading-relaxed">
-                                                {vaga.resumo || vaga.descricao}
+                                                {vaga.descricao}
+                                            </p>
+
+                                            <p className="text-gray-700 mb-4 leading-relaxed">
+                                                {vaga.criterios}
+                                            </p>
+
+                                            <p className="text-gray-700 mb-4 leading-relaxed">
+                                                {vaga.beneficios}
                                             </p>
 
                                             {vaga.remuneracao && (
