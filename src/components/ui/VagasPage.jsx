@@ -101,7 +101,7 @@ const VagasPage = () => {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+                <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 gap-6 mb-8">
                     <div className="bg-white/60 backdrop-blur rounded-2xl p-6 text-center border border-white/20 shadow-lg">
                         <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
                             <Building2 className="w-6 h-6 text-white" />

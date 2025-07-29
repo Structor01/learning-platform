@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, MapPin, Clock, Building2, Users, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Building2, Users, ExternalLink, User, X } from 'lucide-react';
+import LoginModal from './LoginModal';
+
 
 const getApiUrl = () => {
     if (window.location.hostname !== 'localhost') {
@@ -19,7 +21,33 @@ const CompanyPage = () => {
     const [company, setCompany] = useState(null);
     const [vagas, setVagas] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false); // ← Novo estado
+    const [currentUser, setCurrentUser] = useState(null); // ← Dados do usuário logado
+    const [selectedVaga, setSelectedVaga] = useState(null);
+    const [userCandidaturas, setUserCandidaturas] = useState([]);
 
+    // useEffect 1 - Recuperar login
+    useEffect(() => {
+        const savedUser = localStorage.getItem('currentUser');
+        const savedLoginStatus = localStorage.getItem('isUserLoggedIn');
+
+        if (savedUser && savedLoginStatus === 'true') {
+            try {
+                const userData = JSON.parse(savedUser);
+                setCurrentUser(userData);
+                setIsUserLoggedIn(true);
+                console.log('🔄 Login recuperado:', userData.name);
+            } catch (error) {
+                console.error('Erro ao recuperar login:', error);
+                // Se der erro, limpar localStorage
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('isUserLoggedIn');
+            }
+        }
+    }, []); // ← A
+
+    // useEffect 2 - Buscar dados da empresa
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -41,6 +69,127 @@ const CompanyPage = () => {
         fetchData();
     }, [companyId]);
 
+    // useEffect 3 - Buscar candidaturas do usuário
+    useEffect(() => {
+        const fetchUserCandidaturas = async () => {
+            if (isUserLoggedIn && currentUser?.id) {
+                try {
+                    const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${currentUser.id}`);
+                    setUserCandidaturas(response.data);
+                    console.log('📋 Candidaturas do usuário:', response.data);
+                } catch (error) {
+                    console.error('Erro ao buscar candidaturas:', error);
+                }
+            }
+        };
+
+        fetchUserCandidaturas();
+    }, [isUserLoggedIn, currentUser]); // Executa quando usuário loga
+
+    const handleLogin = async (loginData) => {
+        try {
+            const response = await axios.post(`${API_URL}/api/auth/login`, {
+                email: loginData.email,
+                password: loginData.password
+            });
+
+            const userData = response.data.user || response.data;
+
+            // ✅ SALVAR NO LOCALSTORAGE:
+            const userToStore = {
+                id: userData.id,
+                email: userData.email,
+                name: userData.name
+            };
+
+            localStorage.setItem('currentUser', JSON.stringify(userToStore));
+            localStorage.setItem('isUserLoggedIn', 'true');
+
+            setCurrentUser(userToStore);
+            setIsUserLoggedIn(true);
+            setShowLoginModal(false);
+
+            console.log('✅ Login realizado e salvo:', userData.name);
+
+        } catch (error) {
+            console.error('Erro detalhado:', error.response?.data);
+            alert('❌ Erro no login. Verifique as credenciais.');
+        }
+    };
+
+    const handleSignup = async (signupData) => {
+        try {
+            const response = await axios.post(`${API_URL}/api/auth/register`, {
+                name: signupData.name,
+                email: signupData.email,
+                password: signupData.password
+            });
+
+            const userData = response.data.user || response.data;
+
+            // ✅ SALVAR NO LOCALSTORAGE:
+            const userToStore = {
+                id: userData.id,
+                email: userData.email,
+                name: userData.name
+            };
+
+            localStorage.setItem('currentUser', JSON.stringify(userToStore));
+            localStorage.setItem('isUserLoggedIn', 'true');
+
+            setCurrentUser(userToStore);
+            setIsUserLoggedIn(true);
+            setShowLoginModal(false);
+
+            console.log('✅ Cadastro realizado e salvo:', userData.name);
+
+        } catch (error) {
+            console.error('Erro no cadastro:', error);
+            alert('⚠️ Cadastro não disponível. Use login.');
+        }
+    };
+
+    const handleEnviarCandidatura = async (vaga) => {
+        try {
+            const response = await axios.post(`${API_URL}/api/candidaturas`, {
+                usuario_id: currentUser.id,
+                vaga_id: vaga.id,
+                mensagem: `Candidatura para a vaga: ${vaga.nome}`
+            });
+
+            // ✅ ADICIONAR NA LISTA LOCAL:
+            setUserCandidaturas(prev => [...prev, response.data]);
+
+            alert(`✅ Candidatura enviada com sucesso para: ${vaga.nome}`);
+
+        } catch (error) {
+            console.error('Erro ao enviar candidatura:', error);
+            alert('❌ Erro ao enviar candidatura. Tente novamente.');
+        }
+    };
+
+    const handleCandidatar = (vaga) => {
+        setSelectedVaga(vaga);
+
+        if (!isUserLoggedIn) {
+            setShowLoginModal(true);
+            return;
+        }
+
+        // ✅ VERIFICAR SE JÁ SE CANDIDATOU:
+        if (jaSeCandidata(vaga.id)) {
+            alert(`✅ Você já se candidatou para a vaga: ${vaga.nome}\n\nSua candidatura já está registrada!`);
+            return;
+        }
+
+        // Se chegou aqui, pode candidatar-se
+        handleEnviarCandidatura(vaga);
+    };
+
+    const jaSeCandidata = (vagaId) => {
+        return userCandidaturas.some(candidatura => candidatura.vaga_id === vagaId);
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -55,8 +204,10 @@ const CompanyPage = () => {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header da empresa (como na Orbia) */}
+
             <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-                <div className="max-w-7xl mx-auto px-4 py-16">
+                <div className="max-w-7xl mx-auto px-4 py-16 relative">
+                    {/* Botão voltar */}
                     <button
                         onClick={() => navigate('/vagas')}
                         className="flex items-center gap-2 text-white/80 hover:text-white mb-8 transition-colors"
@@ -65,6 +216,40 @@ const CompanyPage = () => {
                         Voltar para empresas
                     </button>
 
+                    {/* Indicador de usuário logado - canto superior direito */}
+                    {isUserLoggedIn && (
+                        <div className="absolute top-6 right-4">
+                            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20">
+                                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                                    <User className="w-4 h-4 text-white" />
+                                </div>
+                                <div className="text-sm">
+                                    <p className="text-white font-medium">
+                                        {currentUser?.name || 'Usuário'}
+                                    </p>
+
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        // ✅ LIMPAR LOCALSTORAGE:
+                                        localStorage.removeItem('currentUser');
+                                        localStorage.removeItem('isUserLoggedIn');
+
+                                        setIsUserLoggedIn(false);
+                                        setCurrentUser(null);
+
+                                        console.log('👋 Usuário deslogado');
+                                    }}
+                                    className="ml-2 p-1 rounded-full hover:bg-white/10 transition-colors group"
+                                    title="Sair"
+                                >
+                                    <X className="w-4 h-4 text-white/70 group-hover:text-white" />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Conteúdo central */}
                     <div className="text-center">
                         <h1 className="text-4xl lg:text-6xl font-bold mb-4">
                             {company?.name || 'Empresa'}
@@ -155,11 +340,20 @@ const CompanyPage = () => {
 
                                         <div className="lg:w-64 flex-shrink-0">
                                             <button
-                                                onClick={() => window.open(vaga.inscricao_link, '_blank')}
-                                                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2"
+                                                onClick={() => handleCandidatar(vaga)}
+                                                className={`w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 ${isUserLoggedIn && jaSeCandidata(vaga.id)
+                                                    ? 'bg-gray-400 cursor-not-allowed'
+                                                    : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
+                                                    }`}
+                                                disabled={isUserLoggedIn && jaSeCandidata(vaga.id)}
                                             >
                                                 <ExternalLink className="w-5 h-5" />
-                                                Candidatar-se
+                                                {!isUserLoggedIn
+                                                    ? 'Login para candidatar-se'
+                                                    : jaSeCandidata(vaga.id)
+                                                        ? '✅ Já candidatado'
+                                                        : 'Candidatar-se'
+                                                }
                                             </button>
                                         </div>
                                     </div>
@@ -179,6 +373,14 @@ const CompanyPage = () => {
                     )}
                 </div>
             </div>
+
+            {/* Modal de Login */}
+            <LoginModal
+                isOpen={showLoginModal}
+                onClose={() => setShowLoginModal(false)}
+                onLogin={handleLogin}
+                onSignup={handleSignup}
+            />
         </div>
     );
 };
