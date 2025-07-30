@@ -29,8 +29,8 @@ const CompanyPage = () => {
 
     // useEffect 1 - Recuperar login
     useEffect(() => {
-        const savedUser = localStorage.getItem('currentUser');
-        const savedLoginStatus = localStorage.getItem('isUserLoggedIn');
+        const savedUser = sessionStorage.getItem('currentUser');
+        const savedLoginStatus = sessionStorage.getItem('isUserLoggedIn');
 
         if (savedUser && savedLoginStatus === 'true') {
             try {
@@ -40,9 +40,9 @@ const CompanyPage = () => {
                 console.log('🔄 Login recuperado:', userData.name);
             } catch (error) {
                 console.error('Erro ao recuperar login:', error);
-                // Se der erro, limpar localStorage
-                localStorage.removeItem('currentUser');
-                localStorage.removeItem('isUserLoggedIn');
+                // Se der erro, limpar sessionStorage
+                sessionStorage.removeItem('currentUser');
+                sessionStorage.removeItem('isUserLoggedIn');
             }
         }
     }, []); // ← A
@@ -95,15 +95,15 @@ const CompanyPage = () => {
 
             const userData = response.data.user || response.data;
 
-            // ✅ SALVAR NO LOCALSTORAGE:
+            // ✅ SALVAR NO sessionStorage:
             const userToStore = {
                 id: userData.id,
                 email: userData.email,
                 name: userData.name
             };
 
-            localStorage.setItem('currentUser', JSON.stringify(userToStore));
-            localStorage.setItem('isUserLoggedIn', 'true');
+            sessionStorage.setItem('currentUser', JSON.stringify(userToStore));
+            sessionStorage.setItem('isUserLoggedIn', 'true');
 
             setCurrentUser(userToStore);
             setIsUserLoggedIn(true);
@@ -127,15 +127,15 @@ const CompanyPage = () => {
 
             const userData = response.data.user || response.data;
 
-            // ✅ SALVAR NO LOCALSTORAGE:
+            // ✅ SALVAR NO sessionStorage:
             const userToStore = {
                 id: userData.id,
                 email: userData.email,
                 name: userData.name
             };
 
-            localStorage.setItem('currentUser', JSON.stringify(userToStore));
-            localStorage.setItem('isUserLoggedIn', 'true');
+            sessionStorage.setItem('currentUser', JSON.stringify(userToStore));
+            sessionStorage.setItem('isUserLoggedIn', 'true');
 
             setCurrentUser(userToStore);
             setIsUserLoggedIn(true);
@@ -231,9 +231,9 @@ const CompanyPage = () => {
                                 </div>
                                 <button
                                     onClick={() => {
-                                        // ✅ LIMPAR LOCALSTORAGE:
-                                        localStorage.removeItem('currentUser');
-                                        localStorage.removeItem('isUserLoggedIn');
+                                        // ✅ LIMPAR sessionStorage:
+                                        sessionStorage.removeItem('currentUser');
+                                        sessionStorage.removeItem('isUserLoggedIn');
 
                                         setIsUserLoggedIn(false);
                                         setCurrentUser(null);

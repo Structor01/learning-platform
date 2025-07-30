@@ -20,7 +20,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   // Verificar se é a primeira vez do usuário
   useEffect(() => {
     if (user?.email) {
-      const hasSeenWelcome = localStorage.getItem(`welcome_seen_${user.email}`);
+      const hasSeenWelcome = sessionStorage.getItem(`welcome_seen_${user.email}`);
       if (!hasSeenWelcome) {
         setShowWelcomeAnimation(true);
       }
@@ -31,7 +31,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const handleWelcomeComplete = () => {
     setShowWelcomeAnimation(false);
     if (user?.email) {
-      localStorage.setItem(`welcome_seen_${user.email}`, "true");
+      sessionStorage.setItem(`welcome_seen_${user.email}`, "true");
     }
   };
 

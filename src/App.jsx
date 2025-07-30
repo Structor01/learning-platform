@@ -221,7 +221,7 @@ function App() {
           <Route path="/" element={<LoginPage />} />
 
           {/* Página de Empresas */}
-          <Route path="/empresa/:id" element={<PrivateRoute><CompanyPage /></PrivateRoute>} />
+          <Route path="/empresa/:id" element={<CompanyPage />} />
 
           {/* Página de Vagas */}
           <Route path="/vagas" element={<VagasPage />} />

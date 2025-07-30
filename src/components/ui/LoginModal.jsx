@@ -142,7 +142,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
                         <div>
                             <a
                                 href="/forgot-password"
-                                className="text-white/70 hover:text-white text-sm"
+                                className="text-black hover:text-black text-sm"
                             >
                                 Forgot password?
                             </a>

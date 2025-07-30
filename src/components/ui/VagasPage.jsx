@@ -150,7 +150,7 @@ const VagasPage = () => {
                         ).map(company => (
                             <div
                                 key={company.id}
-                                onClick={() => navigate(`/empresa/${company.id}`)}
+
                                 className="group bg-white/70 backdrop-blur rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer border border-white/50 hover:border-blue-200 hover:-translate-y-2 overflow-hidden"
                             >
                                 {/* Header with gradient background */}
@@ -162,7 +162,7 @@ const VagasPage = () => {
                                         <div className="flex items-start justify-between mb-4">
                                             <Building2 className="w-8 h-8 text-white/90" />
                                             <div className="flex items-center bg-white/20 rounded-full px-3 py-1">
-                                                <span className="text-xs font-medium">Ver vagas</span>
+
                                             </div>
                                         </div>
 
@@ -209,8 +209,11 @@ const VagasPage = () => {
                                             <span className="text-xs text-gray-500 font-medium">Contratando agora</span>
                                         </div>
 
-                                        <div className="flex items-center gap-2 text-blue-600 font-semibold group-hover:text-blue-700 transition-colors">
+                                        <div className="flex items-center gap-2 text-blue-600 font-semibold group-hover:text-blue-700 transition-colors"
+                                            onClick={() => navigate(`/empresa/${company.id}`)}
+                                        >
                                             <span className="text-sm">Ver vagas</span>
+
                                             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </div>
