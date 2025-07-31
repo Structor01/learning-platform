@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { ArrowLeft, MapPin, Clock, Building2, Users, ExternalLink, User, X } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Building2, Users, ExternalLink, User, X, ChevronDown, Briefcase } from 'lucide-react';
 import LoginModal from './LoginModal';
 
 
@@ -26,6 +26,7 @@ const CompanyPage = () => {
     const [currentUser, setCurrentUser] = useState(null); // ← Dados do usuário logado
     const [selectedVaga, setSelectedVaga] = useState(null);
     const [userCandidaturas, setUserCandidaturas] = useState([]);
+    const [showUserDropdown, setShowUserDropdown] = useState(false); // ← NOVO
 
     // useEffect 1 - Recuperar login
     useEffect(() => {
@@ -190,6 +191,20 @@ const CompanyPage = () => {
         return userCandidaturas.some(candidatura => candidatura.vaga_id === vagaId);
     };
 
+    const handleLogout = () => {
+        sessionStorage.removeItem('currentUser');
+        sessionStorage.removeItem('isUserLoggedIn');
+        setIsUserLoggedIn(false);
+        setCurrentUser(null);
+        setShowUserDropdown(false);
+        console.log('👋 Usuário deslogado');
+    };
+
+    const handleMinhasCandidaturas = () => {
+        navigate('/minhas-candidaturas');
+        setShowUserDropdown(false);
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -216,35 +231,74 @@ const CompanyPage = () => {
                         Voltar para empresas
                     </button>
 
-                    {/* Indicador de usuário logado - canto superior direito */}
+                    {/* ✅ HEADER DO USUÁRIO ATUALIZADO */}
                     {isUserLoggedIn && (
                         <div className="absolute top-6 right-4">
-                            <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20">
-                                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                                    <User className="w-4 h-4 text-white" />
-                                </div>
-                                <div className="text-sm">
-                                    <p className="text-white font-medium">
-                                        {currentUser?.name || 'Usuário'}
-                                    </p>
-
-                                </div>
+                            <div className="relative">
                                 <button
-                                    onClick={() => {
-                                        // ✅ LIMPAR sessionStorage:
-                                        sessionStorage.removeItem('currentUser');
-                                        sessionStorage.removeItem('isUserLoggedIn');
-
-                                        setIsUserLoggedIn(false);
-                                        setCurrentUser(null);
-
-                                        console.log('👋 Usuário deslogado');
-                                    }}
-                                    className="ml-2 p-1 rounded-full hover:bg-white/10 transition-colors group"
-                                    title="Sair"
+                                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                                    className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 hover:bg-white/20 transition-all"
                                 >
-                                    <X className="w-4 h-4 text-white/70 group-hover:text-white" />
+                                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                                        <User className="w-4 h-4 text-white" />
+                                    </div>
+                                    <div className="text-sm">
+                                        <p className="text-white font-medium">
+                                            {currentUser?.name || 'Usuário'}
+                                        </p>
+                                    </div>
+                                    <ChevronDown className={`w-4 h-4 text-white/70 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
                                 </button>
+
+                                {/* ✅ DROPDOWN MENU */}
+                                {showUserDropdown && (
+                                    <>
+                                        {/* Overlay para fechar */}
+                                        <div
+                                            className="fixed inset-0 z-10"
+                                            onClick={() => setShowUserDropdown(false)}
+                                        />
+
+                                        <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-200 py-2 z-20">
+                                            {/* User Info */}
+                                            <div className="px-4 py-3 border-b border-gray-100">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center">
+                                                        <span className="text-white text-sm font-semibold">
+                                                            {currentUser?.name?.charAt(0)?.toUpperCase() || 'U'}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold text-gray-900">{currentUser?.name || 'Usuário'}</p>
+                                                        <p className="text-sm text-gray-500">{currentUser?.email}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Menu Items */}
+                                            <div className="py-2">
+                                                <button
+                                                    onClick={handleMinhasCandidaturas}
+                                                    className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                >
+                                                    <Briefcase className="w-4 h-4 text-green-500" />
+                                                    <span>Minhas Candidaturas</span>
+                                                </button>
+                                            </div>
+
+                                            {/* Logout */}
+                                            <div className="border-t border-gray-100 pt-2">
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                    <span>Sair</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}
@@ -260,7 +314,7 @@ const CompanyPage = () => {
 
                         <div className="mt-8">
                             <button
-                                onClick={() => document.getElementById('vagas-section').scrollIntoView({ behavior: 'smooth' })}
+                                onClick={() => document.getElementById('vagas-section')?.scrollIntoView({ behavior: 'smooth' })}
                                 className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
                             >
                                 Conheça as vagas →
@@ -309,12 +363,12 @@ const CompanyPage = () => {
                                 <div key={vaga.id} className="bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-shadow">
                                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                                         <div className="flex-1">
-                                            <h3 className="text-2xl font-bold text-gray-900 mb-3">{vaga.nome}</h3>
+                                            <h3 className="text-2xl font-bold text-gray-900 mb-3">{vaga.nome || 'Nome da vaga'}</h3>
 
                                             <div className="flex flex-wrap gap-4 mb-4">
                                                 <div className="flex items-center gap-2 text-sm text-gray-600">
                                                     <MapPin className="w-4 h-4" />
-                                                    <span>{vaga.cidade}, {vaga.uf}</span>
+                                                    <span>{vaga.cidade || 'Cidade'}, {vaga.uf || 'UF'}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-sm text-gray-600">
                                                     <Clock className="w-4 h-4" />
@@ -326,9 +380,11 @@ const CompanyPage = () => {
                                                 </div>
                                             </div>
 
-                                            <p className="text-gray-700 mb-4 leading-relaxed">
-                                                {vaga.descricao}
-                                            </p>
+                                            {vaga.descricao && (
+                                                <p className="text-gray-700 mb-4 leading-relaxed">
+                                                    {vaga.descricao}
+                                                </p>
+                                            )}
 
                                             <p className="text-gray-700 mb-4 leading-relaxed">
                                                 {vaga.criterios}
