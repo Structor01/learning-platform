@@ -4,6 +4,14 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { User, Briefcase, LogOut, Settings, ChevronDown } from 'lucide-react';
 
+const getApiUrl = () => {
+    if (window.location.hostname !== 'localhost') {
+        return 'https://learning-platform-backend-2x39.onrender.com';
+    }
+    return import.meta.env.VITE_API_URL || 'http://localhost:3001';
+};
+const API_URL = getApiUrl();
+
 const PublicHeader = ({ title, subtitle }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
