@@ -10,6 +10,7 @@ const getApiUrl = () => {
     }
     return import.meta.env.VITE_API_URL || 'http://localhost:3001';
 };
+const API_URL = getApiUrl();
 
 const PublicHeader = ({ title, subtitle }) => {
     const { user, logout } = useAuth();
