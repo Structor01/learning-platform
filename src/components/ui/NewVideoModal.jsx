@@ -40,7 +40,7 @@ export default function NewVideoModal({ isOpen, onClose }) {
     if (data.youtubeUrl) formData.append('youtubeUrl', data.youtubeUrl);
     if (data.file?.[0]) formData.append('file', data.file[0]);
 
-    const token = localStorage.getItem('accessToken');
+    const token = sessionStorage.getItem('accessToken');
     await fetch('https://learning-platform-backend-2x39.onrender.com/videos', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },

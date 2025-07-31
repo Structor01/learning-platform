@@ -30,8 +30,8 @@ export function EditModulesModal({
 
   const handleEdit = (id) => {
     const title = prompt("Novo nome do módulo:");
-    if (title != null) {
-      onEdit(id, title);
+    if (title != null && title.trim()) {
+      onEdit(id, title.trim());
     }
   };
 

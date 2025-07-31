@@ -16,7 +16,7 @@ import TrilhaPage from "./components/ui/TrilhaPage"; // ✅ Nova página da tril
 import TrilhasForm from "./components/ui/TrilhasForm";
 import TrilhaPreviewModal from "./components/ui/TrilhaPreviewModal";
 import ForgotPassword from "./components/ui/ForgotPassword"; // ajuste o caminho conforme seu projeto
-import ResetPassword from './components/ui/ResetPassword'; // ajuste o caminho conforme seu projeto
+import ResetPassword from "./components/ui/ResetPassword"; // ajuste o caminho conforme seu projeto
 import CartaoVirtualPage from "./components/ui/CartaoVirtualPage";
 import AgendaEventosPage from "./components/ui/AgendaEventosPage";
 import EntrevistaSimuladaPage from "./components/ui/EntrevistaSimuladaPage";
@@ -25,9 +25,22 @@ import MeusTestesPage from "./components/ui/MeusTestesPage";
 import TesteDISCPage from "./components/ui/TesteDISCPage";
 import CRMPage from "./components/ui/CRMPage";
 import RecrutamentoPage from "./components/ui/RecrutamentoPage";
-
-
+import TrilhaDetalhes from "@/components/ui/TrilhaDetalhes";
+import VagasPage from './components/ui/VagasPage'; // Importando a nova página de
+import CompanyPage from "./components/ui/CompanyPage";
+import LoginModal from "./components/ui/LoginModal";
 import "./App.css";
+
+const getApiUrl = () => {
+  // Se estiver em produção (hostname não é localhost)
+  if (window.location.hostname !== 'localhost') {
+    return 'https://learning-platform-backend-2x39.onrender.com';
+  }
+  // Senão, usa ambiente ou localhost
+  return import.meta.env.VITE_API_URL || 'http://localhost:3001';
+};
+
+const API_URL = getApiUrl();
 
 // Componente que gerencia as rotas privadas e a renderização principal
 function AppContent() {
@@ -43,12 +56,13 @@ function AppContent() {
   const { user, accessToken, isLoading } = useAuth();
   console.log("🔐 Auth user no AppContent:", user);
 
+
   useEffect(() => {
     if (!accessToken) return;
     axios
-      .get("https://learning-platform-backend-2x39.onrender.com/videos", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      })
+    axios.get(`${API_URL}/api/videos`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
       .then((res) => {
         setTrilhas(res.data);
       })
@@ -173,7 +187,7 @@ function AppContent() {
               formData.append("coverHorizontal", data.coverHorizontal);
 
               const response = await axios.post(
-                "https://learning-platform-backend-2x39.onrender.com/videos",
+                `${API_URL}/api/videos`,
                 formData,
                 {
                   headers: {
@@ -206,103 +220,42 @@ function App() {
           {/* Página inicial = Login */}
           <Route path="/" element={<LoginPage />} />
 
+          {/* Página de Empresas */}
+          <Route path="/empresa/:id" element={<CompanyPage />} />
+
+          {/* Página de Vagas */}
+          <Route path="/vagas" element={<VagasPage />} />
+
+          {/* Página de Candidatura */}
+          <Route path="/LoginModal" element={<LoginModal />} />
+
           {/* Página de cadastro */}
           <Route path="/signup" element={<SignUpPage />} />
 
           {/* Página de dashboard, protegida por autenticação */}
-          <Route
-            path="/dashboard"
-            element={
-              <PrivateRoute>
-                <AppContent />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/dashboard" element={<PrivateRoute><AppContent /></PrivateRoute>} />
 
           {/* Página da trilha */}
-          <Route
-            path="/trilha"
-            element={
-              <PrivateRoute>
-                <TrilhaPage />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/trilha/:id" element={<PrivateRoute><TrilhaPage /></PrivateRoute>} />
 
           {/* Páginas dos Aplicativos */}
-          <Route
-            path="/cartao-virtual"
-            element={
-              <PrivateRoute>
-                <CartaoVirtualPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/agenda-eventos"
-            element={
-              <PrivateRoute>
-                <AgendaEventosPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/entrevista-simulada"
-            element={
-              <PrivateRoute>
-                <EntrevistaSimuladaPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/video-pitch"
-            element={
-              <PrivateRoute>
-                <VideoPitchPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/meus-testes"
-            element={
-              <PrivateRoute>
-                <MeusTestesPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/teste-disc"
-            element={
-              <PrivateRoute>
-                <TesteDISCPage />
-              </PrivateRoute>
-            }
-          />
+          <Route path="/cartao-virtual" element={<PrivateRoute><CartaoVirtualPage /> </PrivateRoute>} />
+          <Route path="/agenda-eventos" element={<PrivateRoute> <AgendaEventosPage /> </PrivateRoute>} />
+          <Route path="/entrevista-simulada" element={<PrivateRoute><EntrevistaSimuladaPage /></PrivateRoute>} />
+          <Route path="/video-pitch" element={<PrivateRoute><VideoPitchPage /></PrivateRoute>} />
+          <Route path="/meus-testes" element={<PrivateRoute><MeusTestesPage /></PrivateRoute>} />
+          <Route path="/teste-disc" element={<PrivateRoute><TesteDISCPage /></PrivateRoute>} />
 
           {/* Páginas CRM e Recrutamento */}
-          <Route
-            path="/crm"
-            element={
-              <PrivateRoute>
-                <CRMPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/recrutamento"
-            element={
-              <PrivateRoute>
-                <RecrutamentoPage />
-              </PrivateRoute>
-            }
-          />
-
+          <Route path="/crm" element={<PrivateRoute><CRMPage /></PrivateRoute>} />
+          <Route path="/recrutamento" element={<PrivateRoute><RecrutamentoPage /></PrivateRoute>} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Catch-all: redireciona para "/" */}
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>      </AuthProvider>
+        </Routes>{" "}
+      </AuthProvider>
     </BrowserRouter>
   );
 }
