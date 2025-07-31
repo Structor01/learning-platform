@@ -1,26 +1,48 @@
 // src/components/ui/PublicHeader.jsx
-import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Briefcase, LogOut, Settings, ChevronDown } from 'lucide-react';
 
-const getApiUrl = () => {
-    if (window.location.hostname !== 'localhost') {
-        return 'https://learning-platform-backend-2x39.onrender.com';
-    }
-    return import.meta.env.VITE_API_URL || 'http://localhost:3001';
-};
-const API_URL = getApiUrl();
-
 const PublicHeader = ({ title, subtitle }) => {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
     const [showDropdown, setShowDropdown] = useState(false);
+    const navigate = useNavigate();
 
+    // ✅ VERSÃO SIMPLES - SEM CHAMADAS DE API
+    useEffect(() => {
+        const savedUser = sessionStorage.getItem('currentUser');
+        const savedLoginStatus = sessionStorage.getItem('isUserLoggedIn');
+
+        if (savedUser && savedLoginStatus === 'true') {
+            try {
+                const userData = JSON.parse(savedUser);
+                setCurrentUser(userData);
+                setIsUserLoggedIn(true);
+                console.log('✅ PublicHeader carregou com usuário:', userData.name);
+            } catch (error) {
+                console.error('❌ Erro ao recuperar login:', error);
+                handleLogout();
+            }
+        } else {
+            console.log('✅ PublicHeader carregou sem usuário logado');
+        }
+    }, []);
+
+    // ✅ LOGOUT SIMPLES - SEM API
     const handleLogout = () => {
-        logout();
+        // Limpar todos os dados do sessionStorage
+        sessionStorage.removeItem('currentUser');
+        sessionStorage.removeItem('isUserLoggedIn');
+        sessionStorage.removeItem('accessToken');
+        sessionStorage.removeItem('refreshToken');
+
+        // Atualizar estado
+        setIsUserLoggedIn(false);
+        setCurrentUser(null);
         setShowDropdown(false);
-        navigate('/');
+
+        console.log('👋 Usuário deslogado via PublicHeader');
     };
 
     const handleLogin = () => {
@@ -61,7 +83,7 @@ const PublicHeader = ({ title, subtitle }) => {
 
                     {/* User Area */}
                     <div className="flex items-center gap-4">
-                        {user ? (
+                        {isUserLoggedIn ? (
                             // Usuário logado
                             <div className="relative">
                                 <button
@@ -70,11 +92,11 @@ const PublicHeader = ({ title, subtitle }) => {
                                 >
                                     <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center">
                                         <span className="text-white text-sm font-semibold">
-                                            {user.name?.charAt(0)?.toUpperCase()}
+                                            {currentUser?.name?.charAt(0)?.toUpperCase() || 'U'}
                                         </span>
                                     </div>
                                     <span className="text-gray-700 font-medium hidden sm:block">
-                                        {user.name}
+                                        {currentUser?.name || 'Usuário'}
                                     </span>
                                     <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
                                 </button>
@@ -94,12 +116,12 @@ const PublicHeader = ({ title, subtitle }) => {
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center">
                                                         <span className="text-white text-sm font-semibold">
-                                                            {user.name?.charAt(0)?.toUpperCase()}
+                                                            {currentUser?.name?.charAt(0)?.toUpperCase() || 'U'}
                                                         </span>
                                                     </div>
                                                     <div>
-                                                        <p className="font-semibold text-gray-900">{user.name}</p>
-                                                        <p className="text-sm text-gray-500">{user.email}</p>
+                                                        <p className="font-semibold text-gray-900">{currentUser?.name || 'Usuário'}</p>
+                                                        <p className="text-sm text-gray-500">{currentUser?.email || 'email@exemplo.com'}</p>
                                                     </div>
                                                 </div>
                                             </div>

@@ -4,16 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft, MapPin, Clock, Building2, Users, ExternalLink, User, X, ChevronDown, Briefcase } from 'lucide-react';
 import LoginModal from './LoginModal';
-
-
-const getApiUrl = () => {
-    if (window.location.hostname !== 'localhost') {
-        return 'https://learning-platform-backend-2x39.onrender.com';
-    }
-    return import.meta.env.VITE_API_URL || 'http://localhost:3001';
-};
-
-const API_URL = getApiUrl();
+import { API_URL } from '../utils/api';;
 
 const CompanyPage = () => {
     const { id: companyId } = useParams();

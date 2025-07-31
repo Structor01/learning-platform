@@ -3,15 +3,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Clock, Building2, Briefcase, ArrowRight, Users, Globe, ChevronRight, User, ChevronDown } from 'lucide-react';
-
-const getApiUrl = () => {
-    if (window.location.hostname !== 'localhost') {
-        return 'https://learning-platform-backend-2x39.onrender.com';
-    }
-    return import.meta.env.VITE_API_URL || 'http://localhost:3001';
-};
-
-const API_URL = getApiUrl();
+import PublicHeader from './PublicHeader';
+import { API_URL } from '../utils/api';
 
 
 const VagasPage = () => {
