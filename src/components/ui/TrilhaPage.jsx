@@ -36,7 +36,7 @@ const TrilhaPage = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:3001/api/modules/trilha/${trilhaId}`) // ✅ Nova URL específica
+      .get(`${API_URL}/api/modules/trilha/${trilhaId}`) // ✅ Nova URL específica
       .then((res) => {
         const fetchedModules = res.data; // ✅ Já vem filtrado e ordenado!
 
