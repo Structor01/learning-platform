@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Clock, Building2, Briefcase, ArrowRight, Users, Globe, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Clock, Building2, Briefcase, ArrowRight, Users, Globe, ChevronRight, User, ChevronDown } from 'lucide-react';
 
 const getApiUrl = () => {
     if (window.location.hostname !== 'localhost') {
@@ -19,6 +19,27 @@ const VagasPage = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('')
+    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+    // Verificar se usuário está logado
+    useEffect(() => {
+        const savedUser = sessionStorage.getItem('currentUser');
+        const savedLoginStatus = sessionStorage.getItem('isUserLoggedIn');
+
+        if (savedUser && savedLoginStatus === 'true') {
+            try {
+                const userData = JSON.parse(savedUser);
+                setCurrentUser(userData);
+                setIsUserLoggedIn(true);
+            } catch (error) {
+                console.error('Erro ao recuperar login:', error);
+                sessionStorage.removeItem('currentUser');
+                sessionStorage.removeItem('isUserLoggedIn');
+            }
+        }
+    }, []);
 
     useEffect(() => {
         axios.get(`${API_URL}/api/companies`)
@@ -31,6 +52,24 @@ const VagasPage = () => {
                 setLoading(false);
             });
     }, []);
+
+    const handleLogout = () => {
+        sessionStorage.removeItem('currentUser');
+        sessionStorage.removeItem('isUserLoggedIn');
+        setIsUserLoggedIn(false);
+        setCurrentUser(null);
+        setShowUserDropdown(false);
+        console.log('👋 Usuário deslogado');
+    };
+
+    const handleMinhasCandidaturas = () => {
+        navigate('/minhas-candidaturas');
+        setShowUserDropdown(false);
+    };
+
+    const handleLogin = () => {
+        navigate('/');
+    };
 
     if (loading) {
         return (
@@ -45,31 +84,116 @@ const VagasPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-            {/* Header moderno */}
+            {/* Header atualizado */}
             <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-blue-100 sticky top-0 z-40">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl">
-                                <Briefcase className="w-6 h-6 text-white" />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                    <div className="flex items-center justify-between">
+                        {/* Logo/Title */}
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-600 to-green-600 rounded-xl">
+                                <Briefcase className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-800 to-green-700 bg-clip-text text-transparent">
+                                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-800 to-green-700 bg-clip-text text-transparent">
                                     Oportunidades de Carreira
                                 </h1>
-                                <p className="text-gray-600 text-sm lg:text-base">Conecte-se com as melhores empresas do agronegócio</p>
+                                <p className="text-sm text-gray-600">Conecte-se com as melhores empresas do agronegócio</p>
                             </div>
                         </div>
-                        {/* <button
-                            onClick={() => navigate('/dashboard')}
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl font-medium"
-                        >
-                            <ArrowRight className="w-4 h-4 rotate-180" />
-                            Dashboard
-                        </button> */}
+
+                        {/* User Area */}
+                        <div className="flex items-center gap-4">
+                            {isUserLoggedIn ? (
+                                // Usuário logado
+                                <div className="relative">
+                                    <button
+                                        onClick={() => setShowUserDropdown(!showUserDropdown)}
+                                        className="flex items-center gap-3 bg-white/60 backdrop-blur rounded-full px-4 py-2 border border-blue-200 hover:border-blue-300 transition-all duration-200"
+                                    >
+                                        <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center">
+                                            <span className="text-white text-sm font-semibold">
+                                                {currentUser?.name?.charAt(0)?.toUpperCase() || 'U'}
+                                            </span>
+                                        </div>
+                                        <span className="text-gray-700 font-medium hidden sm:block">
+                                            {currentUser?.name || 'Usuário'}
+                                        </span>
+                                        <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {/* Dropdown Menu */}
+                                    {showUserDropdown && (
+                                        <>
+                                            <div
+                                                className="fixed inset-0 z-10"
+                                                onClick={() => setShowUserDropdown(false)}
+                                            />
+
+                                            <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-200 py-2 z-20">
+                                                {/* User Info */}
+                                                <div className="px-4 py-3 border-b border-gray-100">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center">
+                                                            <span className="text-white text-sm font-semibold">
+                                                                {currentUser?.name?.charAt(0)?.toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-semibold text-gray-900">{currentUser?.name}</p>
+                                                            <p className="text-sm text-gray-500">{currentUser?.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Menu Items */}
+                                                <div className="py-2">
+                                                    <button
+                                                        onClick={handleMinhasCandidaturas}
+                                                        className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                                                    >
+                                                        <Briefcase className="w-4 h-4 text-green-500" />
+                                                        <span>Minhas Candidaturas</span>
+                                                    </button>
+                                                </div>
+
+                                                {/* Logout */}
+                                                <div className="border-t border-gray-100 pt-2">
+                                                    <button
+                                                        onClick={handleLogout}
+                                                        className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                        <span>Sair</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ) : (
+                                // Usuário não logado
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={handleLogin}
+                                        className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-blue-600 transition-colors"
+                                    >
+                                        <User className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Entrar</span>
+                                    </button>
+
+                                    <button
+                                        onClick={handleLogin}
+                                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+                                    >
+                                        Fazer Login
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
+
 
             {/* Hero Section */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
@@ -101,7 +225,7 @@ const VagasPage = () => {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                     <div className="bg-white/60 backdrop-blur rounded-2xl p-6 text-center border border-white/20 shadow-lg">
                         <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
                             <Building2 className="w-6 h-6 text-white" />
@@ -144,7 +268,7 @@ const VagasPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                         {(searchTerm
                             ? companies.filter(company =>
-                                company.name.toLowerCase().includes(searchTerm.toLowerCase())
+                                company.name && company.name.toLowerCase().includes(searchTerm.toLowerCase())
                             )
                             : companies
                         ).map(company => (
@@ -167,7 +291,7 @@ const VagasPage = () => {
                                         </div>
 
                                         <h3 className="text-xl font-bold mb-2 leading-tight">
-                                            {company.name}
+                                            {company.name || 'Nome da Empresa'}
                                         </h3>
 
                                         <div className="flex items-center gap-2 text-white/80 text-sm">
