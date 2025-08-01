@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import Navbar from './Navbar';
+import InterviewModal from './InterviewModal';
 import coresignalService from '../../services/coresignalService';
+import chatgptService from '../../services/chatgptService';
 import {
   Briefcase,
   Users,
