@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import Navbar from './Navbar';
-import phantomBusterService from '../../services/phantomBusterService';
+import coresignalService from '../../services/coresignalService';
 import {
   Briefcase,
   Users,
@@ -27,7 +27,8 @@ import {
   BarChart3,
   Loader,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Zap
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import parse from 'html-react-parser';
@@ -50,10 +51,10 @@ const RecrutamentoPage = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   
-  // Estados para Phantom Buster
-  const [phantomSearches, setPhantomSearches] = useState({});
-  const [phantomResults, setPhantomResults] = useState({});
-  const [showPhantomModal, setShowPhantomModal] = useState(false);
+  // Estados para Coresignal
+  const [coresignalSearches, setCoresignalSearches] = useState({});
+  const [coresignalResults, setCoresignalResults] = useState({});
+  const [showCoresignalModal, setShowCoresignalModal] = useState(false);
 
   useEffect(() => {
     fetchRecruitmentData();
@@ -104,78 +105,71 @@ const RecrutamentoPage = () => {
       const job = jobs.find(job => job.id === jobId);
       setSelectedJob(job);
       
-      // Verificar se já existe uma busca para esta vaga
-      if (phantomBusterService.hasExistingSearch(jobId)) {
-        const existingSearch = phantomBusterService.getExistingSearch(jobId);
+      // Verificar se já existe uma busca recente para esta vaga (backend + localStorage)
+      const hasExisting = await coresignalService.hasExistingSearch(jobId);
+      if (hasExisting) {
+        const existingSearch = await coresignalService.getExistingSearch(jobId);
         
-        if (existingSearch.status === 'started' || existingSearch.status === 'running') {
-          // Verificar status atual da busca
-          const statusResult = await phantomBusterService.checkSearchStatus(existingSearch.phantomId);
-          
-          if (statusResult.status === 'finished') {
-            // Processar resultados
-            const results = await phantomBusterService.processSearchResults(existingSearch.phantomId);
-            if (results.success) {
-              setSearchResults(results.profiles);
-              setShowSearchModal(true);
-              
-              // Atualizar status local
-              phantomBusterService.saveSearchInfo(jobId, {
-                ...existingSearch,
-                status: 'completed',
-                results: results.profiles,
-                completedAt: new Date().toISOString()
-              });
-            }
-          } else {
-            // Busca ainda em andamento
-            alert(`Busca em andamento no Phantom Buster. Status: ${statusResult.status}`);
-          }
-        } else if (existingSearch.status === 'completed') {
+        if (existingSearch && existingSearch.status === 'completed') {
           // Mostrar resultados existentes
           setSearchResults(existingSearch.results || []);
           setShowSearchModal(true);
-        }
-      } else {
-        // Iniciar nova busca no Phantom Buster
-        const result = await phantomBusterService.startLinkedInSearch(job);
-        
-        if (result.success) {
-          // Salvar informações da busca
-          setPhantomSearches(prev => ({
-            ...prev,
-            [jobId]: {
-              phantomId: result.phantomId,
-              status: 'started',
-              startTime: new Date().toISOString(),
-              job: job
-            }
-          }));
           
-          alert(`Busca iniciada no Phantom Buster! ID: ${result.phantomId}\n\nA busca pode levar alguns minutos. Você pode verificar o progresso clicando novamente no botão.`);
-        } else {
-          alert(`Erro ao iniciar busca: ${result.message}`);
+          const source = existingSearch.fromBackend ? 'banco de dados' : 'cache local';
+          const searchDate = new Date(existingSearch.searchTime).toLocaleString('pt-BR');
+          
+          alert(`✅ Busca encontrada no ${source}!\n\nResultados: ${existingSearch.results?.length || 0} perfis\nRealizada em: ${searchDate}`);
+          return;
         }
+      }
+      
+      // Realizar nova busca no Coresignal
+      const result = await coresignalService.searchLinkedInPeople(job);
+      
+      if (result.success) {
+        // Exibir resultados
+        setSearchResults(result.profiles);
+        setShowSearchModal(true);
+        
+        // Salvar no estado local
+        setCoresignalSearches(prev => ({
+          ...prev,
+          [jobId]: {
+            searchId: result.searchId || `coresignal_${Date.now()}`,
+            status: 'completed',
+            searchTime: new Date().toISOString(),
+            job: job,
+            totalResults: result.total,
+            savedToBackend: result.savedToBackend
+          }
+        }));
+        
+        const saveStatus = result.savedToBackend ? '✅ Salvos no banco de dados' : '⚠️ Salvos apenas localmente';
+        const cacheInfo = result.fromCache ? ' (dados do cache)' : '';
+        
+        alert(`✅ Busca concluída com sucesso!${cacheInfo}\n\n${result.message}\nPerfis encontrados: ${result.total}\n\n${saveStatus}`);
+      } else {
+        alert(`❌ Erro na busca: ${result.message}\n\nDetalhes: ${result.error}`);
       }
       
     } catch (error) {
       console.error('Erro ao buscar candidatos:', error);
-      alert('Erro ao processar busca no LinkedIn');
+      alert('❌ Erro inesperado ao processar busca no LinkedIn');
     } finally {
       setSearchLoading(false);
     }
   };
 
-  // Função para obter status da busca Phantom Buster
-  const getPhantomSearchStatus = (jobId) => {
-    const existingSearch = phantomBusterService.getExistingSearch(jobId);
+  // Função para obter status da busca Coresignal
+  const getCoresignalSearchStatus = (jobId) => {
+    const existingSearch = coresignalService.getExistingSearch(jobId);
     if (!existingSearch) return null;
     
     return {
       status: existingSearch.status,
-      phantomId: existingSearch.phantomId,
-      startTime: existingSearch.startTime,
-      keywords: existingSearch.keywords
+      searchId: existingSearch.searchId,
+      searchTime: existingSearch.searchTime,
+      totalResults: existingSearch.totalResults
     };
   };
 
@@ -189,24 +183,17 @@ const RecrutamentoPage = () => {
       };
     }
 
-    const searchStatus = getPhantomSearchStatus(jobId);
+    const searchStatus = getCoresignalSearchStatus(jobId);
     
     if (!searchStatus) {
       return {
         text: 'Buscar no LinkedIn',
-        icon: <ExternalLink className="h-4 w-4 mr-2" />,
+        icon: <Zap className="h-4 w-4 mr-2" />,
         className: 'bg-blue-600 hover:bg-blue-700 text-white'
       };
     }
 
     switch (searchStatus.status) {
-      case 'started':
-      case 'running':
-        return {
-          text: 'Verificar Status',
-          icon: <Loader className="h-4 w-4 mr-2 animate-spin" />,
-          className: 'bg-yellow-600 hover:bg-yellow-700 text-white'
-        };
       case 'completed':
         return {
           text: 'Ver Resultados',
@@ -222,7 +209,7 @@ const RecrutamentoPage = () => {
       default:
         return {
           text: 'Buscar no LinkedIn',
-          icon: <ExternalLink className="h-4 w-4 mr-2" />,
+          icon: <Zap className="h-4 w-4 mr-2" />,
           className: 'bg-blue-600 hover:bg-blue-700 text-white'
         };
     }
@@ -280,17 +267,17 @@ const RecrutamentoPage = () => {
               </div>
               <Button
                 onClick={async () => {
-                  const result = await phantomBusterService.testApiKey();
+                  const result = await coresignalService.testApiKey();
                   if (result.success) {
-                    alert(`✅ ${result.message}\n\nPhantoms disponíveis:\n${result.phantoms.map(p => `- ${p.name} (${p.id})`).join('\n')}`);
+                    alert(`✅ ${result.message}\n\nTeste realizado com sucesso!\nAPI Coresignal funcionando corretamente.`);
                   } else {
-                    alert(`❌ ${result.error}`);
+                    alert(`❌ ${result.error}\n\nVerifique a API Key do Coresignal.`);
                   }
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
                 <Target className="h-4 w-4 mr-2" />
-                Testar Phantom Buster
+                Testar Coresignal API
               </Button>
             </div>
           </div>
