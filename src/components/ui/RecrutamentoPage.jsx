@@ -263,6 +263,7 @@ const RecrutamentoPage = () => {
           console.log(`✅ Resposta processada com IA! Transcrição: "${transcriptionResult.transcription.substring(0, 80)}..." Pontuação: ${analysisResult.analysis.score}/10${faceInfo}`);
         } else {
           console.warn(`⚠️ Resposta transcrita mas não analisada. Transcrição: "${transcriptionResult.transcription.substring(0, 80)}..."`);
+        }
       } else {
         console.error(`❌ Erro na transcrição: ${transcriptionResult.error}`);
       }
