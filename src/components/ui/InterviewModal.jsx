@@ -4,10 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   X, 
-  Video, 
   VideoOff, 
-  Mic, 
-  MicOff, 
   Play, 
   Send, 
   SkipForward,
@@ -30,7 +27,6 @@ const InterviewModal = ({
 }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [cameraEnabled, setCameraEnabled] = useState(false);
-  const [micEnabled, setMicEnabled] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [stream, setStream] = useState(null);
@@ -416,10 +412,22 @@ const InterviewModal = ({
                     />
                     
                     {/* Overlay da pergunta */}
-                    <div className="absolute top-4 left-4 right-4 bg-black bg-opacity-70 rounded-lg p-3">
+                    <div className="absolute top-4 left-4 right-32 bg-black bg-opacity-70 rounded-lg p-3">
                       <p className="text-white text-sm font-medium">
                         {questions[currentQuestion]?.question}
                       </p>
+                    </div>
+
+                    {/* Indicador de câmera e microfone ativos */}
+                    <div className="absolute top-4 right-4 flex gap-2">
+                      <div className="bg-green-600 text-white px-2 py-1 rounded-full flex items-center gap-1 text-xs">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        <span>CAM</span>
+                      </div>
+                      <div className="bg-green-600 text-white px-2 py-1 rounded-full flex items-center gap-1 text-xs">
+                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        <span>MIC</span>
+                      </div>
                     </div>
 
                     {/* Status de gravação */}
@@ -456,22 +464,6 @@ const InterviewModal = ({
 
               {/* Controles */}
               <div className="flex justify-center gap-4 mt-4 p-4">
-                <Button
-                  onClick={() => setCameraEnabled(!cameraEnabled)}
-                  variant={cameraEnabled ? "default" : "secondary"}
-                  size="sm"
-                >
-                  {cameraEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}
-                </Button>
-                
-                <Button
-                  onClick={() => setMicEnabled(!micEnabled)}
-                  variant={micEnabled ? "default" : "secondary"}
-                  size="sm"
-                >
-                  {micEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
-                </Button>
-
                 {!interviewStarted ? (
                   <Button
                     onClick={startInterview}

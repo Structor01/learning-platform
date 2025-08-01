@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+import jsPDF from 'jspdf';
 import Navbar from './Navbar';
 import InterviewModal from './InterviewModal';
 import coresignalService from '../../services/coresignalService';
@@ -274,6 +275,187 @@ const RecrutamentoPage = () => {
     }
   };
 
+  // Função para gerar PDF com resultados da entrevista
+  const generateInterviewPDF = (interviewData) => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.width;
+    const margin = 20;
+    let yPosition = 30;
+
+    // Função auxiliar para adicionar texto com quebra de linha
+    const addText = (text, x, y, maxWidth = pageWidth - 2 * margin) => {
+      const lines = doc.splitTextToSize(text, maxWidth);
+      doc.text(lines, x, y);
+      return y + (lines.length * 7);
+    };
+
+    // Função auxiliar para verificar se precisa de nova página
+    const checkNewPage = (currentY, requiredSpace = 30) => {
+      if (currentY + requiredSpace > doc.internal.pageSize.height - margin) {
+        doc.addPage();
+        return 30;
+      }
+      return currentY;
+    };
+
+    try {
+      // Cabeçalho
+      doc.setFontSize(20);
+      doc.setFont(undefined, 'bold');
+      yPosition = addText('RELATÓRIO DE ENTREVISTA SIMULADA', margin, yPosition);
+      
+      yPosition += 10;
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      yPosition = addText(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, yPosition);
+      
+      // Linha separadora
+      yPosition += 10;
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 15;
+
+      // Informações da vaga
+      yPosition = checkNewPage(yPosition);
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      yPosition = addText('INFORMAÇÕES DA VAGA', margin, yPosition);
+      
+      yPosition += 5;
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      yPosition = addText(`Cargo: ${interviewData.job?.nome || interviewData.job?.title || 'Não informado'}`, margin, yPosition);
+      yPosition = addText(`Empresa: ${interviewData.job?.empresa || interviewData.job?.company || 'Não informado'}`, margin, yPosition);
+      yPosition = addText(`Área: ${interviewData.job?.area || 'Não informado'}`, margin, yPosition);
+      yPosition = addText(`Localização: ${interviewData.job?.localizacao || interviewData.job?.location || 'Não informado'}`, margin, yPosition);
+
+      // Estatísticas gerais
+      yPosition += 15;
+      yPosition = checkNewPage(yPosition);
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      yPosition = addText('ESTATÍSTICAS GERAIS', margin, yPosition);
+      
+      yPosition += 5;
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'normal');
+      yPosition = addText(`Perguntas respondidas: ${interviewData.answeredCount} de ${interviewData.questions.length}`, margin, yPosition);
+      yPosition = addText(`Dados comportamentais coletados: ${interviewData.totalFaceDataPoints || 0} pontos`, margin, yPosition);
+      yPosition = addText(`Data da entrevista: ${new Date(interviewData.completedAt).toLocaleString('pt-BR')}`, margin, yPosition);
+
+      // Análise das respostas
+      yPosition += 15;
+      yPosition = checkNewPage(yPosition);
+      doc.setFontSize(16);
+      doc.setFont(undefined, 'bold');
+      yPosition = addText('ANÁLISE DAS RESPOSTAS', margin, yPosition);
+
+      const answeredQuestions = interviewData.questions.filter(q => q.answered);
+      
+      answeredQuestions.forEach((question, index) => {
+        yPosition += 10;
+        yPosition = checkNewPage(yPosition, 50);
+        
+        // Pergunta
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        yPosition = addText(`${index + 1}. ${question.question}`, margin, yPosition);
+        
+        yPosition += 5;
+        doc.setFont(undefined, 'normal');
+        
+        if (question.analysis) {
+          yPosition = addText(`Pontuação: ${question.analysis.score}/10`, margin + 10, yPosition);
+          
+          if (question.analysis.strengths && question.analysis.strengths.length > 0) {
+            yPosition = addText('Pontos Fortes:', margin + 10, yPosition);
+            question.analysis.strengths.forEach(strength => {
+              yPosition = addText(`• ${strength}`, margin + 15, yPosition);
+            });
+          }
+          
+          if (question.analysis.improvements && question.analysis.improvements.length > 0) {
+            yPosition = addText('Sugestões de Melhoria:', margin + 10, yPosition);
+            question.analysis.improvements.forEach(improvement => {
+              yPosition = addText(`• ${improvement}`, margin + 15, yPosition);
+            });
+          }
+          
+          if (question.analysis.adequacy) {
+            yPosition = addText(`Adequação à pergunta: ${question.analysis.adequacy}`, margin + 10, yPosition);
+          }
+        }
+        
+        if (question.transcription) {
+          yPosition += 5;
+          yPosition = addText('Transcrição da resposta:', margin + 10, yPosition);
+          yPosition = addText(`"${question.transcription.substring(0, 200)}${question.transcription.length > 200 ? '...' : ''}"`, margin + 15, yPosition);
+        }
+      });
+
+      // Relatório final (se disponível)
+      if (interviewData.report) {
+        yPosition += 15;
+        yPosition = checkNewPage(yPosition);
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        yPosition = addText('RELATÓRIO FINAL', margin, yPosition);
+        
+        yPosition += 5;
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'normal');
+        
+        // Dividir o relatório em seções se possível
+        const reportSections = interviewData.report.split('\n\n');
+        reportSections.forEach(section => {
+          if (section.trim()) {
+            yPosition = checkNewPage(yPosition, 20);
+            yPosition = addText(section.trim(), margin, yPosition);
+            yPosition += 5;
+          }
+        });
+      }
+
+      // Análise comportamental (se disponível)
+      if (interviewData.faceStatistics && interviewData.faceStatistics.totalDataPoints > 0) {
+        yPosition += 15;
+        yPosition = checkNewPage(yPosition);
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        yPosition = addText('ANÁLISE COMPORTAMENTAL', margin, yPosition);
+        
+        yPosition += 5;
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'normal');
+        
+        const stats = interviewData.faceStatistics;
+        yPosition = addText(`Confiança média: ${(stats.averageConfidence * 100).toFixed(1)}%`, margin, yPosition);
+        yPosition = addText(`Emoção predominante: ${stats.dominantEmotion || 'Não identificada'}`, margin, yPosition);
+        yPosition = addText(`Total de amostras coletadas: ${stats.totalDataPoints}`, margin, yPosition);
+      }
+
+      // Rodapé
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'normal');
+        doc.text(`Página ${i} de ${totalPages}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
+        doc.text('Gerado pela Plataforma de Entrevistas com IA', margin, doc.internal.pageSize.height - 10);
+      }
+
+      // Salvar o PDF
+      const fileName = `entrevista_${interviewData.job?.nome || 'vaga'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      
+      console.log(`✅ PDF gerado com sucesso: ${fileName}`);
+      return { success: true, fileName };
+      
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   // Função para finalizar entrevista
   const handleFinishInterview = async () => {
     try {
@@ -310,7 +492,15 @@ const RecrutamentoPage = () => {
         savedInterviews.push(interviewData);
         localStorage.setItem('completedInterviews', JSON.stringify(savedInterviews));
         
-        console.log(`✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. Análise completa salva localmente.`);
+        // Gerar PDF com os resultados
+        const pdfResult = generateInterviewPDF(interviewData);
+        
+        if (pdfResult.success) {
+          console.log(`✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. PDF gerado: ${pdfResult.fileName}`);
+        } else {
+          console.log(`✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. Análise completa salva localmente.`);
+          console.error(`⚠️ Erro ao gerar PDF: ${pdfResult.error}`);
+        }
         
         // Fechar modal
         setShowInterviewModal(false);
