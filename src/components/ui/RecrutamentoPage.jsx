@@ -56,6 +56,13 @@ const RecrutamentoPage = () => {
   const [coresignalResults, setCoresignalResults] = useState({});
   const [showCoresignalModal, setShowCoresignalModal] = useState(false);
 
+  // Estados para Entrevista
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+  const [interviewJob, setInterviewJob] = useState(null);
+  const [interviewQuestions, setInterviewQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [generatingQuestions, setGeneratingQuestions] = useState(false);
+
   useEffect(() => {
     fetchRecruitmentData();
   }, []);
@@ -170,6 +177,191 @@ const RecrutamentoPage = () => {
       searchId: existingSearch.searchId,
       searchTime: existingSearch.searchTime,
       totalResults: existingSearch.totalResults
+    };
+  };
+
+  // Função para iniciar entrevista
+  const handleStartInterview = async (job) => {
+    try {
+      setGeneratingQuestions(true);
+      setInterviewJob(job);
+      setShowInterviewModal(true);
+      
+      // Gerar perguntas usando ChatGPT
+      const result = await chatgptService.generateInterviewQuestions(job);
+      
+      if (result.success) {
+        setInterviewQuestions(result.questions);
+        setCurrentQuestion(0);
+        
+        alert(`✅ Entrevista preparada!\n\n${result.questions.length} perguntas geradas:\n1. Trajetória profissional (padrão)\n2-4. Perguntas específicas da vaga\n\nClique em "Iniciar Gravação" para começar.`);
+      } else {
+        // Usar perguntas de fallback
+        setInterviewQuestions(result.questions);
+        setCurrentQuestion(0);
+        
+        alert(`⚠️ Usando perguntas padrão.\n\nMotivo: ${result.error}\n\n${result.questions.length} perguntas disponíveis.`);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao preparar entrevista:', error);
+      alert('❌ Erro ao preparar entrevista. Tente novamente.');
+      setShowInterviewModal(false);
+    } finally {
+      setGeneratingQuestions(false);
+    }
+  };
+
+  // Função para processar vídeo da resposta com dados da Face API
+  const handleVideoResponse = async (videoBlob, questionIndex, faceAnalysisData = []) => {
+    try {
+      // Transcrever vídeo usando Whisper API
+      const transcriptionResult = await chatgptService.transcribeVideo(videoBlob);
+      
+      if (transcriptionResult.success) {
+        let analysisResult;
+        
+        // Se temos dados da Face API, usar análise aprimorada
+        if (faceAnalysisData.length > 0) {
+          analysisResult = await chatgptService.analyzeResponseWithFaceData(
+            interviewQuestions[questionIndex].question,
+            transcriptionResult.transcription,
+            faceAnalysisData,
+            interviewJob
+          );
+        } else {
+          // Fallback para análise simples
+          analysisResult = await chatgptService.analyzeResponse(
+            interviewQuestions[questionIndex].question,
+            transcriptionResult.transcription,
+            interviewJob
+          );
+        }
+        
+        // Atualizar pergunta com transcrição e análise
+        const updatedQuestions = [...interviewQuestions];
+        updatedQuestions[questionIndex] = {
+          ...updatedQuestions[questionIndex],
+          answered: true,
+          transcription: transcriptionResult.transcription,
+          analysis: analysisResult.success ? analysisResult.analysis : null,
+          faceData: faceAnalysisData, // Armazenar dados faciais para relatório final
+          videoBlob: videoBlob
+        };
+        
+        setInterviewQuestions(updatedQuestions);
+        
+        if (analysisResult.success) {
+          const faceInfo = faceAnalysisData.length > 0 ? 
+            `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados` : 
+            '\n\nAnálise apenas textual (sem dados comportamentais)';
+          
+          alert(`✅ Resposta processada com IA!\n\nTranscrição: "${transcriptionResult.transcription.substring(0, 80)}..."\n\nPontuação: ${analysisResult.analysis.score}/10${faceInfo}`);
+        } else {
+          alert(`⚠️ Resposta transcrita mas não analisada.\n\nTranscrição: "${transcriptionResult.transcription.substring(0, 80)}..."`);
+        }
+      } else {
+        alert(`❌ Erro na transcrição: ${transcriptionResult.error}`);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao processar vídeo:', error);
+      alert('❌ Erro ao processar resposta em vídeo.');
+    }
+  };
+
+  // Função para finalizar entrevista
+  const handleFinishInterview = async () => {
+    try {
+      const answeredQuestions = interviewQuestions.filter(q => q.answered);
+      
+      if (answeredQuestions.length === 0) {
+        alert('⚠️ Nenhuma pergunta foi respondida. Responda pelo menos uma pergunta antes de finalizar.');
+        return;
+      }
+      
+      // Gerar relatório final com dados da Face API
+      const reportResult = await chatgptService.generateFinalReport(
+        interviewJob,
+        interviewQuestions,
+        { name: 'Candidato', email: 'candidato@email.com' }
+      );
+      
+      if (reportResult.success) {
+        // Calcular estatísticas dos dados faciais
+        const faceStats = calculateFaceStatistics(interviewQuestions);
+        
+        // Salvar entrevista completa
+        const interviewData = {
+          job: interviewJob,
+          questions: interviewQuestions,
+          report: reportResult.report,
+          faceStatistics: faceStats,
+          completedAt: new Date().toISOString(),
+          answeredCount: answeredQuestions.length,
+          totalFaceDataPoints: faceStats.totalDataPoints
+        };
+        
+        const savedInterviews = JSON.parse(localStorage.getItem('completedInterviews') || '[]');
+        savedInterviews.push(interviewData);
+        localStorage.setItem('completedInterviews', JSON.stringify(savedInterviews));
+        
+        alert(`✅ Entrevista finalizada com IA!\n\n${answeredQuestions.length} perguntas respondidas\nRelatório gerado com ChatGPT\nDados comportamentais: ${faceStats.totalDataPoints} pontos\n\nAnálise completa salva localmente.`);
+        
+        // Fechar modal
+        setShowInterviewModal(false);
+        setInterviewQuestions([]);
+        setCurrentQuestion(0);
+        setInterviewJob(null);
+      } else {
+        alert(`❌ Erro ao gerar relatório: ${reportResult.error}`);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao finalizar entrevista:', error);
+      alert('❌ Erro ao finalizar entrevista.');
+    }
+  };
+
+  // Calcular estatísticas dos dados faciais
+  const calculateFaceStatistics = (questions) => {
+    let totalDataPoints = 0;
+    let totalEmotions = {};
+    let avgAge = 0;
+    let genderCounts = {};
+    
+    questions.forEach(q => {
+      if (q.faceData && q.faceData.length > 0) {
+        totalDataPoints += q.faceData.length;
+        
+        q.faceData.forEach(data => {
+          // Contar emoções
+          if (data.dominantEmotion) {
+            totalEmotions[data.dominantEmotion] = (totalEmotions[data.dominantEmotion] || 0) + 1;
+          }
+          
+          // Somar idades
+          if (data.age) {
+            avgAge += data.age;
+          }
+          
+          // Contar gêneros
+          if (data.gender) {
+            genderCounts[data.gender] = (genderCounts[data.gender] || 0) + 1;
+          }
+        });
+      }
+    });
+    
+    return {
+      totalDataPoints,
+      avgAge: totalDataPoints > 0 ? Math.round(avgAge / totalDataPoints) : 0,
+      dominantEmotion: Object.keys(totalEmotions).reduce((a, b) => 
+        totalEmotions[a] > totalEmotions[b] ? a : b, 'neutral'),
+      dominantGender: Object.keys(genderCounts).reduce((a, b) => 
+        genderCounts[a] > genderCounts[b] ? a : b, 'unknown'),
+      emotionDistribution: totalEmotions,
+      genderDistribution: genderCounts
     };
   };
 
@@ -472,46 +664,29 @@ const RecrutamentoPage = () => {
                                 className="border-gray-600  text-gray-300  hover:bg-gray-700 "
                               >
                                 <Eye className="h-4 w-4  mr-2 " />
-                                Ver Detalhes
-                              </Button>
+                                Ver Detalh                              </Button>
                             </div>
 
-                            {/* Status da busca Phantom Buster */}
-                            {(() => {
-                              const searchStatus = getPhantomSearchStatus(job.id);
-                              if (!searchStatus) return null;
-                              
-                              return (
-                                <div className="mt-3 p-3 bg-gray-700 rounded-lg border border-gray-600">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <div className={`w-2 h-2 rounded-full ${
-                                        searchStatus.status === 'completed' ? 'bg-green-500' :
-                                        searchStatus.status === 'started' || searchStatus.status === 'running' ? 'bg-yellow-500 animate-pulse' :
-                                        'bg-red-500'
-                                      }`}></div>
-                                      <span className="text-sm text-gray-300">
-                                        Phantom Buster: {
-                                          searchStatus.status === 'completed' ? 'Concluído' :
-                                          searchStatus.status === 'started' ? 'Iniciado' :
-                                          searchStatus.status === 'running' ? 'Em execução' :
-                                          'Erro'
-                                        }
-                                      </span>
-                                    </div>
-                                    <span className="text-xs text-gray-400">
-                                      ID: {searchStatus.phantomId?.substring(0, 8)}...
-                                    </span>
-                                  </div>
-                                  {searchStatus.keywords && (
-                                    <div className="mt-2">
-                                      <span className="text-xs text-gray-400">Keywords: </span>
-                                      <span className="text-xs text-blue-400">{searchStatus.keywords}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
+                            {/* Botão Fazer Entrevista */}
+                            <div className="mt-4">
+                              <Button
+                                onClick={() => handleStartInterview(job)}
+                                disabled={generatingQuestions}
+                                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                              >
+                                {generatingQuestions ? (
+                                  <>
+                                    <Loader className="h-4 w-4 mr-2 animate-spin" />
+                                    Preparando Entrevista...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Video className="h-4 w-4 mr-2" />
+                                    Fazer Entrevista
+                                  </>
+                                )}
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -671,6 +846,17 @@ const RecrutamentoPage = () => {
             </div>
           )}
         </div>
+
+        {/* Modal de Entrevista com IA */}
+        <InterviewModal
+          isOpen={showInterviewModal}
+          onClose={() => setShowInterviewModal(false)}
+          job={interviewJob}
+          questions={interviewQuestions}
+          onVideoResponse={handleVideoResponse}
+          onFinishInterview={handleFinishInterview}
+          generatingQuestions={generatingQuestions}
+        />
       </div>
     </>
   );
