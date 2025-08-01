@@ -160,7 +160,11 @@ Formato de resposta:
   async transcribeVideo(videoBlob) {
     if (!this.apiKey) {
       console.warn('API Key não configurada, transcrição não disponível');
-      return "Transcrição não disponível - API Key não configurada";
+      return {
+        success: false,
+        transcription: "Transcrição não disponível - API Key não configurada",
+        error: "API Key não configurada"
+      };
     }
 
     try {
@@ -182,10 +186,21 @@ Formato de resposta:
       }
 
       const data = await response.json();
-      return data.text || "Transcrição vazia";
+      const transcription = data.text || "Transcrição vazia";
+      
+      return {
+        success: true,
+        transcription,
+        duration: data.duration || 0,
+        language: data.language || 'pt'
+      };
     } catch (error) {
       console.error('Erro na transcrição:', error);
-      return "Erro na transcrição do áudio";
+      return {
+        success: false,
+        transcription: "Erro na transcrição do áudio",
+        error: error.message
+      };
     }
   }
 
@@ -416,6 +431,309 @@ Seja objetivo, construtivo e profissional.
       behavioral: `Confiança média de ${(avgConfidence * 100).toFixed(1)}% durante a entrevista`,
       fullAnalysis: 'Análise básica - API não configurada',
       faceAnalysisSummary: this.generateFaceAnalysisSummary(faceAnalysisData),
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  // Método para analisar resposta individual (sem dados faciais)
+  async analyzeResponse(question, transcriptionResult, jobData) {
+    // Extrair texto da transcrição se for objeto
+    const transcription = typeof transcriptionResult === 'string' ? 
+      transcriptionResult : transcriptionResult.transcription;
+
+    if (!this.apiKey) {
+      console.warn('API Key não configurada, usando análise básica');
+      return {
+        success: true,
+        analysis: this.getBasicResponseAnalysis(transcription)
+      };
+    }
+
+    try {
+      const prompt = this.buildResponseAnalysisPrompt(question, transcription, jobData);
+      
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: 'Você é um especialista em análise de entrevistas. Analise a resposta do candidato de forma objetiva.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 800,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na análise: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const analysis = data.choices[0].message.content;
+      
+      return {
+        success: true,
+        analysis: this.parseResponseAnalysis(analysis, transcription)
+      };
+    } catch (error) {
+      console.error('Erro na análise da resposta:', error);
+      return {
+        success: true,
+        analysis: this.getBasicResponseAnalysis(transcription)
+      };
+    }
+  }
+
+  // Método para analisar resposta com dados faciais
+  async analyzeResponseWithFaceData(question, transcriptionResult, faceAnalysisData, jobData) {
+    // Extrair texto da transcrição se for objeto
+    const transcription = typeof transcriptionResult === 'string' ? 
+      transcriptionResult : transcriptionResult.transcription;
+
+    if (!this.apiKey) {
+      console.warn('API Key não configurada, usando análise básica');
+      return {
+        success: true,
+        analysis: this.getBasicResponseAnalysisWithFace(transcription, faceAnalysisData)
+      };
+    }
+
+    try {
+      const prompt = this.buildResponseAnalysisWithFacePrompt(question, transcription, faceAnalysisData, jobData);
+      
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: 'Você é um especialista em análise de entrevistas e comportamento. Analise tanto o conteúdo verbal quanto os dados comportamentais.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na análise: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const analysis = data.choices[0].message.content;
+      
+      return {
+        success: true,
+        analysis: this.parseResponseAnalysisWithFace(analysis, transcription, faceAnalysisData)
+      };
+    } catch (error) {
+      console.error('Erro na análise da resposta:', error);
+      return {
+        success: true,
+        analysis: this.getBasicResponseAnalysisWithFace(transcription, faceAnalysisData)
+      };
+    }
+  }
+
+  buildResponseAnalysisWithFacePrompt(question, transcription, faceAnalysisData, jobData) {
+    const avgConfidence = faceAnalysisData.length > 0 
+      ? faceAnalysisData.reduce((sum, data) => sum + (data.confidence || 0), 0) / faceAnalysisData.length 
+      : 0;
+
+    const emotionSummary = this.summarizeEmotions(faceAnalysisData);
+
+    return `
+Analise esta resposta de entrevista considerando tanto o conteúdo verbal quanto os dados comportamentais:
+
+PERGUNTA: ${question}
+
+RESPOSTA DO CANDIDATO: ${transcription}
+
+DADOS COMPORTAMENTAIS:
+- Confiança média: ${(avgConfidence * 100).toFixed(1)}%
+- Análise emocional: ${emotionSummary}
+- Amostras coletadas: ${faceAnalysisData.length}
+
+CONTEXTO DA VAGA:
+- Título: ${jobData.title || 'Não informado'}
+- Empresa: ${jobData.company || 'Não informado'}
+- Área: ${jobData.area || 'Não informado'}
+
+Forneça uma análise integrada com:
+1. PONTUAÇÃO (1-10)
+2. PONTOS POSITIVOS (2-3 pontos)
+3. SUGESTÕES DE MELHORIA (1-2 pontos)
+4. ADEQUAÇÃO À PERGUNTA (Excelente/Boa/Regular/Fraca)
+5. OBSERVAÇÕES COMPORTAMENTAIS (baseado nos dados faciais)
+
+Seja objetivo e construtivo, integrando análise verbal e comportamental.
+`;
+  }
+
+  parseResponseAnalysisWithFace(analysisText, transcription, faceAnalysisData) {
+    // Extrair pontuação
+    const scoreMatch = analysisText.match(/pontuação[:\s]*(\d+)/i) || 
+                      analysisText.match(/nota[:\s]*(\d+)/i) ||
+                      analysisText.match(/(\d+)\/10/);
+    const score = scoreMatch ? parseInt(scoreMatch[1]) : 7;
+
+    // Extrair pontos positivos
+    const strengthsSection = this.extractSection(analysisText, 'PONTOS POSITIVOS');
+    const strengths = this.parseListItems(strengthsSection);
+
+    // Extrair sugestões
+    const improvementsSection = this.extractSection(analysisText, 'SUGESTÕES DE MELHORIA');
+    const improvements = this.parseListItems(improvementsSection);
+
+    // Extrair adequação
+    const adequacySection = this.extractSection(analysisText, 'ADEQUAÇÃO À PERGUNTA');
+    const adequacy = adequacySection || 'Adequada';
+
+    // Extrair observações comportamentais
+    const behavioralSection = this.extractSection(analysisText, 'OBSERVAÇÕES COMPORTAMENTAIS');
+    const behavioral = behavioralSection || 'Comportamento adequado durante a resposta';
+
+    return {
+      score: Math.min(Math.max(score, 1), 10),
+      strengths: strengths.length > 0 ? strengths : ['Resposta clara e objetiva'],
+      improvements: improvements.length > 0 ? improvements : ['Poderia elaborar mais detalhes'],
+      adequacy,
+      behavioral,
+      fullAnalysis: analysisText,
+      wordCount: transcription.split(' ').length,
+      faceAnalysisSummary: this.generateFaceAnalysisSummary(faceAnalysisData),
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  getBasicResponseAnalysisWithFace(transcription, faceAnalysisData) {
+    const wordCount = transcription.split(' ').length;
+    const avgConfidence = faceAnalysisData.length > 0 
+      ? faceAnalysisData.reduce((sum, data) => sum + (data.confidence || 0), 0) / faceAnalysisData.length 
+      : 0.7;
+
+    let score = 6; // Score base
+
+    // Ajustar score baseado no comprimento
+    if (wordCount > 50) score += 1;
+    if (wordCount > 100) score += 1;
+    if (avgConfidence > 0.8) score += 1;
+
+    return {
+      score: Math.min(score, 10),
+      strengths: [
+        'Respondeu à pergunta',
+        'Comunicação adequada',
+        avgConfidence > 0.7 ? 'Demonstrou confiança' : 'Manteve compostura'
+      ],
+      improvements: [
+        'Poderia fornecer mais detalhes',
+        avgConfidence < 0.6 ? 'Trabalhar confiança na apresentação' : 'Incluir exemplos práticos'
+      ],
+      adequacy: wordCount > 30 ? 'Boa' : 'Regular',
+      behavioral: `Confiança média de ${(avgConfidence * 100).toFixed(1)}% durante a resposta`,
+      fullAnalysis: 'Análise básica com dados comportamentais - API não configurada',
+      wordCount,
+      faceAnalysisSummary: this.generateFaceAnalysisSummary(faceAnalysisData),
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  buildResponseAnalysisPrompt(question, transcription, jobData) {
+    return `
+Analise esta resposta de entrevista:
+
+PERGUNTA: ${question}
+
+RESPOSTA DO CANDIDATO: ${transcription}
+
+CONTEXTO DA VAGA:
+- Título: ${jobData.title || 'Não informado'}
+- Empresa: ${jobData.company || 'Não informado'}
+- Área: ${jobData.area || 'Não informado'}
+
+Forneça uma análise breve com:
+1. PONTUAÇÃO (1-10)
+2. PONTOS POSITIVOS (2-3 pontos)
+3. SUGESTÕES DE MELHORIA (1-2 pontos)
+4. ADEQUAÇÃO À PERGUNTA (Excelente/Boa/Regular/Fraca)
+
+Seja objetivo e construtivo.
+`;
+  }
+
+  parseResponseAnalysis(analysisText, transcription) {
+    // Extrair pontuação
+    const scoreMatch = analysisText.match(/pontuação[:\s]*(\d+)/i) || 
+                      analysisText.match(/nota[:\s]*(\d+)/i) ||
+                      analysisText.match(/(\d+)\/10/);
+    const score = scoreMatch ? parseInt(scoreMatch[1]) : 7;
+
+    // Extrair pontos positivos
+    const strengthsSection = this.extractSection(analysisText, 'PONTOS POSITIVOS');
+    const strengths = this.parseListItems(strengthsSection);
+
+    // Extrair sugestões
+    const improvementsSection = this.extractSection(analysisText, 'SUGESTÕES DE MELHORIA');
+    const improvements = this.parseListItems(improvementsSection);
+
+    // Extrair adequação
+    const adequacySection = this.extractSection(analysisText, 'ADEQUAÇÃO À PERGUNTA');
+    const adequacy = adequacySection || 'Adequada';
+
+    return {
+      score: Math.min(Math.max(score, 1), 10),
+      strengths: strengths.length > 0 ? strengths : ['Resposta clara e objetiva'],
+      improvements: improvements.length > 0 ? improvements : ['Poderia elaborar mais detalhes'],
+      adequacy,
+      fullAnalysis: analysisText,
+      wordCount: transcription.split(' ').length,
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  getBasicResponseAnalysis(transcription) {
+    const wordCount = transcription.split(' ').length;
+    let score = 6; // Score base
+
+    // Ajustar score baseado no comprimento
+    if (wordCount > 50) score += 1;
+    if (wordCount > 100) score += 1;
+    if (wordCount > 150) score += 1;
+
+    return {
+      score: Math.min(score, 10),
+      strengths: [
+        'Respondeu à pergunta',
+        'Comunicação adequada'
+      ],
+      improvements: [
+        'Poderia fornecer mais detalhes',
+        'Incluir exemplos práticos'
+      ],
+      adequacy: wordCount > 30 ? 'Boa' : 'Regular',
+      fullAnalysis: 'Análise básica - API não configurada',
+      wordCount,
       timestamp: new Date().toISOString()
     };
   }
