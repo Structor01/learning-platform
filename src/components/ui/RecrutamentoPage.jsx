@@ -255,7 +255,7 @@ const RecrutamentoPage = () => {
         
         setInterviewQuestions(updatedQuestions);
         
-        if (analysisResult.success) {
+        if (analysisResult) {
           const faceInfo = faceAnalysisData.length > 0 ? 
             `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados` : 
             '\n\nAnálise apenas textual (sem dados comportamentais)';
