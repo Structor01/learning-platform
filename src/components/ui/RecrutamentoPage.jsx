@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import Navbar from './Navbar';
+import phantomBusterService from '../../services/phantomBusterService';
 import {
   Briefcase,
   Users,
@@ -23,7 +24,10 @@ import {
   Star,
   TrendingUp,
   Target,
-  BarChart3
+  BarChart3,
+  Loader,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import parse from 'html-react-parser';
@@ -45,6 +49,11 @@ const RecrutamentoPage = () => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  
+  // Estados para Phantom Buster
+  const [phantomSearches, setPhantomSearches] = useState({});
+  const [phantomResults, setPhantomResults] = useState({});
+  const [showPhantomModal, setShowPhantomModal] = useState(false);
 
   useEffect(() => {
     fetchRecruitmentData();
@@ -92,37 +101,130 @@ const RecrutamentoPage = () => {
   const handleLinkedInSearch = async (jobId) => {
     try {
       setSearchLoading(true);
-      setSelectedJob(jobs.find(job => job.id === jobId));
+      const job = jobs.find(job => job.id === jobId);
+      setSelectedJob(job);
       
-      const API_BASE_URL = process.env.NODE_ENV === 'production' 
-        ? 'https://learning-platform-backend-2x39.onrender.com'
-        : 'https://learning-platform-backend-2x39.onrender.com';
-
-      const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/${jobId}/search-linkedin`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          keywords: 'agronomia engenheiro',
-          location: 'São Paulo',
-          experienceLevel: 'senior'
-        })
-      });
-
-      if (response.ok) {
-        const candidates = await response.json();
-        setSearchResults(candidates);
-        setShowSearchModal(true);
-        // Atualizar histórico
-        await fetchRecruitmentData();
+      // Verificar se já existe uma busca para esta vaga
+      if (phantomBusterService.hasExistingSearch(jobId)) {
+        const existingSearch = phantomBusterService.getExistingSearch(jobId);
+        
+        if (existingSearch.status === 'started' || existingSearch.status === 'running') {
+          // Verificar status atual da busca
+          const statusResult = await phantomBusterService.checkSearchStatus(existingSearch.phantomId);
+          
+          if (statusResult.status === 'finished') {
+            // Processar resultados
+            const results = await phantomBusterService.processSearchResults(existingSearch.phantomId);
+            if (results.success) {
+              setSearchResults(results.profiles);
+              setShowSearchModal(true);
+              
+              // Atualizar status local
+              phantomBusterService.saveSearchInfo(jobId, {
+                ...existingSearch,
+                status: 'completed',
+                results: results.profiles,
+                completedAt: new Date().toISOString()
+              });
+            }
+          } else {
+            // Busca ainda em andamento
+            alert(`Busca em andamento no Phantom Buster. Status: ${statusResult.status}`);
+          }
+        } else if (existingSearch.status === 'completed') {
+          // Mostrar resultados existentes
+          setSearchResults(existingSearch.results || []);
+          setShowSearchModal(true);
+        }
       } else {
-        console.error('Erro na busca LinkedIn');
+        // Iniciar nova busca no Phantom Buster
+        const result = await phantomBusterService.startLinkedInSearch(job);
+        
+        if (result.success) {
+          // Salvar informações da busca
+          setPhantomSearches(prev => ({
+            ...prev,
+            [jobId]: {
+              phantomId: result.phantomId,
+              status: 'started',
+              startTime: new Date().toISOString(),
+              job: job
+            }
+          }));
+          
+          alert(`Busca iniciada no Phantom Buster! ID: ${result.phantomId}\n\nA busca pode levar alguns minutos. Você pode verificar o progresso clicando novamente no botão.`);
+        } else {
+          alert(`Erro ao iniciar busca: ${result.message}`);
+        }
       }
+      
     } catch (error) {
       console.error('Erro ao buscar candidatos:', error);
+      alert('Erro ao processar busca no LinkedIn');
     } finally {
       setSearchLoading(false);
+    }
+  };
+
+  // Função para obter status da busca Phantom Buster
+  const getPhantomSearchStatus = (jobId) => {
+    const existingSearch = phantomBusterService.getExistingSearch(jobId);
+    if (!existingSearch) return null;
+    
+    return {
+      status: existingSearch.status,
+      phantomId: existingSearch.phantomId,
+      startTime: existingSearch.startTime,
+      keywords: existingSearch.keywords
+    };
+  };
+
+  // Função para obter texto e ícone do botão baseado no status
+  const getSearchButtonContent = (jobId) => {
+    if (searchLoading) {
+      return {
+        text: 'Buscando...',
+        icon: <Loader className="h-4 w-4 mr-2 animate-spin" />,
+        className: 'bg-blue-600 hover:bg-blue-700 text-white'
+      };
+    }
+
+    const searchStatus = getPhantomSearchStatus(jobId);
+    
+    if (!searchStatus) {
+      return {
+        text: 'Buscar no LinkedIn',
+        icon: <ExternalLink className="h-4 w-4 mr-2" />,
+        className: 'bg-blue-600 hover:bg-blue-700 text-white'
+      };
+    }
+
+    switch (searchStatus.status) {
+      case 'started':
+      case 'running':
+        return {
+          text: 'Verificar Status',
+          icon: <Loader className="h-4 w-4 mr-2 animate-spin" />,
+          className: 'bg-yellow-600 hover:bg-yellow-700 text-white'
+        };
+      case 'completed':
+        return {
+          text: 'Ver Resultados',
+          icon: <CheckCircle className="h-4 w-4 mr-2" />,
+          className: 'bg-green-600 hover:bg-green-700 text-white'
+        };
+      case 'error':
+        return {
+          text: 'Tentar Novamente',
+          icon: <AlertCircle className="h-4 w-4 mr-2" />,
+          className: 'bg-red-600 hover:bg-red-700 text-white'
+        };
+      default:
+        return {
+          text: 'Buscar no LinkedIn',
+          icon: <ExternalLink className="h-4 w-4 mr-2" />,
+          className: 'bg-blue-600 hover:bg-blue-700 text-white'
+        };
     }
   };
 
@@ -347,14 +449,19 @@ const RecrutamentoPage = () => {
                             </div>
 
                             <div className="flex gap-2  pt-4 ">
-                              <Button
-                                onClick={() => handleLinkedInSearch(job.id)}
-                                disabled={searchLoading}
-                                className="bg-blue-600 hover:bg-blue-700  text-white "
-                              >
-                                <ExternalLink className="h-4 w-4  mr-2 " />
-                                {searchLoading ? 'Buscando...' : 'Buscar no LinkedIn'}
-                              </Button>
+                              {(() => {
+                                const buttonContent = getSearchButtonContent(job.id);
+                                return (
+                                  <Button
+                                    onClick={() => handleLinkedInSearch(job.id)}
+                                    disabled={searchLoading}
+                                    className={buttonContent.className}
+                                  >
+                                    {buttonContent.icon}
+                                    {buttonContent.text}
+                                  </Button>
+                                );
+                              })()}
                               <Button
                                 variant="outline"
                                 className="border-gray-600  text-gray-300  hover:bg-gray-700 "
@@ -363,6 +470,43 @@ const RecrutamentoPage = () => {
                                 Ver Detalhes
                               </Button>
                             </div>
+
+                            {/* Status da busca Phantom Buster */}
+                            {(() => {
+                              const searchStatus = getPhantomSearchStatus(job.id);
+                              if (!searchStatus) return null;
+                              
+                              return (
+                                <div className="mt-3 p-3 bg-gray-700 rounded-lg border border-gray-600">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-2 h-2 rounded-full ${
+                                        searchStatus.status === 'completed' ? 'bg-green-500' :
+                                        searchStatus.status === 'started' || searchStatus.status === 'running' ? 'bg-yellow-500 animate-pulse' :
+                                        'bg-red-500'
+                                      }`}></div>
+                                      <span className="text-sm text-gray-300">
+                                        Phantom Buster: {
+                                          searchStatus.status === 'completed' ? 'Concluído' :
+                                          searchStatus.status === 'started' ? 'Iniciado' :
+                                          searchStatus.status === 'running' ? 'Em execução' :
+                                          'Erro'
+                                        }
+                                      </span>
+                                    </div>
+                                    <span className="text-xs text-gray-400">
+                                      ID: {searchStatus.phantomId?.substring(0, 8)}...
+                                    </span>
+                                  </div>
+                                  {searchStatus.keywords && (
+                                    <div className="mt-2">
+                                      <span className="text-xs text-gray-400">Keywords: </span>
+                                      <span className="text-xs text-blue-400">{searchStatus.keywords}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </CardContent>
                       </Card>
