@@ -166,14 +166,14 @@ const InterviewModal = ({
       
     } catch (error) {
       console.error('Erro ao acessar câmera:', error);
-      alert('Erro ao acessar câmera. Verifique as permissões.');
+      console.error('Erro ao acessar câmera. Verifique as permissões.', error);
     }
   };
 
   // Iniciar entrevista
   const startInterview = () => {
     if (!cameraEnabled) {
-      alert('Por favor, habilite a câmera antes de iniciar a entrevista.');
+      console.warn('Por favor, habilite a câmera antes de iniciar a entrevista.');
       return;
     }
     
@@ -213,7 +213,6 @@ const InterviewModal = ({
       
     } catch (error) {
       console.error('Erro ao iniciar gravação:', error);
-      alert('Erro ao iniciar gravação.');
     }
   };
 

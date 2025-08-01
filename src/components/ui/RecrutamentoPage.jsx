@@ -129,7 +129,7 @@ const RecrutamentoPage = () => {
           const source = existingSearch.fromBackend ? 'banco de dados' : 'cache local';
           const searchDate = new Date(existingSearch.searchTime).toLocaleString('pt-BR');
           
-          alert(`✅ Busca encontrada no ${source}!\n\nResultados: ${existingSearch.results?.length || 0} perfis\nRealizada em: ${searchDate}`);
+          console.log(`✅ Busca encontrada no ${source}! Resultados: ${existingSearch.results?.length || 0} perfis. Realizada em: ${searchDate}`);
           return;
         }
       }
@@ -158,14 +158,14 @@ const RecrutamentoPage = () => {
         const saveStatus = result.savedToBackend ? '✅ Salvos no banco de dados' : '⚠️ Salvos apenas localmente';
         const cacheInfo = result.fromCache ? ' (dados do cache)' : '';
         
-        alert(`✅ Busca concluída com sucesso!${cacheInfo}\n\n${result.message}\nPerfis encontrados: ${result.total}\n\n${saveStatus}`);
+        console.log(`✅ Busca concluída com sucesso! ${cacheInfo} ${result.message} Perfis encontrados: ${result.total} ${saveStatus}`);
       } else {
-        alert(`❌ Erro na busca: ${result.message}\n\nDetalhes: ${result.error}`);
+        console.error(`❌ Erro na busca: ${result.message}. Detalhes: ${result.error}`);
       }
       
     } catch (error) {
       console.error('Erro ao buscar candidatos:', error);
-      alert('❌ Erro inesperado ao processar busca no LinkedIn');
+      console.error('❌ Erro inesperado ao processar busca no LinkedIn', error);
     } finally {
       setSearchLoading(false);
     }
@@ -198,18 +198,18 @@ const RecrutamentoPage = () => {
         setInterviewQuestions(result);
         setCurrentQuestion(0);
         
-        alert(`✅ Entrevista preparada!\n\n${result.length} perguntas geradas:\n1. Trajetória profissional (padrão)\n2-4. Perguntas específicas da vaga\n\nClique em "Iniciar Gravação" para começar.`);
+        console.log(`✅ Entrevista preparada! ${result.length} perguntas geradas: 1. Trajetória profissional (padrão), 2-4. Perguntas específicas da vaga. Clique em "Iniciar Gravação" para começar.`);
       } else {
         // Usar perguntas de fallback
         setInterviewQuestions(result);
         setCurrentQuestion(0);
         
-        alert(`⚠️ Usando perguntas padrão.\n\nMotivo: ${result.error}\n\n${result.length} perguntas disponíveis.`);
+        console.warn(`⚠️ Usando perguntas padrão. Motivo: ${result.error}. ${result.length} perguntas disponíveis.`);
       }
       
     } catch (error) {
       console.error('Erro ao preparar entrevista:', error);
-      alert('❌ Erro ao preparar entrevista. Tente novamente.');
+      console.error('❌ Erro ao preparar entrevista. Tente novamente.', error);
       setShowInterviewModal(false);
     } finally {
       setGeneratingQuestions(false);
@@ -260,17 +260,16 @@ const RecrutamentoPage = () => {
             `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados` : 
             '\n\nAnálise apenas textual (sem dados comportamentais)';
           
-          alert(`✅ Resposta processada com IA!\n\nTranscrição: "${transcriptionResult.transcription.substring(0, 80)}..."\n\nPontuação: ${analysisResult.analysis.score}/10${faceInfo}`);
+          console.log(`✅ Resposta processada com IA! Transcrição: "${transcriptionResult.transcription.substring(0, 80)}..." Pontuação: ${analysisResult.analysis.score}/10${faceInfo}`);
         } else {
-          alert(`⚠️ Resposta transcrita mas não analisada.\n\nTranscrição: "${transcriptionResult.transcription.substring(0, 80)}..."`);
-        }
+          console.warn(`⚠️ Resposta transcrita mas não analisada. Transcrição: "${transcriptionResult.transcription.substring(0, 80)}..."`);
       } else {
-        alert(`❌ Erro na transcrição: ${transcriptionResult.error}`);
+        console.error(`❌ Erro na transcrição: ${transcriptionResult.error}`);
       }
       
     } catch (error) {
       console.error('Erro ao processar vídeo:', error);
-      alert('❌ Erro ao processar resposta em vídeo.');
+      console.error('❌ Erro ao processar resposta em vídeo.', error);
     }
   };
 
@@ -280,7 +279,7 @@ const RecrutamentoPage = () => {
       const answeredQuestions = interviewQuestions.filter(q => q.answered);
       
       if (answeredQuestions.length === 0) {
-        alert('⚠️ Nenhuma pergunta foi respondida. Responda pelo menos uma pergunta antes de finalizar.');
+        console.warn('⚠️ Nenhuma pergunta foi respondida. Responda pelo menos uma pergunta antes de finalizar.');
         return;
       }
       
@@ -310,7 +309,7 @@ const RecrutamentoPage = () => {
         savedInterviews.push(interviewData);
         localStorage.setItem('completedInterviews', JSON.stringify(savedInterviews));
         
-        alert(`✅ Entrevista finalizada com IA!\n\n${answeredQuestions.length} perguntas respondidas\nRelatório gerado com ChatGPT\nDados comportamentais: ${faceStats.totalDataPoints} pontos\n\nAnálise completa salva localmente.`);
+        console.log(`✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. Análise completa salva localmente.`);
         
         // Fechar modal
         setShowInterviewModal(false);
@@ -318,12 +317,12 @@ const RecrutamentoPage = () => {
         setCurrentQuestion(0);
         setInterviewJob(null);
       } else {
-        alert(`❌ Erro ao gerar relatório: ${reportResult.error}`);
+        console.error(`❌ Erro ao gerar relatório: ${reportResult.error}`);
       }
       
     } catch (error) {
       console.error('Erro ao finalizar entrevista:', error);
-      alert('❌ Erro ao finalizar entrevista.');
+      console.error('❌ Erro ao finalizar entrevista.', error);
     }
   };
 
@@ -465,9 +464,9 @@ const RecrutamentoPage = () => {
                 onClick={async () => {
                   const result = await coresignalService.testApiKey();
                   if (result.success) {
-                    alert(`✅ ${result.message}\n\nTeste realizado com sucesso!\nAPI Coresignal funcionando corretamente.`);
+                    console.log(`✅ ${result.message} Teste realizado com sucesso! API Coresignal funcionando corretamente.`);
                   } else {
-                    alert(`❌ ${result.error}\n\nVerifique a API Key do Coresignal.`);
+                    console.error(`❌ ${result.error} Verifique a API Key do Coresignal.`);
                   }
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
