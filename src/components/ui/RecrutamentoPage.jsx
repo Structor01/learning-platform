@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import Navbar from './Navbar';
-import phantomBusterService from '../../services/phantomBusterService';
+import InterviewModal from './InterviewModal';
+import coresignalService from '../../services/coresignalService';
+import chatgptService from '../../services/chatgptService';
 import {
   Briefcase,
   Users,
@@ -27,7 +29,10 @@ import {
   BarChart3,
   Loader,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Zap,
+  Video,
+  MessageSquare
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import parse from 'html-react-parser';
@@ -50,10 +55,17 @@ const RecrutamentoPage = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   
-  // Estados para Phantom Buster
-  const [phantomSearches, setPhantomSearches] = useState({});
-  const [phantomResults, setPhantomResults] = useState({});
-  const [showPhantomModal, setShowPhantomModal] = useState(false);
+  // Estados para Coresignal
+  const [coresignalSearches, setCoresignalSearches] = useState({});
+  const [coresignalResults, setCoresignalResults] = useState({});
+  const [showCoresignalModal, setShowCoresignalModal] = useState(false);
+
+  // Estados para Entrevista
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+  const [interviewJob, setInterviewJob] = useState(null);
+  const [interviewQuestions, setInterviewQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [generatingQuestions, setGeneratingQuestions] = useState(false);
 
   useEffect(() => {
     fetchRecruitmentData();
@@ -104,78 +116,256 @@ const RecrutamentoPage = () => {
       const job = jobs.find(job => job.id === jobId);
       setSelectedJob(job);
       
-      // Verificar se já existe uma busca para esta vaga
-      if (phantomBusterService.hasExistingSearch(jobId)) {
-        const existingSearch = phantomBusterService.getExistingSearch(jobId);
+      // Verificar se já existe uma busca recente para esta vaga (backend + localStorage)
+      const hasExisting = await coresignalService.hasExistingSearch(jobId);
+      if (hasExisting) {
+        const existingSearch = await coresignalService.getExistingSearch(jobId);
         
-        if (existingSearch.status === 'started' || existingSearch.status === 'running') {
-          // Verificar status atual da busca
-          const statusResult = await phantomBusterService.checkSearchStatus(existingSearch.phantomId);
-          
-          if (statusResult.status === 'finished') {
-            // Processar resultados
-            const results = await phantomBusterService.processSearchResults(existingSearch.phantomId);
-            if (results.success) {
-              setSearchResults(results.profiles);
-              setShowSearchModal(true);
-              
-              // Atualizar status local
-              phantomBusterService.saveSearchInfo(jobId, {
-                ...existingSearch,
-                status: 'completed',
-                results: results.profiles,
-                completedAt: new Date().toISOString()
-              });
-            }
-          } else {
-            // Busca ainda em andamento
-            alert(`Busca em andamento no Phantom Buster. Status: ${statusResult.status}`);
-          }
-        } else if (existingSearch.status === 'completed') {
+        if (existingSearch && existingSearch.status === 'completed') {
           // Mostrar resultados existentes
           setSearchResults(existingSearch.results || []);
           setShowSearchModal(true);
-        }
-      } else {
-        // Iniciar nova busca no Phantom Buster
-        const result = await phantomBusterService.startLinkedInSearch(job);
-        
-        if (result.success) {
-          // Salvar informações da busca
-          setPhantomSearches(prev => ({
-            ...prev,
-            [jobId]: {
-              phantomId: result.phantomId,
-              status: 'started',
-              startTime: new Date().toISOString(),
-              job: job
-            }
-          }));
           
-          alert(`Busca iniciada no Phantom Buster! ID: ${result.phantomId}\n\nA busca pode levar alguns minutos. Você pode verificar o progresso clicando novamente no botão.`);
-        } else {
-          alert(`Erro ao iniciar busca: ${result.message}`);
+          const source = existingSearch.fromBackend ? 'banco de dados' : 'cache local';
+          const searchDate = new Date(existingSearch.searchTime).toLocaleString('pt-BR');
+          
+          alert(`✅ Busca encontrada no ${source}!\n\nResultados: ${existingSearch.results?.length || 0} perfis\nRealizada em: ${searchDate}`);
+          return;
         }
+      }
+      
+      // Realizar nova busca no Coresignal
+      const result = await coresignalService.searchLinkedInPeople(job);
+      
+      if (result.success) {
+        // Exibir resultados
+        setSearchResults(result.profiles);
+        setShowSearchModal(true);
+        
+        // Salvar no estado local
+        setCoresignalSearches(prev => ({
+          ...prev,
+          [jobId]: {
+            searchId: result.searchId || `coresignal_${Date.now()}`,
+            status: 'completed',
+            searchTime: new Date().toISOString(),
+            job: job,
+            totalResults: result.total,
+            savedToBackend: result.savedToBackend
+          }
+        }));
+        
+        const saveStatus = result.savedToBackend ? '✅ Salvos no banco de dados' : '⚠️ Salvos apenas localmente';
+        const cacheInfo = result.fromCache ? ' (dados do cache)' : '';
+        
+        alert(`✅ Busca concluída com sucesso!${cacheInfo}\n\n${result.message}\nPerfis encontrados: ${result.total}\n\n${saveStatus}`);
+      } else {
+        alert(`❌ Erro na busca: ${result.message}\n\nDetalhes: ${result.error}`);
       }
       
     } catch (error) {
       console.error('Erro ao buscar candidatos:', error);
-      alert('Erro ao processar busca no LinkedIn');
+      alert('❌ Erro inesperado ao processar busca no LinkedIn');
     } finally {
       setSearchLoading(false);
     }
   };
 
-  // Função para obter status da busca Phantom Buster
-  const getPhantomSearchStatus = (jobId) => {
-    const existingSearch = phantomBusterService.getExistingSearch(jobId);
+  // Função para obter status da busca Coresignal
+  const getCoresignalSearchStatus = (jobId) => {
+    const existingSearch = coresignalService.getExistingSearch(jobId);
     if (!existingSearch) return null;
     
     return {
       status: existingSearch.status,
-      phantomId: existingSearch.phantomId,
-      startTime: existingSearch.startTime,
-      keywords: existingSearch.keywords
+      searchId: existingSearch.searchId,
+      searchTime: existingSearch.searchTime,
+      totalResults: existingSearch.totalResults
+    };
+  };
+
+  // Função para iniciar entrevista
+  const handleStartInterview = async (job) => {
+    try {
+      setGeneratingQuestions(true);
+      setInterviewJob(job);
+      setShowInterviewModal(true);
+      
+      // Gerar perguntas usando ChatGPT
+      const result = await chatgptService.generateInterviewQuestions(job);
+      
+      if (result.success) {
+        setInterviewQuestions(result.questions);
+        setCurrentQuestion(0);
+        
+        alert(`✅ Entrevista preparada!\n\n${result.questions.length} perguntas geradas:\n1. Trajetória profissional (padrão)\n2-4. Perguntas específicas da vaga\n\nClique em "Iniciar Gravação" para começar.`);
+      } else {
+        // Usar perguntas de fallback
+        setInterviewQuestions(result.questions);
+        setCurrentQuestion(0);
+        
+        alert(`⚠️ Usando perguntas padrão.\n\nMotivo: ${result.error}\n\n${result.questions.length} perguntas disponíveis.`);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao preparar entrevista:', error);
+      alert('❌ Erro ao preparar entrevista. Tente novamente.');
+      setShowInterviewModal(false);
+    } finally {
+      setGeneratingQuestions(false);
+    }
+  };
+
+  // Função para processar vídeo da resposta com dados da Face API
+  const handleVideoResponse = async (videoBlob, questionIndex, faceAnalysisData = []) => {
+    try {
+      // Transcrever vídeo usando Whisper API
+      const transcriptionResult = await chatgptService.transcribeVideo(videoBlob);
+      
+      if (transcriptionResult.success) {
+        let analysisResult;
+        
+        // Se temos dados da Face API, usar análise aprimorada
+        if (faceAnalysisData.length > 0) {
+          analysisResult = await chatgptService.analyzeResponseWithFaceData(
+            interviewQuestions[questionIndex].question,
+            transcriptionResult.transcription,
+            faceAnalysisData,
+            interviewJob
+          );
+        } else {
+          // Fallback para análise simples
+          analysisResult = await chatgptService.analyzeResponse(
+            interviewQuestions[questionIndex].question,
+            transcriptionResult.transcription,
+            interviewJob
+          );
+        }
+        
+        // Atualizar pergunta com transcrição e análise
+        const updatedQuestions = [...interviewQuestions];
+        updatedQuestions[questionIndex] = {
+          ...updatedQuestions[questionIndex],
+          answered: true,
+          transcription: transcriptionResult.transcription,
+          analysis: analysisResult.success ? analysisResult.analysis : null,
+          faceData: faceAnalysisData, // Armazenar dados faciais para relatório final
+          videoBlob: videoBlob
+        };
+        
+        setInterviewQuestions(updatedQuestions);
+        
+        if (analysisResult.success) {
+          const faceInfo = faceAnalysisData.length > 0 ? 
+            `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados` : 
+            '\n\nAnálise apenas textual (sem dados comportamentais)';
+          
+          alert(`✅ Resposta processada com IA!\n\nTranscrição: "${transcriptionResult.transcription.substring(0, 80)}..."\n\nPontuação: ${analysisResult.analysis.score}/10${faceInfo}`);
+        } else {
+          alert(`⚠️ Resposta transcrita mas não analisada.\n\nTranscrição: "${transcriptionResult.transcription.substring(0, 80)}..."`);
+        }
+      } else {
+        alert(`❌ Erro na transcrição: ${transcriptionResult.error}`);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao processar vídeo:', error);
+      alert('❌ Erro ao processar resposta em vídeo.');
+    }
+  };
+
+  // Função para finalizar entrevista
+  const handleFinishInterview = async () => {
+    try {
+      const answeredQuestions = interviewQuestions.filter(q => q.answered);
+      
+      if (answeredQuestions.length === 0) {
+        alert('⚠️ Nenhuma pergunta foi respondida. Responda pelo menos uma pergunta antes de finalizar.');
+        return;
+      }
+      
+      // Gerar relatório final com dados da Face API
+      const reportResult = await chatgptService.generateFinalReport(
+        interviewJob,
+        interviewQuestions,
+        { name: 'Candidato', email: 'candidato@email.com' }
+      );
+      
+      if (reportResult.success) {
+        // Calcular estatísticas dos dados faciais
+        const faceStats = calculateFaceStatistics(interviewQuestions);
+        
+        // Salvar entrevista completa
+        const interviewData = {
+          job: interviewJob,
+          questions: interviewQuestions,
+          report: reportResult.report,
+          faceStatistics: faceStats,
+          completedAt: new Date().toISOString(),
+          answeredCount: answeredQuestions.length,
+          totalFaceDataPoints: faceStats.totalDataPoints
+        };
+        
+        const savedInterviews = JSON.parse(localStorage.getItem('completedInterviews') || '[]');
+        savedInterviews.push(interviewData);
+        localStorage.setItem('completedInterviews', JSON.stringify(savedInterviews));
+        
+        alert(`✅ Entrevista finalizada com IA!\n\n${answeredQuestions.length} perguntas respondidas\nRelatório gerado com ChatGPT\nDados comportamentais: ${faceStats.totalDataPoints} pontos\n\nAnálise completa salva localmente.`);
+        
+        // Fechar modal
+        setShowInterviewModal(false);
+        setInterviewQuestions([]);
+        setCurrentQuestion(0);
+        setInterviewJob(null);
+      } else {
+        alert(`❌ Erro ao gerar relatório: ${reportResult.error}`);
+      }
+      
+    } catch (error) {
+      console.error('Erro ao finalizar entrevista:', error);
+      alert('❌ Erro ao finalizar entrevista.');
+    }
+  };
+
+  // Calcular estatísticas dos dados faciais
+  const calculateFaceStatistics = (questions) => {
+    let totalDataPoints = 0;
+    let totalEmotions = {};
+    let avgAge = 0;
+    let genderCounts = {};
+    
+    questions.forEach(q => {
+      if (q.faceData && q.faceData.length > 0) {
+        totalDataPoints += q.faceData.length;
+        
+        q.faceData.forEach(data => {
+          // Contar emoções
+          if (data.dominantEmotion) {
+            totalEmotions[data.dominantEmotion] = (totalEmotions[data.dominantEmotion] || 0) + 1;
+          }
+          
+          // Somar idades
+          if (data.age) {
+            avgAge += data.age;
+          }
+          
+          // Contar gêneros
+          if (data.gender) {
+            genderCounts[data.gender] = (genderCounts[data.gender] || 0) + 1;
+          }
+        });
+      }
+    });
+    
+    return {
+      totalDataPoints,
+      avgAge: totalDataPoints > 0 ? Math.round(avgAge / totalDataPoints) : 0,
+      dominantEmotion: Object.keys(totalEmotions).reduce((a, b) => 
+        totalEmotions[a] > totalEmotions[b] ? a : b, 'neutral'),
+      dominantGender: Object.keys(genderCounts).reduce((a, b) => 
+        genderCounts[a] > genderCounts[b] ? a : b, 'unknown'),
+      emotionDistribution: totalEmotions,
+      genderDistribution: genderCounts
     };
   };
 
@@ -189,24 +379,17 @@ const RecrutamentoPage = () => {
       };
     }
 
-    const searchStatus = getPhantomSearchStatus(jobId);
+    const searchStatus = getCoresignalSearchStatus(jobId);
     
     if (!searchStatus) {
       return {
         text: 'Buscar no LinkedIn',
-        icon: <ExternalLink className="h-4 w-4 mr-2" />,
+        icon: <Zap className="h-4 w-4 mr-2" />,
         className: 'bg-blue-600 hover:bg-blue-700 text-white'
       };
     }
 
     switch (searchStatus.status) {
-      case 'started':
-      case 'running':
-        return {
-          text: 'Verificar Status',
-          icon: <Loader className="h-4 w-4 mr-2 animate-spin" />,
-          className: 'bg-yellow-600 hover:bg-yellow-700 text-white'
-        };
       case 'completed':
         return {
           text: 'Ver Resultados',
@@ -222,7 +405,7 @@ const RecrutamentoPage = () => {
       default:
         return {
           text: 'Buscar no LinkedIn',
-          icon: <ExternalLink className="h-4 w-4 mr-2" />,
+          icon: <Zap className="h-4 w-4 mr-2" />,
           className: 'bg-blue-600 hover:bg-blue-700 text-white'
         };
     }
@@ -280,17 +463,17 @@ const RecrutamentoPage = () => {
               </div>
               <Button
                 onClick={async () => {
-                  const result = await phantomBusterService.testApiKey();
+                  const result = await coresignalService.testApiKey();
                   if (result.success) {
-                    alert(`✅ ${result.message}\n\nPhantoms disponíveis:\n${result.phantoms.map(p => `- ${p.name} (${p.id})`).join('\n')}`);
+                    alert(`✅ ${result.message}\n\nTeste realizado com sucesso!\nAPI Coresignal funcionando corretamente.`);
                   } else {
-                    alert(`❌ ${result.error}`);
+                    alert(`❌ ${result.error}\n\nVerifique a API Key do Coresignal.`);
                   }
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
                 <Target className="h-4 w-4 mr-2" />
-                Testar Phantom Buster
+                Testar Coresignal API
               </Button>
             </div>
           </div>
@@ -485,46 +668,29 @@ const RecrutamentoPage = () => {
                                 className="border-gray-600  text-gray-300  hover:bg-gray-700 "
                               >
                                 <Eye className="h-4 w-4  mr-2 " />
-                                Ver Detalhes
-                              </Button>
+                                Ver Detalh                              </Button>
                             </div>
 
-                            {/* Status da busca Phantom Buster */}
-                            {(() => {
-                              const searchStatus = getPhantomSearchStatus(job.id);
-                              if (!searchStatus) return null;
-                              
-                              return (
-                                <div className="mt-3 p-3 bg-gray-700 rounded-lg border border-gray-600">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <div className={`w-2 h-2 rounded-full ${
-                                        searchStatus.status === 'completed' ? 'bg-green-500' :
-                                        searchStatus.status === 'started' || searchStatus.status === 'running' ? 'bg-yellow-500 animate-pulse' :
-                                        'bg-red-500'
-                                      }`}></div>
-                                      <span className="text-sm text-gray-300">
-                                        Phantom Buster: {
-                                          searchStatus.status === 'completed' ? 'Concluído' :
-                                          searchStatus.status === 'started' ? 'Iniciado' :
-                                          searchStatus.status === 'running' ? 'Em execução' :
-                                          'Erro'
-                                        }
-                                      </span>
-                                    </div>
-                                    <span className="text-xs text-gray-400">
-                                      ID: {searchStatus.phantomId?.substring(0, 8)}...
-                                    </span>
-                                  </div>
-                                  {searchStatus.keywords && (
-                                    <div className="mt-2">
-                                      <span className="text-xs text-gray-400">Keywords: </span>
-                                      <span className="text-xs text-blue-400">{searchStatus.keywords}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
+                            {/* Botão Fazer Entrevista */}
+                            <div className="mt-4">
+                              <Button
+                                onClick={() => handleStartInterview(job)}
+                                disabled={generatingQuestions}
+                                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                              >
+                                {generatingQuestions ? (
+                                  <>
+                                    <Loader className="h-4 w-4 mr-2 animate-spin" />
+                                    Preparando Entrevista...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Video className="h-4 w-4 mr-2" />
+                                    Fazer Entrevista
+                                  </>
+                                )}
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -684,6 +850,17 @@ const RecrutamentoPage = () => {
             </div>
           )}
         </div>
+
+        {/* Modal de Entrevista com IA */}
+        <InterviewModal
+          isOpen={showInterviewModal}
+          onClose={() => setShowInterviewModal(false)}
+          job={interviewJob}
+          questions={interviewQuestions}
+          onVideoResponse={handleVideoResponse}
+          onFinishInterview={handleFinishInterview}
+          generatingQuestions={generatingQuestions}
+        />
       </div>
     </>
   );
