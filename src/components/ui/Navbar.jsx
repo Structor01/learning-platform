@@ -12,7 +12,7 @@ import {
 import { Search, User, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
+const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -25,7 +25,10 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Implement search functionality
+    // Chamar função passada por props
+    if (onSearch) {
+      onSearch(searchQuery);
+    }
     console.log("Searching for:", searchQuery);
   };
 
