@@ -194,17 +194,17 @@ const RecrutamentoPage = () => {
       // Gerar perguntas usando ChatGPT
       const result = await chatgptService.generateInterviewQuestions(job);
       
-      if (result.success) {
-        setInterviewQuestions(result.questions);
+      if (result) {
+        setInterviewQuestions(result);
         setCurrentQuestion(0);
         
-        alert(`✅ Entrevista preparada!\n\n${result.questions.length} perguntas geradas:\n1. Trajetória profissional (padrão)\n2-4. Perguntas específicas da vaga\n\nClique em "Iniciar Gravação" para começar.`);
+        alert(`✅ Entrevista preparada!\n\n${result.length} perguntas geradas:\n1. Trajetória profissional (padrão)\n2-4. Perguntas específicas da vaga\n\nClique em "Iniciar Gravação" para começar.`);
       } else {
         // Usar perguntas de fallback
-        setInterviewQuestions(result.questions);
+        setInterviewQuestions(result);
         setCurrentQuestion(0);
         
-        alert(`⚠️ Usando perguntas padrão.\n\nMotivo: ${result.error}\n\n${result.questions.length} perguntas disponíveis.`);
+        alert(`⚠️ Usando perguntas padrão.\n\nMotivo: ${result.error}\n\n${result.length} perguntas disponíveis.`);
       }
       
     } catch (error) {
@@ -222,14 +222,14 @@ const RecrutamentoPage = () => {
       // Transcrever vídeo usando Whisper API
       const transcriptionResult = await chatgptService.transcribeVideo(videoBlob);
       
-      if (transcriptionResult.success) {
+      if (transcriptionResult) {
         let analysisResult;
         
         // Se temos dados da Face API, usar análise aprimorada
         if (faceAnalysisData.length > 0) {
           analysisResult = await chatgptService.analyzeResponseWithFaceData(
             interviewQuestions[questionIndex].question,
-            transcriptionResult.transcription,
+            transcriptionResult,
             faceAnalysisData,
             interviewJob
           );
@@ -237,7 +237,7 @@ const RecrutamentoPage = () => {
           // Fallback para análise simples
           analysisResult = await chatgptService.analyzeResponse(
             interviewQuestions[questionIndex].question,
-            transcriptionResult.transcription,
+            transcriptionResult,
             interviewJob
           );
         }
@@ -247,7 +247,7 @@ const RecrutamentoPage = () => {
         updatedQuestions[questionIndex] = {
           ...updatedQuestions[questionIndex],
           answered: true,
-          transcription: transcriptionResult.transcription,
+          transcription: transcriptionResult,
           analysis: analysisResult.success ? analysisResult.analysis : null,
           faceData: faceAnalysisData, // Armazenar dados faciais para relatório final
           videoBlob: videoBlob
