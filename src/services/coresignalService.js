@@ -1,11 +1,18 @@
 // Serviço para integração com Coresignal API
 class CoresignalService {
   constructor() {
-    this.apiKey = 'G6HG4KYGzuuCYTRJrWDN9uP0jH24e8Yf';
+    // API Key deve ser configurada como variável de ambiente
+    this.apiKey = import.meta.env.VITE_CORESIGNAL_API_KEY || 'G6HG4KYGzuuCYTRJrWDN9uP0jH24e8Yf';
     this.baseUrl = 'https://api.coresignal.com/cdapi/v1';
-    this.backendUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://learning-platform-backend-2x39.onrender.com'
-      : 'https://learning-platform-backend-2x39.onrender.com';
+    
+    // Configurar URL do backend baseado no ambiente
+    this.backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    
+    console.log('🔧 Coresignal Service configurado:', {
+      environment: import.meta.env.MODE,
+      backendUrl: this.backendUrl,
+      hasApiKey: !!this.apiKey
+    });
   }
 
   // Salvar busca no backend
@@ -85,29 +92,43 @@ class CoresignalService {
   // Buscar candidatos salvos no backend
   async getCandidatesFromBackend(jobId) {
     try {
-      const response = await fetch(`${this.backendUrl}/api/candidates/job/${jobId}`, {
+      console.log(`🔍 Buscando candidatos no backend para job ${jobId}:`, `${this.backendUrl}/candidates/job/${jobId}`);
+      
+      const response = await fetch(`${this.backendUrl}/candidates/job/${jobId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        // Timeout de 5 segundos
+        signal: AbortSignal.timeout(5000)
       });
 
       if (!response.ok) {
         if (response.status === 404) {
+          console.log(`ℹ️ Nenhum candidato encontrado no backend para job ${jobId}`);
           return { success: true, candidates: [], searches: [] };
         }
-        throw new Error(`Erro ao buscar candidatos: ${response.status}`);
+        throw new Error(`Backend error: ${response.status} ${response.statusText}`);
       }
 
       const result = await response.json();
+      console.log(`✅ Candidatos encontrados no backend:`, result);
       return {
         success: true,
         candidates: result.candidates || [],
         searches: result.searches || []
       };
     } catch (error) {
-      console.error('Erro ao buscar candidatos do backend:', error);
-      return { success: false, error: error.message };
+      if (error.name === 'TimeoutError') {
+        console.warn(`⏰ Timeout ao buscar candidatos no backend para job ${jobId}`);
+      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.warn(`🔌 Backend não disponível para job ${jobId}:`, error.message);
+      } else {
+        console.warn(`⚠️ Erro ao buscar candidatos no backend para job ${jobId}:`, error.message);
+      }
+      
+      // Retornar estrutura padrão em caso de erro - fallback para localStorage
+      return { success: false, candidates: [], searches: [], error: error.message };
     }
   }
 
