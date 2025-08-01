@@ -5,6 +5,41 @@ class PhantomBusterService {
     this.baseUrl = 'https://api.phantombuster.com/api/v2';
   }
 
+  // Testar se a API Key está funcionando
+  async testApiKey() {
+    try {
+      const response = await fetch(`${this.baseUrl}/phantoms`, {
+        method: 'GET',
+        headers: {
+          'X-Phantombuster-Key': this.apiKey,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: `API Key inválida ou erro na API: ${response.status}`,
+          status: response.status
+        };
+      }
+
+      const phantoms = await response.json();
+      return {
+        success: true,
+        phantoms: phantoms,
+        message: `API Key válida. ${phantoms.length} phantoms encontrados.`
+      };
+
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        message: 'Erro ao conectar com a API Phantom Buster'
+      };
+    }
+  }
+
   // Extrair keywords relevantes da vaga
   extractKeywords(job) {
     const keywords = [];
@@ -85,14 +120,101 @@ class PhantomBusterService {
         searchUrl
       });
 
-      const response = await fetch(`${this.baseUrl}/phantoms/launch`, {
+      // Primeiro, vamos listar os phantoms disponíveis para encontrar o ID correto
+      const listResponse = await fetch(`${this.baseUrl}/phantoms`, {
+        method: 'GET',
+        headers: {
+          'X-Phantombuster-Key': this.apiKey,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!listResponse.ok) {
+        throw new Error(`Erro ao listar phantoms: ${listResponse.status}`);
+      }
+
+      const phantoms = await listResponse.json();
+      console.log('Phantoms disponíveis:', phantoms);
+
+      // Procurar pelo phantom LinkedIn Search Export
+      const linkedinPhantom = phantoms.find(p => 
+        p.name && p.name.toLowerCase().includes('linkedin') && 
+        p.name.toLowerCase().includes('search')
+      );
+
+      if (!linkedinPhantom) {
+        // Fallback: tentar com IDs comuns do LinkedIn Search Export
+        const commonIds = [
+          '5bce7ad5-4b8e-4b0a-9b1a-1b1b1b1b1b1b', // ID genérico
+          'linkedin-search-export',
+          'LinkedIn Search Export'
+        ];
+        
+        console.log('Tentando IDs comuns do LinkedIn phantom...');
+        
+        for (const phantomId of commonIds) {
+          try {
+            const testResponse = await fetch(`${this.baseUrl}/phantoms/${phantomId}/launch`, {
+              method: 'POST',
+              headers: {
+                'X-Phantombuster-Key': this.apiKey,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                argument: {
+                  searchUrl: searchUrl,
+                  numberOfProfiles: 50,
+                  csvName: `linkedin_search_job_${job.id}_${Date.now()}`
+                }
+              })
+            });
+            
+            if (testResponse.ok) {
+              const result = await testResponse.json();
+              console.log('Phantom lançado com sucesso usando ID:', phantomId);
+              
+              // Salvar informações da busca localmente
+              this.saveSearchInfo(job.id, {
+                phantomId: result.id,
+                keywords,
+                searchUrl,
+                status: 'started',
+                startTime: new Date().toISOString()
+              });
+
+              return {
+                success: true,
+                phantomId: result.id,
+                status: 'started',
+                message: 'Busca iniciada no Phantom Buster'
+              };
+            }
+          } catch (error) {
+            console.log(`ID ${phantomId} não funcionou:`, error.message);
+            continue;
+          }
+        }
+        
+        throw new Error(`Phantom LinkedIn Search Export não encontrado. 
+        
+Phantoms disponíveis: ${phantoms.map(p => p.name).join(', ')}
+
+Para resolver:
+1. Acesse https://phantombuster.com/phantoms
+2. Adicione o phantom "LinkedIn Search Export" 
+3. Ou verifique se o phantom está ativo na sua conta`);
+      }
+
+      console.log('Phantom encontrado:', linkedinPhantom);
+
+      // Agora usar o endpoint correto para lançar o phantom
+      const response = await fetch(`${this.baseUrl}/phantoms/${linkedinPhantom.id}/launch`, {
         method: 'POST',
         headers: {
           'X-Phantombuster-Key': this.apiKey,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          id: 'linkedin-search-export', // ID do phantom LinkedIn Search Export
           argument: {
             searchUrl: searchUrl,
             numberOfProfiles: 50, // Limitar a 50 perfis

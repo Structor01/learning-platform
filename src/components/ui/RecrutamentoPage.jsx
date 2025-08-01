@@ -269,12 +269,30 @@ const RecrutamentoPage = () => {
         <div className="max-w-7xl  mx-auto ">
           {/* Header */}
           <div className="mb-8 ">
-            <h1 className="text-3xl  font-bold  text-white  mb-2 ">
-              Recrutamento LinkedIn Premium
-            </h1>
-            <p className="text-gray-400 ">
-              Gestão de vagas e busca de candidatos via API real
-            </p>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h1 className="text-3xl  font-bold  text-white  mb-2 ">
+                  Recrutamento LinkedIn Premium
+                </h1>
+                <p className="text-gray-400 ">
+                  Gestão de vagas e busca de candidatos via API real
+                </p>
+              </div>
+              <Button
+                onClick={async () => {
+                  const result = await phantomBusterService.testApiKey();
+                  if (result.success) {
+                    alert(`✅ ${result.message}\n\nPhantoms disponíveis:\n${result.phantoms.map(p => `- ${p.name} (${p.id})`).join('\n')}`);
+                  } else {
+                    alert(`❌ ${result.error}`);
+                  }
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <Target className="h-4 w-4 mr-2" />
+                Testar Phantom Buster
+              </Button>
+            </div>
           </div>
 
           {/* Analytics Cards */}
