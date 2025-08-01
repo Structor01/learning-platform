@@ -28,7 +28,9 @@ import {
   Loader,
   CheckCircle,
   AlertCircle,
-  Zap
+  Zap,
+  Video,
+  MessageSquare
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import parse from 'html-react-parser';
