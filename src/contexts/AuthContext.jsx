@@ -17,6 +17,10 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const API_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
+
+  const isAuthenticated = !!user && !!accessToken;
+
+
   const isAuthenticated = !!user && !!accessToken
   // Carrega usuário do sessionStorage ao iniciar
   useEffect(() => {
@@ -127,6 +131,7 @@ export const AuthProvider = ({ children }) => {
     updateSubscription,
     hasActiveSubscription,
     canAccessContent,
+    isAuthenticated,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
