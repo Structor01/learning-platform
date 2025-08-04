@@ -21,7 +21,6 @@ export const AuthProvider = ({ children }) => {
   const isAuthenticated = !!user && !!accessToken;
 
 
-  const isAuthenticated = !!user && !!accessToken
   // Carrega usuário do sessionStorage ao iniciar
   useEffect(() => {
     const savedUser = sessionStorage.getItem("user");

@@ -17,17 +17,6 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
     password: "",
     name: "",
   });
-  const navigate = useNavigate();
-  const [isLoginMode, setIsLoginMode] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    name: ''
-  });
 
   if (!isOpen) return null;
 
@@ -68,54 +57,6 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
     } catch (error) {
       console.error("Erro no login/cadastro:", error);
       setErrorMsg(error.message || "Falha no login/cadastro");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      if (isLoginMode) {
-        const result = await onLogin(formData);
-
-        // Se o login foi bem-sucedido
-        if (result && result.success) {
-          // Salvar token no localStorage
-          localStorage.setItem("authToken", result.token);
-          localStorage.setItem("userData", JSON.stringify(result.user));
-
-          // Chamar callback para atualizar estado na página pai
-          if (onLoginSuccess) {
-            onLoginSuccess(result.user);
-          }
-
-          // Fechar modal
-          onClose();
-
-          // Resetar formulário
-          setFormData({ email: "", password: "", name: "" });
-        }
-      } else {
-        const result = await onSignup(formData);
-
-        if (result && result.success) {
-          // Auto-login após signup
-          localStorage.setItem("authToken", result.token);
-          localStorage.setItem("userData", JSON.stringify(result.user));
-
-          if (onLoginSuccess) {
-            onLoginSuccess(result.user);
-          }
-
-          onClose();
-          setFormData({ email: "", password: "", name: "" });
-        }
-      }
-    } catch (err) {
-      setError(err.message || "Erro ao fazer login/cadastro");
     } finally {
       setIsLoading(false);
     }
@@ -244,19 +185,12 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
 
             <button
               type="submit"
-              disabled={isLoading}
-              className={`w-full py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 ${isLoading
-                  ? "bg-gray-600 cursor-not-allowed text-gray-300"
-                  : "bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700"
-                }`}
+              className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
             >
-              {isLoading
-                ? "Carregando..."
-                : isLoginMode
-                  ? "Entrar"
-                  : "Criar Conta"}
+              {isLoginMode ? 'Entrar' : 'Criar Conta'}
             </button>
           </form>
+
 
           <div className="text-center mt-4 space-y-2">
             <button
@@ -293,6 +227,6 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
       </div>
     </div>
   );
-};
+}
 
 export default LoginModal;
