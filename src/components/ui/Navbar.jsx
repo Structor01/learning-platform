@@ -1,6 +1,7 @@
 /* src/components/ui/Navbar.jsx */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -9,12 +10,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, User, LogOut, Settings } from "lucide-react";
+import { Search, User, LogOut, Settings, Briefcase } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import VagasPage from "./VagasPage";
+// REMOVIDO: import MinhasCandidaturasPage - não estava sendo usado
 
 const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
   // Dados padrão para quando user for undefined
@@ -26,7 +28,6 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Chamar função passada por props
     if (onSearch) {
       onSearch(searchQuery);
     }
@@ -34,8 +35,20 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
   };
 
   const handleLogoClick = () => (window.location.href = "/Dashboard");
-  const handleEmpresasClick = () =>
-    (window.location.href = "/minhas-candidatura");
+
+  const handleCandidaturasClick = () => {
+    console.log("Clicou em Candidaturas"); // DEBUG
+    console.log("isAuthenticated:", isAuthenticated); // DEBUG
+    console.log("user:", user); // DEBUG
+
+    if (isAuthenticated && user) {
+      console.log("Navegando para /minhas-candidaturas"); // DEBUG
+      navigate("/minhas-candidaturas");
+    } else {
+      console.log("Usuário não autenticado, redirecionando para login"); // DEBUG
+      navigate("/");
+    }
+  };
 
   const handleProfileClick = () => {
     onViewChange("profile");
@@ -43,6 +56,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
 
   const handleLogout = () => {
     logout();
+    navigate("/"); // Explicitamente navegar para login após logout
   };
 
   // Protege o acesso ao campo predominant usando optional chaining
@@ -131,14 +145,6 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            {/* Botão Adicionar Trilhas */}
-            {/*<Button*/}
-            {/*  variant="secondary"*/}
-            {/*  onClick={onAddTrilha}*/}
-            {/*  className="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded"*/}
-            {/*>*/}
-            {/*  Adicionar Trilhas*/}
-            {/*</Button>*/}
 
             {/* DISC Profile Badge */}
             <div className="hidden md:flex items-center space-x-2">
@@ -184,14 +190,10 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                   <User className="mr-2 h-4 w-4" />
                   <span>Perfil</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleEmpresasClick}>
-                  <User className="mr-2 h-4 w-4" />
+                <DropdownMenuItem onClick={handleCandidaturasClick}>
+                  <Briefcase className="mr-2 h-4 w-4" />
                   <span>Candidaturas</span>
                 </DropdownMenuItem>
-                {/*<DropdownMenuItem>*/}
-                {/*  <Settings className="mr-2 h-4 w-4" />*/}
-                {/*  <span>Configurações</span>*/}
-                {/*</DropdownMenuItem>*/}
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sair</span>

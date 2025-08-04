@@ -130,6 +130,7 @@ export const AuthProvider = ({ children }) => {
     updateSubscription,
     hasActiveSubscription,
     canAccessContent,
+    isAuthenticated,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
