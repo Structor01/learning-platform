@@ -18,6 +18,9 @@ export const AuthProvider = ({ children }) => {
 
   const API_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
 
+  const isAuthenticated = !!user && !!accessToken;
+
+
   // Carrega usuário do sessionStorage ao iniciar
   useEffect(() => {
     const savedUser = sessionStorage.getItem("user");

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, User, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import VagasPage from "./VagasPage";
 
 const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
   const { user, logout } = useAuth();
@@ -18,8 +19,8 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
 
   // Dados padrão para quando user for undefined
   const userData = user || {
-    name: "Usuário",
-    email: "email@example.com",
+    name: "Usuário Não Logado",
+    email: "Faça Login corretamente",
     discProfile: { predominant: "Conforme" },
   };
 
@@ -32,7 +33,9 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
     console.log("Searching for:", searchQuery);
   };
 
-  const handleLogoClick = () => window.location.href = '/Dashboard';
+  const handleLogoClick = () => (window.location.href = "/Dashboard");
+  const handleEmpresasClick = () =>
+    (window.location.href = "/minhas-candidatura");
 
   const handleProfileClick = () => {
     onViewChange("profile");
@@ -91,6 +94,13 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                 Dashboard
               </a>
 
+              <a
+                href="/Vagas"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                Vagas
+              </a>
+
               {/* Menu Administrador */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -110,7 +120,10 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                     </a>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <a href="/recrutamento" className="flex items-center w-full">
+                    <a
+                      href="/recrutamento"
+                      className="flex items-center w-full"
+                    >
                       <span className="mr-2">👥</span>
                       Recrutamento LinkedIn
                     </a>
@@ -170,6 +183,10 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                 <DropdownMenuItem onClick={handleProfileClick}>
                   <User className="mr-2 h-4 w-4" />
                   <span>Perfil</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleEmpresasClick}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Candidaturas</span>
                 </DropdownMenuItem>
                 {/*<DropdownMenuItem>*/}
                 {/*  <Settings className="mr-2 h-4 w-4" />*/}
