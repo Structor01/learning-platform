@@ -7,18 +7,20 @@ import LoginModal from './LoginModal';
 import { API_URL } from '../utils/api';
 import Navbar from './Navbar';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotification } from '../ui/Notification';
 
 const CompanyPage = () => {
     const { id: companyId } = useParams();
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
-
+    const { showNotification, NotificationComponent } = useNotification();
     const [company, setCompany] = useState(null);
     const [vagas, setVagas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [selectedVaga, setSelectedVaga] = useState(null);
     const [userCandidaturas, setUserCandidaturas] = useState([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Buscar dados da empresa e vagas
     useEffect(() => {
@@ -45,21 +47,34 @@ const CompanyPage = () => {
     }, [companyId]);
 
     // Buscar candidaturas do usuário
+    // Buscar candidaturas do usuário - VERSÃO CORRIGIDA
     useEffect(() => {
         const fetchUserCandidaturas = async () => {
-            if (isAuthenticated && user?.id) {
+            const isLoggedIn = sessionStorage.getItem('isUserLoggedIn') === 'true';
+            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || 'null');
+
+            console.log('🔧 Debug candidaturas:', { isLoggedIn, currentUser });
+
+            if (isLoggedIn && currentUser?.id) {
                 try {
-                    const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${user.id}`);
+                    console.log('🔍 Buscando candidaturas para usuário:', currentUser.id);
+                    console.log('🌐 URL:', `${API_URL}/api/candidaturas/usuario/${currentUser.id}`);
+
+                    const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${currentUser.id}`);
                     setUserCandidaturas(response.data);
-                    console.log('📋 Candidaturas do usuário:', response.data);
+                    console.log('✅ Candidaturas carregadas:', response.data);
                 } catch (error) {
-                    console.error('Erro ao buscar candidaturas:', error);
+                    console.error('❌ Erro ao buscar candidaturas:', error);
+                    console.error('📡 Status:', error.response?.status);
+                    console.error('📡 Data:', error.response?.data);
                 }
+            } else {
+                console.log('👤 Usuário não logado ou sem ID');
             }
         };
 
         fetchUserCandidaturas();
-    }, [isAuthenticated, user]);
+    }, [companyId]); // Executa quando carrega a empresa
 
     const handleLogin = async (loginData) => {
         try {
@@ -125,8 +140,22 @@ const CompanyPage = () => {
     };
 
     const handleEnviarCandidatura = async (vaga) => {
+        if (isSubmitting) {
+            console.log('⏳ Já enviando candidatura, ignorando clique...');
+            return;
+        }
+        setIsSubmitting(true);
+
         try {
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+            const currentUser = getCurrentUser();
+
+            // ✅ LOGS DETALHADOS
+            console.log('🔄 Enviando candidatura:', {
+                usuario_id: currentUser.id,
+                vaga_id: vaga.id,
+                vaga_nome: vaga.nome,
+                api_url: API_URL
+            });
 
             const response = await axios.post(`${API_URL}/api/candidaturas`, {
                 usuario_id: currentUser.id,
@@ -134,21 +163,77 @@ const CompanyPage = () => {
                 mensagem: `Candidatura para a vaga: ${vaga.nome}`
             });
 
+            console.log('✅ Candidatura enviada:', response.data);
+
             // Adicionar na lista local
             setUserCandidaturas(prev => [...prev, response.data]);
 
-            alert(`✅ Candidatura enviada com sucesso para: ${vaga.nome}`);
+            // Notificação de candidatura enviada
+            showNotification({
+                type: 'success',
+                title: 'Candidatura Enviada!',
+                message: `Sua candidatura para ${vaga.nome} foi enviada com sucesso.`,
+                duration: 5000
+            });
+            setIsSubmitting(false);
 
         } catch (error) {
-            console.error('Erro ao enviar candidatura:', error);
-            alert('❌ Erro ao enviar candidatura. Tente novamente.');
+            console.error('❌ Erro COMPLETO:', error);
+            console.error('❌ Error.response:', error.response);
+            console.error('❌ Error.request:', error.request);
+            console.error('❌ Error.message:', error.message);
+
+            if (error.response) {
+                // O servidor respondeu com erro
+                console.error('📡 Status:', error.response.status);
+                console.error('📡 Data:', error.response.data);
+
+                switch (error.response.status) {
+                    case 409:
+                        showNotification({
+                            type: 'info',
+                            title: 'Candidatura Existente',
+                            message: `Você já se candidatou para a vaga: ${vaga.nome}`,
+                            duration: 4000
+                        });
+                        // Recarregar candidaturas
+                        try {
+                            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
+                            const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${currentUser.id}`);
+                            setUserCandidaturas(response.data);
+                            console.log('🔄 Candidaturas recarregadas:', response.data);
+                        } catch (reloadError) {
+                            console.error('Erro ao recarregar candidaturas:', reloadError);
+                        }
+                        break;
+                    case 400:
+                        alert(`❌ Dados inválidos: ${error.response.data?.message || 'Verifique as informações'}`);
+                        break;
+                    case 404:
+                        alert('❌ Endpoint não encontrado. Verifique se a API está rodando.');
+                        break;
+                    case 500:
+                        alert('❌ Erro interno do servidor. Tente novamente.');
+                        break;
+                    default:
+                        alert(`❌ Erro ${error.response.status}: ${error.response.data?.message || 'Erro desconhecido'}`);
+                }
+            } else if (error.request) {
+                console.error('📡 Sem resposta do servidor');
+                alert('❌ Erro de conexão. Verifique se a API está rodando.');
+            } else {
+                console.error('⚙️ Erro de configuração');
+                alert(`❌ Erro: ${error.message}`);
+            }
+
+            setIsSubmitting(false);
         }
     };
 
     const handleCandidatar = (vaga) => {
         setSelectedVaga(vaga);
 
-        const isLoggedIn = sessionStorage.getItem('isUserLoggedIn') === 'true';
+        const isLoggedIn = isUserAuthenticated();
 
         if (!isLoggedIn) {
             setShowLoginModal(true);
@@ -157,7 +242,12 @@ const CompanyPage = () => {
 
         // Verificar se já se candidatou
         if (jaSeCandidata(vaga.id)) {
-            alert(`✅ Você já se candidatou para a vaga: ${vaga.nome}\n\nSua candidatura já está registrada!`);
+            showNotification({
+                type: 'info',
+                title: 'Candidatura Existente',
+                message: `Você já se candidatou para a vaga: ${vaga.nome}`,
+                duration: 4000
+            });
             return;
         }
 
@@ -165,11 +255,60 @@ const CompanyPage = () => {
     };
 
     const jaSeCandidata = (vagaId) => {
-        return userCandidaturas.some(candidatura => candidatura.vaga_id === vagaId);
+        // ✅ VERIFICAÇÃO MAIS ROBUSTA
+        const vagaIdNum = parseInt(vagaId);
+        const vagaIdStr = String(vagaId);
+
+        const resultado = userCandidaturas.some(candidatura => {
+            const candidaturaVagaId = candidatura.vaga_id;
+            return candidaturaVagaId === vagaIdNum ||
+                candidaturaVagaId === vagaIdStr ||
+                parseInt(candidaturaVagaId) === vagaIdNum;
+        });
+
+        console.log(`🔍 Verificando candidatura para vaga ${vagaId}:`, {
+            resultado,
+            vagaIdOriginal: vagaId,
+            vagaIdNum,
+            vagaIdStr,
+            candidaturas: userCandidaturas.map(c => ({
+                id: c.id,
+                vaga_id: c.vaga_id,
+                tipo: typeof c.vaga_id
+            }))
+        });
+
+        return resultado;
     };
 
-    const isUserLoggedIn = sessionStorage.getItem('isUserLoggedIn') === 'true';
+    // Função auxiliar para verificar login
+    const isUserAuthenticated = () => {
+        // Verificar AMBOS os sistemas
+        const sessionUser1 = sessionStorage.getItem('currentUser');
+        const sessionLogin1 = sessionStorage.getItem('isUserLoggedIn');
+        const sessionUser2 = sessionStorage.getItem('user');
+        const accessToken = sessionStorage.getItem('accessToken');
 
+        return (sessionUser1 && sessionLogin1 === 'true') || (sessionUser2 && accessToken);
+    };
+
+    const getCurrentUser = () => {
+        // Tentar primeiro sistema
+        const user1 = sessionStorage.getItem('currentUser');
+        if (user1) {
+            return JSON.parse(user1);
+        }
+
+        // Tentar segundo sistema
+        const user2 = sessionStorage.getItem('user');
+        if (user2) {
+            return JSON.parse(user2);
+        }
+
+        return null;
+    };
+
+    const isUserLoggedIn = isUserAuthenticated();
     if (loading) {
         return (
             <div className="min-h-screen bg-black">
@@ -407,11 +546,11 @@ const CompanyPage = () => {
                                             <div className="xl:w-64 flex-shrink-0">
                                                 <button
                                                     onClick={() => handleCandidatar(vaga)}
-                                                    className={`w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 ${isUserLoggedIn && jaSeCandidata(vaga.id)
+                                                    className={`w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 ${isUserLoggedIn && (jaSeCandidata(vaga.id) || isSubmitting)
                                                         ? 'bg-gray-600 cursor-not-allowed text-gray-300'
                                                         : 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 hover:-translate-y-0.5'
                                                         }`}
-                                                    disabled={isUserLoggedIn && jaSeCandidata(vaga.id)}
+                                                    disabled={isUserLoggedIn && (jaSeCandidata(vaga.id) || isSubmitting)}
                                                 >
                                                     {!isUserLoggedIn ? (
                                                         <>
@@ -474,6 +613,7 @@ const CompanyPage = () => {
                 onLogin={handleLogin}
                 onSignup={handleSignup}
             />
+            {NotificationComponent}
         </div >
     );
 };

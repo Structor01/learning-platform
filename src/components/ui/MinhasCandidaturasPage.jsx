@@ -25,27 +25,40 @@ const MinhasCandidaturasPage = () => {
     const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
     const navigate = useNavigate();
 
-    // Recuperar login do sessionStorage
+    // Recuperar login do sessionStorage - VERSÃO COM DEBUG
+    // Recuperar login do sessionStorage - VERSÃO CORRIGIDA
     useEffect(() => {
-        const savedUser = sessionStorage.getItem('currentUser');
-        const savedLoginStatus = sessionStorage.getItem('isUserLoggedIn');
+        console.log('🔍 MinhasCandidaturasPage - Verificando login...');
 
-        if (savedUser && savedLoginStatus === 'true') {
+        // ✅ USAR AS CHAVES CORRETAS QUE EXISTEM
+        const savedUser = sessionStorage.getItem('user'); // ← MUDOU
+        const accessToken = sessionStorage.getItem('accessToken'); // ← MUDOU
+
+        console.log('📱 SessionStorage user:', savedUser);
+        console.log('📱 SessionStorage accessToken:', accessToken);
+
+        if (savedUser && accessToken) {
             try {
                 const userData = JSON.parse(savedUser);
+                console.log('✅ Dados do usuário parseados:', userData);
+
                 setCurrentUser(userData);
                 setIsUserLoggedIn(true);
+
+                console.log('✅ Estados definidos com sucesso');
             } catch (error) {
-                console.error('Erro ao recuperar login:', error);
+                console.error('❌ Erro ao parsear usuário:', error);
+                console.log('🔄 Redirecionando para login devido a erro de parse');
                 navigate('/');
                 return;
             }
         } else {
+            console.log('❌ Usuário não logado ou dados inválidos');
+            console.log('🔄 Redirecionando para login');
             navigate('/');
             return;
         }
     }, [navigate]);
-
     // Buscar candidaturas quando usuário carregado
     useEffect(() => {
         if (isUserLoggedIn && currentUser?.id) {

@@ -8,6 +8,9 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
     const navigate = useNavigate();
     const [isLoginMode, setIsLoginMode] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
+
     const [formData, setFormData] = useState({
         email: '',
         password: '',
@@ -16,12 +19,52 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (isLoginMode) {
-            onLogin(formData);
-        } else {
-            onSignup(formData);
+        setIsLoading(true);
+        setError("");
+
+        try {
+            if (isLoginMode) {
+                const result = await onLogin(formData);
+
+                // Se o login foi bem-sucedido
+                if (result && result.success) {
+                    // Salvar token no localStorage
+                    localStorage.setItem("authToken", result.token);
+                    localStorage.setItem("userData", JSON.stringify(result.user));
+
+                    // Chamar callback para atualizar estado na página pai
+                    if (onLoginSuccess) {
+                        onLoginSuccess(result.user);
+                    }
+
+                    // Fechar modal
+                    onClose();
+
+                    // Resetar formulário
+                    setFormData({ email: "", password: "", name: "" });
+                }
+            } else {
+                const result = await onSignup(formData);
+
+                if (result && result.success) {
+                    // Auto-login após signup
+                    localStorage.setItem("authToken", result.token);
+                    localStorage.setItem("userData", JSON.stringify(result.user));
+
+                    if (onLoginSuccess) {
+                        onLoginSuccess(result.user);
+                    }
+
+                    onClose();
+                    setFormData({ email: "", password: "", name: "" });
+                }
+            }
+        } catch (err) {
+            setError(err.message || "Erro ao fazer login/cadastro");
+        } finally {
+            setIsLoading(false);
         }
     };
 
