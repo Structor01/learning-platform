@@ -51,7 +51,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
   };
 
   const handleProfileClick = () => {
-    onViewChange("profile");
+    navigate("/profile");
   };
 
   const handleLogout = () => {
