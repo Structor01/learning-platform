@@ -1,4 +1,4 @@
-// src/components/ui/CompanyPage.jsx
+// src/components/ui/CompanyPage.jsx - TOTALMENTE CORRIGIDO
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -8,11 +8,12 @@ import { API_URL } from '../utils/api';
 import Navbar from './Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNotification } from '../ui/Notification';
+import BotaoCandidatura from './BotaoCandidatura';
 
 const CompanyPage = () => {
     const { id: companyId } = useParams();
     const navigate = useNavigate();
-    const { user, isAuthenticated, login } = useAuth(); // ✅ Adicionar login do contexto
+    const { user, isAuthenticated, login, signup } = useAuth(); // ✅ ADICIONADO signup
     const { showNotification, NotificationComponent } = useNotification();
     const [company, setCompany] = useState(null);
     const [vagas, setVagas] = useState([]);
@@ -49,7 +50,6 @@ const CompanyPage = () => {
     // Buscar candidaturas do usuário
     useEffect(() => {
         const fetchUserCandidaturas = async () => {
-            console.log('🔧 Debug candidaturas:', { isAuthenticated, user });
 
             if (isAuthenticated && user?.id) {
                 try {
@@ -63,66 +63,39 @@ const CompanyPage = () => {
                     console.error('❌ Erro ao buscar candidaturas:', error);
                 }
             } else {
-                console.log('👤 Usuário não autenticado');
-                setUserCandidaturas([]); // ✅ Limpar candidaturas se não logado
+                setUserCandidaturas([]);
             }
         };
 
         fetchUserCandidaturas();
     }, [companyId, isAuthenticated, user?.id]);
 
-    // ✅ CORRIGIDO: Usar AuthContext login
     const handleLogin = async (loginData) => {
         try {
-            const response = await axios.post(`${API_URL}/api/auth/login`, {
-                email: loginData.email,
-                password: loginData.password
-            });
-
-            const userData = response.data.user || response.data;
-            const token = response.data.token || response.data.accessToken;
-
-            // ✅ USAR o método login do AuthContext
-            await login(userData, token);
-
+            await login(loginData.email, loginData.password);
             setShowLoginModal(false);
-            console.log('✅ Login realizado via AuthContext:', userData.name);
-
-            // ✅ NÃO precisar recarregar - o AuthContext vai triggar os useEffect automaticamente
-
+            console.log('✅ Login realizado via AuthContext');
         } catch (error) {
-            console.error('Erro detalhado:', error.response?.data);
-            alert('❌ Erro no login. Verifique as credenciais.');
+            console.error('Erro detalhado:', error);
+            alert(`❌ Erro no login: ${error.message}`);
         }
     };
 
-    // ✅ CORRIGIDO: Usar AuthContext login
     const handleSignup = async (signupData) => {
         try {
-            const response = await axios.post(`${API_URL}/api/auth/register`, {
+            await signup({
                 name: signupData.name,
                 email: signupData.email,
                 password: signupData.password
             });
-
-            const userData = response.data.user || response.data;
-            const token = response.data.token || response.data.accessToken;
-
-            // ✅ USAR o método login do AuthContext
-            await login(userData, token);
-
             setShowLoginModal(false);
-            console.log('✅ Cadastro realizado via AuthContext:', userData.name);
-
-            // ✅ NÃO precisar recarregar - o AuthContext vai triggar os useEffect automaticamente
-
+            console.log('✅ Cadastro realizado via AuthContext');
         } catch (error) {
             console.error('Erro no cadastro:', error);
-            alert('⚠️ Cadastro não disponível. Use login.');
+            alert(`❌ Erro no cadastro: ${error.message}`);
         }
     };
 
-    // ✅ CORRIGIDO: Usar user diretamente do contexto
     const handleEnviarCandidatura = async (vaga) => {
         if (isSubmitting) {
             console.log('⏳ Já enviando candidatura, ignorando clique...');
@@ -131,7 +104,6 @@ const CompanyPage = () => {
         setIsSubmitting(true);
 
         try {
-            // ✅ USAR user direto do contexto (sem getCurrentUser)
             console.log('🔄 Enviando candidatura:', {
                 usuario_id: user.id,
                 vaga_id: vaga.id,
@@ -139,7 +111,7 @@ const CompanyPage = () => {
             });
 
             const response = await axios.post(`${API_URL}/api/candidaturas`, {
-                usuario_id: user.id, // ✅ Direto do contexto
+                usuario_id: user.id,
                 vaga_id: vaga.id,
                 mensagem: `Candidatura para a vaga: ${vaga.nome}`
             });
@@ -173,7 +145,7 @@ const CompanyPage = () => {
                             duration: 4000
                         });
 
-                        // ✅ CORRIGIDO: Recarregar candidaturas usando AuthContext
+                        // Recarregar candidaturas
                         if (isAuthenticated && user?.id) {
                             try {
                                 const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${user.id}`);
@@ -204,14 +176,14 @@ const CompanyPage = () => {
                 alert(`❌ Erro: ${error.message}`);
             }
         } finally {
-            setIsSubmitting(false); // ✅ SEMPRE finalizar loading
+            setIsSubmitting(false);
         }
     };
 
     const handleCandidatar = (vaga) => {
         setSelectedVaga(vaga);
 
-        if (!isAuthenticated) { // ✅ Usar diretamente isAuthenticated
+        if (!isAuthenticated) {
             setShowLoginModal(true);
             return;
         }
@@ -243,22 +215,11 @@ const CompanyPage = () => {
 
         console.log(`🔍 Verificando candidatura para vaga ${vagaId}:`, {
             resultado,
-            vagaIdOriginal: vagaId,
-            vagaIdNum,
-            vagaIdStr,
-            candidaturas: userCandidaturas.map(c => ({
-                id: c.id,
-                vaga_id: c.vaga_id,
-                tipo: typeof c.vaga_id
-            }))
+            candidaturas: userCandidaturas.length
         });
 
         return resultado;
     };
-
-    // ✅ REMOVIDAS as funções auxiliares desnecessárias
-    // const isUserAuthenticated = () => return isAuthenticated;
-    // const getCurrentUser = () => return user;
 
     if (loading) {
         return (
@@ -287,24 +248,20 @@ const CompanyPage = () => {
 
     return (
         <div className="min-h-screen bg-black">
-            {/* Navbar */}
             <Navbar
                 currentView="empresa"
                 onViewChange={(view) => console.log('View changed:', view)}
                 onAddTrilha={() => console.log('Add trilha')}
             />
 
-            {/* Main Content */}
             <main className="pt-16">
-                {/* Hero Section da Empresa */}
+                {/* Hero Section */}
                 <section className="relative overflow-hidden">
                     <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black relative">
-                        {/* Gradient Overlays */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-full blur-3xl"></div>
                         <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-l from-purple-500/10 to-blue-500/10 rounded-full blur-3xl"></div>
 
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 relative z-10">
-                            {/* Navigation */}
                             <div className="mb-8 sm:mb-12">
                                 <button
                                     onClick={() => navigate('/vagas')}
@@ -315,11 +272,8 @@ const CompanyPage = () => {
                                 </button>
                             </div>
 
-                            {/* Main Content */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-                                {/* Left Column - Company Info */}
                                 <div className="space-y-6 lg:space-y-8">
-                                    {/* Company Header */}
                                     <div className="space-y-4">
                                         <div className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm rounded-full px-4 py-2 border border-orange-500/20">
                                             <Building2 className="w-5 h-5 text-orange-400" />
@@ -335,7 +289,6 @@ const CompanyPage = () => {
                                         </p>
                                     </div>
 
-                                    {/* Company Details */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
                                             <div className="flex items-center gap-3 mb-2">
@@ -354,7 +307,6 @@ const CompanyPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* Action Buttons */}
                                     <div className="flex flex-col sm:flex-row gap-4">
                                         <button
                                             onClick={() => document.getElementById('vagas-section')?.scrollIntoView({ behavior: 'smooth' })}
@@ -384,7 +336,6 @@ const CompanyPage = () => {
                     <section className="mb-12 lg:mb-16">
                         <div className="bg-gray-900/80 backdrop-blur border-gray-800 rounded-2xl sm:rounded-3xl shadow-lg p-6 sm:p-8 border">
                             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6">Sobre a empresa</h2>
-
                             <div className="prose max-w-none">
                                 <p className="text-base sm:text-lg text-gray-300 leading-relaxed mb-6">
                                     {company?.obs || 'Empresa focada em soluções inovadoras para o agronegócio com tecnologia de ponta e sustentabilidade.'}
@@ -492,44 +443,24 @@ const CompanyPage = () => {
                                                 </div>
                                             </div>
 
-                                            {/* Botão de candidatura */}
-                                            <div className="xl:w-64 flex-shrink-0">
-                                                {/* DEBUG VISUAL */}
+                                            {/* Botões de ação */}
+                                            <div className="xl:w-64 flex-shrink-0 space-y-3">
+                                                {/* Botão de candidatura */}
+                                                <BotaoCandidatura
+                                                    vaga={vaga}
+                                                    isAuthenticated={isAuthenticated}
+                                                    isSubmitting={isSubmitting}
+                                                    jaSeCandidata={jaSeCandidata}
+                                                    handleCandidatar={handleCandidatar}
+                                                />
+
+                                                {/* Botão de detalhes */}
                                                 <button
-                                                    onClick={() => handleCandidatar(vaga)}
-                                                    className={`w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 ${jaSeCandidata(vaga.id)
-                                                        ? 'bg-green-600 cursor-default text-white' // ✅ Já candidatado
-                                                        : isSubmitting
-                                                            ? 'bg-gray-600 cursor-not-allowed text-gray-300' // ✅ Enviando
-                                                            : !isAuthenticated // ✅ Usar isAuthenticated direto
-                                                                ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 hover:-translate-y-0.5' // ✅ Não logado
-                                                                : 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 hover:-translate-y-0.5' // ✅ Pode candidatar
-                                                        }`}
-                                                    disabled={isSubmitting || jaSeCandidata(vaga.id)}
+                                                    onClick={() => navigate(`/vagas/${vaga.id}`)}
+                                                    className="w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:-translate-y-0.5"
                                                 >
-                                                    {!isAuthenticated ? ( // ✅ Usar isAuthenticated direto
-                                                        <>
-                                                            <ExternalLink className="w-5 h-5" />
-                                                            Fazer login
-                                                        </>
-                                                    ) : jaSeCandidata(vaga.id) ? (
-                                                        <>
-                                                            <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                                                                <span className="text-green-600 text-xs font-bold">✓</span>
-                                                            </div>
-                                                            Candidatura enviada
-                                                        </>
-                                                    ) : isSubmitting ? (
-                                                        <>
-                                                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                                            Enviando...
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <ExternalLink className="w-5 h-5" />
-                                                            Candidatar-se
-                                                        </>
-                                                    )}
+                                                    <ExternalLink className="w-5 h-5" />
+                                                    Detalhes da Vaga
                                                 </button>
                                             </div>
                                         </div>
@@ -560,7 +491,6 @@ const CompanyPage = () => {
                 </div>
             </main>
 
-            {/* Modal de Login */}
             <LoginModal
                 isOpen={showLoginModal}
                 onClose={() => setShowLoginModal(false)}
