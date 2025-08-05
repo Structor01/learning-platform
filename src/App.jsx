@@ -221,13 +221,16 @@ function App() {
           {/* Página inicial = Login */}
           <Route path="/" element={<LoginPage />} />
 
+          {/* Página de Perfil */}
+          <Route path="/profile" element={<UserProfile />} />
+
           {/* Página de Empresas */}
           <Route path="/empresa/:id" element={<CompanyPage />} />
 
           {/* Página de Vagas */}
           <Route path="/vagas" element={<VagasPage />} />
 
-          {/* Página de Candidaturas - PROTEGIDA */}
+          {/* Página de Candidaturas */}
           <Route path="/minhas-candidaturas" element={<MinhasCandidaturasPage />} />
 
           {/* Página de Candidatura */}

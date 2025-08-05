@@ -20,86 +20,137 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!user && !!accessToken;
 
-
-  // Carrega usuário do sessionStorage ao iniciar
+  // ✅ CORRIGIDO: Carrega usuário do localStorage ao iniciar
   useEffect(() => {
-    const savedUser = sessionStorage.getItem("user");
-    const accessToken = sessionStorage.getItem("accessToken");
+    const initializeAuth = () => {
+      try {
+        console.log('🔄 Inicializando AuthContext...');
 
-    // Se não tiver token, forçamos user para null
-    if (savedUser && accessToken) {
-      setUser(JSON.parse(savedUser));
-      setAccessToken(accessToken);
-    } else {
-      setUser(null);
-      setAccessToken(null);
-      sessionStorage.removeItem("user");
-      sessionStorage.removeItem("accessToken");
-      sessionStorage.removeItem("refreshToken");
-    }
+        // ✅ MUDANÇA: localStorage em vez de sessionStorage
+        const savedUser = localStorage.getItem("user");
+        const savedAccessToken = localStorage.getItem("accessToken");
 
-    setIsLoading(false);
+        console.log('🔍 Dados salvos:', {
+          hasUser: !!savedUser,
+          hasToken: !!savedAccessToken
+        });
+
+        // Se não tiver token, forçamos user para null
+        if (savedUser && savedAccessToken) {
+          setUser(JSON.parse(savedUser));
+          setAccessToken(savedAccessToken);
+          console.log('✅ Usuário restaurado:', JSON.parse(savedUser).name);
+        } else {
+          console.log('🧹 Limpando dados incompletos...');
+          setUser(null);
+          setAccessToken(null);
+          localStorage.removeItem("user");
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+        }
+      } catch (error) {
+        console.error('❌ Erro ao inicializar auth:', error);
+        // Limpar dados corrompidos
+        setUser(null);
+        setAccessToken(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+      } finally {
+        setIsLoading(false);
+        console.log('✅ AuthContext inicializado');
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = async (email, password) => {
-    console.log(">>> [DEBUG] Tentando conectar à API em:", API_URL);
-    const response = await fetch(`${API_URL}/api/auth/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      console.log("🔐 Tentando login para:", email);
+      console.log("🌐 API URL:", API_URL);
 
-    if (!response.ok) {
-      let errMsg = "Erro ao fazer login";
-      try {
-        const errData = await response.json();
-        errMsg = errData.message || errMsg;
-      } catch { }
-      throw new Error(errMsg);
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        let errMsg = "Erro ao fazer login";
+        try {
+          const errData = await response.json();
+          errMsg = errData.message || errMsg;
+        } catch { }
+        throw new Error(errMsg);
+      }
+
+      const data = await response.json();
+      console.log('✅ Login bem-sucedido:', data.user.name);
+
+      setUser(data.user);
+      setAccessToken(data.access_token);
+
+      // ✅ MUDANÇA: localStorage em vez de sessionStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("accessToken", data.access_token);
+      localStorage.setItem("refreshToken", data.refresh_token);
+
+      return data.user;
+    } catch (error) {
+      console.error('❌ Erro no login:', error);
+      throw error;
     }
-
-    const data = await response.json();
-    setUser(data.user);
-    setAccessToken(data.access_token);
-    sessionStorage.setItem("user", JSON.stringify(data.user));
-    sessionStorage.setItem("accessToken", data.access_token);
-    sessionStorage.setItem("refreshToken", data.refresh_token);
-
-    return data.user;
   };
 
   const signup = async ({ name, email, password }) => {
-    const response = await fetch(`${API_URL}/api/auth/signup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
+    try {
+      console.log("📝 Tentando cadastro para:", email);
 
-    if (!response.ok) {
-      let errMsg = "Erro ao criar conta";
-      try {
-        const errData = await response.json();
-        errMsg = errData.message || errMsg;
-      } catch { }
-      throw new Error(errMsg);
+      const response = await fetch(`${API_URL}/api/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      if (!response.ok) {
+        let errMsg = "Erro ao criar conta";
+        try {
+          const errData = await response.json();
+          errMsg = errData.message || errMsg;
+        } catch { }
+        throw new Error(errMsg);
+      }
+
+      const data = await response.json();
+      console.log('✅ Cadastro bem-sucedido:', data.user.name);
+
+      setUser(data.user);
+      setAccessToken(data.access_token);
+
+      // ✅ MUDANÇA: localStorage em vez de sessionStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("accessToken", data.access_token);
+      localStorage.setItem("refreshToken", data.refresh_token);
+
+      return data.user;
+    } catch (error) {
+      console.error('❌ Erro no cadastro:', error);
+      throw error;
     }
-
-    const data = await response.json();
-    setUser(data.user);
-    setAccessToken(data.access_token);
-    sessionStorage.setItem("user", JSON.stringify(data.user));
-    sessionStorage.setItem("accessToken", data.access_token);
-    sessionStorage.setItem("refreshToken", data.refresh_token);
-
-    return data.user;
   };
 
   const logout = () => {
+    console.log('👋 Fazendo logout...');
     setUser(null);
     setAccessToken(null);
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("accessToken");
-    sessionStorage.removeItem("refreshToken");
+
+    // ✅ MUDANÇA: localStorage em vez de sessionStorage
+    localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
+    console.log('✅ Logout concluído');
   };
 
   const updateSubscription = (subscriptionData) => {
@@ -112,7 +163,9 @@ export const AuthProvider = ({ children }) => {
         },
       };
       setUser(updatedUser);
-      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+
+      // ✅ MUDANÇA: localStorage em vez de sessionStorage
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
 

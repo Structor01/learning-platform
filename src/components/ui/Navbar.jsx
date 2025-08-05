@@ -1,7 +1,7 @@
 /* src/components/ui/Navbar.jsx */
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -12,55 +12,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, User, LogOut, Settings, Briefcase } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+// REMOVIDO: import MinhasCandidaturasPage - não estava sendo usado
 
 const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // ✅ FUNÇÕES AUXILIARES PARA VERIFICAR AMBOS OS SISTEMAS
-  const isUserAuthenticated = () => {
-    const sessionUser1 = sessionStorage.getItem('currentUser');
-    const sessionLogin1 = sessionStorage.getItem('isUserLoggedIn');
-    const sessionUser2 = sessionStorage.getItem('user');
-    const accessToken = sessionStorage.getItem('accessToken');
-
-    return (sessionUser1 && sessionLogin1 === 'true') || (sessionUser2 && accessToken);
-  };
-
-  const getCurrentUser = () => {
-    // Tentar primeiro sistema
-    const user1 = sessionStorage.getItem('currentUser');
-    if (user1) {
-      try {
-        return JSON.parse(user1);
-      } catch (error) {
-        console.error('Erro ao parsear currentUser:', error);
-      }
-    }
-
-    // Tentar segundo sistema
-    const user2 = sessionStorage.getItem('user');
-    if (user2) {
-      try {
-        return JSON.parse(user2);
-      } catch (error) {
-        console.error('Erro ao parsear user:', error);
-      }
-    }
-
-    // Fallback para AuthContext
-    return user;
-  };
-
-  // ✅ USAR AS FUNÇÕES AUXILIARES
-  const userData = getCurrentUser() || {
-    name: "Usuário",
-    email: "email@example.com",
+  // Dados padrão para quando user for undefined
+  const userData = user || {
+    name: "Usuário Não Logado",
+    email: "Faça Login corretamente",
     discProfile: { predominant: "Conforme" },
   };
-
-  const isUserLoggedIn = isUserAuthenticated() || !!user;
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -70,63 +34,32 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
     console.log("Searching for:", searchQuery);
   };
 
-  const handleLogoClick = () => {
-    if (isUserLoggedIn) {
-      navigate('/dashboard');
-    } else {
-      navigate('/');
-    }
-  };
+  const handleLogoClick = () => (window.location.href = "/Dashboard");
 
   const handleCandidaturasClick = () => {
-    console.log("🔍 Clicou em Candidaturas");
+    console.log("Clicou em Candidaturas"); // DEBUG
+    console.log("isAuthenticated:", isAuthenticated); // DEBUG
+    console.log("user:", user); // DEBUG
 
-    const userAuthenticated = isUserAuthenticated();
-    const currentUser = getCurrentUser();
-
-    console.log("userAuthenticated:", userAuthenticated);
-    console.log("currentUser:", currentUser);
-
-    if (userAuthenticated && currentUser) {
-      console.log("✅ Navegando para /minhas-candidaturas");
+    if (isAuthenticated && user) {
+      console.log("Navegando para /minhas-candidaturas"); // DEBUG
       navigate("/minhas-candidaturas");
     } else {
-      console.log("❌ Usuário não autenticado, redirecionando para login");
+      console.log("Usuário não autenticado, redirecionando para login"); // DEBUG
       navigate("/");
     }
   };
 
   const handleProfileClick = () => {
-    if (onViewChange) {
-      onViewChange("profile");
-    } else {
-      navigate('/profile');
-    }
+    navigate("/profile");
   };
 
   const handleLogout = () => {
-    console.log('🔄 Iniciando logout...');
-
-    // ✅ LIMPAR AuthContext
-    if (logout) {
-      logout();
-    }
-
-    // ✅ LIMPAR AMBOS OS SISTEMAS DE SESSIONSTORAGE
-    sessionStorage.removeItem('currentUser');
-    sessionStorage.removeItem('isUserLoggedIn');
-    sessionStorage.removeItem('user');
-    sessionStorage.removeItem('accessToken');
-    sessionStorage.removeItem('refreshToken');
-
-    console.log('✅ Logout completo');
-
-    // ✅ REDIRECIONAR PARA LOGIN
-    setTimeout(() => {
-      navigate("/");
-    }, 100);
+    logout();
+    navigate("/"); // Explicitamente navegar para login após logout
   };
 
+  // Protege o acesso ao campo predominant usando optional chaining
   const predominant = userData.discProfile?.predominant ?? "—";
 
   return (
@@ -168,19 +101,19 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
           <div className="flex items-center space-x-4">
             {/* Links de Navegação */}
             <div className="md:flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/dashboard')}
+              <a
+                href="/dashboard"
                 className="text-gray-300 hover:text-white transition-colors text-sm"
               >
                 Dashboard
-              </button>
+              </a>
 
-              <button
-                onClick={() => navigate('/vagas')}
+              <a
+                href="/Vagas"
                 className="text-gray-300 hover:text-white transition-colors text-sm"
               >
                 Vagas
-              </button>
+              </a>
 
               {/* Menu Administrador */}
               <DropdownMenu>
@@ -195,38 +128,33 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-48" align="start">
                   <DropdownMenuItem asChild>
-                    <button
-                      onClick={() => navigate('/crm')}
-                      className="flex items-center w-full"
-                    >
+                    <a href="/crm" className="flex items-center w-full">
                       <span className="mr-2">📊</span>
                       CRM - Gestão de Leads
-                    </button>
+                    </a>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <button
-                      onClick={() => navigate('/recrutamento')}
+                    <a
+                      href="/recrutamento"
                       className="flex items-center w-full"
                     >
                       <span className="mr-2">👥</span>
                       Recrutamento LinkedIn
-                    </button>
+                    </a>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
 
             {/* DISC Profile Badge */}
-            {isUserLoggedIn && (
-              <div className="hidden md:flex items-center space-x-2">
-                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">
-                    {predominant.charAt(0)}
-                  </span>
-                </div>
-                <span className="text-sm text-gray-300">{predominant}</span>
+            <div className="hidden md:flex items-center space-x-2">
+              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">
+                  {predominant.charAt(0)}
+                </span>
               </div>
-            )}
+              <span className="text-sm text-gray-300">{predominant}</span>
+            </div>
 
             {/* User Dropdown */}
             <DropdownMenu>
@@ -244,45 +172,32 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                       {userData.name
                         .split(" ")
                         .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
+                        .join("")}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
-                {isUserLoggedIn ? (
-                  <>
-                    <div className="flex items-center justify-start gap-2 p-2">
-                      <div className="flex flex-col space-y-1 leading-none">
-                        <p className="font-medium">{userData.name}</p>
-                        <p className="w-[200px] truncate text-sm text-muted-foreground">
-                          {userData.email}
-                        </p>
-                      </div>
-                    </div>
-
-                    <DropdownMenuItem onClick={handleProfileClick}>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Perfil</span>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem onClick={handleCandidaturasClick}>
-                      <Briefcase className="mr-2 h-4 w-4" />
-                      <span>Minhas Candidaturas</span>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Sair</span>
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem onClick={() => navigate('/')}>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Fazer Login</span>
-                  </DropdownMenuItem>
-                )}
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium">{userData.name}</p>
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      {userData.email}
+                    </p>
+                  </div>
+                </div>
+                <DropdownMenuItem onClick={handleProfileClick}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Perfil</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCandidaturasClick}>
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  <span>Candidaturas</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

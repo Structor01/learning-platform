@@ -12,7 +12,7 @@ import { useNotification } from '../ui/Notification';
 const CompanyPage = () => {
     const { id: companyId } = useParams();
     const navigate = useNavigate();
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, login } = useAuth(); // ✅ Adicionar login do contexto
     const { showNotification, NotificationComponent } = useNotification();
     const [company, setCompany] = useState(null);
     const [vagas, setVagas] = useState([]);
@@ -47,35 +47,31 @@ const CompanyPage = () => {
     }, [companyId]);
 
     // Buscar candidaturas do usuário
-    // Buscar candidaturas do usuário - VERSÃO CORRIGIDA
     useEffect(() => {
         const fetchUserCandidaturas = async () => {
-            const isLoggedIn = sessionStorage.getItem('isUserLoggedIn') === 'true';
-            const currentUser = JSON.parse(sessionStorage.getItem('currentUser') || 'null');
+            console.log('🔧 Debug candidaturas:', { isAuthenticated, user });
 
-            console.log('🔧 Debug candidaturas:', { isLoggedIn, currentUser });
-
-            if (isLoggedIn && currentUser?.id) {
+            if (isAuthenticated && user?.id) {
                 try {
-                    console.log('🔍 Buscando candidaturas para usuário:', currentUser.id);
-                    console.log('🌐 URL:', `${API_URL}/api/candidaturas/usuario/${currentUser.id}`);
+                    console.log('🔍 Buscando candidaturas para usuário:', user.id);
+                    console.log('🌐 URL:', `${API_URL}/api/candidaturas/usuario/${user.id}`);
 
-                    const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${currentUser.id}`);
+                    const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${user.id}`);
                     setUserCandidaturas(response.data);
                     console.log('✅ Candidaturas carregadas:', response.data);
                 } catch (error) {
                     console.error('❌ Erro ao buscar candidaturas:', error);
-                    console.error('📡 Status:', error.response?.status);
-                    console.error('📡 Data:', error.response?.data);
                 }
             } else {
-                console.log('👤 Usuário não logado ou sem ID');
+                console.log('👤 Usuário não autenticado');
+                setUserCandidaturas([]); // ✅ Limpar candidaturas se não logado
             }
         };
 
         fetchUserCandidaturas();
-    }, [companyId]); // Executa quando carrega a empresa
+    }, [companyId, isAuthenticated, user?.id]);
 
+    // ✅ CORRIGIDO: Usar AuthContext login
     const handleLogin = async (loginData) => {
         try {
             const response = await axios.post(`${API_URL}/api/auth/login`, {
@@ -84,22 +80,15 @@ const CompanyPage = () => {
             });
 
             const userData = response.data.user || response.data;
+            const token = response.data.token || response.data.accessToken;
 
-            // Salvar no sessionStorage (temporário até AuthContext estar completo)
-            const userToStore = {
-                id: userData.id,
-                email: userData.email,
-                name: userData.name
-            };
-
-            sessionStorage.setItem('currentUser', JSON.stringify(userToStore));
-            sessionStorage.setItem('isUserLoggedIn', 'true');
+            // ✅ USAR o método login do AuthContext
+            await login(userData, token);
 
             setShowLoginModal(false);
-            console.log('✅ Login realizado:', userData.name);
+            console.log('✅ Login realizado via AuthContext:', userData.name);
 
-            // Recarregar página para atualizar estado
-            window.location.reload();
+            // ✅ NÃO precisar recarregar - o AuthContext vai triggar os useEffect automaticamente
 
         } catch (error) {
             console.error('Erro detalhado:', error.response?.data);
@@ -107,6 +96,7 @@ const CompanyPage = () => {
         }
     };
 
+    // ✅ CORRIGIDO: Usar AuthContext login
     const handleSignup = async (signupData) => {
         try {
             const response = await axios.post(`${API_URL}/api/auth/register`, {
@@ -116,22 +106,15 @@ const CompanyPage = () => {
             });
 
             const userData = response.data.user || response.data;
+            const token = response.data.token || response.data.accessToken;
 
-            // Salvar no sessionStorage (temporário)
-            const userToStore = {
-                id: userData.id,
-                email: userData.email,
-                name: userData.name
-            };
-
-            sessionStorage.setItem('currentUser', JSON.stringify(userToStore));
-            sessionStorage.setItem('isUserLoggedIn', 'true');
+            // ✅ USAR o método login do AuthContext
+            await login(userData, token);
 
             setShowLoginModal(false);
-            console.log('✅ Cadastro realizado:', userData.name);
+            console.log('✅ Cadastro realizado via AuthContext:', userData.name);
 
-            // Recarregar página para atualizar estado
-            window.location.reload();
+            // ✅ NÃO precisar recarregar - o AuthContext vai triggar os useEffect automaticamente
 
         } catch (error) {
             console.error('Erro no cadastro:', error);
@@ -139,6 +122,7 @@ const CompanyPage = () => {
         }
     };
 
+    // ✅ CORRIGIDO: Usar user diretamente do contexto
     const handleEnviarCandidatura = async (vaga) => {
         if (isSubmitting) {
             console.log('⏳ Já enviando candidatura, ignorando clique...');
@@ -147,18 +131,15 @@ const CompanyPage = () => {
         setIsSubmitting(true);
 
         try {
-            const currentUser = getCurrentUser();
-
-            // ✅ LOGS DETALHADOS
+            // ✅ USAR user direto do contexto (sem getCurrentUser)
             console.log('🔄 Enviando candidatura:', {
-                usuario_id: currentUser.id,
+                usuario_id: user.id,
                 vaga_id: vaga.id,
                 vaga_nome: vaga.nome,
-                api_url: API_URL
             });
 
             const response = await axios.post(`${API_URL}/api/candidaturas`, {
-                usuario_id: currentUser.id,
+                usuario_id: user.id, // ✅ Direto do contexto
                 vaga_id: vaga.id,
                 mensagem: `Candidatura para a vaga: ${vaga.nome}`
             });
@@ -175,16 +156,11 @@ const CompanyPage = () => {
                 message: `Sua candidatura para ${vaga.nome} foi enviada com sucesso.`,
                 duration: 5000
             });
-            setIsSubmitting(false);
 
         } catch (error) {
             console.error('❌ Erro COMPLETO:', error);
-            console.error('❌ Error.response:', error.response);
-            console.error('❌ Error.request:', error.request);
-            console.error('❌ Error.message:', error.message);
 
             if (error.response) {
-                // O servidor respondeu com erro
                 console.error('📡 Status:', error.response.status);
                 console.error('📡 Data:', error.response.data);
 
@@ -196,14 +172,16 @@ const CompanyPage = () => {
                             message: `Você já se candidatou para a vaga: ${vaga.nome}`,
                             duration: 4000
                         });
-                        // Recarregar candidaturas
-                        try {
-                            const currentUser = JSON.parse(sessionStorage.getItem('currentUser'));
-                            const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${currentUser.id}`);
-                            setUserCandidaturas(response.data);
-                            console.log('🔄 Candidaturas recarregadas:', response.data);
-                        } catch (reloadError) {
-                            console.error('Erro ao recarregar candidaturas:', reloadError);
+
+                        // ✅ CORRIGIDO: Recarregar candidaturas usando AuthContext
+                        if (isAuthenticated && user?.id) {
+                            try {
+                                const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${user.id}`);
+                                setUserCandidaturas(response.data);
+                                console.log('🔄 Candidaturas recarregadas:', response.data);
+                            } catch (reloadError) {
+                                console.error('Erro ao recarregar candidaturas:', reloadError);
+                            }
                         }
                         break;
                     case 400:
@@ -225,17 +203,15 @@ const CompanyPage = () => {
                 console.error('⚙️ Erro de configuração');
                 alert(`❌ Erro: ${error.message}`);
             }
-
-            setIsSubmitting(false);
+        } finally {
+            setIsSubmitting(false); // ✅ SEMPRE finalizar loading
         }
     };
 
     const handleCandidatar = (vaga) => {
         setSelectedVaga(vaga);
 
-        const isLoggedIn = isUserAuthenticated();
-
-        if (!isLoggedIn) {
+        if (!isAuthenticated) { // ✅ Usar diretamente isAuthenticated
             setShowLoginModal(true);
             return;
         }
@@ -255,7 +231,6 @@ const CompanyPage = () => {
     };
 
     const jaSeCandidata = (vagaId) => {
-        // ✅ VERIFICAÇÃO MAIS ROBUSTA
         const vagaIdNum = parseInt(vagaId);
         const vagaIdStr = String(vagaId);
 
@@ -281,34 +256,10 @@ const CompanyPage = () => {
         return resultado;
     };
 
-    // Função auxiliar para verificar login
-    const isUserAuthenticated = () => {
-        // Verificar AMBOS os sistemas
-        const sessionUser1 = sessionStorage.getItem('currentUser');
-        const sessionLogin1 = sessionStorage.getItem('isUserLoggedIn');
-        const sessionUser2 = sessionStorage.getItem('user');
-        const accessToken = sessionStorage.getItem('accessToken');
+    // ✅ REMOVIDAS as funções auxiliares desnecessárias
+    // const isUserAuthenticated = () => return isAuthenticated;
+    // const getCurrentUser = () => return user;
 
-        return (sessionUser1 && sessionLogin1 === 'true') || (sessionUser2 && accessToken);
-    };
-
-    const getCurrentUser = () => {
-        // Tentar primeiro sistema
-        const user1 = sessionStorage.getItem('currentUser');
-        if (user1) {
-            return JSON.parse(user1);
-        }
-
-        // Tentar segundo sistema
-        const user2 = sessionStorage.getItem('user');
-        if (user2) {
-            return JSON.parse(user2);
-        }
-
-        return null;
-    };
-
-    const isUserLoggedIn = isUserAuthenticated();
     if (loading) {
         return (
             <div className="min-h-screen bg-black">
@@ -345,10 +296,9 @@ const CompanyPage = () => {
 
             {/* Main Content */}
             <main className="pt-16">
-                {/* Hero Section da Empresa - VERSÃO MELHORADA */}
+                {/* Hero Section da Empresa */}
                 <section className="relative overflow-hidden">
                     <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black relative">
-
                         {/* Gradient Overlays */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-full blur-3xl"></div>
                         <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-l from-purple-500/10 to-blue-500/10 rounded-full blur-3xl"></div>
@@ -544,25 +494,35 @@ const CompanyPage = () => {
 
                                             {/* Botão de candidatura */}
                                             <div className="xl:w-64 flex-shrink-0">
+                                                {/* DEBUG VISUAL */}
                                                 <button
                                                     onClick={() => handleCandidatar(vaga)}
-                                                    className={`w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 ${isUserLoggedIn && (jaSeCandidata(vaga.id) || isSubmitting)
-                                                        ? 'bg-gray-600 cursor-not-allowed text-gray-300'
-                                                        : 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 hover:-translate-y-0.5'
+                                                    className={`w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 ${jaSeCandidata(vaga.id)
+                                                        ? 'bg-green-600 cursor-default text-white' // ✅ Já candidatado
+                                                        : isSubmitting
+                                                            ? 'bg-gray-600 cursor-not-allowed text-gray-300' // ✅ Enviando
+                                                            : !isAuthenticated // ✅ Usar isAuthenticated direto
+                                                                ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 hover:-translate-y-0.5' // ✅ Não logado
+                                                                : 'bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 hover:-translate-y-0.5' // ✅ Pode candidatar
                                                         }`}
-                                                    disabled={isUserLoggedIn && (jaSeCandidata(vaga.id) || isSubmitting)}
+                                                    disabled={isSubmitting || jaSeCandidata(vaga.id)}
                                                 >
-                                                    {!isUserLoggedIn ? (
+                                                    {!isAuthenticated ? ( // ✅ Usar isAuthenticated direto
                                                         <>
                                                             <ExternalLink className="w-5 h-5" />
                                                             Fazer login
                                                         </>
                                                     ) : jaSeCandidata(vaga.id) ? (
                                                         <>
-                                                            <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
-                                                                <span className="text-xs">✓</span>
+                                                            <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                                                                <span className="text-green-600 text-xs font-bold">✓</span>
                                                             </div>
                                                             Candidatura enviada
+                                                        </>
+                                                    ) : isSubmitting ? (
+                                                        <>
+                                                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                            Enviando...
                                                         </>
                                                     ) : (
                                                         <>
@@ -571,12 +531,6 @@ const CompanyPage = () => {
                                                         </>
                                                     )}
                                                 </button>
-
-                                                {isUserLoggedIn && jaSeCandidata(vaga.id) && (
-                                                    <p className="text-xs text-green-400 text-center mt-2">
-                                                        Sua candidatura foi registrada
-                                                    </p>
-                                                )}
                                             </div>
                                         </div>
                                     </article>
@@ -614,7 +568,7 @@ const CompanyPage = () => {
                 onSignup={handleSignup}
             />
             {NotificationComponent}
-        </div >
+        </div>
     );
 };
 

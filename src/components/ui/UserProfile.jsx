@@ -20,6 +20,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import Navbar from "./Navbar";
 
 const UserProfile = () => {
   const { user, updateUser, isLoading } = useAuth();
@@ -112,6 +113,7 @@ const UserProfile = () => {
 
   return (
     <div className="min-h-screen bg-black pt-20">
+      <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -122,14 +124,14 @@ const UserProfile = () => {
             </div>
             {isEditing ? (
               <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setIsEditing(false)}
                   className="border-gray-600 text-gray-300 hover:bg-gray-800"
                 >
                   Cancelar
                 </Button>
-                <Button 
+                <Button
                   onClick={handleSave}
                   className="bg-green-600 hover:bg-green-700"
                 >
@@ -137,8 +139,8 @@ const UserProfile = () => {
                 </Button>
               </div>
             ) : (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setIsEditing(true)}
                 className="border-gray-600 text-gray-300 hover:bg-gray-800"
               >
@@ -168,7 +170,7 @@ const UserProfile = () => {
                     <CheckCircle className="w-5 h-5 text-white" />
                   </div>
                 </div>
-                
+
                 {isEditing ? (
                   <input
                     className="text-xl font-bold text-center text-white mb-1 w-full bg-gray-800 border border-gray-600 rounded px-2 py-1"
@@ -180,7 +182,7 @@ const UserProfile = () => {
                     {name}
                   </h2>
                 )}
-                
+
                 {isEditing ? (
                   <input
                     className="text-gray-300 mb-4 text-center w-full bg-gray-800 border border-gray-600 rounded px-2 py-1"
@@ -190,9 +192,9 @@ const UserProfile = () => {
                 ) : (
                   <p className="text-gray-300 mb-4">{role}</p>
                 )}
-                
+
                 <div className="flex items-center justify-center text-sm text-gray-400 mb-4">
-                  <Calendar className="w-4 h-4 mr-1" /> 
+                  <Calendar className="w-4 h-4 mr-1" />
                   Membro desde Janeiro 2024
                 </div>
 
@@ -235,7 +237,7 @@ const UserProfile = () => {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="text-center p-4 bg-gradient-to-r from-orange-600/20 to-red-600/20 border border-orange-500/30 rounded-lg mb-4">
                   <p className="text-sm text-gray-300 mb-1">
                     Perfil predominante
@@ -244,12 +246,12 @@ const UserProfile = () => {
                     {discProfile.predominant}
                   </p>
                 </div>
-                
-                <Button 
-                  variant="outline" 
+
+                <Button
+                  variant="outline"
                   className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
                 >
-                  <Download className="w-4 h-4 mr-2" /> 
+                  <Download className="w-4 h-4 mr-2" />
                   Baixar Certificado DISC
                 </Button>
               </CardContent>
@@ -271,7 +273,7 @@ const UserProfile = () => {
                   <p className="text-sm text-gray-400">Cursos Concluídos</p>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -283,7 +285,7 @@ const UserProfile = () => {
                   <p className="text-sm text-gray-400">Certificações</p>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -305,9 +307,9 @@ const UserProfile = () => {
                     <Target className="w-5 h-5 text-green-500" />
                     <span>Progresso nas Trilhas</span>
                   </CardTitle>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="text-green-400 hover:text-green-300"
                   >
                     Ver todas
@@ -324,11 +326,10 @@ const UserProfile = () => {
                           <span className="font-medium text-white">
                             {track.name}
                           </span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            track.status === 'Em andamento' 
-                              ? 'bg-green-600/20 text-green-400 border border-green-500/30' 
-                              : 'bg-gray-600/20 text-gray-400 border border-gray-500/30'
-                          }`}>
+                          <span className={`text-xs px-2 py-1 rounded-full ${track.status === 'Em andamento'
+                            ? 'bg-green-600/20 text-green-400 border border-green-500/30'
+                            : 'bg-gray-600/20 text-gray-400 border border-gray-500/30'
+                            }`}>
                             {track.status}
                           </span>
                         </div>
@@ -336,8 +337,8 @@ const UserProfile = () => {
                           {track.progress}%
                         </span>
                       </div>
-                      <Progress 
-                        value={track.progress} 
+                      <Progress
+                        value={track.progress}
                         className="h-2 bg-gray-800"
                       />
                     </div>
