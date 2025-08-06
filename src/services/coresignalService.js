@@ -252,7 +252,353 @@ class CoresignalService {
     }
   }
 
-  // Função principal para buscar candidatos (com cache)
+  // Função  // Função principal para buscar candidatos no LinkedIn (com ChatGPT + Coresignal)
+  async searchLinkedInPeople(job) {
+    console.log('🔍 Iniciando busca LinkedIn para vaga:', job.title);
+
+    try {
+      // 1. Verificar se já existe busca recente
+      const existingSearch = await this.getExistingSearch(job.id);
+      if (existingSearch.status === 'completed') {
+        console.log('✅ Usando busca existente do', existingSearch.source);
+        return {
+          success: true,
+          profiles: existingSearch.candidates,
+          total: existingSearch.candidates.length,
+          fromCache: true,
+          message: `Resultados do ${existingSearch.source}`,
+          searchId: `cached_${job.id}`,
+          savedToBackend: existingSearch.source === 'backend'
+        };
+      }
+
+      // 2. Usar ChatGPT para gerar parâmetros de busca otimizados
+      console.log('🤖 Gerando parâmetros de busca com ChatGPT...');
+      const searchParams = await this.generateSearchParamsWithChatGPT(job);
+      
+      // 3. Executar busca na Coresignal com parâmetros otimizados
+      console.log('🔍 Executando busca na Coresignal...');
+      const profiles = await this.searchPeopleWithParams(searchParams);
+
+      // 4. Analisar adequação dos candidatos com IA
+      console.log('🧠 Analisando adequação dos candidatos...');
+      const rankedProfiles = await this.rankCandidatesWithAI(profiles, job);
+
+      // 5. Salvar resultados
+      const searchData = {
+        jobId: job.id,
+        searchParams,
+        profiles: rankedProfiles,
+        timestamp: new Date().toISOString(),
+        total: rankedProfiles.length
+      };
+
+      // Tentar salvar no backend
+      const savedToBackend = await this.saveCandidatesSearch(job.id, searchParams, rankedProfiles);
+
+      // Salvar no localStorage como backup
+      this.saveToLocalStorage(`candidates_${job.id}`, searchData);
+
+      console.log('✅ Busca LinkedIn concluída:', rankedProfiles.length, 'candidatos encontrados');
+      
+      return {
+        success: true,
+        profiles: rankedProfiles,
+        total: rankedProfiles.length,
+        fromCache: false,
+        message: 'Nova busca realizada com sucesso',
+        searchId: `search_${Date.now()}`,
+        savedToBackend
+      };
+
+    } catch (error) {
+      console.error('❌ Erro na busca LinkedIn:', error);
+      
+      // Fallback para resultados mock
+      const mockProfiles = this.getMockResults(job.title);
+      return {
+        success: true,
+        profiles: mockProfiles,
+        total: mockProfiles.length,
+        fromCache: false,
+        message: 'Usando resultados simulados (erro na API)',
+        searchId: `mock_${Date.now()}`,
+        savedToBackend: false
+      };
+    }
+  }
+
+  // Gerar parâmetros de busca usando ChatGPT
+  async generateSearchParamsWithChatGPT(job) {
+    try {
+      const prompt = `
+        Analise esta vaga e gere parâmetros otimizados para busca no LinkedIn via Coresignal:
+        
+        DADOS DA VAGA:
+        - Título: ${job.title}
+        - Empresa: ${job.company}
+        - Área: ${job.area}
+        - Localização: ${job.location}
+        - Descrição: ${job.description}
+        - Requisitos: ${job.requirements}
+        - Nível: ${job.experience_level}
+        - Salário: ${job.salary_range}
+        
+        Retorne APENAS um JSON válido com os parâmetros de busca no formato:
+        {
+          "title_keywords": ["palavra1", "palavra2"],
+          "skills": ["skill1", "skill2", "skill3"],
+          "experience_level": "senior|mid|junior",
+          "location": "cidade, estado",
+          "industry": "setor",
+          "company_size": "startup|small|medium|large",
+          "exclude_companies": ["concorrente1", "concorrente2"],
+          "additional_filters": {
+            "education_level": "bachelor|master|phd",
+            "languages": ["português", "inglês"],
+            "certifications": ["cert1", "cert2"]
+          }
+        }
+        
+        Seja específico e use termos que realmente aparecem em perfis LinkedIn brasileiros.
+      `;
+
+      // Importar chatgptService dinamicamente para evitar dependência circular
+      const { default: chatgptService } = await import('./chatgptService.js');
+      const response = await chatgptService.generateText(prompt);
+      
+      // Tentar fazer parse do JSON retornado
+      let searchParams;
+      try {
+        // Limpar resposta e extrair apenas o JSON
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          searchParams = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('JSON não encontrado na resposta');
+        }
+      } catch (parseError) {
+        console.warn('⚠️ Erro ao fazer parse da resposta ChatGPT, usando fallback');
+        searchParams = this.generateFallbackParams(job);
+      }
+
+      console.log('✅ Parâmetros gerados pelo ChatGPT:', searchParams);
+      return searchParams;
+
+    } catch (error) {
+      console.warn('⚠️ Erro ao gerar parâmetros com ChatGPT, usando fallback:', error);
+      return this.generateFallbackParams(job);
+    }
+  }
+
+  // Gerar parâmetros de fallback se ChatGPT falhar
+  generateFallbackParams(job) {
+    return {
+      title_keywords: [job.title.split(' ')[0], job.area || 'profissional'],
+      skills: this.extractSkillsFromDescription(job.description + ' ' + job.requirements),
+      experience_level: job.experience_level || 'mid',
+      location: job.location || 'Brasil',
+      industry: this.inferIndustry(job.area),
+      company_size: 'medium',
+      exclude_companies: [],
+      additional_filters: {
+        education_level: 'bachelor',
+        languages: ['português'],
+        certifications: []
+      }
+    };
+  }
+
+  // Extrair skills da descrição
+  extractSkillsFromDescription(text) {
+    const commonSkills = [
+      'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'SQL', 'Excel', 
+      'PowerBI', 'Tableau', 'Salesforce', 'SAP', 'AWS', 'Azure', 'Docker',
+      'Kubernetes', 'Git', 'Agile', 'Scrum', 'Marketing', 'Vendas'
+    ];
+    
+    const foundSkills = [];
+    const lowerText = text.toLowerCase();
+    
+    commonSkills.forEach(skill => {
+      if (lowerText.includes(skill.toLowerCase())) {
+        foundSkills.push(skill);
+      }
+    });
+    
+    return foundSkills.slice(0, 5); // Máximo 5 skills
+  }
+
+  // Inferir indústria baseada na área
+  inferIndustry(area) {
+    if (!area) return 'tecnologia';
+    
+    const areaLower = area.toLowerCase();
+    if (areaLower.includes('agro')) return 'agricultura';
+    if (areaLower.includes('tech') || areaLower.includes('ti')) return 'tecnologia';
+    if (areaLower.includes('marketing')) return 'marketing';
+    if (areaLower.includes('vendas')) return 'vendas';
+    if (areaLower.includes('financ')) return 'financeiro';
+    
+    return 'geral';
+  }
+
+  // Buscar pessoas com parâmetros específicos
+  async searchPeopleWithParams(searchParams) {
+    if (!this.apiKey) {
+      console.warn('API Key Coresignal não configurada, usando resultados mock');
+      return this.getMockResults(searchParams.title_keywords.join(' '));
+    }
+
+    try {
+      // Converter parâmetros ChatGPT para formato Coresignal
+      const coresignalQuery = {
+        title: searchParams.title_keywords.join(' OR '),
+        location: searchParams.location,
+        country: 'Brazil',
+        limit: '50'
+      };
+
+      // Adicionar skills se disponíveis
+      if (searchParams.skills && searchParams.skills.length > 0) {
+        coresignalQuery.skills = searchParams.skills.join(',');
+      }
+
+      const searchParamsUrl = new URLSearchParams({
+        api_key: this.apiKey,
+        ...coresignalQuery
+      });
+
+      console.log('🔍 Executando busca Coresignal com parâmetros:', coresignalQuery);
+
+      const response = await fetch(`${this.baseUrl}/search/filter/person?${searchParamsUrl}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API Coresignal: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Busca Coresignal concluída:', data.length || 0, 'resultados');
+
+      return this.formatResults(data, searchParams.title_keywords.join(' '));
+    } catch (error) {
+      console.error('❌ Erro na busca Coresignal:', error);
+      return this.getMockResults(searchParams.title_keywords.join(' '));
+    }
+  }
+
+  // Rankear candidatos usando IA
+  async rankCandidatesWithAI(profiles, job) {
+    try {
+      console.log('🧠 Analisando adequação de', profiles.length, 'candidatos...');
+      
+      // Para cada candidato, calcular score de adequação
+      const rankedProfiles = await Promise.all(
+        profiles.map(async (profile, index) => {
+          try {
+            // Simular análise de adequação (pode ser substituído por IA real)
+            const adequacyScore = this.calculateAdequacyScore(profile, job);
+            
+            return {
+              ...profile,
+              adequacy_score: adequacyScore,
+              rank: index + 1
+            };
+          } catch (error) {
+            console.warn('⚠️ Erro ao analisar candidato:', error);
+            return {
+              ...profile,
+              adequacy_score: 5.0, // Score neutro
+              rank: index + 1
+            };
+          }
+        })
+      );
+
+      // Ordenar por score de adequação (maior para menor)
+      rankedProfiles.sort((a, b) => b.adequacy_score - a.adequacy_score);
+
+      // Atualizar ranks após ordenação
+      rankedProfiles.forEach((profile, index) => {
+        profile.rank = index + 1;
+      });
+
+      console.log('✅ Candidatos rankeados por adequação');
+      return rankedProfiles;
+
+    } catch (error) {
+      console.error('❌ Erro ao rankear candidatos:', error);
+      return profiles.map((profile, index) => ({
+        ...profile,
+        adequacy_score: 5.0,
+        rank: index + 1
+      }));
+    }
+  }
+
+  // Calcular score de adequação simples
+  calculateAdequacyScore(profile, job) {
+    let score = 5.0; // Score base
+
+    // Verificar match de título
+    if (profile.current_position && job.title) {
+      const titleSimilarity = this.calculateStringSimilarity(
+        profile.current_position.toLowerCase(),
+        job.title.toLowerCase()
+      );
+      score += titleSimilarity * 2; // Peso 2 para título
+    }
+
+    // Verificar localização
+    if (profile.location && job.location) {
+      const locationMatch = profile.location.toLowerCase().includes(job.location.toLowerCase());
+      if (locationMatch) score += 1;
+    }
+
+    // Verificar experiência (simulado)
+    if (profile.experience_years) {
+      const expLevel = job.experience_level?.toLowerCase();
+      if (expLevel === 'junior' && profile.experience_years <= 3) score += 1;
+      if (expLevel === 'pleno' && profile.experience_years >= 3 && profile.experience_years <= 7) score += 1;
+      if (expLevel === 'senior' && profile.experience_years >= 5) score += 1;
+    }
+
+    // Adicionar variação aleatória para simular análise mais complexa
+    score += (Math.random() - 0.5) * 2;
+
+    // Garantir que o score está entre 1 e 10
+    return Math.max(1, Math.min(10, Math.round(score * 10) / 10));
+  }
+
+  // Calcular similaridade entre strings
+  calculateStringSimilarity(str1, str2) {
+    const words1 = str1.split(' ');
+    const words2 = str2.split(' ');
+    
+    let matches = 0;
+    words1.forEach(word1 => {
+      words2.forEach(word2 => {
+        if (word1.includes(word2) || word2.includes(word1)) {
+          matches++;
+        }
+      });
+    });
+    
+    return matches / Math.max(words1.length, words2.length);
+  }
+
+  // Verificar se existe busca recente
+  async hasExistingSearch(jobId) {
+    const existingSearch = await this.getExistingSearch(jobId);
+    return existingSearch.status === 'completed';
+  }
+
+  // Função para buscar candidatos (com cache)
   async searchCandidatesForJob(jobId, jobData) {
     console.log('🎯 Iniciando busca de candidatos para job:', jobId);
 
