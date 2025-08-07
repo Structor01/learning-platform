@@ -203,25 +203,56 @@ const RecrutamentoPage = () => {
       setInterviewJob(job);
       setShowInterviewModal(true);
       
-      // Gerar perguntas usando ChatGPT
-      const result = await chatgptService.generateInterviewQuestions(job);
+      // Criar entrevista no backend
+      const createResult = await interviewService.createInterview(
+        job.id, 
+        'Candidato', // Nome será coletado no modal
+        'candidato@email.com' // Email será coletado no modal
+      );
       
-      if (result) {
-        setInterviewQuestions(result);
+      if (createResult.success) {
+        setCurrentInterviewId(createResult.interview.id);
+        
+        // Usar perguntas padrão por enquanto
+        const defaultQuestions = [
+          {
+            id: 1,
+            question: "Conte-me sobre sua trajetória profissional e o que o motivou a se candidatar para esta vaga.",
+            answered: false
+          },
+          {
+            id: 2,
+            question: `Como você se vê contribuindo para o crescimento da ${job.company || job.empresa}?`,
+            answered: false
+          },
+          {
+            id: 3,
+            question: "Descreva uma situação desafiadora que você enfrentou profissionalmente e como a resolveu.",
+            answered: false
+          },
+          {
+            id: 4,
+            question: "Quais são seus principais objetivos de carreira para os próximos anos?",
+            answered: false
+          },
+          {
+            id: 5,
+            question: "Por que você acredita ser o candidato ideal para esta posição?",
+            answered: false
+          }
+        ];
+        
+        setInterviewQuestions(defaultQuestions);
         setCurrentQuestion(0);
         
-        console.log(`✅ Entrevista preparada! ${result.length} perguntas geradas: 1. Trajetória profissional (padrão), 2-4. Perguntas específicas da vaga. Clique em "Iniciar Gravação" para começar.`);
+        console.log(`✅ Entrevista criada! ID: ${createResult.interview.id}. ${defaultQuestions.length} perguntas preparadas. Clique em "Iniciar Gravação" para começar.`);
       } else {
-        // Usar perguntas de fallback
-        setInterviewQuestions(result);
-        setCurrentQuestion(0);
-        
-        console.warn(`⚠️ Usando perguntas padrão. Motivo: ${result.error}. ${result.length} perguntas disponíveis.`);
+        throw new Error(createResult.error || 'Erro ao criar entrevista');
       }
       
     } catch (error) {
       console.error('Erro ao preparar entrevista:', error);
-      console.error('❌ Erro ao preparar entrevista. Tente novamente.', error);
+      alert('❌ Erro ao preparar entrevista. Tente novamente.');
       setShowInterviewModal(false);
     } finally {
       setGeneratingQuestions(false);
