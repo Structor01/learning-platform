@@ -408,7 +408,7 @@ const CompanyPage = () => {
                                                         </div>
                                                     </div>
                                                 </header>
-
+                                                {/* 
                                                 <div className="space-y-4 mb-6">
                                                     {vaga.descricao && (
                                                         <div>
@@ -440,11 +440,11 @@ const CompanyPage = () => {
                                                             <p className="text-green-300">{vaga.remuneracao}</p>
                                                         </div>
                                                     )}
-                                                </div>
+                                                </div> */}
                                             </div>
 
                                             {/* Botões de ação */}
-                                            <div className="xl:w-64 flex-shrink-0 space-y-3">
+                                            <div className="xl:w-50 flex-shrink-0 space-y-3">
                                                 {/* Botão de candidatura */}
                                                 <BotaoCandidatura
                                                     vaga={vaga}
@@ -460,7 +460,7 @@ const CompanyPage = () => {
                                                     className="w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:-translate-y-0.5"
                                                 >
                                                     <ExternalLink className="w-5 h-5" />
-                                                    Detalhes da Vaga
+                                                    Detalhes
                                                 </button>
                                             </div>
                                         </div>
