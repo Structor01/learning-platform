@@ -20,7 +20,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   // Verificar se é a primeira vez do usuário
   useEffect(() => {
     if (user?.email) {
-      const hasSeenWelcome = sessionStorage.getItem(`welcome_seen_${user.email}`);
+      const hasSeenWelcome = sessionStorage.getItem(
+        `welcome_seen_${user.email}`
+      );
       if (!hasSeenWelcome) {
         setShowWelcomeAnimation(true);
       }
@@ -166,7 +168,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     </p>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500 text-sm">6 módulos</span>
+                      <span className="text-gray-500 text-sm">17 módulos</span>
                       <Button
                         size="sm"
                         onClick={() => navigate("/trilha/2")}
@@ -328,6 +330,34 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   </div>
                   <h3 className="font-semibold text-white text-sm mb-1">
                     Testes
+                  </h3>
+                  <p className="text-xs text-gray-400">Avaliações</p>
+                </CardContent>
+              </Card>
+
+              {/* Ver Vagas */}
+              <Card
+                onClick={() => navigate('/vagas')}
+                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+              >
+                <CardContent className="p-4 text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7V5a2 2 0 00-2-2H10a2 2 0 00-2 2v2M4 7h16a2 2 0 012 2v9a2 2 0 01-2 2H4a2 2 0 01-2-2V9a2 2 0 012-2z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold text-white text-sm mb-1">
+                    Ver Vagas
                   </h3>
                   <p className="text-xs text-gray-400">Avaliações</p>
                 </CardContent>
