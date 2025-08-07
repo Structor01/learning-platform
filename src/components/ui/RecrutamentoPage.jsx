@@ -6,8 +6,10 @@ import { motion } from 'framer-motion';
 import jsPDF from 'jspdf';
 import Navbar from './Navbar';
 import InterviewModal from './InterviewModal';
+import CreateJobWithAIModal from './CreateJobWithAIModal';
 import coresignalService from '../../services/coresignalService';
 import chatgptService from '../../services/chatgptService';
+import jobAIService from '../../services/jobAIService';
 import {
   Briefcase,
   Users,
@@ -67,6 +69,9 @@ const RecrutamentoPage = () => {
   const [interviewQuestions, setInterviewQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [generatingQuestions, setGeneratingQuestions] = useState(false);
+
+  // Estados para Criação de Vaga com IA
+  const [showCreateJobModal, setShowCreateJobModal] = useState(false);
 
   useEffect(() => {
     fetchRecruitmentData();
@@ -601,6 +606,26 @@ const RecrutamentoPage = () => {
     }
   };
 
+  // Função para lidar com criação de nova vaga via IA
+  const handleJobCreated = (newJob) => {
+    console.log('✅ Nova vaga criada:', newJob);
+    
+    // Adicionar a nova vaga à lista
+    setJobs(prevJobs => [newJob, ...prevJobs]);
+    
+    // Atualizar analytics
+    if (analytics) {
+      setAnalytics(prev => ({
+        ...prev,
+        totalJobs: prev.totalJobs + 1,
+        activeJobs: newJob.status === 'active' ? prev.activeJobs + 1 : prev.activeJobs
+      }));
+    }
+    
+    // Recarregar dados para garantir sincronização
+    fetchRecruitmentData();
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return 'bg-green-500 ';
@@ -651,20 +676,30 @@ const RecrutamentoPage = () => {
                   Gestão de vagas e busca de candidatos via API real
                 </p>
               </div>
-              <Button
-                onClick={async () => {
-                  const result = await coresignalService.testApiKey();
-                  if (result.success) {
-                    console.log(`✅ ${result.message} Teste realizado com sucesso! API Coresignal funcionando corretamente.`);
-                  } else {
-                    console.error(`❌ ${result.error} Verifique a API Key do Coresignal.`);
-                  }
-                }}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                <Target className="h-4 w-4 mr-2" />
-                Testar Coresignal API
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowCreateJobModal(true)}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Criar Vaga com IA
+                </Button>
+                <Button
+                  onClick={async () => {
+                    const result = await coresignalService.testApiKey();
+                    if (result.success) {
+                      console.log(`✅ ${result.message} Teste realizado com sucesso! API Coresignal funcionando corretamente.`);
+                    } else {
+                      console.error(`❌ ${result.error} Verifique a API Key do Coresignal.`);
+                    }
+                  }}
+                  variant="outline"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  <Target className="h-4 w-4 mr-2" />
+                  Testar Coresignal API
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -1050,6 +1085,13 @@ const RecrutamentoPage = () => {
           onVideoResponse={handleVideoResponse}
           onFinishInterview={handleFinishInterview}
           generatingQuestions={generatingQuestions}
+        />
+
+        {/* Modal de Criação de Vaga com IA */}
+        <CreateJobWithAIModal
+          isOpen={showCreateJobModal}
+          onClose={() => setShowCreateJobModal(false)}
+          onJobCreated={handleJobCreated}
         />
       </div>
     </>
