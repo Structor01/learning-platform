@@ -142,6 +142,12 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                       Recrutamento LinkedIn
                     </a>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="/candidaturas" className="flex items-center w-full">
+                      <span className="mr-2">📚</span>
+                      Candidaturas
+                    </a>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

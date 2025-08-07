@@ -171,6 +171,9 @@ const UserProfile = () => {
                   </div>
                 </div>
 
+                {/* Card de linkedin e curriculo */}
+
+
                 {isEditing ? (
                   <input
                     className="text-xl font-bold text-center text-white mb-1 w-full bg-gray-800 border border-gray-600 rounded px-2 py-1"
@@ -253,6 +256,27 @@ const UserProfile = () => {
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Baixar Certificado DISC
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Card de linkedin e curriculo */}
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-white">
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                  <span>Linkedin e Currículo</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-2 gap-4 mb-6"></div>
+
+                <Button
+                  variant="outline"
+                  className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Anexar currículo
                 </Button>
               </CardContent>
             </Card>
