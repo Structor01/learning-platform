@@ -168,39 +168,7 @@ class CoresignalService {
   }
 
   async getCandidatesFromBackend(jobId) {
-    try {
-      console.log('🔍 Buscando candidatos no backend para job:', jobId);
-      
-      const response = await fetch(`${this.backendUrl}/candidates/job/${jobId}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
-        signal: AbortSignal.timeout(5000) // 5 segundos timeout
-      });
-
-      if (response.status === 404) {
-        console.log('ℹ️ Nenhum candidato encontrado no backend para job:', jobId);
-        return [];
-      }
-
-      if (!response.ok) {
-        throw new Error(`Backend error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ Candidatos encontrados no backend:', data.length);
-      return data;
-    } catch (error) {
-      if (error.name === 'TimeoutError') {
-        console.warn('⏰ Timeout na busca do backend');
-      } else if (error.message.includes('fetch')) {
-        console.warn('🔌 Backend não disponível');
-      } else {
-        console.warn('⚠️ Erro na busca do backend:', error.message);
-      }
       return [];
-    }
   }
 
   async saveInterviewResult(jobId, candidateId, interviewData) {
@@ -596,59 +564,6 @@ class CoresignalService {
   async hasExistingSearch(jobId) {
     const existingSearch = await this.getExistingSearch(jobId);
     return existingSearch.status === 'completed';
-  }
-
-  // Função para buscar candidatos (com cache)
-  async searchCandidatesForJob(jobId, jobData) {
-    console.log('🎯 Iniciando busca de candidatos para job:', jobId);
-
-    // 1. Verificar se já existe busca recente no backend
-    const existingCandidates = await this.getCandidatesFromBackend(jobId);
-    if (existingCandidates && existingCandidates.length > 0) {
-      console.log('✅ Usando candidatos do backend');
-      return {
-        candidates: existingCandidates,
-        source: 'backend',
-        cached: true
-      };
-    }
-
-    // 2. Verificar localStorage como fallback
-    const localKey = `candidates_${jobId}`;
-    const localData = this.getFromLocalStorage(localKey);
-    if (localData && this.isRecentSearch(localData.timestamp)) {
-      console.log('✅ Usando candidatos do localStorage');
-      return {
-        candidates: localData.candidates,
-        source: 'localStorage',
-        cached: true
-      };
-    }
-
-    // 3. Fazer nova busca na API
-    const keywords = this.extractKeywords(jobData);
-    const candidates = await this.searchPeople(keywords);
-
-    // 4. Salvar resultados
-    const searchData = {
-      jobId,
-      keywords,
-      candidates,
-      timestamp: new Date().toISOString()
-    };
-
-    // Tentar salvar no backend
-    await this.saveCandidatesSearch(jobId, keywords, candidates);
-
-    // Salvar no localStorage como backup
-    this.saveToLocalStorage(localKey, searchData);
-
-    console.log('✅ Nova busca concluída:', candidates.length, 'candidatos');
-    return {
-      candidates,
-      source: 'api',
-      cached: false
-    };
   }
 
   extractKeywords(jobData) {

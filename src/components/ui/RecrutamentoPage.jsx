@@ -9,7 +9,6 @@ import InterviewModal from './InterviewModal';
 import CreateJobWithAIModal from './CreateJobWithAIModal';
 import coresignalService from '../../services/coresignalService';
 import chatgptService from '../../services/chatgptService';
-import jobAIService from '../../services/jobAIService';
 import {
   Briefcase,
   Users,
@@ -876,19 +875,19 @@ const RecrutamentoPage = () => {
                             </div>
 
                             <div className="flex gap-2  pt-4 ">
-                              {(() => {
-                                const buttonContent = getSearchButtonContent(job.id);
-                                return (
-                                  <Button
-                                    onClick={() => handleLinkedInSearch(job.id)}
-                                    disabled={searchLoading}
-                                    className={buttonContent.className}
-                                  >
-                                    {buttonContent.icon}
-                                    {buttonContent.text}
-                                  </Button>
-                                );
-                              })()}
+                              {/*{(() => {*/}
+                              {/*  const buttonContent = getSearchButtonContent(job.id);*/}
+                              {/*  return (*/}
+                              {/*    <Button*/}
+                              {/*      onClick={() => handleLinkedInSearch(job.id)}*/}
+                              {/*      disabled={searchLoading}*/}
+                              {/*      className={buttonContent.className}*/}
+                              {/*    >*/}
+                              {/*      {buttonContent.icon}*/}
+                              {/*      {buttonContent.text}*/}
+                              {/*    </Button>*/}
+                              {/*  );*/}
+                              {/*})()}*/}
                               <Button
                                 variant="outline"
                                 className="border-gray-600  text-gray-300  hover:bg-gray-700 "
