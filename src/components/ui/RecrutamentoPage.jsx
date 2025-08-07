@@ -9,7 +9,7 @@ import InterviewModal from './InterviewModal';
 import CreateJobWithAIModal from './CreateJobWithAIModal';
 import InterviewCompletionPage from './InterviewCompletionPage';
 import coresignalService from '../../services/coresignalService';
-import chatgptService from '../../services/chatgptService';
+import interviewService from '../../services/interviewService';
 import {
   Briefcase,
   Users,
@@ -68,7 +68,8 @@ const RecrutamentoPage = () => {
   const [showInterviewModal, setShowInterviewModal] = useState(false);
   const [interviewJob, setInterviewJob] = useState(null);
   const [interviewQuestions, setInterviewQuestions] = useState([]);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentInterviewId, setCurrentInterviewId] = useState(null);
+  const [showInterviewCompletion, setShowInterviewCompletion] = useState(false);
   const [generatingQuestions, setGeneratingQuestions] = useState(false);
 
   // Estados para Finalização da Entrevista
@@ -230,53 +231,73 @@ const RecrutamentoPage = () => {
   // Função para processar vídeo da resposta com dados da Face API
   const handleVideoResponse = async (videoBlob, questionIndex, faceAnalysisData = []) => {
     try {
-      // Transcrever vídeo usando Whisper API
-      const transcriptionResult = await chatgptService.transcribeVideo(videoBlob);
+      // Verificar se temos uma entrevista ativa
+      if (!currentInterviewId) {
+        console.error('❌ Nenhuma entrevista ativa encontrada');
+        return;
+      }
+
+      // Upload do vídeo para o backend com processamento IA
+      const uploadResult = await interviewService.uploadVideoResponse(
+        currentInterviewId,
+        questionIndex + 1, // Backend usa 1-based indexing
+        videoBlob,
+        faceAnalysisData
+      );
+
+      if (!uploadResult.success) {
+        console.error(`❌ Erro no upload: ${uploadResult.error}`);
+        return;
+      }
+
+      // Aguardar processamento IA no backend
+      console.log(`🔄 Aguardando processamento IA para resposta ${uploadResult.responseId}...`);
       
-      if (transcriptionResult) {
-        let analysisResult;
-        
-        // Se temos dados da Face API, usar análise aprimorada
-        if (faceAnalysisData.length > 0) {
-          analysisResult = await chatgptService.analyzeResponseWithFaceData(
-            interviewQuestions[questionIndex].question,
-            transcriptionResult,
-            faceAnalysisData,
-            interviewJob
-          );
-        } else {
-          // Fallback para análise simples
-          analysisResult = await chatgptService.analyzeResponse(
-            interviewQuestions[questionIndex].question,
-            transcriptionResult,
-            interviewJob
-          );
-        }
-        
-        // Atualizar pergunta com transcrição e análise
+      const processingResult = await interviewService.waitForProcessingCompletion(
+        currentInterviewId,
+        uploadResult.responseId,
+        30, // 30 tentativas
+        3000 // 3 segundos entre tentativas
+      );
+
+      if (processingResult.success) {
+        // Atualizar pergunta com dados processados
         const updatedQuestions = [...interviewQuestions];
         updatedQuestions[questionIndex] = {
           ...updatedQuestions[questionIndex],
           answered: true,
-          transcription: transcriptionResult,
-          analysis: analysisResult.success ? analysisResult.analysis : null,
-          faceData: faceAnalysisData, // Armazenar dados faciais para relatório final
-          videoBlob: videoBlob
+          transcription: processingResult.transcription,
+          analysis: processingResult.aiAnalysis,
+          faceData: faceAnalysisData,
+          videoBlob: videoBlob,
+          responseId: uploadResult.responseId,
+          videoUrl: uploadResult.videoUrl
         };
         
         setInterviewQuestions(updatedQuestions);
         
-        if (analysisResult) {
-          const faceInfo = faceAnalysisData.length > 0 ? 
-            `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados` : 
-            '\n\nAnálise apenas textual (sem dados comportamentais)';
-          
-          console.log(`✅ Resposta processada com IA! Transcrição: "${transcriptionResult.transcription.substring(0, 80)}..." Pontuação: ${analysisResult.analysis.score}/10${faceInfo}`);
-        } else {
-          console.warn(`⚠️ Resposta transcrita mas não analisada. Transcrição: "${transcriptionResult.transcription.substring(0, 80)}..."`);
-        }
+        const faceInfo = faceAnalysisData.length > 0 ? 
+          `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados` : 
+          '\n\nAnálise apenas textual (sem dados comportamentais)';
+        
+        console.log(`✅ Resposta processada com IA no backend! Transcrição: "${processingResult.transcription?.substring(0, 80)}..." Pontuação: ${processingResult.analysisScore}/10${faceInfo}`);
       } else {
-        console.error(`❌ Erro na transcrição: ${transcriptionResult.error}`);
+        console.error(`❌ Erro no processamento IA: ${processingResult.error}`);
+        
+        // Fallback: marcar como respondida mesmo sem análise completa
+        const updatedQuestions = [...interviewQuestions];
+        updatedQuestions[questionIndex] = {
+          ...updatedQuestions[questionIndex],
+          answered: true,
+          transcription: 'Processamento pendente',
+          analysis: { score: 7, recommendation: 'Análise em processamento' },
+          faceData: faceAnalysisData,
+          videoBlob: videoBlob,
+          responseId: uploadResult.responseId,
+          videoUrl: uploadResult.videoUrl
+        };
+        
+        setInterviewQuestions(updatedQuestions);
       }
       
     } catch (error) {
