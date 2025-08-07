@@ -87,7 +87,7 @@ const RecrutamentoPage = () => {
       setLoading(true);
       
 
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
       
       // Buscar dados reais da API
