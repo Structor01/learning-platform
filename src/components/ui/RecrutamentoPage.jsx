@@ -214,7 +214,8 @@ const RecrutamentoPage = () => {
       const createResult = await interviewService.createInterview(
         job.id, 
         'Candidato', // Nome será coletado no modal
-        'candidato@email.com' // Email será coletado no modal
+        'candidato@email.com', // Email será coletado no modal
+        1 // user_id fictício - será substituído por sistema de login real
       );
       
       if (createResult.success) {

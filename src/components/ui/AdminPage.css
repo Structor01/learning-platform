@@ -610,3 +610,113 @@
   }
 }
 
+
+
+/* Estilos para visualização de vídeos */
+.video-section {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.video-section h4 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.video-container {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+
+.video-container iframe,
+.video-container video {
+  border-radius: 8px;
+}
+
+.video-info {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.video-thumbnail {
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.video-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.processing-status {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.processing-status.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.processing-status.processing {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.processing-status.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.processing-status.failed {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Informações adicionais do usuário */
+.candidate-phone,
+.candidate-education {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.candidate-phone::before {
+  content: "📞 ";
+}
+
+.candidate-education::before {
+  content: "🎓 ";
+}
+
+/* Responsividade para vídeos */
+@media (max-width: 768px) {
+  .video-container iframe,
+  .video-container video {
+    height: 200px;
+  }
+  
+  .video-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .video-thumbnail {
+    align-self: flex-start;
+  }
+}
+
