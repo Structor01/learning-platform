@@ -58,7 +58,8 @@ const RecrutamentoPage = () => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+
   // Estados para Coresignal
   const [coresignalSearches, setCoresignalSearches] = useState({});
   const [coresignalResults, setCoresignalResults] = useState({});
