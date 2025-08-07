@@ -8,6 +8,7 @@ import Navbar from './Navbar';
 import InterviewModal from './InterviewModal';
 import CreateJobWithAIModal from './CreateJobWithAIModal';
 import InterviewCompletionPage from './InterviewCompletionPage';
+import AdminPage from './AdminPage';
 import coresignalService from '../../services/coresignalService';
 import interviewService from '../../services/interviewService';
 import {
@@ -79,6 +80,9 @@ const RecrutamentoPage = () => {
 
   // Estados para Criação de Vaga com IA
   const [showCreateJobModal, setShowCreateJobModal] = useState(false);
+
+  // Estados para Administração
+  const [showAdminPage, setShowAdminPage] = useState(false);
 
   useEffect(() => {
     fetchRecruitmentData();
@@ -804,6 +808,23 @@ const RecrutamentoPage = () => {
 
   return (
     <>
+      {/* Tela de Administração de Entrevistas */}
+      {showAdminPage && (
+        <div className="min-h-screen bg-gray-900">
+          <div className="flex justify-between items-center p-4 bg-gray-800 border-b border-gray-700">
+            <h1 className="text-xl font-bold text-white">Administração de Entrevistas</h1>
+            <Button
+              onClick={() => setShowAdminPage(false)}
+              variant="outline"
+              className="border-gray-600 text-gray-300 hover:bg-gray-700"
+            >
+              Voltar ao Recrutamento
+            </Button>
+          </div>
+          <AdminPage />
+        </div>
+      )}
+
       {/* Tela de Finalização da Entrevista */}
       {showCompletionPage && completedInterviewData && (
         <InterviewCompletionPage
@@ -815,7 +836,7 @@ const RecrutamentoPage = () => {
       )}
 
       {/* Página Principal de Recrutamento */}
-      {!showCompletionPage && (
+      {!showCompletionPage && !showAdminPage && (
         <>
           <Navbar />
           <div className="min-h-screen  bg-gray-900  text-white  p-4  pt-20 ">
@@ -832,6 +853,13 @@ const RecrutamentoPage = () => {
                 </p>
               </div>
               <div className="flex gap-3">
+                <Button
+                  onClick={() => setShowAdminPage(true)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Administrar Entrevistas
+                </Button>
                 <Button
                   onClick={() => setShowCreateJobModal(true)}
                   className="bg-purple-600 hover:bg-purple-700 text-white"
