@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import parse from 'html-react-parser';
+import {useAuth} from "@/contexts/AuthContext.jsx";
 
 function JobDescription({ html }) {
   const cleanHtml = DOMPurify.sanitize(html);
@@ -49,6 +50,7 @@ function JobDescription({ html }) {
 
 const RecrutamentoPage = () => {
   const [jobs, setJobs] = useState([]);
+  const { user, logout, isAuthenticated } = useAuth();
   const [candidates, setCandidates] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [searchHistory, setSearchHistory] = useState([]);

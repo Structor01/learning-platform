@@ -329,7 +329,7 @@ const AdminPage = () => {
   const renderInterviewDetails = () => {
     if (!selectedInterview) return null;
 
-    const { interview, questions, facialAnalysis, stats } = selectedInterview;
+    const { interview, questions, stats } = selectedInterview;
 
     return (
       <div className="interview-details-modal">
@@ -377,22 +377,6 @@ const AdminPage = () => {
                 <div className="detail-item">
                   <span className="label">Taxa de Conclusão:</span>
                   <span className="value">{adminService.formatPercentage(stats.completionRate)}</span>
-                </div>
-              </div>
-              
-              <div className="detail-section">
-                <h3>Análise Facial</h3>
-                <div className="detail-item">
-                  <span className="label">Amostras Coletadas:</span>
-                  <span className="value">{facialAnalysis.totalSamples}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="label">Confiança Média:</span>
-                  <span className="value">{adminService.formatPercentage(facialAnalysis.averageConfidence * 100)}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="label">Score de Engajamento:</span>
-                  <span className="value">{adminService.formatPercentage(facialAnalysis.engagementScore * 100)}</span>
                 </div>
               </div>
             </div>
