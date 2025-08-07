@@ -243,8 +243,18 @@ const AdminPage = () => {
                     <td>{interview.id}</td>
                     <td>
                       <div className="candidate-info">
-                        <div className="candidate-name">{interview.candidateName}</div>
-                        <div className="candidate-email">{interview.candidateEmail}</div>
+                        <div className="candidate-name">
+                          {interview.user?.name || interview.candidateName}
+                        </div>
+                        <div className="candidate-email">
+                          {interview.user?.email || interview.candidateEmail}
+                        </div>
+                        {interview.user?.phone && (
+                          <div className="candidate-phone">{interview.user.phone}</div>
+                        )}
+                        {interview.user?.educational_background && (
+                          <div className="candidate-education">{interview.user.educational_background}</div>
+                        )}
                       </div>
                     </td>
                     <td>
@@ -350,12 +360,42 @@ const AdminPage = () => {
                 <h3>Informações do Candidato</h3>
                 <div className="detail-item">
                   <span className="label">Nome:</span>
-                  <span className="value">{interview.candidate_name}</span>
+                  <span className="value">
+                    {interview.user?.name || interview.candidate_name}
+                  </span>
                 </div>
                 <div className="detail-item">
                   <span className="label">Email:</span>
-                  <span className="value">{interview.candidate_email}</span>
+                  <span className="value">
+                    {interview.user?.email || interview.candidate_email}
+                  </span>
                 </div>
+                {interview.user?.phone && (
+                  <div className="detail-item">
+                    <span className="label">Telefone:</span>
+                    <span className="value">{interview.user.phone}</span>
+                  </div>
+                )}
+                {interview.user?.cpf && (
+                  <div className="detail-item">
+                    <span className="label">CPF:</span>
+                    <span className="value">{interview.user.cpf}</span>
+                  </div>
+                )}
+                {interview.user?.birth_date && (
+                  <div className="detail-item">
+                    <span className="label">Data de Nascimento:</span>
+                    <span className="value">
+                      {new Date(interview.user.birth_date).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                )}
+                {interview.user?.educational_background && (
+                  <div className="detail-item">
+                    <span className="label">Formação:</span>
+                    <span className="value">{interview.user.educational_background}</span>
+                  </div>
+                )}
                 <div className="detail-item">
                   <span className="label">Status:</span>
                   <span className="value">{adminService.getStatusLabel(interview.status)}</span>
@@ -412,6 +452,55 @@ const AdminPage = () => {
                     {question.answered && question.answer && (
                       <div className="answer-section">
                         <div className="answer-text">{question.answer.text}</div>
+                        
+                        {/* Visualização de vídeo se disponível */}
+                        {question.answer.bunny_video_url && (
+                          <div className="video-section">
+                            <h4>Vídeo da Resposta:</h4>
+                            <div className="video-container">
+                              {question.answer.bunny_stream_url ? (
+                                <iframe
+                                  src={question.answer.bunny_stream_url}
+                                  width="100%"
+                                  height="300"
+                                  frameBorder="0"
+                                  allowFullScreen
+                                  title={`Resposta da pergunta ${question.order}`}
+                                />
+                              ) : (
+                                <video
+                                  controls
+                                  width="100%"
+                                  height="300"
+                                  src={question.answer.bunny_video_url}
+                                >
+                                  Seu navegador não suporta o elemento de vídeo.
+                                </video>
+                              )}
+                            </div>
+                            {question.answer.bunny_thumbnail_url && (
+                              <div className="video-info">
+                                <img 
+                                  src={question.answer.bunny_thumbnail_url} 
+                                  alt="Thumbnail do vídeo"
+                                  className="video-thumbnail"
+                                  style={{ width: '120px', height: '68px', objectFit: 'cover' }}
+                                />
+                                <div className="video-meta">
+                                  {question.answer.video_duration && (
+                                    <span>Duração: {Math.floor(question.answer.video_duration / 60)}:{(question.answer.video_duration % 60).toString().padStart(2, '0')}</span>
+                                  )}
+                                  {question.answer.processing_status && (
+                                    <span className={`processing-status ${question.answer.processing_status}`}>
+                                      Status: {question.answer.processing_status}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
                         <div className="answer-meta">
                           Respondida em: {adminService.formatDate(question.answer.createdAt)}
                         </div>

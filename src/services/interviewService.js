@@ -116,7 +116,7 @@ class InterviewService {
   /**
    * Criar nova entrevista
    */
-  async createInterview(jobId, candidateName, candidateEmail) {
+  async createInterview(jobId, candidateName, candidateEmail, userId = null) {
     try {
       const response = await fetch(`${this.baseUrl}/api/interviews`, {
         method: 'POST',
@@ -127,6 +127,7 @@ class InterviewService {
           job_id: jobId,
           candidate_name: candidateName,
           candidate_email: candidateEmail,
+          user_id: userId,
           status: 'in_progress'
         })
       });
