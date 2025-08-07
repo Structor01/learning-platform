@@ -377,8 +377,8 @@ const MinhasCandidaturasPage = () => {
                               Candidatura em{" "}
                               {formatDate(
                                 candidatura.created_at ||
-                                  candidatura.createdAt ||
-                                  candidatura.data_candidatura
+                                candidatura.createdAt ||
+                                candidatura.data_candidatura
                               )}
                             </span>
                           </div>
@@ -391,9 +391,9 @@ const MinhasCandidaturasPage = () => {
                           <p className="text-gray-300 text-sm leading-relaxed">
                             {candidatura.vaga.descricao.length > 200
                               ? `${candidatura.vaga.descricao.substring(
-                                  0,
-                                  200
-                                )}...`
+                                0,
+                                200
+                              )}...`
                               : candidatura.vaga.descricao}
                           </p>
                         </div>

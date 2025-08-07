@@ -168,7 +168,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     </p>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-500 text-sm">6 módulos</span>
+                      <span className="text-gray-500 text-sm">17 módulos</span>
                       <Button
                         size="sm"
                         onClick={() => navigate("/trilha/2")}
@@ -334,9 +334,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   <p className="text-xs text-gray-400">Avaliações</p>
                 </CardContent>
               </Card>
+
               {/* Ver Vagas */}
               <Card
-                onClick={() => navigate("/vagas")}
+                onClick={() => navigate('/vagas')}
                 className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">

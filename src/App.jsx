@@ -30,7 +30,11 @@ import VagasPage from './components/ui/VagasPage'; // Importando a nova página 
 import CompanyPage from "./components/ui/CompanyPage";
 import LoginModal from "./components/ui/LoginModal";
 import MinhasCandidaturasPage from "./components/ui/MinhasCandidaturasPage";
+<<<<<<< HEAD
 import DetalhesPage from './components/ui/DetalhesVaga';
+=======
+import DetalhesVaga from "./components/ui/DetalhesVaga";
+>>>>>>> origin/dev1
 import "./App.css";
 
 const getApiUrl = () => {
@@ -225,6 +229,12 @@ function App() {
           {/* Página de Perfil */}
           <Route path="/profile" element={<UserProfile />} />
 
+          {/* Página de detatlhes das vagas */}
+          <Route path="/vagas/:vagaId" element={<DetalhesVaga />} />
+
+          {/* Página de Perfil */}
+          <Route path="/profile" element={<UserProfile />} />
+
           {/* Página de Empresas */}
           <Route path="/empresa/:id" element={<CompanyPage />} />
 
@@ -234,7 +244,7 @@ function App() {
           {/* Página de Detalhes das vagas */}
           <Route path="/vaga/:id" element={<DetalhesPage />} />
 
-          {/* Página de Candidaturas - PROTEGIDA */}
+          {/* Página de Candidaturas */}
           <Route path="/minhas-candidaturas" element={<MinhasCandidaturasPage />} />
 
           {/* Página de Candidatura */}

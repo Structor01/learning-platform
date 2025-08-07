@@ -185,20 +185,12 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
 
             <button
               type="submit"
-              disabled={isLoading}
-              className={`w-full py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 ${
-                isLoading
-                  ? "bg-gray-600 cursor-not-allowed text-gray-300"
-                  : "bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700"
-              }`}
+              className="w-full bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 rounded-xl hover:from-orange-700 hover:to-red-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
             >
-              {isLoading
-                ? "Carregando..."
-                : isLoginMode
-                ? "Entrar"
-                : "Criar Conta"}
+              {isLoginMode ? 'Entrar' : 'Criar Conta'}
             </button>
           </form>
+
 
           <div className="text-center mt-4 space-y-2">
             <button
@@ -235,6 +227,6 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
       </div>
     </div>
   );
-};
+}
 
 export default LoginModal;

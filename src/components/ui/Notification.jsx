@@ -105,7 +105,7 @@ const Notification = ({
     const IconComponent = styles.icon;
 
     return (
-        <div className={fixed z-[9999] ${getPositionStyles()}}>
+        <div className={`fixed z-[9999] ${getPositionStyles()}`}>
             <div
                 className={`
           ${styles.bg} ${styles.text} 
@@ -121,9 +121,9 @@ const Notification = ({
                 {duration > 0 && (
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200 rounded-t-xl overflow-hidden">
                         <div
-                            className={h-full ${styles.progressBar} animate-shrink}
+                            className={`h-full ${styles.progressBar} animate-shrink`}
                             style={{
-                                animation: shrink ${duration}ms linear forwards
+                                animation: `shrink ${duration}ms linear forwards`
                             }}
                         />
                     </div>
@@ -134,7 +134,7 @@ const Notification = ({
                     <div className="flex items-start gap-3">
                         {/* Icon */}
                         <div className="flex-shrink-0 mt-0.5">
-                            <IconComponent className={w-5 h-5 ${styles.iconColor}} />
+                            <IconComponent className={`w-5 h-5 ${styles.iconColor}`} />
                         </div>
 
                         {/* Message */}

@@ -21,6 +21,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import Navbar from "./Navbar";
 
 const UserProfile = () => {
   const { user, updateUser, isLoading } = useAuth();
@@ -150,8 +151,12 @@ const UserProfile = () => {
 
   return (
     <div className="min-h-screen bg-black pt-20">
+<<<<<<< HEAD
       {/* Navbar Fixo */}
       <Navbar/>
+=======
+      <Navbar />
+>>>>>>> origin/dev1
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -368,6 +373,7 @@ const UserProfile = () => {
                           <span className="font-medium text-white">
                             {track.name}
                           </span>
+<<<<<<< HEAD
                           <span
                             className={`text-xs px-2 py-1 rounded-full ${
                               track.status === "Em andamento"
@@ -375,6 +381,12 @@ const UserProfile = () => {
                                 : "bg-gray-600/20 text-gray-400 border border-gray-500/30"
                             }`}
                           >
+=======
+                          <span className={`text-xs px-2 py-1 rounded-full ${track.status === 'Em andamento'
+                            ? 'bg-green-600/20 text-green-400 border border-green-500/30'
+                            : 'bg-gray-600/20 text-gray-400 border border-gray-500/30'
+                            }`}>
+>>>>>>> origin/dev1
                             {track.status}
                           </span>
                         </div>
