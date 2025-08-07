@@ -35,7 +35,8 @@ import {
   AlertCircle,
   Zap,
   Video,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import parse from 'html-react-parser';
