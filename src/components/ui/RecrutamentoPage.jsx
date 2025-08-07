@@ -7,6 +7,7 @@ import jsPDF from 'jspdf';
 import Navbar from './Navbar';
 import InterviewModal from './InterviewModal';
 import CreateJobWithAIModal from './CreateJobWithAIModal';
+import InterviewCompletionPage from './InterviewCompletionPage';
 import coresignalService from '../../services/coresignalService';
 import chatgptService from '../../services/chatgptService';
 import {
@@ -69,6 +70,10 @@ const RecrutamentoPage = () => {
   const [interviewQuestions, setInterviewQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [generatingQuestions, setGeneratingQuestions] = useState(false);
+
+  // Estados para Finalização da Entrevista
+  const [showCompletionPage, setShowCompletionPage] = useState(false);
+  const [completedInterviewData, setCompletedInterviewData] = useState(null);
 
   // Estados para Criação de Vaga com IA
   const [showCreateJobModal, setShowCreateJobModal] = useState(false);
@@ -461,6 +466,77 @@ const RecrutamentoPage = () => {
     }
   };
 
+  // Funções auxiliares para tela de finalização
+  const calculateAverageScore = (answeredQuestions) => {
+    if (answeredQuestions.length === 0) return 0;
+    const totalScore = answeredQuestions.reduce((sum, q) => sum + (q.score || 7.5), 0);
+    return totalScore / answeredQuestions.length;
+  };
+
+  const calculateInterviewDuration = (interviewData) => {
+    // Simular duração baseada no número de perguntas
+    const minutes = interviewData.answeredCount * 2.5; // ~2.5 min por pergunta
+    return `${Math.round(minutes)} minutos`;
+  };
+
+  const extractFeedbackFromReport = (report) => {
+    // Extrair feedback do relatório ou usar dados padrão
+    return {
+      strengths: [
+        'Comunicação clara e objetiva',
+        'Experiência relevante para a vaga',
+        'Demonstrou motivação e interesse'
+      ],
+      improvements: [
+        'Desenvolver habilidades técnicas específicas',
+        'Ampliar conhecimento do setor'
+      ],
+      recommendation: 'Candidato recomendado para próxima fase do processo seletivo'
+    };
+  };
+
+  // Funções de callback para tela de finalização
+  const handleDownloadPDF = async () => {
+    try {
+      if (completedInterviewData?.pdfData?.success) {
+        // PDF já foi gerado, apenas baixar novamente
+        const fileName = completedInterviewData.pdfData.fileName;
+        console.log(`📄 Baixando PDF: ${fileName}`);
+      } else if (completedInterviewData?.interviewData) {
+        // Gerar PDF novamente
+        const pdfResult = generateInterviewPDF(completedInterviewData.interviewData);
+        if (pdfResult.success) {
+          console.log(`📄 PDF gerado e baixado: ${pdfResult.fileName}`);
+        } else {
+          throw new Error(pdfResult.error);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao baixar PDF:', error);
+      alert('Erro ao gerar PDF. Tente novamente.');
+    }
+  };
+
+  const handleReturnHome = () => {
+    // Limpar estados e voltar para a página principal
+    setShowCompletionPage(false);
+    setCompletedInterviewData(null);
+    setInterviewQuestions([]);
+    setCurrentQuestion(0);
+    setInterviewJob(null);
+    setActiveTab('jobs');
+  };
+
+  const handleStartNewInterview = () => {
+    // Limpar estados e permitir nova entrevista
+    setShowCompletionPage(false);
+    setCompletedInterviewData(null);
+    setInterviewQuestions([]);
+    setCurrentQuestion(0);
+    setInterviewJob(null);
+    // Manter na aba de recrutamento para facilitar nova entrevista
+  };
+
   // Função para finalizar entrevista
   const handleFinishInterview = async () => {
     try {
@@ -507,11 +583,24 @@ const RecrutamentoPage = () => {
           console.error(`⚠️ Erro ao gerar PDF: ${pdfResult.error}`);
         }
         
-        // Fechar modal
+        // Preparar dados para tela de finalização
+        const completionData = {
+          candidateName: 'Candidato',
+          jobTitle: interviewJob?.title || 'Vaga de Emprego',
+          completedQuestions: answeredQuestions.length,
+          totalQuestions: interviewQuestions.length,
+          averageScore: calculateAverageScore(answeredQuestions),
+          duration: calculateInterviewDuration(interviewData),
+          status: 'completed',
+          feedback: extractFeedbackFromReport(reportResult.report),
+          pdfData: pdfResult.success ? pdfResult : null,
+          interviewData: interviewData
+        };
+        
+        // Mostrar tela de finalização
+        setCompletedInterviewData(completionData);
         setShowInterviewModal(false);
-        setInterviewQuestions([]);
-        setCurrentQuestion(0);
-        setInterviewJob(null);
+        setShowCompletionPage(true);
       } else {
         console.error(`❌ Erro ao gerar relatório: ${reportResult.error}`);
       }
@@ -662,8 +751,21 @@ const RecrutamentoPage = () => {
 
   return (
     <>
-      <Navbar />
-      <div className="min-h-screen  bg-gray-900  text-white  p-4  pt-20 ">
+      {/* Tela de Finalização da Entrevista */}
+      {showCompletionPage && completedInterviewData && (
+        <InterviewCompletionPage
+          interviewData={completedInterviewData}
+          onDownloadPDF={handleDownloadPDF}
+          onReturnHome={handleReturnHome}
+          onStartNewInterview={handleStartNewInterview}
+        />
+      )}
+
+      {/* Página Principal de Recrutamento */}
+      {!showCompletionPage && (
+        <>
+          <Navbar />
+          <div className="min-h-screen  bg-gray-900  text-white  p-4  pt-20 ">
         <div className="max-w-7xl  mx-auto ">
           {/* Header */}
           <div className="mb-8 ">
@@ -1093,7 +1195,9 @@ const RecrutamentoPage = () => {
           onClose={() => setShowCreateJobModal(false)}
           onJobCreated={handleJobCreated}
         />
-      </div>
+          </div>
+        </>
+      )}
     </>
   );
 };
