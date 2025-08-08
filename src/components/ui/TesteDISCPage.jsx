@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import Navbar from './Navbar';
 import testService from '../../services/testService';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Brain,
   Target,
@@ -34,8 +35,9 @@ const TesteDISCPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ID do usuário (temporário - será obtido do contexto de autenticação)
-  const userId = 1;
+  // Obter dados do usuário autenticado
+  const { user, isLoading: authLoading } = useAuth();
+  const userId = user?.id || user?.user_id || 1; // Fallback para 1 se não houver usuário
 
   // Timer effect
   useEffect(() => {
@@ -168,9 +170,19 @@ const TesteDISCPage = () => {
           <Brain className="h-10 w-10 text-white" />
         </div>
         <h1 className="text-4xl font-bold text-white mb-4">Teste Psicológico Unificado</h1>
-        <p className="text-xl text-gray-300 mb-8">
+        <p className="text-xl text-gray-300 mb-4">
           Descubra seu perfil DISC, Big Five e Estilo de Liderança em um único teste
         </p>
+        {user && (
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-6 inline-block">
+            <p className="text-gray-300">
+              <span className="text-purple-400">Usuário:</span> {user.name || user.email || 'Usuário'}
+            </p>
+            <p className="text-sm text-gray-400">
+              ID: {userId} • Este teste será associado ao seu perfil
+            </p>
+          </div>
+        )}
       </motion.div>
 
       <div className="grid md:grid-cols-3 gap-8 mb-8">
@@ -569,6 +581,18 @@ const TesteDISCPage = () => {
       </div>
     );
   };
+
+  // Mostrar loading enquanto carrega autenticação
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-400" />
+          <p className="text-white">Carregando dados do usuário...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900">
