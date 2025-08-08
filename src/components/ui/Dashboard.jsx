@@ -43,8 +43,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       "Cartão Virtual": "/cartao-virtual",
       "Agenda de Eventos": "/agenda-eventos",
       "Entrevista Simulada": "/entrevista-simulada",
-      "Video Pitch": "/video-pitch",
-      "Meus Testes": "/meus-testes",
+      "Meus Testes": "/teste-disc", // Redireciona direto para TesteDISCPage
     };
 
     const route = routes[appName];
@@ -194,7 +193,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               {/*</Button>*/}
             </div>
 
-            <div className="biblioteca-apps grid grid-cols-2 sm:!grid-cols-3 md:!grid-cols-4 lg:!grid-cols-5 xl:!grid-cols-5 gap-4">
+            <div className="biblioteca-apps grid grid-cols-2 sm:!grid-cols-4 gap-4">
               {/* Meu Cartão Virtual */}
               <Card
                 onClick={() => handleAppClick("Cartão Virtual")}
@@ -248,62 +247,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     Agenda
                   </h3>
                   <p className="text-xs text-gray-400">Eventos</p>
-                </CardContent>
-              </Card>
-
-              {/* Entrevista Simulada */}
-              <Card
-                onClick={() => handleAppClick("Entrevista Simulada")}
-                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
-              >
-                <CardContent className="p-4 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-white text-sm mb-1">
-                    Entrevista
-                  </h3>
-                  <p className="text-xs text-gray-400">Simulada</p>
-                </CardContent>
-              </Card>
-
-              {/* Video Pitch */}
-              <Card
-                onClick={() => handleAppClick("Video Pitch")}
-                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
-              >
-                <CardContent className="p-4 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="font-semibold text-white text-sm mb-1">
-                    Video Pitch
-                  </h3>
-                  <p className="text-xs text-gray-400">Profissional</p>
                 </CardContent>
               </Card>
 

@@ -1,14 +1,14 @@
 class CoresignalService {
   constructor() {
-    // Usar import.meta.env em vez de process.env para Vite
-    this.apiKey = import.meta.env.VITE_CORESIGNAL_API_KEY;
-    this.baseUrl = 'https://api.coresignal.com/cdapi/v1';
+    // API Key da Coresignal
+    this.apiKey = 'G6HG4KYGzuuCYTRJrWDN9uP0jH24e8Yf';
+    this.baseUrl = 'https://api.coresignal.com/cdapi/v2';
     
     // Configurar URL do backend baseado no ambiente
     this.backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
     
     if (!this.apiKey) {
-      console.warn('⚠️ VITE_CORESIGNAL_API_KEY não configurada. Funcionalidades de busca limitadas.');
+      console.warn('⚠️ API Key Coresignal não configurada. Funcionalidades de busca limitadas.');
     }
   }
 
@@ -168,39 +168,7 @@ class CoresignalService {
   }
 
   async getCandidatesFromBackend(jobId) {
-    try {
-      console.log('🔍 Buscando candidatos no backend para job:', jobId);
-      
-      const response = await fetch(`${this.backendUrl}/candidates/job/${jobId}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
-        signal: AbortSignal.timeout(5000) // 5 segundos timeout
-      });
-
-      if (response.status === 404) {
-        console.log('ℹ️ Nenhum candidato encontrado no backend para job:', jobId);
-        return [];
-      }
-
-      if (!response.ok) {
-        throw new Error(`Backend error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ Candidatos encontrados no backend:', data.length);
-      return data;
-    } catch (error) {
-      if (error.name === 'TimeoutError') {
-        console.warn('⏰ Timeout na busca do backend');
-      } else if (error.message.includes('fetch')) {
-        console.warn('🔌 Backend não disponível');
-      } else {
-        console.warn('⚠️ Erro na busca do backend:', error.message);
-      }
       return [];
-    }
   }
 
   async saveInterviewResult(jobId, candidateId, interviewData) {
@@ -443,7 +411,7 @@ class CoresignalService {
     return 'geral';
   }
 
-  // Buscar pessoas com parâmetros específicos
+  // Buscar pessoas com parâmetros específicos usando nova API v2
   async searchPeopleWithParams(searchParams) {
     if (!this.apiKey) {
       console.warn('API Key Coresignal não configurada, usando resultados mock');
@@ -451,45 +419,195 @@ class CoresignalService {
     }
 
     try {
-      // Converter parâmetros ChatGPT para formato Coresignal
-      const coresignalQuery = {
-        title: searchParams.title_keywords.join(' OR '),
-        location: searchParams.location,
-        country: 'Brazil',
-        limit: '50'
+      // 1. Primeiro fazer busca para obter IDs
+      const searchQuery = {
+        query: {
+          bool: {
+            must: [
+              {
+                query_string: {
+                  query: searchParams.title_keywords.join(' OR '),
+                  fields: [
+                    "job_title",
+                    "description", 
+                    "job_description"
+                  ],
+                  default_operator: "OR"
+                }
+              },
+              {
+                query_string: {
+                  query: searchParams.location || "Brasil",
+                  fields: [
+                    "location_raw_address",
+                    "location_regions"
+                  ],
+                  default_operator: "OR"
+                }
+              }
+            ]
+          }
+        }
       };
 
-      // Adicionar skills se disponíveis
-      if (searchParams.skills && searchParams.skills.length > 0) {
-        coresignalQuery.skills = searchParams.skills.join(',');
-      }
+      console.log('🔍 Executando busca Coresignal v2 para obter IDs...');
 
-      const searchParamsUrl = new URLSearchParams({
-        api_key: this.apiKey,
-        ...coresignalQuery
-      });
-
-      console.log('🔍 Executando busca Coresignal com parâmetros:', coresignalQuery);
-
-      const response = await fetch(`${this.baseUrl}/search/filter/person?${searchParamsUrl}`, {
-        method: 'GET',
+      const searchResponse = await fetch(`${this.baseUrl}/employee_clean/search/es_dsl`, {
+        method: 'POST',
         headers: {
-          'Accept': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          'apikey': this.apiKey
+        },
+        body: JSON.stringify(searchQuery)
       });
 
-      if (!response.ok) {
-        throw new Error(`Erro na API Coresignal: ${response.status}`);
+      if (!searchResponse.ok) {
+        throw new Error(`Erro na busca Coresignal: ${searchResponse.status}`);
       }
 
-      const data = await response.json();
-      console.log('✅ Busca Coresignal concluída:', data.length || 0, 'resultados');
+      const employeeIds = await searchResponse.json();
+      console.log('✅ IDs encontrados:', employeeIds.length);
 
-      return this.formatResults(data, searchParams.title_keywords.join(' '));
+      if (!employeeIds || employeeIds.length === 0) {
+        console.log('⚠️ Nenhum ID encontrado, usando resultados mock');
+        return this.getMockResults(searchParams.title_keywords.join(' '));
+      }
+
+      // 2. Buscar detalhes dos top 5 candidatos
+      const topIds = employeeIds.slice(0, 5);
+      const profiles = [];
+
+      for (const id of topIds) {
+        try {
+          console.log(`📋 Buscando detalhes do candidato ID: ${id}`);
+          
+          const detailResponse = await fetch(`${this.baseUrl}/employee_clean/collect/${id}`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': this.apiKey
+            }
+          });
+
+          if (detailResponse.ok) {
+            const candidateData = await detailResponse.json();
+            const formattedProfile = this.formatCoresignalProfile(candidateData);
+            profiles.push(formattedProfile);
+            console.log(`✅ Candidato adicionado: ${formattedProfile.name}`);
+          } else {
+            console.warn(`⚠️ Erro ao buscar detalhes do ID ${id}: ${detailResponse.status}`);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Erro ao processar candidato ${id}:`, error);
+        }
+      }
+
+      console.log('✅ Busca Coresignal v2 concluída:', profiles.length, 'perfis detalhados');
+      return profiles;
+
     } catch (error) {
-      console.error('❌ Erro na busca Coresignal:', error);
+      console.error('❌ Erro na busca Coresignal v2:', error);
       return this.getMockResults(searchParams.title_keywords.join(' '));
     }
+  }
+
+  // Formatar perfil da nova API Coresignal
+  formatCoresignalProfile(data) {
+    return {
+      id: `coresignal_${data.id}`,
+      name: data.full_name || 'Nome não disponível',
+      title: data.job_title || data.headline || 'Cargo não informado',
+      company: data.experience?.[0]?.company_name || 'Empresa não informada',
+      location: data.location_raw_address || 'Brasil',
+      experience: this.formatExperience(data.experience),
+      skills: this.extractSkillsFromProfile(data),
+      education: this.formatEducation(data.education),
+      profileUrl: data.websites_linkedin || '',
+      imageUrl: data.picture_url || '',
+      summary: data.description || data.generated_headline || '',
+      confidence: this.calculateProfileConfidence(data),
+      source: 'coresignal_v2',
+      searchKeywords: '',
+      rawData: data,
+      // Campos adicionais específicos da nova API
+      connections: data.connections_count || 0,
+      followers: data.follower_count || 0,
+      totalExperience: data.total_experience_duration || '',
+      isWorking: data.is_working === 1,
+      managementLevel: data.management_level || '',
+      department: data.department || ''
+    };
+  }
+
+  // Formatar experiência profissional
+  formatExperience(experience) {
+    if (!experience || !Array.isArray(experience)) {
+      return 'Experiência não informada';
+    }
+
+    const currentJob = experience[0];
+    if (currentJob) {
+      const duration = currentJob.duration || '';
+      const company = currentJob.company_name || '';
+      const title = currentJob.title || '';
+      return `${title} na ${company} (${duration})`;
+    }
+
+    return 'Experiência não informada';
+  }
+
+  // Extrair skills do perfil
+  extractSkillsFromProfile(data) {
+    const skills = [];
+    
+    // Extrair de diferentes campos
+    const text = `${data.description || ''} ${data.job_title || ''} ${data.headline || ''}`.toLowerCase();
+    
+    // Skills comuns para buscar
+    const commonSkills = [
+      'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'SQL', 'Excel', 
+      'PowerBI', 'Tableau', 'Salesforce', 'SAP', 'AWS', 'Azure', 'Docker',
+      'Kubernetes', 'Git', 'Agile', 'Scrum', 'Marketing', 'Vendas', 'Gestão',
+      'Liderança', 'Agricultura', 'Agronegócio', 'Engenharia', 'Análise'
+    ];
+    
+    commonSkills.forEach(skill => {
+      if (text.includes(skill.toLowerCase())) {
+        skills.push(skill);
+      }
+    });
+    
+    return skills.slice(0, 8); // Máximo 8 skills
+  }
+
+  // Formatar educação
+  formatEducation(education) {
+    if (!education || !Array.isArray(education)) {
+      return [];
+    }
+
+    return education.map(edu => ({
+      institution: edu.school || 'Instituição não informada',
+      degree: edu.degree || 'Curso não informado',
+      field: edu.field_of_study || '',
+      year: edu.date_to_year || ''
+    }));
+  }
+
+  // Calcular confiança do perfil
+  calculateProfileConfidence(data) {
+    let confidence = 0.5; // Base
+
+    // Aumentar baseado em completude do perfil
+    if (data.full_name) confidence += 0.1;
+    if (data.job_title) confidence += 0.1;
+    if (data.description) confidence += 0.1;
+    if (data.websites_linkedin) confidence += 0.1;
+    if (data.experience && data.experience.length > 0) confidence += 0.1;
+    if (data.connections_count > 100) confidence += 0.05;
+    if (data.is_working === 1) confidence += 0.05;
+
+    return Math.min(confidence, 1.0);
   }
 
   // Rankear candidatos usando IA
@@ -596,59 +714,6 @@ class CoresignalService {
   async hasExistingSearch(jobId) {
     const existingSearch = await this.getExistingSearch(jobId);
     return existingSearch.status === 'completed';
-  }
-
-  // Função para buscar candidatos (com cache)
-  async searchCandidatesForJob(jobId, jobData) {
-    console.log('🎯 Iniciando busca de candidatos para job:', jobId);
-
-    // 1. Verificar se já existe busca recente no backend
-    const existingCandidates = await this.getCandidatesFromBackend(jobId);
-    if (existingCandidates && existingCandidates.length > 0) {
-      console.log('✅ Usando candidatos do backend');
-      return {
-        candidates: existingCandidates,
-        source: 'backend',
-        cached: true
-      };
-    }
-
-    // 2. Verificar localStorage como fallback
-    const localKey = `candidates_${jobId}`;
-    const localData = this.getFromLocalStorage(localKey);
-    if (localData && this.isRecentSearch(localData.timestamp)) {
-      console.log('✅ Usando candidatos do localStorage');
-      return {
-        candidates: localData.candidates,
-        source: 'localStorage',
-        cached: true
-      };
-    }
-
-    // 3. Fazer nova busca na API
-    const keywords = this.extractKeywords(jobData);
-    const candidates = await this.searchPeople(keywords);
-
-    // 4. Salvar resultados
-    const searchData = {
-      jobId,
-      keywords,
-      candidates,
-      timestamp: new Date().toISOString()
-    };
-
-    // Tentar salvar no backend
-    await this.saveCandidatesSearch(jobId, keywords, candidates);
-
-    // Salvar no localStorage como backup
-    this.saveToLocalStorage(localKey, searchData);
-
-    console.log('✅ Nova busca concluída:', candidates.length, 'candidatos');
-    return {
-      candidates,
-      source: 'api',
-      cached: false
-    };
   }
 
   extractKeywords(jobData) {

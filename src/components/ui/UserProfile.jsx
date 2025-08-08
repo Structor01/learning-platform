@@ -18,8 +18,13 @@ import {
   Trophy,
   Zap,
   CheckCircle,
+  Brain,
+  Users,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import testService from "../../services/testService";
 import Navbar from "./Navbar";
 
 const UserProfile = () => {
@@ -28,6 +33,13 @@ const UserProfile = () => {
   const [name, setName] = useState("");
   const [role, setRole] = useState("Executivo de Vendas");
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Estados para dados do teste psicológico
+  const [testResults, setTestResults] = useState(null);
+  const [loadingTest, setLoadingTest] = useState(false);
+  const [testError, setTestError] = useState(null);
+
+  const userId = user?.id || user?.user_id;
 
   useEffect(() => {
     if (user) {
@@ -35,6 +47,51 @@ const UserProfile = () => {
       setRole(user.role || "Executivo de Vendas");
     }
   }, [user]);
+
+  // Carregar dados do teste psicológico
+  useEffect(() => {
+    const loadTestResults = async () => {
+      if (!userId) return;
+
+      try {
+        setLoadingTest(true);
+        setTestError(null);
+
+        // Buscar teste psicológico completo do usuário
+        const userTests = await testService.getUserPsychologicalTests(userId, 'completed', 1);
+        
+        if (userTests.tests && userTests.tests.length > 0) {
+          const completedTest = userTests.tests[0];
+          
+          // Obter relatório detalhado
+          const report = await testService.getPsychologicalTestReport(completedTest.id);
+          
+          setTestResults({
+            test: completedTest,
+            scores: {
+              disc: completedTest.disc_scores,
+              bigFive: completedTest.big_five_scores,
+              leadership: completedTest.leadership_scores
+            },
+            analysis: {
+              overall: completedTest.overall_analysis,
+              recommendations: completedTest.recommendations
+            },
+            report: report,
+            completedAt: completedTest.completed_at
+          });
+        }
+        
+        setLoadingTest(false);
+      } catch (error) {
+        console.error('Erro ao carregar dados do teste:', error);
+        setTestError('Erro ao carregar dados do teste');
+        setLoadingTest(false);
+      }
+    };
+
+    loadTestResults();
+  }, [userId]);
 
   if (isLoading) {
     return (
@@ -52,13 +109,42 @@ const UserProfile = () => {
     setIsEditing(false);
   };
 
-  const discProfile = user?.discProfile || {
-    dominante: 23,
-    influente: 13,
-    estavel: 27,
-    conforme: 38,
-    predominant: "Conforme",
+  // Usar dados reais do teste ou dados mockados como fallback
+  const getDiscProfile = () => {
+    if (testResults?.scores?.disc) {
+      const discScores = testResults.scores.disc;
+      
+      // Encontrar o perfil predominante
+      const maxScore = Math.max(...Object.values(discScores));
+      const predominantKey = Object.keys(discScores).find(key => discScores[key] === maxScore);
+      
+      const profileNames = {
+        D: 'Dominante',
+        I: 'Influente', 
+        S: 'Estável',
+        C: 'Conforme'
+      };
+      
+      return {
+        dominante: Math.round(discScores.D || 0),
+        influente: Math.round(discScores.I || 0),
+        estavel: Math.round(discScores.S || 0),
+        conforme: Math.round(discScores.C || 0),
+        predominant: profileNames[predominantKey] || 'Conforme',
+      };
+    }
+    
+    // Fallback para dados mockados
+    return user?.discProfile || {
+      dominante: 23,
+      influente: 13,
+      estavel: 27,
+      conforme: 38,
+      predominant: "Conforme",
+    };
   };
+
+  const discProfile = getDiscProfile();
 
   const progress = user?.progress || {
     coursesCompleted: 3,
@@ -212,12 +298,37 @@ const UserProfile = () => {
             {/* DISC Profile Card */}
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-white">
-                  <TrendingUp className="w-5 h-5 text-green-500" />
-                  <span>Seu Perfil DISC</span>
+                <CardTitle className="flex items-center justify-between text-white">
+                  <div className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5 text-green-500" />
+                    <span>Seu Perfil DISC</span>
+                  </div>
+                  {loadingTest && (
+                    <RefreshCw className="w-4 h-4 animate-spin text-gray-400" />
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
+                {testError && (
+                  <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-3 mb-4">
+                    <div className="flex items-center space-x-2">
+                      <AlertCircle className="w-4 h-4 text-red-400" />
+                      <p className="text-red-300 text-sm">{testError}</p>
+                    </div>
+                  </div>
+                )}
+                
+                {testResults && (
+                  <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 mb-4">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-blue-400" />
+                      <p className="text-blue-300 text-sm">
+                        Dados do teste psicológico realizado em {new Date(testResults.completedAt).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   {discProfiles.map((profile) => (
                     <div key={profile.name} className="text-center">
@@ -253,9 +364,10 @@ const UserProfile = () => {
                 <Button
                   variant="outline"
                   className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
+                  disabled={!testResults}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  Baixar Certificado DISC
+                  {testResults ? 'Baixar Certificado DISC' : 'Realize o teste para baixar certificado'}
                 </Button>
               </CardContent>
             </Card>
@@ -322,6 +434,79 @@ const UserProfile = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Big Five e Liderança Cards */}
+            {testResults && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Big Five Card */}
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2 text-white">
+                      <Brain className="w-5 h-5 text-purple-500" />
+                      <span>Big Five</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      {testResults.scores.bigFive && Object.entries(testResults.scores.bigFive).map(([trait, score]) => (
+                        <div key={trait} className="flex items-center justify-between">
+                          <span className="text-gray-300 capitalize text-sm">
+                            {trait === 'openness' ? 'Abertura' :
+                             trait === 'conscientiousness' ? 'Conscienciosidade' :
+                             trait === 'extraversion' ? 'Extroversão' :
+                             trait === 'agreeableness' ? 'Amabilidade' :
+                             trait === 'neuroticism' ? 'Neuroticismo' : trait}
+                          </span>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-20 bg-gray-700 rounded-full h-2">
+                              <div 
+                                className="bg-purple-500 h-2 rounded-full" 
+                                style={{ width: `${(score / 5) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-white font-medium w-8 text-sm">{score.toFixed(1)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Liderança Card */}
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2 text-white">
+                      <Users className="w-5 h-5 text-yellow-500" />
+                      <span>Estilo de Liderança</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      {testResults.scores.leadership && Object.entries(testResults.scores.leadership).map(([style, score]) => (
+                        <div key={style} className="flex items-center justify-between">
+                          <span className="text-gray-300 capitalize text-sm">
+                            {style === 'autocratic' ? 'Autocrático' :
+                             style === 'democratic' ? 'Democrático' :
+                             style === 'transformational' ? 'Transformacional' :
+                             style === 'transactional' ? 'Transacional' :
+                             style === 'servant' ? 'Servidor' : style}
+                          </span>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-20 bg-gray-700 rounded-full h-2">
+                              <div 
+                                className="bg-yellow-500 h-2 rounded-full" 
+                                style={{ width: `${(score / 10) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-white font-medium w-8 text-sm">{score.toFixed(1)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Learning Tracks Progress */}
             <Card className="bg-gray-900 border-gray-800">

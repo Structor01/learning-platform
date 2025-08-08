@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import Navbar from './Navbar';
+import testService from '../../services/testService';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Brain,
   Target,
@@ -17,140 +19,25 @@ import {
   ArrowLeft,
   RefreshCw,
   Download,
-  Share2
+  Share2,
+  AlertCircle
 } from 'lucide-react';
 
 const TesteDISCPage = () => {
-  const [currentPhase, setCurrentPhase] = useState('intro'); // intro, test, results
+  const [currentPhase, setCurrentPhase] = useState('intro'); // intro, test, results, loading
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [testResults, setTestResults] = useState(null);
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [startTime, setStartTime] = useState(null);
+  const [testId, setTestId] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Perguntas do teste DISC
-  const discQuestions = [
-    {
-      id: 1,
-      question: "Em situações de trabalho em equipe, você tende a:",
-      options: [
-        { text: "Assumir a liderança e tomar decisões rapidamente", type: "D" },
-        { text: "Motivar e inspirar os colegas com entusiasmo", type: "I" },
-        { text: "Apoiar e colaborar harmoniosamente", type: "S" },
-        { text: "Analisar detalhadamente antes de agir", type: "C" }
-      ]
-    },
-    {
-      id: 2,
-      question: "Quando enfrenta um problema complexo, sua primeira reação é:",
-      options: [
-        { text: "Buscar uma solução rápida e eficaz", type: "D" },
-        { text: "Discutir com outros para gerar ideias", type: "I" },
-        { text: "Considerar como isso afeta as pessoas", type: "S" },
-        { text: "Pesquisar e analisar todas as variáveis", type: "C" }
-      ]
-    },
-    {
-      id: 3,
-      question: "Em reuniões de trabalho, você geralmente:",
-      options: [
-        { text: "Dirige a discussão para resultados", type: "D" },
-        { text: "Contribui com ideias criativas e energia", type: "I" },
-        { text: "Escuta atentamente e busca consenso", type: "S" },
-        { text: "Apresenta dados e fatos relevantes", type: "C" }
-      ]
-    },
-    {
-      id: 4,
-      question: "Seu estilo de comunicação é mais:",
-      options: [
-        { text: "Direto e objetivo", type: "D" },
-        { text: "Expressivo e entusiástico", type: "I" },
-        { text: "Calmo e diplomático", type: "S" },
-        { text: "Preciso e detalhado", type: "C" }
-      ]
-    },
-    {
-      id: 5,
-      question: "Ao tomar decisões importantes, você:",
-      options: [
-        { text: "Decide rapidamente baseado na intuição", type: "D" },
-        { text: "Consulta pessoas de confiança", type: "I" },
-        { text: "Pondera cuidadosamente os impactos", type: "S" },
-        { text: "Analisa todos os dados disponíveis", type: "C" }
-      ]
-    },
-    {
-      id: 6,
-      question: "Em situações de pressão, você:",
-      options: [
-        { text: "Mantém o foco nos objetivos", type: "D" },
-        { text: "Busca apoio e motivação dos outros", type: "I" },
-        { text: "Procura manter a calma e estabilidade", type: "S" },
-        { text: "Organiza e planeja sistematicamente", type: "C" }
-      ]
-    },
-    {
-      id: 7,
-      question: "Seu ambiente de trabalho ideal é:",
-      options: [
-        { text: "Dinâmico com desafios constantes", type: "D" },
-        { text: "Colaborativo e socialmente ativo", type: "I" },
-        { text: "Estável e harmonioso", type: "S" },
-        { text: "Organizado e estruturado", type: "C" }
-      ]
-    },
-    {
-      id: 8,
-      question: "Quando apresenta um projeto, você enfatiza:",
-      options: [
-        { text: "Os resultados e benefícios práticos", type: "D" },
-        { text: "A visão inspiradora e possibilidades", type: "I" },
-        { text: "O impacto positivo nas pessoas", type: "S" },
-        { text: "Os dados, métodos e precisão", type: "C" }
-      ]
-    },
-    {
-      id: 9,
-      question: "Sua maior motivação no trabalho é:",
-      options: [
-        { text: "Alcançar metas e superar desafios", type: "D" },
-        { text: "Reconhecimento e interação social", type: "I" },
-        { text: "Contribuir para o bem-estar da equipe", type: "S" },
-        { text: "Fazer um trabalho de alta qualidade", type: "C" }
-      ]
-    },
-    {
-      id: 10,
-      question: "Ao receber feedback, você prefere que seja:",
-      options: [
-        { text: "Direto e focado em resultados", type: "D" },
-        { text: "Positivo e encorajador", type: "I" },
-        { text: "Construtivo e respeitoso", type: "S" },
-        { text: "Específico e baseado em fatos", type: "C" }
-      ]
-    },
-    {
-      id: 11,
-      question: "Em projetos de equipe, você naturalmente:",
-      options: [
-        { text: "Assume responsabilidades e lidera", type: "D" },
-        { text: "Gera entusiasmo e engajamento", type: "I" },
-        { text: "Facilita a colaboração entre membros", type: "S" },
-        { text: "Garante qualidade e precisão", type: "C" }
-      ]
-    },
-    {
-      id: 12,
-      question: "Sua abordagem para mudanças é:",
-      options: [
-        { text: "Abraçar rapidamente novas oportunidades", type: "D" },
-        { text: "Ver o lado positivo e inspirar outros", type: "I" },
-        { text: "Adaptar-se gradualmente mantendo estabilidade", type: "S" },
-        { text: "Analisar riscos e planejar cuidadosamente", type: "C" }
-      ]
-    }
-  ];
+  // Obter dados do usuário autenticado
+  const { user, isLoading: authLoading } = useAuth();
+  const userId = user?.id || user?.user_id || 1; // Fallback para 1 se não houver usuário
 
   // Timer effect
   useEffect(() => {
@@ -163,28 +50,112 @@ const TesteDISCPage = () => {
     return () => clearInterval(interval);
   }, [currentPhase, startTime]);
 
+  // Verificar se usuário já tem teste completo
+  useEffect(() => {
+    const checkExistingTest = async () => {
+      if (!userId || authLoading) return;
+
+      try {
+        setLoading(true);
+        
+        // Buscar testes psicológicos do usuário
+        const userTests = await testService.getUserPsychologicalTests(userId, 'completed', 1);
+        
+        if (userTests.tests && userTests.tests.length > 0) {
+          const completedTest = userTests.tests[0];
+          
+          // Obter relatório detalhado do teste
+          const report = await testService.getPsychologicalTestReport(completedTest.id);
+          
+          // Configurar resultados existentes
+          setTestResults({
+            test: completedTest,
+            scores: {
+              disc: completedTest.disc_scores,
+              bigFive: completedTest.big_five_scores,
+              leadership: completedTest.leadership_scores
+            },
+            analysis: {
+              overall: completedTest.overall_analysis,
+              recommendations: completedTest.recommendations
+            },
+            report: report,
+            isExisting: true // Flag para indicar que é um teste existente
+          });
+          
+          setTestId(completedTest.id);
+          setCurrentPhase('results');
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Erro ao verificar testes existentes:', error);
+        setLoading(false);
+        // Não mostrar erro aqui, apenas continuar para novo teste
+      }
+    };
+
+    checkExistingTest();
+  }, [userId, authLoading]);
+
   const formatTime = (ms) => {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     return `${minutes}:${(seconds % 60).toString().padStart(2, '0')}`;
   };
 
-  const startTest = () => {
-    setCurrentPhase('test');
-    setStartTime(new Date());
-    setCurrentQuestion(0);
-    setAnswers({});
+  const startTest = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Criar novo teste psicológico unificado
+      const newTest = await testService.createPsychologicalTest(userId, 'unified');
+      setTestId(newTest.id);
+
+      // Obter perguntas do teste
+      const testQuestions = await testService.getPsychologicalTestQuestions(newTest.id);
+      setQuestions(testQuestions.questions);
+
+      setCurrentPhase('test');
+      setStartTime(new Date());
+      setCurrentQuestion(0);
+      setAnswers({});
+      setLoading(false);
+    } catch (error) {
+      console.error('Erro ao iniciar teste:', error);
+      setError('Erro ao iniciar o teste. Tente novamente.');
+      setLoading(false);
+    }
   };
 
-  const handleAnswer = (questionId, selectedOption) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: selectedOption
-    }));
+  const handleAnswer = async (questionId, selectedOption, questionNumber) => {
+    try {
+      // Salvar resposta localmente
+      setAnswers(prev => ({
+        ...prev,
+        [questionNumber]: {
+          questionId,
+          selectedOption,
+          questionNumber
+        }
+      }));
+
+      // Submeter resposta para o backend
+      await testService.submitPsychologicalTestResponse(testId, {
+        question_id: questionId,
+        question_number: questionNumber,
+        selected_option: selectedOption
+      });
+
+    } catch (error) {
+      console.error('Erro ao salvar resposta:', error);
+      setError('Erro ao salvar resposta. Continuando...');
+    }
   };
 
   const nextQuestion = () => {
-    if (currentQuestion < discQuestions.length - 1) {
+    if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
       finishTest();
@@ -198,193 +169,30 @@ const TesteDISCPage = () => {
   };
 
   const finishTest = async () => {
-    // Calcular resultados DISC
-    const scores = { D: 0, I: 0, S: 0, C: 0 };
-    
-    Object.values(answers).forEach(answer => {
-      scores[answer.type]++;
-    });
-
-    const total = Object.values(scores).reduce((sum, score) => sum + score, 0);
-    const percentages = {
-      D: Math.round((scores.D / total) * 100),
-      I: Math.round((scores.I / total) * 100),
-      S: Math.round((scores.S / total) * 100),
-      C: Math.round((scores.C / total) * 100)
-    };
-
-    // Determinar perfil dominante
-    const dominantType = Object.keys(percentages).reduce((a, b) => 
-      percentages[a] > percentages[b] ? a : b
-    );
-
-    const completedAt = new Date();
-    const durationSeconds = Math.floor((completedAt.getTime() - startTime.getTime()) / 1000);
-
-    // Preparar dados para salvar no backend
-    const testResultData = {
-      userId: 1, // TODO: Pegar do contexto de autenticação
-      testTypeId: 7, // ID do teste DISC na tabela test_types
-      testName: "Teste DISC - Perfil Comportamental",
-      testCategory: "Comportamental",
-      startedAt: startTime.toISOString(),
-      completedAt: completedAt.toISOString(),
-      durationSeconds: durationSeconds,
-      totalQuestions: discQuestions.length,
-      discDPercentage: percentages.D,
-      discIPercentage: percentages.I,
-      discSPercentage: percentages.S,
-      discCPercentage: percentages.C,
-      dominantProfile: dominantType,
-      rawAnswers: answers,
-      detailedResults: {
-        scores,
-        percentages,
-        dominantType,
-        completionTime: durationSeconds
-      },
-      testAnswers: discQuestions.map((question, index) => ({
-        questionId: question.id,
-        questionText: question.question,
-        selectedOption: answers[index] ? question.options.findIndex(opt => opt.text === answers[index].text) : null,
-        selectedText: answers[index] ? answers[index].text : null,
-        answerTimeSeconds: Math.floor(Math.random() * 30) + 10 // Tempo simulado por pergunta
-      }))
-    };
-
     try {
-      // Salvar resultado no backend
-      const response = await fetch('https://learning-platform-backend-2x39.onrender.com/api/api/tests/results', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(testResultData)
+      setLoading(true);
+      setCurrentPhase('loading');
+
+      // Finalizar teste no backend
+      const completedTest = await testService.completePsychologicalTest(testId);
+
+      // Obter relatório detalhado
+      const report = await testService.getPsychologicalTestReport(testId);
+
+      setTestResults({
+        test: completedTest.test,
+        scores: completedTest.scores,
+        analysis: completedTest.analysis,
+        report: report
       });
 
-      if (response.ok) {
-        const savedResult = await response.json();
-        console.log('Resultado salvo com sucesso:', savedResult);
-      } else {
-        console.error('Erro ao salvar resultado:', response.statusText);
-      }
+      setCurrentPhase('results');
+      setLoading(false);
     } catch (error) {
-      console.error('Erro ao conectar com o backend:', error);
+      console.error('Erro ao finalizar teste:', error);
+      setError('Erro ao finalizar o teste. Tente novamente.');
+      setLoading(false);
     }
-
-    const profiles = {
-      D: {
-        name: "Dominância",
-        description: "Orientado para resultados, direto e determinado",
-        characteristics: [
-          "Foco em resultados e metas",
-          "Tomada de decisão rápida",
-          "Liderança natural",
-          "Gosta de desafios",
-          "Comunicação direta"
-        ],
-        strengths: [
-          "Liderança eficaz",
-          "Orientação para resultados",
-          "Decisões rápidas",
-          "Aceita desafios"
-        ],
-        developmentAreas: [
-          "Paciência com detalhes",
-          "Consideração pelos outros",
-          "Flexibilidade",
-          "Escuta ativa"
-        ],
-        color: "from-red-500 to-red-600",
-        icon: Target
-      },
-      I: {
-        name: "Influência",
-        description: "Sociável, otimista e persuasivo",
-        characteristics: [
-          "Comunicação expressiva",
-          "Entusiasmo contagiante",
-          "Orientação para pessoas",
-          "Criatividade e inovação",
-          "Networking natural"
-        ],
-        strengths: [
-          "Comunicação persuasiva",
-          "Motivação de equipes",
-          "Criatividade",
-          "Relacionamento interpessoal"
-        ],
-        developmentAreas: [
-          "Foco em detalhes",
-          "Organização",
-          "Seguimento de processos",
-          "Análise crítica"
-        ],
-        color: "from-yellow-500 to-yellow-600",
-        icon: Users
-      },
-      S: {
-        name: "Estabilidade",
-        description: "Cooperativo, confiável e paciente",
-        characteristics: [
-          "Trabalho em equipe",
-          "Lealdade e confiabilidade",
-          "Paciência e persistência",
-          "Busca por harmonia",
-          "Apoio aos colegas"
-        ],
-        strengths: [
-          "Colaboração eficaz",
-          "Confiabilidade",
-          "Paciência",
-          "Mediação de conflitos"
-        ],
-        developmentAreas: [
-          "Assertividade",
-          "Adaptação a mudanças",
-          "Tomada de iniciativa",
-          "Autoconfiança"
-        ],
-        color: "from-green-500 to-green-600",
-        icon: Users
-      },
-      C: {
-        name: "Conformidade",
-        description: "Analítico, preciso e sistemático",
-        characteristics: [
-          "Atenção aos detalhes",
-          "Análise sistemática",
-          "Busca por precisão",
-          "Planejamento cuidadoso",
-          "Qualidade no trabalho"
-        ],
-        strengths: [
-          "Análise detalhada",
-          "Qualidade e precisão",
-          "Planejamento sistemático",
-          "Pensamento crítico"
-        ],
-        developmentAreas: [
-          "Flexibilidade",
-          "Tomada de decisão rápida",
-          "Comunicação interpessoal",
-          "Tolerância a riscos"
-        ],
-        color: "from-blue-500 to-blue-600",
-        icon: BarChart3
-      }
-    };
-
-    setTestResults({
-      scores,
-      percentages,
-      dominantType,
-      profile: profiles[dominantType],
-      completionTime: durationSeconds,
-      completedAt: completedAt.toISOString()
-    });
-
-    setCurrentPhase('results');
   };
 
   const restartTest = () => {
@@ -394,6 +202,17 @@ const TesteDISCPage = () => {
     setTestResults(null);
     setTimeElapsed(0);
     setStartTime(null);
+    setTestId(null);
+    setQuestions([]);
+    setError(null);
+  };
+
+  const startNewTest = () => {
+    // Limpar resultados existentes e iniciar novo teste
+    setTestResults(null);
+    setTestId(null);
+    setCurrentPhase('intro');
+    setError(null);
   };
 
   const renderIntro = () => (
@@ -406,25 +225,34 @@ const TesteDISCPage = () => {
         <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full mb-6">
           <Brain className="h-10 w-10 text-white" />
         </div>
-        <h1 className="text-4xl font-bold text-white mb-4">Teste DISC</h1>
-        <p className="text-xl text-gray-300 mb-8">
-          Descubra seu perfil comportamental e potencialize seu desenvolvimento profissional
+        <h1 className="text-4xl font-bold text-white mb-4">Teste Psicológico Unificado</h1>
+        <p className="text-xl text-gray-300 mb-4">
+          Descubra seu perfil DISC, Big Five e Estilo de Liderança em um único teste
         </p>
+        {user && (
+          <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-6 inline-block">
+            <p className="text-gray-300">
+              <span className="text-purple-400">Usuário:</span> {user.name || user.email || 'Usuário'}
+            </p>
+            <p className="text-sm text-gray-400">
+              ID: {userId} • Este teste será associado ao seu perfil
+            </p>
+          </div>
+        )}
       </motion.div>
 
-      <div className="grid md:grid-cols-2 gap-8 mb-8">
+      <div className="grid md:grid-cols-3 gap-8 mb-8">
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center">
               <Target className="h-5 w-5 mr-2 text-purple-400" />
-              O que é o DISC?
+              DISC
             </CardTitle>
           </CardHeader>
           <CardContent className="text-gray-300">
             <p>
-              O DISC é uma ferramenta de avaliação comportamental que identifica quatro estilos principais:
-              <strong> Dominância, Influência, Estabilidade e Conformidade</strong>. 
-              Compreender seu perfil ajuda no autoconhecimento e melhora suas relações profissionais.
+              Avalia seu <strong>estilo comportamental</strong> em quatro dimensões:
+              Dominância, Influência, Estabilidade e Conformidade.
             </p>
           </CardContent>
         </Card>
@@ -432,122 +260,173 @@ const TesteDISCPage = () => {
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
             <CardTitle className="text-white flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-purple-400" />
-              Informações do Teste
+              <Users className="h-5 w-5 mr-2 text-purple-400" />
+              Big Five
             </CardTitle>
           </CardHeader>
           <CardContent className="text-gray-300">
-            <ul className="space-y-2">
-              <li>• <strong>12 perguntas</strong> cuidadosamente elaboradas</li>
-              <li>• <strong>5-8 minutos</strong> de duração estimada</li>
-              <li>• <strong>Resultado imediato</strong> com análise detalhada</li>
-              <li>• <strong>Relatório completo</strong> para download</li>
-            </ul>
+            <p>
+              Mede os <strong>cinco grandes fatores</strong> da personalidade:
+              Abertura, Conscienciosidade, Extroversão, Amabilidade e Neuroticismo.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center">
+              <Award className="h-5 w-5 mr-2 text-purple-400" />
+              Liderança
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-gray-300">
+            <p>
+              Identifica seu <strong>estilo de liderança</strong>:
+              Autocrático, Democrático, Transformacional, Transacional e Servidor.
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid md:grid-cols-4 gap-4 mb-8">
-        {[
-          { type: 'D', name: 'Dominância', color: 'from-red-500 to-red-600', icon: Target },
-          { type: 'I', name: 'Influência', color: 'from-yellow-500 to-yellow-600', icon: Users },
-          { type: 'S', name: 'Estabilidade', color: 'from-green-500 to-green-600', icon: Users },
-          { type: 'C', name: 'Conformidade', color: 'from-blue-500 to-blue-600', icon: BarChart3 }
-        ].map((item) => {
-          const IconComponent = item.icon;
-          return (
-            <Card key={item.type} className="bg-gray-800 border-gray-700">
-              <CardContent className="p-4 text-center">
-                <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r ${item.color} rounded-full mb-3`}>
-                  <IconComponent className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-white">{item.name}</h3>
-                <p className="text-sm text-gray-400">{item.type}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <Card className="bg-gray-800 border-gray-700 mb-8">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center">
+            <Clock className="h-5 w-5 mr-2 text-purple-400" />
+            Informações do Teste
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-gray-300">
+          <div className="grid md:grid-cols-2 gap-4">
+            <ul className="space-y-2">
+              <li>• <strong>25 perguntas</strong> cuidadosamente elaboradas</li>
+              <li>• <strong>10-15 minutos</strong> de duração estimada</li>
+              <li>• <strong>Resultado imediato</strong> com análise detalhada</li>
+            </ul>
+            <ul className="space-y-2">
+              <li>• <strong>Relatório completo</strong> dos três perfis</li>
+              <li>• <strong>Recomendações personalizadas</strong> de desenvolvimento</li>
+              <li>• <strong>Análise integrada</strong> dos resultados</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+
+      {error && (
+        <Card className="bg-red-900 border-red-700 mb-8">
+          <CardContent className="p-4">
+            <div className="flex items-center text-red-200">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              {error}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="text-center">
         <Button
           onClick={startTest}
+          disabled={loading}
           size="lg"
           className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-8 py-3"
         >
-          <Brain className="h-5 w-5 mr-2" />
-          Iniciar Teste DISC
+          {loading ? (
+            <>
+              <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
+              Preparando Teste...
+            </>
+          ) : (
+            <>
+              <Brain className="h-5 w-5 mr-2" />
+              Iniciar Teste Unificado
+            </>
+          )}
         </Button>
       </div>
     </div>
   );
 
   const renderTest = () => {
-    const question = discQuestions[currentQuestion];
-    const progress = ((currentQuestion + 1) / discQuestions.length) * 100;
-    const currentAnswer = answers[question.id];
+    if (questions.length === 0) {
+      return (
+        <div className="max-w-2xl mx-auto p-6 text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-400" />
+          <p className="text-white">Carregando perguntas...</p>
+        </div>
+      );
+    }
+
+    const question = questions[currentQuestion];
+    const progress = ((currentQuestion + 1) / questions.length) * 100;
+    const currentAnswer = answers[currentQuestion + 1];
 
     return (
-      <div className="max-w-3xl mx-auto p-6">
-        {/* Header com progresso */}
+      <div className="max-w-2xl mx-auto p-6">
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <div className="text-sm text-gray-400">
-              Pergunta {currentQuestion + 1} de {discQuestions.length}
-            </div>
-            <div className="flex items-center text-sm text-gray-400">
-              <Clock className="h-4 w-4 mr-1" />
+            <span className="text-sm text-gray-400">
+              Pergunta {currentQuestion + 1} de {questions.length}
+            </span>
+            <span className="text-sm text-gray-400">
               {formatTime(timeElapsed)}
-            </div>
+            </span>
           </div>
-          <Progress value={progress} className="h-2 bg-gray-700" />
+          <Progress value={progress} className="mb-4" />
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>{Math.round(progress)}% concluído</span>
+            <span className="capitalize">{question.question_type}</span>
+          </div>
         </div>
 
-        {/* Pergunta */}
-        <motion.div
-          key={currentQuestion}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-        >
-          <Card className="bg-gray-800 border-gray-700 mb-8">
-            <CardHeader>
-              <CardTitle className="text-xl text-white">
-                {question.question}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {question.options.map((option, index) => (
-                  <button
+        <Card className="bg-gray-800 border-gray-700 mb-8">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">
+              {question.question_text}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {question.options.map((option, index) => {
+                const optionLetter = ['A', 'B', 'C', 'D'][index];
+                const isSelected = currentAnswer?.selectedOption === optionLetter;
+                
+                return (
+                  <motion.button
                     key={index}
-                    onClick={() => handleAnswer(question.id, option)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleAnswer(question.id, optionLetter, currentQuestion + 1)}
                     className={`w-full p-4 text-left rounded-lg border transition-all ${
-                      currentAnswer?.text === option.text
-                        ? 'border-purple-500 bg-purple-500/20 text-white'
-                        : 'border-gray-600 bg-gray-700/50 text-gray-300 hover:border-gray-500 hover:bg-gray-700'
+                      isSelected
+                        ? 'bg-purple-600 border-purple-500 text-white'
+                        : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
                     }`}
                   >
-                    <div className="flex items-center">
-                      <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
-                        currentAnswer?.text === option.text
-                          ? 'border-purple-500 bg-purple-500'
-                          : 'border-gray-500'
+                    <div className="flex items-start">
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium mr-3 mt-0.5 ${
+                        isSelected ? 'bg-white text-purple-600' : 'bg-gray-600 text-gray-300'
                       }`}>
-                        {currentAnswer?.text === option.text && (
-                          <CheckCircle className="h-4 w-4 text-white" />
-                        )}
-                      </div>
-                      {option.text}
+                        {optionLetter}
+                      </span>
+                      <span className="flex-1">{option.text}</span>
                     </div>
-                  </button>
-                ))}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {error && (
+          <Card className="bg-red-900 border-red-700 mb-4">
+            <CardContent className="p-3">
+              <div className="flex items-center text-red-200 text-sm">
+                <AlertCircle className="h-4 w-4 mr-2" />
+                {error}
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        )}
 
-        {/* Navegação */}
         <div className="flex justify-between">
           <Button
             onClick={prevQuestion}
@@ -562,19 +441,52 @@ const TesteDISCPage = () => {
           <Button
             onClick={nextQuestion}
             disabled={!currentAnswer}
-            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
+            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
           >
-            {currentQuestion === discQuestions.length - 1 ? 'Finalizar' : 'Próxima'}
-            <ArrowRight className="h-4 w-4 ml-2" />
+            {currentQuestion === questions.length - 1 ? (
+              <>
+                Finalizar Teste
+                <CheckCircle className="h-4 w-4 ml-2" />
+              </>
+            ) : (
+              <>
+                Próxima
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </>
+            )}
           </Button>
         </div>
       </div>
     );
   };
 
+  const renderLoading = () => (
+    <div className="max-w-2xl mx-auto p-6 text-center">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="space-y-6"
+      >
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full mb-6">
+          <RefreshCw className="h-10 w-10 text-white animate-spin" />
+        </div>
+        <h2 className="text-2xl font-bold text-white">Processando Resultados</h2>
+        <p className="text-gray-300">
+          Analisando suas respostas e gerando seu perfil personalizado...
+        </p>
+        <div className="space-y-2">
+          <div className="text-sm text-gray-400">Calculando scores DISC...</div>
+          <div className="text-sm text-gray-400">Analisando Big Five...</div>
+          <div className="text-sm text-gray-400">Identificando estilo de liderança...</div>
+        </div>
+      </motion.div>
+    </div>
+  );
+
   const renderResults = () => {
-    const { percentages, profile, completionTime } = testResults;
-    const ProfileIcon = profile.icon;
+    if (!testResults) return null;
+
+    const { scores, analysis, report, isExisting } = testResults;
 
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -583,172 +495,221 @@ const TesteDISCPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <div className={`inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r ${profile.color} rounded-full mb-6`}>
-            <ProfileIcon className="h-10 w-10 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full mb-6">
+            <CheckCircle className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Seu Perfil DISC</h1>
-          <h2 className="text-2xl text-purple-400 mb-4">{profile.name}</h2>
-          <p className="text-xl text-gray-300 mb-6">{profile.description}</p>
-          
-          <div className="flex justify-center items-center space-x-6 text-sm text-gray-400">
-            <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-1" />
-              Tempo: {formatTime(completionTime)}
+          <h1 className="text-4xl font-bold text-white mb-4">
+            {isExisting ? 'Seus Resultados Salvos' : 'Resultados do Teste'}
+          </h1>
+          <p className="text-xl text-gray-300">
+            {isExisting 
+              ? 'Aqui estão os resultados do seu teste psicológico anterior'
+              : 'Seu perfil psicológico completo foi gerado com sucesso'
+            }
+          </p>
+          {isExisting && (
+            <div className="bg-blue-900 border border-blue-700 rounded-lg p-4 mt-4 inline-block">
+              <p className="text-blue-200 text-sm">
+                ✅ Teste realizado anteriormente • Dados salvos no seu perfil
+              </p>
             </div>
-            <div className="flex items-center">
-              <Award className="h-4 w-4 mr-1" />
-              Teste Concluído
-            </div>
-          </div>
+          )}
         </motion.div>
 
-        {/* Gráfico de Resultados */}
-        <Card className="bg-gray-800 border-gray-700 mb-8">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center">
-              <BarChart3 className="h-5 w-5 mr-2" />
-              Distribuição do Seu Perfil
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {Object.entries(percentages).map(([type, percentage]) => {
-                const colors = {
-                  D: 'bg-red-500',
-                  I: 'bg-yellow-500',
-                  S: 'bg-green-500',
-                  C: 'bg-blue-500'
-                };
-                const names = {
-                  D: 'Dominância',
-                  I: 'Influência',
-                  S: 'Estabilidade',
-                  C: 'Conformidade'
-                };
-                
-                return (
-                  <div key={type} className="flex items-center">
-                    <div className="w-24 text-sm text-gray-300">{names[type]}</div>
-                    <div className="flex-1 bg-gray-700 rounded-full h-4 mx-4">
-                      <div
-                        className={`h-4 rounded-full ${colors[type]} transition-all duration-1000`}
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                    <div className="w-12 text-sm text-white font-semibold">{percentage}%</div>
+        {/* Scores DISC */}
+        {scores.disc && (
+          <Card className="bg-gray-800 border-gray-700 mb-6">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Target className="h-5 w-5 mr-2 text-red-400" />
+                Perfil DISC
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(scores.disc).map(([key, value]) => (
+                  <div key={key} className="text-center">
+                    <div className="text-2xl font-bold text-white">{value.toFixed(1)}</div>
+                    <div className="text-sm text-gray-400">{key}</div>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Características */}
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
-          <Card className="bg-gray-800 border-gray-700">
+        {/* Scores Big Five */}
+        {scores.bigFive && (
+          <Card className="bg-gray-800 border-gray-700 mb-6">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Users className="h-5 w-5 mr-2 text-blue-400" />
+                Big Five
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Object.entries(scores.bigFive).map(([key, value]) => (
+                  <div key={key} className="flex items-center justify-between">
+                    <span className="text-gray-300 capitalize">{key}</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 bg-gray-700 rounded-full h-2">
+                        <div 
+                          className="bg-blue-500 h-2 rounded-full" 
+                          style={{ width: `${(value / 10) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-white font-medium w-8">{value.toFixed(1)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Scores Liderança */}
+        {scores.leadership && (
+          <Card className="bg-gray-800 border-gray-700 mb-6">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Award className="h-5 w-5 mr-2 text-yellow-400" />
+                Estilo de Liderança
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {Object.entries(scores.leadership).map(([key, value]) => (
+                  <div key={key} className="flex items-center justify-between">
+                    <span className="text-gray-300 capitalize">{key}</span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 bg-gray-700 rounded-full h-2">
+                        <div 
+                          className="bg-yellow-500 h-2 rounded-full" 
+                          style={{ width: `${(value / 10) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-white font-medium w-8">{value.toFixed(1)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Análise */}
+        {analysis.overall && (
+          <Card className="bg-gray-800 border-gray-700 mb-6">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center">
+                <Brain className="h-5 w-5 mr-2 text-purple-400" />
+                Análise Geral
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-300 leading-relaxed">{analysis.overall}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recomendações */}
+        {analysis.recommendations && (
+          <Card className="bg-gray-800 border-gray-700 mb-8">
             <CardHeader>
               <CardTitle className="text-white flex items-center">
                 <TrendingUp className="h-5 w-5 mr-2 text-green-400" />
-                Pontos Fortes
+                Recomendações
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2 text-gray-300">
-                {profile.strengths.map((strength, index) => (
-                  <li key={index} className="flex items-center">
-                    <CheckCircle className="h-4 w-4 mr-2 text-green-400" />
-                    {strength}
-                  </li>
-                ))}
-              </ul>
+              <p className="text-gray-300 leading-relaxed">{analysis.recommendations}</p>
             </CardContent>
           </Card>
+        )}
 
-          <Card className="bg-gray-800 border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center">
-                <Target className="h-5 w-5 mr-2 text-blue-400" />
-                Áreas de Desenvolvimento
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-gray-300">
-                {profile.developmentAreas.map((area, index) => (
-                  <li key={index} className="flex items-center">
-                    <ArrowRight className="h-4 w-4 mr-2 text-blue-400" />
-                    {area}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Características Principais */}
-        <Card className="bg-gray-800 border-gray-700 mb-8">
-          <CardHeader>
-            <CardTitle className="text-white">Características Principais</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              {profile.characteristics.map((characteristic, index) => (
-                <div key={index} className="flex items-center text-gray-300">
-                  <div className={`w-2 h-2 rounded-full ${profile.color.includes('red') ? 'bg-red-500' : profile.color.includes('yellow') ? 'bg-yellow-500' : profile.color.includes('green') ? 'bg-green-500' : 'bg-blue-500'} mr-3`} />
-                  {characteristic}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Ações */}
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="flex justify-center space-x-4">
           <Button
-            onClick={restartTest}
+            onClick={isExisting ? startNewTest : restartTest}
             variant="outline"
             className="border-gray-600 text-gray-300 hover:bg-gray-700"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refazer Teste
+            {isExisting ? 'Fazer Novo Teste' : 'Refazer Teste'}
           </Button>
           
           <Button
             onClick={() => window.print()}
-            variant="outline"
-            className="border-gray-600 text-gray-300 hover:bg-gray-700"
+            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
           >
             <Download className="h-4 w-4 mr-2" />
             Baixar Relatório
-          </Button>
-          
-          <Button
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: 'Meu Resultado do Teste DISC',
-                  text: `Descobri que meu perfil DISC é ${profile.name}! Faça você também o teste.`,
-                  url: window.location.href
-                });
-              }
-            }}
-            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white"
-          >
-            <Share2 className="h-4 w-4 mr-2" />
-            Compartilhar
           </Button>
         </div>
       </div>
     );
   };
 
+  // Mostrar loading enquanto carrega autenticação
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-400" />
+          <p className="text-white">Carregando dados do usuário...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gray-900">
       <Navbar />
       <div className="pt-16">
         <AnimatePresence mode="wait">
-          {currentPhase === 'intro' && renderIntro()}
-          {currentPhase === 'test' && renderTest()}
-          {currentPhase === 'results' && renderResults()}
+          {currentPhase === 'intro' && (
+            <motion.div
+              key="intro"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {renderIntro()}
+            </motion.div>
+          )}
+          
+          {currentPhase === 'test' && (
+            <motion.div
+              key="test"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {renderTest()}
+            </motion.div>
+          )}
+          
+          {currentPhase === 'loading' && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {renderLoading()}
+            </motion.div>
+          )}
+          
+          {currentPhase === 'results' && (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {renderResults()}
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>

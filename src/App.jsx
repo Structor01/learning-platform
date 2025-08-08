@@ -31,6 +31,7 @@ import CompanyPage from "./components/ui/CompanyPage";
 import LoginModal from "./components/ui/LoginModal";
 import MinhasCandidaturasPage from "./components/ui/MinhasCandidaturasPage";
 import DetalhesVaga from "./components/ui/DetalhesVaga";
+import InterviewPage from "./components/ui/InterviewPage";
 import CandidaturasAdmPage from "./components/ui/CandidaturasAdmPage";
 import "./App.css";
 
@@ -237,6 +238,9 @@ function App() {
 
           {/* Página de Candidaturas */}
           <Route path="/minhas-candidaturas" element={<MinhasCandidaturasPage />} />
+
+          {/* Página de Entrevista */}
+          <Route path="/entrevista" element={<PrivateRoute><InterviewPage /></PrivateRoute>} />
 
           {/* Página de Candidatura */}
           <Route path="/LoginModal" element={<LoginModal />} />
