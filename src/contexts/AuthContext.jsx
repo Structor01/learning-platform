@@ -16,10 +16,11 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
+  const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "https://learning-platform-backend-2x39.onrender.com";
 
   const isAuthenticated = !!user && !!accessToken;
-
 
   // Carrega usuário do sessionStorage ao iniciar
   useEffect(() => {
@@ -41,6 +42,60 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   }, []);
 
+  const updateUser = async (updateData) => {
+    try {
+      const mappedData = {
+        name: updateData.name,
+        role: updateData.role,
+        linkedin: updateData.linkedin,
+        curriculoUrl: updateData.curriculoUrl,
+      };
+      console.log("Enviando dados para atualização de perfil:", mappedData);
+
+      // Remove campos undefined
+      Object.keys(mappedData).forEach((key) => {
+        if (mappedData[key] === undefined) {
+          delete mappedData[key];
+        }
+      });
+
+      const response = await fetch(`${API_URL}/api/users/profile`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(mappedData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erro ao atualizar perfil");
+      }
+
+      const updatedUser = await response.json();
+
+      console.log("Resposta da API após atualização:", updatedUser);
+
+      const newUser = {
+        ...user,
+        ...updatedUser,
+        curriculo_url: updatedUser.curriculoUrl, // mapeia o campo do backend para o frontend
+      };
+
+      setUser(newUser);
+      sessionStorage.setItem("user", JSON.stringify(newUser));
+
+      return { success: true };
+    } catch (error) {
+      console.error("Erro ao atualizar usuário:", error);
+      return {
+        success: false,
+        error: error.message || "Erro ao atualizar perfil",
+      };
+    }
+  };
+
   const login = async (email, password) => {
     console.log(">>> [DEBUG] Tentando conectar à API em:", API_URL);
     const response = await fetch(`${API_URL}/api/auth/login`, {
@@ -54,7 +109,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const errData = await response.json();
         errMsg = errData.message || errMsg;
-      } catch { }
+      } catch {}
       throw new Error(errMsg);
     }
 
@@ -80,7 +135,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const errData = await response.json();
         errMsg = errData.message || errMsg;
-      } catch { }
+      } catch {}
       throw new Error(errMsg);
     }
 
@@ -131,6 +186,7 @@ export const AuthProvider = ({ children }) => {
     hasActiveSubscription,
     canAccessContent,
     isAuthenticated,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

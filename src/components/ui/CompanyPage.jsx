@@ -251,58 +251,6 @@ const CompanyPage = () => {
                             <h3 className="text-xl font-semibold text-white mb-2">Carregando empresa</h3>
                             <p className="text-gray-400">Buscando informações e vagas disponíveis...</p>
                         </div>
-<<<<<<< HEAD
-                      </div>
-
-                      {/* Botão de candidatura */}
-                      <div className="xl:w flex-shrink-0 flex gap-4">
-                        <button
-                          onClick={() => handleCandidatar(vaga)}
-                          className={`w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 ${
-                            isUserLoggedIn && jaSeCandidata(vaga.id)
-                              ? "bg-gray-600 cursor-not-allowed text-gray-300"
-                              : "bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 hover:-translate-y-0.5"
-                          }`}
-                          disabled={isUserLoggedIn && jaSeCandidata(vaga.id)}
-                        >
-                          {!isUserLoggedIn ? (
-                            <>
-                              <ExternalLink className="w-5 h-5" />
-                              Fazer login
-                            </>
-                          ) : jaSeCandidata(vaga.id) ? (
-                            <>
-                              <div className="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center">
-                                <span className="text-xs">✓</span>
-                              </div>
-                              Candidatura enviada
-                            </>
-                          ) : (
-                            <>
-                              <ExternalLink className="w-5 h-5" />
-                              Candidatar-se
-                            </>
-                          )}
-                        </button>
-
-                        {isUserLoggedIn && jaSeCandidata(vaga.id) && (
-                          <p className="text-xs text-green-400 text-center mt-2 xl:w-45">
-                            Sua candidatura foi registrada
-                          </p>
-                        )}
-                        {/* Botão de detalhes */}
-                        <div className="xl:w-80 flex-shrink-0">
-                          <button
-                            onClick={() => navigate(`/vaga/${vaga.id}`)}
-                            className="w-full px-6 py-3 bg-white/10 backdrop-blur-sm text-white rounded-xl font-medium hover:bg-white/20 transition-all duration-300 border border-white/20 flex items-center justify-center gap-2"
-                          >
-                            <Briefcase className="w-4 h-4" />
-                            Ver detalhes
-                          </button>
-                        </div>
-                      </div>
-=======
->>>>>>> origin/dev1
                     </div>
                 </main>
             </div>

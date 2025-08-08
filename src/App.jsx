@@ -238,9 +238,6 @@ function App() {
 
           {/* Página de Vagas */}
           <Route path="/vagas" element={<VagasPage />} />
-          
-          {/* Página de Detalhes das vagas */}
-          <Route path="/vaga/:id" element={<DetalhesPage />} />
 
           {/* Página de Candidaturas */}
           <Route path="/minhas-candidaturas" element={<MinhasCandidaturasPage />} />

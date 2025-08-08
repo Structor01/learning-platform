@@ -23,18 +23,26 @@ import {
   Users,
   RefreshCw,
   AlertCircle,
+  Linkedin,
+  FileText,
+  ExternalLink,
+  Save,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import testService from "../../services/testService";
-import Navbar from "./Navbar";
 
 const UserProfile = () => {
   const { user, updateUser, isLoading } = useAuth();
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("Executivo de Vendas");
+  const [linkedin, setLinkedin] = useState("");
+  const [curriculoUrl, setCurriculoUrl] = useState("");
   const [isEditing, setIsEditing] = useState(false);
-  
+  const [isEditingLinks, setIsEditingLinks] = useState(false);
+  const [isSavingLinks, setIsSavingLinks] = useState(false);
+
   // Estados para dados do teste psicológico
   const [testResults, setTestResults] = useState(null);
   const [loadingTest, setLoadingTest] = useState(false);
@@ -46,6 +54,8 @@ const UserProfile = () => {
     if (user) {
       setName(user.name || "");
       setRole(user.role || "Executivo de Vendas");
+      setLinkedin(user.linkedin || "");
+      setCurriculoUrl(user.curriculo_url || "");
     }
   }, [user]);
 
@@ -59,34 +69,40 @@ const UserProfile = () => {
         setTestError(null);
 
         // Buscar teste psicológico completo do usuário
-        const userTests = await testService.getUserPsychologicalTests(userId, 'completed', 1);
-        
+        const userTests = await testService.getUserPsychologicalTests(
+          userId,
+          "completed",
+          1
+        );
+
         if (userTests.tests && userTests.tests.length > 0) {
           const completedTest = userTests.tests[0];
-          
+
           // Obter relatório detalhado
-          const report = await testService.getPsychologicalTestReport(completedTest.id);
-          
+          const report = await testService.getPsychologicalTestReport(
+            completedTest.id
+          );
+
           setTestResults({
             test: completedTest,
             scores: {
               disc: completedTest.disc_scores,
               bigFive: completedTest.big_five_scores,
-              leadership: completedTest.leadership_scores
+              leadership: completedTest.leadership_scores,
             },
             analysis: {
               overall: completedTest.overall_analysis,
-              recommendations: completedTest.recommendations
+              recommendations: completedTest.recommendations,
             },
             report: report,
-            completedAt: completedTest.completed_at
+            completedAt: completedTest.completed_at,
           });
         }
-        
+
         setLoadingTest(false);
       } catch (error) {
-        console.error('Erro ao carregar dados do teste:', error);
-        setTestError('Erro ao carregar dados do teste');
+        console.error("Erro ao carregar dados do teste:", error);
+        setTestError("Erro ao carregar dados do teste");
         setLoadingTest(false);
       }
     };
@@ -110,39 +126,87 @@ const UserProfile = () => {
     setIsEditing(false);
   };
 
+  const handleSaveLinks = async () => {
+    try {
+      setIsSavingLinks(true);
+
+      // Validar URLs se fornecidas
+      if (linkedin && !isValidUrl(linkedin)) {
+        alert("Por favor, insira uma URL válida para o LinkedIn");
+        return;
+      }
+
+      if (curriculoUrl && !isValidUrl(curriculoUrl)) {
+        alert("Por favor, insira uma URL válida para o currículo");
+        return;
+      }
+
+      await updateUser({
+        linkedin:  linkedin?.trim() || undefined,
+        curriculoUrl: curriculoUrl?.trim() || undefined, // <-- Corrigido aqui
+      });
+
+      setIsEditingLinks(false);
+    } catch (error) {
+      console.error("Erro ao salvar links:", error);
+      alert("Erro ao salvar os links. Tente novamente.");
+    } finally {
+      setIsSavingLinks(false);
+    }
+  };
+
+  const isValidUrl = (string) => {
+    try {
+      new URL(string);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const cancelEditLinks = () => {
+    setLinkedin(user?.linkedin || "");
+    setCurriculoUrl(user?.curriculo_url || "");
+    setIsEditingLinks(false);
+  };
+
   // Usar dados reais do teste ou dados mockados como fallback
   const getDiscProfile = () => {
     if (testResults?.scores?.disc) {
       const discScores = testResults.scores.disc;
-      
+
       // Encontrar o perfil predominante
       const maxScore = Math.max(...Object.values(discScores));
-      const predominantKey = Object.keys(discScores).find(key => discScores[key] === maxScore);
-      
+      const predominantKey = Object.keys(discScores).find(
+        (key) => discScores[key] === maxScore
+      );
+
       const profileNames = {
-        D: 'Dominante',
-        I: 'Influente', 
-        S: 'Estável',
-        C: 'Conforme'
+        D: "Dominante",
+        I: "Influente",
+        S: "Estável",
+        C: "Conforme",
       };
-      
+
       return {
         dominante: Math.round(discScores.D || 0),
         influente: Math.round(discScores.I || 0),
         estavel: Math.round(discScores.S || 0),
         conforme: Math.round(discScores.C || 0),
-        predominant: profileNames[predominantKey] || 'Conforme',
+        predominant: profileNames[predominantKey] || "Conforme",
       };
     }
-    
+
     // Fallback para dados mockados
-    return user?.discProfile || {
-      dominante: 23,
-      influente: 13,
-      estavel: 27,
-      conforme: 38,
-      predominant: "Conforme",
-    };
+    return (
+      user?.discProfile || {
+        dominante: 23,
+        influente: 13,
+        estavel: 27,
+        conforme: 38,
+        predominant: "Conforme",
+      }
+    );
   };
 
   const discProfile = getDiscProfile();
@@ -233,16 +297,9 @@ const UserProfile = () => {
     },
   ];
 
-  
-
   return (
     <div className="min-h-screen bg-black pt-20">
-<<<<<<< HEAD
-      {/* Navbar Fixo */}
-      <Navbar/>
-=======
       <Navbar />
->>>>>>> origin/dev1
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -302,9 +359,6 @@ const UserProfile = () => {
                   </div>
                 </div>
 
-                {/* Card de linkedin e curriculo */}
-
-
                 {isEditing ? (
                   <input
                     className="text-xl font-bold text-center text-white mb-1 w-full bg-gray-800 border border-gray-600 rounded px-2 py-1"
@@ -362,18 +416,21 @@ const UserProfile = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {testResults && (
                   <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 mb-4">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="w-4 h-4 text-blue-400" />
                       <p className="text-blue-300 text-sm">
-                        Dados do teste psicológico realizado em {new Date(testResults.completedAt).toLocaleDateString('pt-BR')}
+                        Dados do teste psicológico realizado em{" "}
+                        {new Date(testResults.completedAt).toLocaleDateString(
+                          "pt-BR"
+                        )}
                       </p>
                     </div>
                   </div>
                 )}
-                
+
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   {discProfiles.map((profile) => (
                     <div key={profile.name} className="text-center">
@@ -412,29 +469,160 @@ const UserProfile = () => {
                   disabled={!testResults}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  {testResults ? 'Baixar Certificado DISC' : 'Realize o teste para baixar certificado'}
+                  {testResults
+                    ? "Baixar Certificado DISC"
+                    : "Realize o teste para baixar certificado"}
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Card de linkedin e curriculo */}
+            {/* LinkedIn e Currículo Card */}
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-white">
-                  <TrendingUp className="w-5 h-5 text-green-500" />
-                  <span>Linkedin e Currículo</span>
+                <CardTitle className="flex items-center justify-between text-white">
+                  <div className="flex items-center space-x-2">
+                    <User className="w-5 h-5 text-green-500" />
+                    <span>LinkedIn e Currículo</span>
+                  </div>
+                  {!isEditingLinks && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditingLinks(true)}
+                      className="text-gray-400 hover:text-white p-1"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid grid-cols-2 gap-4 mb-6"></div>
+                {isEditingLinks ? (
+                  <div className="space-y-4">
+                    {/* LinkedIn Input */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        LinkedIn
+                      </label>
+                      <div className="relative">
+                        <Linkedin className="w-4 h-4 text-blue-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                        <input
+                          type="url"
+                          placeholder="https://linkedin.com/in/seu-perfil"
+                          value={linkedin}
+                          onChange={(e) => setLinkedin(e.target.value)}
+                          className="w-full pl-10 pr-3 py-2 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
 
-                <Button
-                  variant="outline"
-                  className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Anexar currículo
-                </Button>
+                    {/* Currículo URL Input */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Link do Currículo
+                      </label>
+                      <div className="relative">
+                        <FileText className="w-4 h-4 text-green-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                        <input
+                          type="url"
+                          placeholder="https://drive.google.com/file/d/..."
+                          value={curriculoUrl}
+                          onChange={(e) => setCurriculoUrl(e.target.value)}
+                          className="w-full pl-10 pr-3 py-2 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex space-x-2 pt-2">
+                      <Button
+                        onClick={handleSaveLinks}
+                        disabled={isSavingLinks}
+                        className="bg-green-600 hover:bg-green-700 flex-1"
+                      >
+                        {isSavingLinks ? (
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
+                        Salvar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={cancelEditLinks}
+                        disabled={isSavingLinks}
+                        className="border-gray-600 text-black hover:bg-gray-800"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* LinkedIn Display */}
+                    <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-700">
+                      <div className="flex items-center space-x-3">
+                        <Linkedin className="w-5 h-5 text-blue-500" />
+                        <div>
+                          <p className="text-sm text-gray-300 font-medium">
+                            LinkedIn
+                          </p>
+                          {linkedin ? (
+                            <a
+                              href={linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 text-sm flex items-center space-x-1"
+                            >
+                              <span>Ver perfil</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          ) : (
+                            <p className="text-gray-500 text-sm">
+                              Não adicionado
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Currículo Display */}
+                    <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-700">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="w-5 h-5 text-green-500" />
+                        <div>
+                          <p className="text-sm text-gray-300 font-medium">
+                            Currículo
+                          </p>
+                          {curriculoUrl ? (
+                            <a
+                              href={curriculoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-green-400 hover:text-green-300 text-sm flex items-center space-x-1"
+                            >
+                              <span>Ver currículo</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          ) : (
+                            <p className="text-gray-500 text-sm">
+                              Não adicionado
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Info Text */}
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 mt-4">
+                      <p className="text-blue-300 text-xs">
+                        💡 Dica: Mantenha seus links atualizados para uma melhor
+                        apresentação profissional
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -493,26 +681,40 @@ const UserProfile = () => {
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-4">
-                      {testResults.scores.bigFive && Object.entries(testResults.scores.bigFive).map(([trait, score]) => (
-                        <div key={trait} className="flex items-center justify-between">
-                          <span className="text-gray-300 capitalize text-sm">
-                            {trait === 'openness' ? 'Abertura' :
-                             trait === 'conscientiousness' ? 'Conscienciosidade' :
-                             trait === 'extraversion' ? 'Extroversão' :
-                             trait === 'agreeableness' ? 'Amabilidade' :
-                             trait === 'neuroticism' ? 'Neuroticismo' : trait}
-                          </span>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-20 bg-gray-700 rounded-full h-2">
-                              <div 
-                                className="bg-purple-500 h-2 rounded-full" 
-                                style={{ width: `${(score / 5) * 100}%` }}
-                              />
+                      {testResults.scores.bigFive &&
+                        Object.entries(testResults.scores.bigFive).map(
+                          ([trait, score]) => (
+                            <div
+                              key={trait}
+                              className="flex items-center justify-between"
+                            >
+                              <span className="text-gray-300 capitalize text-sm">
+                                {trait === "openness"
+                                  ? "Abertura"
+                                  : trait === "conscientiousness"
+                                  ? "Conscienciosidade"
+                                  : trait === "extraversion"
+                                  ? "Extroversão"
+                                  : trait === "agreeableness"
+                                  ? "Amabilidade"
+                                  : trait === "neuroticism"
+                                  ? "Neuroticismo"
+                                  : trait}
+                              </span>
+                              <div className="flex items-center space-x-2">
+                                <div className="w-20 bg-gray-700 rounded-full h-2">
+                                  <div
+                                    className="bg-purple-500 h-2 rounded-full"
+                                    style={{ width: `${(score / 5) * 100}%` }}
+                                  />
+                                </div>
+                                <span className="text-white font-medium w-8 text-sm">
+                                  {score.toFixed(1)}
+                                </span>
+                              </div>
                             </div>
-                            <span className="text-white font-medium w-8 text-sm">{score.toFixed(1)}</span>
-                          </div>
-                        </div>
-                      ))}
+                          )
+                        )}
                     </div>
                   </CardContent>
                 </Card>
@@ -527,26 +729,40 @@ const UserProfile = () => {
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-4">
-                      {testResults.scores.leadership && Object.entries(testResults.scores.leadership).map(([style, score]) => (
-                        <div key={style} className="flex items-center justify-between">
-                          <span className="text-gray-300 capitalize text-sm">
-                            {style === 'autocratic' ? 'Autocrático' :
-                             style === 'democratic' ? 'Democrático' :
-                             style === 'transformational' ? 'Transformacional' :
-                             style === 'transactional' ? 'Transacional' :
-                             style === 'servant' ? 'Servidor' : style}
-                          </span>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-20 bg-gray-700 rounded-full h-2">
-                              <div 
-                                className="bg-yellow-500 h-2 rounded-full" 
-                                style={{ width: `${(score / 10) * 100}%` }}
-                              />
+                      {testResults.scores.leadership &&
+                        Object.entries(testResults.scores.leadership).map(
+                          ([style, score]) => (
+                            <div
+                              key={style}
+                              className="flex items-center justify-between"
+                            >
+                              <span className="text-gray-300 capitalize text-sm">
+                                {style === "autocratic"
+                                  ? "Autocrático"
+                                  : style === "democratic"
+                                  ? "Democrático"
+                                  : style === "transformational"
+                                  ? "Transformacional"
+                                  : style === "transactional"
+                                  ? "Transacional"
+                                  : style === "servant"
+                                  ? "Servidor"
+                                  : style}
+                              </span>
+                              <div className="flex items-center space-x-2">
+                                <div className="w-20 bg-gray-700 rounded-full h-2">
+                                  <div
+                                    className="bg-yellow-500 h-2 rounded-full"
+                                    style={{ width: `${(score / 10) * 100}%` }}
+                                  />
+                                </div>
+                                <span className="text-white font-medium w-8 text-sm">
+                                  {score.toFixed(1)}
+                                </span>
+                              </div>
                             </div>
-                            <span className="text-white font-medium w-8 text-sm">{score.toFixed(1)}</span>
-                          </div>
-                        </div>
-                      ))}
+                          )
+                        )}
                     </div>
                   </CardContent>
                 </Card>
@@ -582,7 +798,6 @@ const UserProfile = () => {
                           <span className="font-medium text-white">
                             {track.name}
                           </span>
-<<<<<<< HEAD
                           <span
                             className={`text-xs px-2 py-1 rounded-full ${
                               track.status === "Em andamento"
@@ -590,12 +805,6 @@ const UserProfile = () => {
                                 : "bg-gray-600/20 text-gray-400 border border-gray-500/30"
                             }`}
                           >
-=======
-                          <span className={`text-xs px-2 py-1 rounded-full ${track.status === 'Em andamento'
-                            ? 'bg-green-600/20 text-green-400 border border-green-500/30'
-                            : 'bg-gray-600/20 text-gray-400 border border-gray-500/30'
-                            }`}>
->>>>>>> origin/dev1
                             {track.status}
                           </span>
                         </div>
