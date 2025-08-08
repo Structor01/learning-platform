@@ -10,18 +10,8 @@ import {
   Loader,
   CheckCircle,
   AlertCircle,
-  Briefcase,
-  MapPin,
-  DollarSign,
-  Clock,
-  Users,
-  Building,
-  Lightbulb,
-  Target,
-  Zap,
-  Send,
   RefreshCw,
-  ChevronDown,
+  Target,
   TrendingUp,
   MessageSquare
 } from 'lucide-react';
@@ -52,156 +42,217 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
 
   const loadCompanies = async () => {
     setLoadingCompanies(true);
+    setError(null);
     try {
       const result = await companiesService.getCompaniesForSelect();
-      setCompanies(result.companies || []);
+      if (result.success) {
+        setCompanies(result.companies);
+      } else {
+        setCompanies(result.companies);
+        setError(`⚠️ ${result.message}. Usando dados locais.`);
+        setTimeout(() => setError(null), 5000);
+      }
     } catch {
-      setCompanies([]);
+      const fallback = [
+        { id: 1, name: 'Agroskills' },
+        { id: 2, name: 'FAEG' },
+        { id: 3, name: 'Senar Goiás' }
+      ];
+      setCompanies(fallback);
+      setError('⚠️ Erro de conexão. Usando empresas padrão.');
+      setTimeout(() => setError(null), 5000);
     } finally {
       setLoadingCompanies(false);
     }
   };
 
-  const handleCompanyChange = (companyId) => {
-    const selected = companies.find(c => c.id === parseInt(companyId));
+  const handleCompanyChange = (e) => {
+    const id = e.target.value;
+    const selected = companies.find(c => c.id.toString() === id);
     setFormData({
       ...formData,
-      company_id: companyId,
+      company_id: id,
       company_name: selected ? selected.name : ''
     });
+  };
+
+  const handleChange = e => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
   };
 
   const handleClose = () => {
     setStep(1);
     setPrompt('');
     setGeneratedJob(null);
-    setLoading(false);
     setError(null);
     setCompanies([]);
+    setLoading(false);
     setFormData({
-      company_id: '',
-      company_name: '',
-      location: 'São Paulo, SP',
-      job_type: 'full-time',
-      experience_level: 'mid',
-      work_model: 'hybrid',
-      include_benefits: true,
-      generate_questions: true,
-      tone: 'professional'
+      company_id: '', company_name: '', location: 'São Paulo, SP',
+      job_type: 'full-time', experience_level: 'mid', work_model: 'hybrid',
+      include_benefits: true, generate_questions: true, tone: 'professional'
     });
     onClose();
   };
 
-  const handleGenerateJob = async () => {
-    if (!prompt.trim()) {
-      setError('Por favor, descreva a vaga que deseja criar');
-      return;
-    }
+  const handleGenerate = async () => {
+    if (!prompt.trim()) return setError('Descreva a vaga a ser gerada');
     setLoading(true);
     setError(null);
     setStep(2);
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
-      const requestData = { prompt: prompt.trim(), ...formData };
-      const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/generate-with-ai`, {
+      const API = import.meta.env.VITE_API_URL || 'https://learning-platform-backend-2x39.onrender.com';
+      const res = await fetch(`${API}/api/recruitment/jobs/generate-with-ai`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData)
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ prompt: prompt.trim(), ...formData })
       });
-      if (!response.ok) throw new Error(`Erro ${response.status}: ${response.statusText}`);
-      const result = await response.json();
-      if (result.job) {
-        setGeneratedJob(result);
-        setStep(3);
-      } else {
-        throw new Error('Resposta inválida da API');
-      }
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      const data = await res.json();
+      setGeneratedJob(data);
+      setStep(3);
     } catch (err) {
-      setError(`Erro ao gerar vaga: ${err.message}`);
+      setError(err.message);
       setStep(1);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveJob = () => {
-    setLoading(true);
-    if (onJobCreated) onJobCreated(generatedJob.job);
+  const handleSave = () => {
+    if (onJobCreated && generatedJob?.job) onJobCreated(generatedJob.job);
     setStep(4);
     setTimeout(handleClose, 2000);
   };
 
-  const handleRegenerateJob = () => {
+  const handleRegenerate = () => {
     setStep(1);
     setGeneratedJob(null);
     setError(null);
   };
 
-  const promptSuggestions = [
-    "Desenvolvedor Full Stack para startup de tecnologia",
-    "Analista de Marketing Digital para e-commerce",
-    "Gerente de Vendas para empresa de software",
-    "Designer UX/UI para aplicativo mobile",
-    "Contador para escritório de contabilidade",
-    "Engenheiro de Dados para empresa de analytics"
-  ];
-
   return (
       <AnimatePresence>
         {isOpen && (
             <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-                onClick={e => e.target === e.currentTarget && handleClose()}
-            >
+                initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
+                className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                onClick={e=>e.target===e.currentTarget && handleClose()}>
+
               <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  className="bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
-              >
-                {/* ... restante do conteúdo inalterado ... */}
-                {step === 3 && generatedJob && (
-                    <Card className="bg-blue-900 border-blue-700">
-                      <CardHeader>
-                        <CardTitle className="text-blue-200 flex items-center gap-2">
-                          <Target className="h-5 w-5" />
-                          Insights da IA
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        {generatedJob.suggestions.market_insights && (
-                            <div>
-                              <h5 className="text-blue-200 font-medium mb-1">Insights de Mercado:</h5>
-                              <ul className="text-blue-300 text-sm space-y-1">
-                                {generatedJob.suggestions.market_insights.map((insight, index) => (
-                                    <li key={index} className="flex items-start gap-2">
-                                      <TrendingUp className="h-3 w-3 mt-1 flex-shrink-0" />
-                                      {insight}
-                                    </li>
-                                ))}
+                  initial={{scale:0.9,opacity:0}} animate={{scale:1,opacity:1}} exit={{scale:0.9,opacity:0}}
+                  className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl p-6 overflow-y-auto max-h-[90vh]">
+
+                {/* Step 1: Form */}
+                {step===1 && (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h2 className="text-xl font-bold text-white">Criar Vaga com IA</h2>
+                        <Button variant="ghost" onClick={handleClose}><X className="w-5 h-5"/></Button>
+                      </div>
+                      {error && <p className="text-red-400">{error}</p>}
+                      <textarea
+                          className="w-full p-2 rounded bg-gray-700 text-white"
+                          rows={3}
+                          placeholder="Descreva a vaga"
+                          value={prompt}
+                          onChange={e=>setPrompt(e.target.value)} />
+                      <select name="company_id" value={formData.company_id} onChange={handleCompanyChange} className="w-full p-2 rounded bg-gray-700 text-white">
+                        <option value="">Selecione empresa</option>
+                        {companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                      <input name="location" value={formData.location} onChange={handleChange} placeholder="Localização" className="w-full p-2 rounded bg-gray-700 text-white" />
+                      <div className="flex gap-2">
+                        <select name="job_type" value={formData.job_type} onChange={handleChange} className="flex-1 p-2 rounded bg-gray-700 text-white">
+                          <option value="full-time">Full-time</option>
+                          <option value="part-time">Part-time</option>
+                          <option value="contract">Contract</option>
+                        </select>
+                        <select name="experience_level" value={formData.experience_level} onChange={handleChange} className="flex-1 p-2 rounded bg-gray-700 text-white">
+                          <option value="entry">Entry</option>
+                          <option value="mid">Mid</option>
+                          <option value="senior">Senior</option>
+                        </select>
+                      </div>
+                      <div className="flex justify-end">
+                        <Button onClick={handleGenerate} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
+                          <Sparkles className="w-4 h-4 mr-2"/> Gerar Vaga
+                        </Button>
+                      </div>
+                    </div>
+                )}
+
+                {/* Step 2: Loading */}
+                {step===2 && (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <Loader className="animate-spin w-8 h-8 text-white mb-4"/>
+                      <p className="text-white">Gerando vaga...</p>
+                    </div>
+                )}
+
+                {/* Step 3: Preview */}
+                {step===3 && generatedJob && (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-bold text-white">Pré-visualização da Vaga</h3>
+                      <Card className="bg-gray-700">
+                        <CardHeader>
+                          <CardTitle className="text-white">{generatedJob.job.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-gray-300 mb-2">{generatedJob.job.description}</p>
+                          <div className="flex gap-4 flex-wrap text-sm text-gray-400">
+                            <Badge>{generatedJob.job.company_name}</Badge>
+                            <Badge>{generatedJob.job.location}</Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      {generatedJob.suggestions?.market_insights && (
+                          <Card className="bg-blue-900">
+                            <CardHeader>
+                              <CardTitle className="text-blue-200 flex items-center gap-2"><Target/>Insights</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="text-blue-300 space-y-1 text-sm">
+                                {generatedJob.suggestions.market_insights.map((i,idx)=><li key={idx} className="flex items-start gap-2"><TrendingUp/> {i}</li>)}
                               </ul>
-                            </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                            </CardContent>
+                          </Card>
+                      )}
+                      {generatedJob.custom_questions && (
+                          <Card className="bg-purple-900">
+                            <CardHeader>
+                              <CardTitle className="text-purple-200 flex items-center gap-2"><MessageSquare/>Perguntas</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ul className="text-purple-300 space-y-1 text-sm">
+                                {generatedJob.custom_questions.map((q,idx)=><li key={idx}>• {q}</li>)}
+                              </ul>
+                            </CardContent>
+                          </Card>
+                      )}
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={handleRegenerate} className="text-white">
+                          <RefreshCw className="w-4 h-4 mr-1"/> Regenerar
+                        </Button>
+                        <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white">
+                          <CheckCircle className="w-4 h-4 mr-1"/> Salvar Vaga
+                        </Button>
+                      </div>
+                    </div>
                 )}
-                {step === 3 && generatedJob.custom_questions && (
-                    <Card className="bg-purple-900 border-purple-700">
-                      <CardHeader>
-                        <CardTitle className="text-purple-200 flex items-center gap-2">
-                          <MessageSquare className="h-5 w-5" />
-                          Perguntas Customizadas ({generatedJob.custom_questions.length})
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {/* ... perguntas ... */}
-                      </CardContent>
-                    </Card>
+
+                {/* Step 4: Success */}
+                {step===4 && (
+                    <div className="flex flex-col items-center py-20">
+                      <CheckCircle className="w-12 h-12 text-green-400 mb-4"/>
+                      <p className="text-green-300 font-semibold">Vaga criada com sucesso!</p>
+                    </div>
                 )}
-                {/* ... restante ... */}
+
               </motion.div>
             </motion.div>
         )}
