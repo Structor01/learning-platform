@@ -362,7 +362,7 @@ const InterviewPage = () => {
             
             <div className="flex items-center gap-2">
               <Video className="h-5 w-5 text-purple-400" />
-              <span className="text-white font-medium">Entrevista com IA</span>
+              <span className="text-white font-medium">Entrevista</span>
             </div>
             
             <Button 
