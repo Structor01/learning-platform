@@ -438,53 +438,27 @@ const AdminPage = () => {
                         <div className="answer-text">{question.answer.text}</div>
                         
                         {/* Visualização de vídeo se disponível */}
-                        {question.answer.bunny_video_url && (
-                          <div className="video-section">
-                            <h4>Vídeo da Resposta:</h4>
-                            <div className="video-container">
-                              {question.answer.bunny_stream_url ? (
-                                <iframe
-                                  src={question.answer.bunny_stream_url}
-                                  width="100%"
-                                  height="300"
-                                  frameBorder="0"
+                        {question.answer.bunny_video_id && question.answer.bunny_library_id && (
+                            <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+                              <iframe
+                                  src={`https://iframe.mediadelivery.net/embed/${question.answer.bunny_library_id}/${question.answer.bunny_video_id}?autoplay=true&loop=false&muted=false&preload=true&responsive=true`}
+                                  loading="lazy"
+                                  style={{
+                                    border: 0,
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%'
+                                  }}
+                                  allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
                                   allowFullScreen
                                   title={`Resposta da pergunta ${question.order}`}
-                                />
-                              ) : (
-                                <video
-                                  controls
-                                  width="100%"
-                                  height="300"
-                                  src={question.answer.bunny_video_url}
-                                >
-                                  Seu navegador não suporta o elemento de vídeo.
-                                </video>
-                              )}
+                              ></iframe>
                             </div>
-                            {question.answer.bunny_thumbnail_url && (
-                              <div className="video-info">
-                                <img 
-                                  src={question.answer.bunny_thumbnail_url} 
-                                  alt="Thumbnail do vídeo"
-                                  className="video-thumbnail"
-                                  style={{ width: '120px', height: '68px', objectFit: 'cover' }}
-                                />
-                                <div className="video-meta">
-                                  {question.answer.video_duration && (
-                                    <span>Duração: {Math.floor(question.answer.video_duration / 60)}:{(question.answer.video_duration % 60).toString().padStart(2, '0')}</span>
-                                  )}
-                                  {question.answer.processing_status && (
-                                    <span className={`processing-status ${question.answer.processing_status}`}>
-                                      Status: {question.answer.processing_status}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
                         )}
-                        
+
+
                         <div className="answer-meta">
                           Respondida em: {adminService.formatDate(question.answer.createdAt)}
                         </div>

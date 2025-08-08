@@ -51,6 +51,7 @@
     "embla-carousel-react": "^8.6.0",
     "face-api.js": "^0.22.2",
     "framer-motion": "^12.23.6",
+    "hls.js": "^1.6.9",
     "html-react-parser": "^5.2.6",
     "input-otp": "^1.4.2",
     "jspdf": "^3.0.1",

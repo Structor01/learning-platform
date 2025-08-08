@@ -213,9 +213,9 @@ const RecrutamentoPage = () => {
       // Criar entrevista no backend
       const createResult = await interviewService.createInterview(
         job.id, 
-        'Candidato', // Nome será coletado no modal
-        'candidato@email.com', // Email será coletado no modal
-        1 // user_id fictício - será substituído por sistema de login real
+        user.name, // Nome será coletado no modal
+          user.email, // Email será coletado no modal
+        user.id // user_id fictício - será substituído por sistema de login real
       );
       
       if (createResult.success) {
