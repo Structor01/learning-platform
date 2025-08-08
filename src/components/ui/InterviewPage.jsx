@@ -156,15 +156,32 @@ const InterviewPage = () => {
     try {
       console.log(`📹 Processando resposta da pergunta ${questionIndex + 1}...`);
       
-      const result = await interviewService.submitVideoResponse(
+      // Usar uploadVideoResponse em vez de submitVideoResponse
+      const result = await interviewService.uploadVideoResponse(
         currentInterviewId,
-        questionIndex,
+        questionIndex + 1, // Backend usa 1-based indexing
         videoBlob,
         faceAnalysisData
       );
 
       if (result.success) {
         console.log(`✅ Resposta ${questionIndex + 1} enviada com sucesso!`);
+        
+        // Aguardar processamento IA
+        try {
+          const processingResult = await interviewService.waitForProcessingCompletion(
+            currentInterviewId,
+            result.responseId,
+            30, // 30 tentativas
+            2000 // 2 segundos entre tentativas
+          );
+
+          if (processingResult.success) {
+            console.log(`🤖 IA processou resposta ${questionIndex + 1}: Score ${processingResult.analysisScore}/10`);
+          }
+        } catch (processingError) {
+          console.warn('⚠️ Processamento IA demorou mais que esperado:', processingError.message);
+        }
         
         // Marcar pergunta como respondida
         setInterviewQuestions(prev => 
@@ -192,7 +209,8 @@ const InterviewPage = () => {
     try {
       console.log('🏁 Finalizando entrevista...');
       
-      const result = await interviewService.completeInterview(currentInterviewId);
+      // Usar finishInterview em vez de completeInterview
+      const result = await interviewService.finishInterview(currentInterviewId);
       
       if (result.success) {
         console.log('✅ Entrevista finalizada com sucesso!');
