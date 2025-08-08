@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import jsPDF from 'jspdf';
 import Navbar from './Navbar';
 import InterviewModal from './InterviewModal';
+import InterviewButton from './InterviewButton';
 import CreateJobWithAIModal from './CreateJobWithAIModal';
 import InterviewCompletionPage from './InterviewCompletionPage';
 import AdminPage from './AdminPage';
@@ -1114,23 +1115,19 @@ const RecrutamentoPage = () => {
 
                             {/* Botão Fazer Entrevista */}
                             <div className="mt-4">
-                              <Button
-                                onClick={() => handleStartInterview(job)}
-                                disabled={generatingQuestions}
+                              <InterviewButton
+                                job={job}
+                                variant="default"
                                 className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                              >
-                                {generatingQuestions ? (
-                                  <>
-                                    <Loader className="h-4 w-4 mr-2 animate-spin" />
-                                    Preparando Entrevista...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Video className="h-4 w-4 mr-2" />
-                                    Fazer Entrevista
-                                  </>
-                                )}
-                              </Button>
+                                fullWidth={true}
+                                buttonText="Fazer Entrevista"
+                                onInterviewStart={(jobData) => {
+                                  console.log('🎬 Entrevista iniciada para:', jobData.title);
+                                }}
+                                onInterviewComplete={(interviewId, jobData) => {
+                                  console.log('✅ Entrevista concluída:', interviewId, 'para vaga:', jobData.title);
+                                }}
+                              />
                             </div>
                           </div>
                         </CardContent>

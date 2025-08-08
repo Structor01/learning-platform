@@ -21,6 +21,7 @@ import Navbar from "./Navbar";
 import { Button } from "@/components/ui/button.jsx";
 import interviewService from "@/services/interviewService.js";
 import InterviewModal from "@/components/ui/InterviewModal";
+import InterviewButton from "@/components/ui/InterviewButton";
 
 const MinhasCandidaturasPage = () => {
   const [candidaturas, setCandidaturas] = useState([]);
@@ -787,37 +788,37 @@ const MinhasCandidaturasPage = () => {
 
                       {/* Footer com ações */}
                       <div className="flex items-center justify-between pt-4 border-t border-gray-800">
-                        <div className="text-sm text-gray-500">
-                          ID da candidatura: #{candidatura.id}
+                        <div className="flex items-center gap-4">
+                          <div className="text-sm text-gray-500">
+                            ID da candidatura: #{candidatura.id}
+                          </div>
+                          
+                          <button
+                            onClick={() => buscarEmpresa(candidatura)}
+                            className="flex items-center gap-2 px-4 py-2 text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 rounded-lg transition-all duration-200"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Ver empresa
+                          </button>
                         </div>
 
-                        <button
-                          onClick={() => buscarEmpresa(candidatura)}
-                          className="flex items-center gap-2 px-4 py-2 text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 rounded-lg transition-all duration-200"
-                        >
-                          <Eye className="w-4 h-4" />
-                          Ver empresa
-                        </button>
-
                         {/* Botão Fazer Entrevista */}
-                        <div className="mt-4">
-                          <Button
-                            onClick={() => handleStartInterview(candidatura.vaga)}
-                            disabled={generatingQuestions}
-                            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                          >
-                            {generatingQuestions ? (
-                              <>
-                                <Loader className="h-4 w-4 mr-2 animate-spin" />
-                                Preparando Entrevista...
-                              </>
-                            ) : (
-                              <>
-                                <Video className="h-4 w-4 mr-2" />
-                                Fazer Entrevista
-                              </>
-                            )}
-                          </Button>
+                        <div className="flex-shrink-0">
+                          <InterviewButton
+                            job={candidatura.vaga}
+                            variant="default"
+                            size="sm"
+                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                            buttonText="Fazer Entrevista"
+                            onInterviewStart={(jobData) => {
+                              console.log('🎬 Entrevista iniciada para candidatura:', candidatura.id, 'vaga:', jobData.title);
+                            }}
+                            onInterviewComplete={(interviewId, jobData) => {
+                              console.log('✅ Entrevista concluída:', interviewId, 'para candidatura:', candidatura.id);
+                              // Opcional: atualizar status da candidatura
+                              fetchCandidaturas(); // Recarregar candidaturas
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
