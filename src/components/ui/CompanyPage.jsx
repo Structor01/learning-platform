@@ -28,23 +28,34 @@ const CompanyPage = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
+                console.log('🔍 Carregando dados da empresa:', companyId);
 
                 // Buscar dados da empresa
+                console.log('🏢 Buscando empresa:', `${API_URL}/api/companies/${companyId}`);
                 const companyResponse = await axios.get(`${API_URL}/api/companies/${companyId}`);
+                console.log('✅ Empresa carregada:', companyResponse.data);
                 setCompany(companyResponse.data);
 
                 // Buscar vagas da empresa
-                const vagasResponse = await axios.get(`${API_URL}/api/vagas/empresa/${companyId}`);
+                console.log('💼 Buscando vagas:', `${API_URL}/api/recruitment/jobs/company/${companyId}`);
+                const vagasResponse = await axios.get(`${API_URL}/api/recruitment/jobs/company/${companyId}`);
+                console.log('✅ Vagas carregadas:', vagasResponse.data);
+                console.log('📊 Total de vagas encontradas:', vagasResponse.data.length);
                 setVagas(vagasResponse.data);
 
             } catch (error) {
-                console.error('Erro ao carregar dados:', error);
+                console.error('❌ Erro ao carregar dados:', error);
+                console.error('📡 Status:', error.response?.status);
+                console.error('📡 Data:', error.response?.data);
+                console.error('🌐 URL tentada:', error.config?.url);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchData();
+        if (companyId) {
+            fetchData();
+        }
     }, [companyId]);
 
     // Buscar candidaturas do usuário
@@ -390,54 +401,61 @@ const CompanyPage = () => {
                                             <div className="flex-1 min-w-0">
                                                 <header className="mb-6">
                                                     <h3 className="text-xl sm:text-2xl font-bold text-white mb-4 line-clamp-2">
-                                                        {vaga.nome}
+                                                        {vaga.title || vaga.nome}
                                                     </h3>
 
                                                     <div className="flex flex-wrap gap-3 sm:gap-4">
                                                         <div className="flex items-center gap-2 text-sm text-gray-400">
                                                             <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                                                            <span>{vaga.cidade}, {vaga.uf}</span>
+                                                            <span>{vaga.location || `${vaga.cidade}, ${vaga.uf}`}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2 text-sm text-gray-400">
                                                             <Clock className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                                                            <span>{vaga.modalidade}</span>
+                                                            <span>{vaga.job_type || vaga.modalidade}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2 text-sm text-gray-400">
                                                             <Building2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                                                            <span>{vaga.local}</span>
+                                                            <span>{vaga.company || vaga.local}</span>
                                                         </div>
                                                     </div>
                                                 </header>
 
                                                 <div className="space-y-4 mb-6">
-                                                    {vaga.descricao && (
+                                                    {(vaga.description || vaga.descricao) && (
                                                         <div>
                                                             <h4 className="font-semibold text-white mb-2">Descrição</h4>
-                                                            <p className="text-gray-300 leading-relaxed">{vaga.descricao}</p>
+                                                            <p className="text-gray-300 leading-relaxed">{vaga.description || vaga.descricao}</p>
                                                         </div>
                                                     )}
 
-                                                    {vaga.criterios && (
+                                                    {(vaga.requirements || vaga.criterios) && (
                                                         <div>
-                                                            <h4 className="font-semibold text-white mb-2">Critérios</h4>
-                                                            <p className="text-gray-300 leading-relaxed">{vaga.criterios}</p>
+                                                            <h4 className="font-semibold text-white mb-2">Requisitos</h4>
+                                                            <p className="text-gray-300 leading-relaxed">{vaga.requirements || vaga.criterios}</p>
                                                         </div>
                                                     )}
 
-                                                    {vaga.beneficios && (
+                                                    {(vaga.benefits || vaga.beneficios) && (
                                                         <div>
                                                             <h4 className="font-semibold text-white mb-2">Benefícios</h4>
-                                                            <p className="text-gray-300 leading-relaxed">{vaga.beneficios}</p>
+                                                            <p className="text-gray-300 leading-relaxed">{vaga.benefits || vaga.beneficios}</p>
                                                         </div>
                                                     )}
 
-                                                    {vaga.remuneracao && (
+                                                    {(vaga.salary_range || vaga.remuneracao) && (
                                                         <div className="bg-green-900/30 border border-green-700/50 rounded-xl p-4">
                                                             <h4 className="font-semibold text-green-400 mb-2 flex items-center gap-2">
                                                                 <span className="w-2 h-2 bg-green-400 rounded-full"></span>
                                                                 Remuneração
                                                             </h4>
-                                                            <p className="text-green-300">{vaga.remuneracao}</p>
+                                                            <p className="text-green-300">{vaga.salary_range || vaga.remuneracao}</p>
+                                                        </div>
+                                                    )}
+
+                                                    {vaga.summary && (
+                                                        <div className="bg-blue-900/30 border border-blue-700/50 rounded-xl p-4">
+                                                            <h4 className="font-semibold text-blue-400 mb-2">Resumo</h4>
+                                                            <p className="text-blue-300">{vaga.summary}</p>
                                                         </div>
                                                     )}
                                                 </div>
