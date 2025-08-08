@@ -5,7 +5,7 @@ class CompaniesService {
 
   async getCompaniesForSelect() {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/companies/select`, {
+      const response = await fetch(`${this.API_BASE_URL}/api/companies/select`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
