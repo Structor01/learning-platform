@@ -173,13 +173,19 @@ const InterviewModal = ({
       return;
     }
     
+    console.log(`🎬 Iniciando entrevista na pergunta ${currentQuestion + 1}`);
     setInterviewStarted(true);
     startRecording();
   };
 
   // Iniciar gravação
   const startRecording = () => {
-    if (!stream) return;
+    if (!stream) {
+      console.warn('Stream não disponível para gravação');
+      return;
+    }
+
+    console.log(`🔴 Iniciando gravação da pergunta ${currentQuestion + 1}`);
 
     try {
       const recorder = new MediaRecorder(stream, {
@@ -195,6 +201,7 @@ const InterviewModal = ({
       };
       
       recorder.onstop = () => {
+        console.log(`⏹️ Gravação parada para pergunta ${currentQuestion + 1}`);
         const videoBlob = new Blob(chunks, { type: 'video/webm' });
         handleVideoComplete(videoBlob);
         setRecordedChunks([]);
@@ -228,18 +235,28 @@ const InterviewModal = ({
   const handleVideoComplete = async (videoBlob) => {
     const questionIndex = currentQuestion;
     
+    console.log(`🎬 Processando pergunta ${questionIndex + 1} de ${questions.length}`);
+    
     // Adicionar à lista de processamento
     setProcessingQuestions(prev => new Set([...prev, questionIndex]));
     
     // Avançar para próxima pergunta imediatamente
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+      console.log(`➡️ Avançando para pergunta ${currentQuestion + 2}`);
+      setCurrentQuestion(prev => {
+        const newIndex = prev + 1;
+        console.log(`📝 currentQuestion atualizado: ${prev} → ${newIndex}`);
+        return newIndex;
+      });
+      
       // Iniciar gravação da próxima pergunta automaticamente
       setTimeout(() => {
+        console.log(`🔴 Iniciando gravação da pergunta ${currentQuestion + 2}`);
         startRecording();
       }, 500);
     } else {
       // Última pergunta - não iniciar nova gravação
+      console.log(`🏁 Última pergunta processada. Finalizando entrevista.`);
       setInterviewStarted(false);
     }
     
@@ -267,16 +284,27 @@ const InterviewModal = ({
 
   // Pular pergunta
   const skipQuestion = () => {
+    console.log(`⏭️ Pulando pergunta ${currentQuestion + 1}`);
+    
     if (isRecording) {
+      console.log(`🛑 Parando gravação antes de pular`);
       handleSendResponse();
     } else if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
+      console.log(`➡️ Avançando para próxima pergunta via skip`);
+      setCurrentQuestion(prev => {
+        const newIndex = prev + 1;
+        console.log(`📝 currentQuestion (skip): ${prev} → ${newIndex}`);
+        return newIndex;
+      });
       setFaceAnalysisData([]); // Reset dados faciais
       if (interviewStarted) {
         setTimeout(() => {
+          console.log(`🔴 Iniciando gravação após skip`);
           startRecording();
         }, 500);
       }
+    } else {
+      console.log(`🏁 Não é possível pular - última pergunta`);
     }
   };
 
@@ -304,6 +332,8 @@ const InterviewModal = ({
     setCameraEnabled(false);
     setIsRecording(false);
     setInterviewStarted(false);
+    setCurrentQuestion(0); // Reset para primeira pergunta
+    setRecordingTime(0);
     setFaceAnalysisData([]);
     setProcessingQuestions(new Set());
   };
@@ -333,7 +363,7 @@ const InterviewModal = ({
               {generatingQuestions && (
                 <div className="flex items-center gap-2 mt-2 text-blue-400">
                   <Loader className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Gerando perguntas com ChatGPT...</span>
+                  <span className="text-sm">Gerando perguntas...</span>
                 </div>
               )}
             </div>
@@ -368,20 +398,6 @@ const InterviewModal = ({
               />
             </div>
           </div>
-
-          {/* Pergunta Atual */}
-          {questions.length > 0 && (
-            <Card className="bg-gray-700 border-gray-600 mb-6">
-              <CardContent className="p-4">
-                <h3 className="text-white font-medium mb-2">
-                  Pergunta {currentQuestion + 1}:
-                </h3>
-                <p className="text-gray-300">
-                  {questions[currentQuestion]?.question}
-                </p>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Vídeo */}
           <Card className="bg-gray-700 border-gray-600 mb-6">

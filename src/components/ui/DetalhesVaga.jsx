@@ -549,14 +549,23 @@ const DetalhesVaga = () => {
     useEffect(() => {
         const fetchVaga = async () => {
             try {
-                const response = await axios.get(`${API_URL}/api/vagas/${vagaId}`);
+                console.log('🔍 Buscando detalhes da vaga:', vagaId);
+                console.log('🌐 URL:', `${API_URL}/api/recruitment/jobs/${vagaId}`);
+                
+                const response = await axios.get(`${API_URL}/api/recruitment/jobs/${vagaId}`);
+                console.log('✅ Vaga carregada:', response.data);
                 setVaga(response.data);
             } catch (error) {
-                console.error('Erro ao buscar detalhes da vaga:', error);
+                console.error('❌ Erro ao buscar detalhes da vaga:', error);
+                console.error('📡 Status:', error.response?.status);
+                console.error('📡 Data:', error.response?.data);
+                console.error('🌐 URL tentada:', error.config?.url);
             }
         };
 
-        fetchVaga();
+        if (vagaId) {
+            fetchVaga();
+        }
     }, [vagaId]);
 
     // ✅ ADICIONADO: Buscar candidaturas do usuário (igual ao CompanyPage)
@@ -599,16 +608,17 @@ const DetalhesVaga = () => {
         setIsSubmitting(true);
 
         try {
+            const vagaNome = vaga.title || vaga.nome;
             console.log('🔄 Enviando candidatura:', {
                 usuario_id: user.id,
                 vaga_id: vaga.id,
-                vaga_nome: vaga.nome,
+                vaga_nome: vagaNome,
             });
 
             const response = await axios.post(`${API_URL}/api/candidaturas`, {
                 usuario_id: user.id,
                 vaga_id: vaga.id,
-                mensagem: `Candidatura para a vaga: ${vaga.nome}`
+                mensagem: `Candidatura para a vaga: ${vagaNome}`
             });
 
             console.log('✅ Candidatura enviada:', response.data);
@@ -620,7 +630,7 @@ const DetalhesVaga = () => {
             showNotification({
                 type: 'success',
                 title: 'Candidatura Enviada!',
-                message: `Sua candidatura para ${vaga.nome} foi enviada com sucesso.`,
+                message: `Sua candidatura para ${vagaNome} foi enviada com sucesso.`,
                 duration: 5000
             });
 
@@ -628,12 +638,13 @@ const DetalhesVaga = () => {
             console.error('❌ Erro COMPLETO:', error);
 
             if (error.response) {
+                const vagaNome = vaga.title || vaga.nome;
                 switch (error.response.status) {
                     case 409:
                         showNotification({
                             type: 'info',
                             title: 'Candidatura Existente',
-                            message: `Você já se candidatou para a vaga: ${vaga.nome}`,
+                            message: `Você já se candidatou para a vaga: ${vagaNome}`,
                             duration: 4000
                         });
 
@@ -666,10 +677,11 @@ const DetalhesVaga = () => {
 
         // Verificar se já se candidatou
         if (jaSeCandidata(vaga.id)) {
+            const vagaNome = vaga.title || vaga.nome;
             showNotification({
                 type: 'info',
                 title: 'Candidatura Existente',
-                message: `Você já se candidatou para a vaga: ${vaga.nome}`,
+                message: `Você já se candidatou para a vaga: ${vagaNome}`,
                 duration: 4000
             });
             return;
@@ -712,57 +724,68 @@ const DetalhesVaga = () => {
 
                 {/* Título */}
                 <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-                    {vaga.nome}
+                    {vaga.title || vaga.nome}
                 </h1>
 
                 {/* Informações rápidas */}
                 <div className="flex flex-wrap gap-4 mb-8 text-gray-400">
                     <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-orange-500" />
-                        {vaga.cidade}, {vaga.uf}
+                        {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
                     </div>
                     <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-blue-500" />
-                        {vaga.modalidade}
+                        {vaga.job_type || vaga.modalidade}
                     </div>
                     <div className="flex items-center gap-2">
                         <Building2 className="w-4 h-4 text-green-500" />
-                        {vaga.local}
+                        {vaga.company || vaga.local}
                     </div>
                 </div>
 
                 {/* Descrição */}
-                {vaga.descricao && (
+                {(vaga.description || vaga.descricao) && (
                     <section className="mb-8">
                         <h2 className="text-xl font-semibold mb-2">Descrição</h2>
-                        <p className="text-gray-300 leading-relaxed text-justify">{vaga.descricao}</p>
+                        <p className="text-gray-300 leading-relaxed text-justify">{vaga.description || vaga.descricao}</p>
                     </section>
                 )}
 
-                {/* Critérios */}
-                {vaga.criterios && (
+                {/* Requisitos */}
+                {(vaga.requirements || vaga.criterios) && (
                     <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-2">Critérios</h2>
-                        <p className="text-gray-300 leading-relaxed text-justify">{vaga.criterios}</p>
+                        <h2 className="text-xl font-semibold mb-2">Requisitos</h2>
+                        <p className="text-gray-300 leading-relaxed text-justify">{vaga.requirements || vaga.criterios}</p>
                     </section>
                 )}
 
                 {/* Benefícios */}
-                {vaga.beneficios && (
+                {(vaga.benefits || vaga.beneficios) && (
                     <section className="mb-8">
                         <h2 className="text-xl font-semibold mb-2">Benefícios</h2>
-                        <p className="text-gray-300 leading-relaxed text-justify">{vaga.beneficios}</p>
+                        <p className="text-gray-300 leading-relaxed text-justify">{vaga.benefits || vaga.beneficios}</p>
+                    </section>
+                )}
+
+                {/* Resumo */}
+                {vaga.summary && (
+                    <section className="mb-8 bg-blue-900/30 border border-blue-700/50 rounded-xl p-4">
+                        <h2 className="text-blue-400 font-semibold mb-2 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                            Resumo
+                        </h2>
+                        <p className="text-blue-300">{vaga.summary}</p>
                     </section>
                 )}
 
                 {/* Remuneração */}
-                {vaga.remuneracao && (
+                {(vaga.salary_range || vaga.remuneracao) && (
                     <section className="mb-8 bg-green-900/30 border border-green-700/50 rounded-xl p-4">
                         <h2 className="text-green-400 font-semibold mb-2 flex items-center gap-2">
                             <span className="w-2 h-2 bg-green-400 rounded-full"></span>
                             Remuneração
                         </h2>
-                        <p className="text-green-300">{vaga.remuneracao}</p>
+                        <p className="text-green-300">{vaga.salary_range || vaga.remuneracao}</p>
                     </section>
                 )}
 

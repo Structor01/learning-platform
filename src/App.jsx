@@ -30,11 +30,9 @@ import VagasPage from './components/ui/VagasPage'; // Importando a nova página 
 import CompanyPage from "./components/ui/CompanyPage";
 import LoginModal from "./components/ui/LoginModal";
 import MinhasCandidaturasPage from "./components/ui/MinhasCandidaturasPage";
-<<<<<<< HEAD
-import DetalhesPage from './components/ui/DetalhesVaga';
-=======
 import DetalhesVaga from "./components/ui/DetalhesVaga";
->>>>>>> origin/dev1
+import InterviewPage from "./components/ui/InterviewPage";
+import CandidaturasAdmPage from "./components/ui/CandidaturasAdmPage";
 import "./App.css";
 
 const getApiUrl = () => {
@@ -247,6 +245,9 @@ function App() {
           {/* Página de Candidaturas */}
           <Route path="/minhas-candidaturas" element={<MinhasCandidaturasPage />} />
 
+          {/* Página de Entrevista */}
+          <Route path="/entrevista" element={<PrivateRoute><InterviewPage /></PrivateRoute>} />
+
           {/* Página de Candidatura */}
           <Route path="/LoginModal" element={<LoginModal />} />
 
@@ -267,11 +268,12 @@ function App() {
           <Route path="/meus-testes" element={<PrivateRoute><MeusTestesPage /></PrivateRoute>} />
           <Route path="/teste-disc" element={<PrivateRoute><TesteDISCPage /></PrivateRoute>} />
 
-          {/* Páginas CRM e Recrutamento */}
+          {/* Páginas CRM, Recrutamento e Candidaturas */}
           <Route path="/crm" element={<PrivateRoute><CRMPage /></PrivateRoute>} />
           <Route path="/recrutamento" element={<PrivateRoute><RecrutamentoPage /></PrivateRoute>} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/candidaturas" element={<CandidaturasAdmPage />} />
 
           {/* Catch-all: redireciona para "/" */}
           <Route path="*" element={<Navigate to="/" replace />} />
