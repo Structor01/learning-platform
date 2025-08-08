@@ -106,16 +106,32 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
     setStep(2);
     try {
       const API = import.meta.env.VITE_API_URL || 'https://learning-platform-backend-2x39.onrender.com';
+      console.log('🔍 Gerando vaga com IA...');
+      console.log('📊 Dados enviados:', { prompt: prompt.trim(), ...formData });
+      
       const res = await fetch(`${API}/api/recruitment/jobs/generate-with-ai`, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ prompt: prompt.trim(), ...formData })
       });
+      
+      console.log('📡 Status da resposta:', res.status);
+      
       if (!res.ok) throw new Error(`Erro ${res.status}`);
       const data = await res.json();
+      
+      console.log('✅ Dados recebidos da API:', data);
+      console.log('🔍 Estrutura custom_questions:', data.custom_questions);
+      console.log('🔍 Tipo custom_questions:', typeof data.custom_questions);
+      console.log('🔍 É array?', Array.isArray(data.custom_questions));
+      console.log('🔍 Estrutura market_insights:', data.suggestions?.market_insights);
+      console.log('🔍 Tipo market_insights:', typeof data.suggestions?.market_insights);
+      console.log('🔍 É array?', Array.isArray(data.suggestions?.market_insights));
+      
       setGeneratedJob(data);
       setStep(3);
     } catch (err) {
+      console.error('❌ Erro ao gerar vaga:', err);
       setError(err.message);
       setStep(1);
     } finally {
@@ -163,7 +179,7 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
                           onChange={e=>setPrompt(e.target.value)} />
                       <select name="company_id" value={formData.company_id} onChange={handleCompanyChange} className="w-full p-2 rounded bg-gray-700 text-white">
                         <option value="">Selecione empresa</option>
-                        {companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+                        {Array.isArray(companies) ? companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>) : null}
                       </select>
                       <input name="location" value={formData.location} onChange={handleChange} placeholder="Localização" className="w-full p-2 rounded bg-gray-700 text-white" />
                       <div className="flex gap-2">
@@ -210,7 +226,7 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
                           </div>
                         </CardContent>
                       </Card>
-                      {generatedJob.suggestions?.market_insights && (
+                      {Array.isArray(generatedJob.suggestions?.market_insights) && generatedJob.suggestions.market_insights.length > 0 && (
                           <Card className="bg-blue-900">
                             <CardHeader>
                               <CardTitle className="text-blue-200 flex items-center gap-2"><Target/>Insights</CardTitle>
@@ -222,14 +238,17 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
                             </CardContent>
                           </Card>
                       )}
-                      {generatedJob.custom_questions && (
+                      {Array.isArray(generatedJob.custom_questions) && generatedJob.custom_questions.length > 0 && (
                           <Card className="bg-purple-900">
                             <CardHeader>
                               <CardTitle className="text-purple-200 flex items-center gap-2"><MessageSquare/>Perguntas</CardTitle>
                             </CardHeader>
                             <CardContent>
                               <ul className="text-purple-300 space-y-1 text-sm">
-                                {generatedJob.custom_questions.map((q,idx)=><li key={idx}>• {q}</li>)}
+                                {Array.isArray(generatedJob.custom_questions) && generatedJob.custom_questions.length > 0 
+                                  ? generatedJob.custom_questions.map((q,idx)=><li key={idx}>• {q}</li>)
+                                  : <li className="text-gray-400">Nenhuma pergunta personalizada gerada</li>
+                                }
                               </ul>
                             </CardContent>
                           </Card>
