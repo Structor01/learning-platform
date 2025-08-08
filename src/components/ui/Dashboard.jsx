@@ -43,7 +43,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       "Cartão Virtual": "/cartao-virtual",
       "Agenda de Eventos": "/agenda-eventos",
       "Entrevista Simulada": "/entrevista-simulada",
-      "Meus Testes": "/meus-testes",
+      "Meus Testes": "/teste-disc", // Redireciona direto para TesteDISCPage
     };
 
     const route = routes[appName];
