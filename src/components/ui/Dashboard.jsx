@@ -193,7 +193,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               {/*</Button>*/}
             </div>
 
-            <div className="biblioteca-apps grid grid-cols-2 sm:!grid-cols-3 md:!grid-cols-4 lg:!grid-cols-5 xl:!grid-cols-5 gap-4">
+            <div className="biblioteca-apps grid grid-cols-2 sm:!grid-cols-4 gap-4">
               {/* Meu Cartão Virtual */}
               <Card
                 onClick={() => handleAppClick("Cartão Virtual")}
