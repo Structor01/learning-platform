@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import companiesService from '@/services/companiesService';
 import {
   X,
   Sparkles,
@@ -19,7 +20,8 @@ import {
   Target,
   Zap,
   Send,
-  RefreshCw
+  RefreshCw,
+  ChevronDown
 } from 'lucide-react';
 
 const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
@@ -28,7 +30,10 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
   const [generatedJob, setGeneratedJob] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [formData, setFormData] = useState({
+    company_id: '',
     company_name: '',
     location: 'São Paulo, SP',
     job_type: 'full-time',
@@ -39,12 +44,59 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
     tone: 'professional'
   });
 
+  // Carregar empresas quando o modal abrir
+  useEffect(() => {
+    if (isOpen) {
+      loadCompanies();
+    }
+  }, [isOpen]);
+
+  const loadCompanies = async () => {
+    setLoadingCompanies(true);
+    try {
+      const result = await companiesService.getCompaniesForSelect();
+      if (result.success) {
+        setCompanies(result.companies);
+        console.log(`✅ ${result.message}`);
+      } else {
+        setCompanies(result.companies); // Usar dados mock
+        console.log(`⚠️ ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar empresas:', error);
+      setCompanies([]);
+    } finally {
+      setLoadingCompanies(false);
+    }
+  };
+
+  const handleCompanyChange = (companyId) => {
+    const selectedCompany = companies.find(c => c.id === parseInt(companyId));
+    setFormData({
+      ...formData,
+      company_id: companyId,
+      company_name: selectedCompany ? selectedCompany.name : ''
+    });
+  };
+
   const handleClose = () => {
     setStep(1);
     setPrompt('');
     setGeneratedJob(null);
     setLoading(false);
     setError(null);
+    setCompanies([]);
+    setFormData({
+      company_id: '',
+      company_name: '',
+      location: 'São Paulo, SP',
+      job_type: 'full-time',
+      experience_level: 'mid',
+      work_model: 'hybrid',
+      include_benefits: true,
+      generate_questions: true,
+      tone: 'professional'
+    });
     onClose();
   };
 
@@ -222,15 +274,38 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-white font-medium mb-2">
-                        Nome da Empresa
+                        Empresa
                       </label>
-                      <input
-                        type="text"
-                        value={formData.company_name}
-                        onChange={(e) => setFormData({...formData, company_name: e.target.value})}
-                        placeholder="Nome da empresa"
-                        className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      />
+                      <div className="relative">
+                        <select
+                          value={formData.company_id}
+                          onChange={(e) => handleCompanyChange(e.target.value)}
+                          disabled={loadingCompanies}
+                          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none pr-10"
+                        >
+                          <option value="">
+                            {loadingCompanies ? 'Carregando empresas...' : 'Selecione uma empresa'}
+                          </option>
+                          {companies.map((company) => (
+                            <option key={company.id} value={company.id}>
+                              {company.name} {company.corporate_name && `(${company.corporate_name})`}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      </div>
+                      {loadingCompanies && (
+                        <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
+                          <Loader className="h-3 w-3 animate-spin" />
+                          Carregando empresas...
+                        </div>
+                      )}
+                      {companies.length === 0 && !loadingCompanies && (
+                        <div className="flex items-center gap-2 mt-2 text-sm text-yellow-400">
+                          <AlertCircle className="h-3 w-3" />
+                          Nenhuma empresa encontrada
+                        </div>
+                      )}
                     </div>
 
                     <div>
