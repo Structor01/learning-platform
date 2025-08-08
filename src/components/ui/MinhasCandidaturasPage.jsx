@@ -806,6 +806,7 @@ const MinhasCandidaturasPage = () => {
                         <div className="flex-shrink-0">
                           <InterviewButton
                             job={candidatura.vaga}
+                            candidaturaId={candidatura.id}
                             variant="default"
                             size="sm"
                             className="bg-purple-600 hover:bg-purple-700 text-white"
