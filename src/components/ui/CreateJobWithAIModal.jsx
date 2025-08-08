@@ -13,13 +13,213 @@ import {
   RefreshCw,
   Target,
   TrendingUp,
-  MessageSquare
+  MessageSquare,
+  Edit
 } from 'lucide-react';
+
+// Componente de formulário de edição de vaga (reutilizado do RecrutamentoPage)
+const EditJobForm = ({ job, onSave, onCancel }) => {
+  const [formData, setFormData] = useState({
+    title: job?.title || '',
+    company: job?.company || job?.company_name || '',
+    location: job?.location || '',
+    job_type: job?.job_type || '',
+    salary_range: job?.salary_range || '',
+    description: job?.description || '',
+    requirements: job?.requirements || '',
+    benefits: job?.benefits || '',
+    summary: job?.summary || ''
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      await onSave(formData);
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-white font-medium mb-2">
+            Título da Vaga
+          </label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-white font-medium mb-2">
+            Empresa
+          </label>
+          <input
+            type="text"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-white font-medium mb-2">
+            Localização
+          </label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-white font-medium mb-2">
+            Tipo de Trabalho
+          </label>
+          <select
+            name="job_type"
+            value={formData.job_type}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">Selecione o tipo</option>
+            <option value="Remoto">Remoto</option>
+            <option value="Presencial">Presencial</option>
+            <option value="Híbrido">Híbrido</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-white font-medium mb-2">
+          Faixa Salarial
+        </label>
+        <input
+          type="text"
+          name="salary_range"
+          value={formData.salary_range}
+          onChange={handleChange}
+          placeholder="Ex: R$ 5.000 - R$ 8.000"
+          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-white font-medium mb-2">
+          Descrição
+        </label>
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          rows={4}
+          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-white font-medium mb-2">
+          Requisitos
+        </label>
+        <textarea
+          name="requirements"
+          value={formData.requirements}
+          onChange={handleChange}
+          rows={3}
+          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-white font-medium mb-2">
+          Benefícios
+        </label>
+        <textarea
+          name="benefits"
+          value={formData.benefits}
+          onChange={handleChange}
+          rows={3}
+          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-white font-medium mb-2">
+          Resumo
+        </label>
+        <textarea
+          name="summary"
+          value={formData.summary}
+          onChange={handleChange}
+          rows={2}
+          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+        />
+      </div>
+
+      <div className="flex gap-3 pt-4">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+        >
+          {loading ? (
+            <>
+              <Loader className="h-4 w-4 mr-2 animate-spin" />
+              Salvando...
+            </>
+          ) : (
+            <>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Salvar Vaga
+            </>
+          )}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="border-gray-600 text-gray-300 hover:bg-gray-700"
+        >
+          Voltar
+        </Button>
+      </div>
+    </form>
+  );
+};
 
 const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
   const [step, setStep] = useState(1);
   const [prompt, setPrompt] = useState('');
   const [generatedJob, setGeneratedJob] = useState(null);
+  const [editedJob, setEditedJob] = useState(null); // Para armazenar dados editados
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [companies, setCompanies] = useState([]);
@@ -88,6 +288,7 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
     setStep(1);
     setPrompt('');
     setGeneratedJob(null);
+    setEditedJob(null); // Limpar dados editados
     setError(null);
     setCompanies([]);
     setLoading(false);
@@ -140,9 +341,35 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
   };
 
   const handleSave = () => {
-    if (onJobCreated && generatedJob?.job) onJobCreated(generatedJob.job);
-    setStep(4);
+    // Usar dados editados se existirem, senão usar dados originais
+    const jobToSave = editedJob || generatedJob?.job;
+    if (onJobCreated && jobToSave) onJobCreated(jobToSave);
+    setStep(5); // Mudando para step 5 (success)
     setTimeout(handleClose, 2000);
+  };
+
+  // Função para ir para edição
+  const handleEdit = () => {
+    setStep(4); // Step 4 será a edição
+  };
+
+  // Função para salvar edições
+  const handleSaveEdit = async (editedData) => {
+    console.log('💾 Salvando edições da vaga:', editedData);
+    
+    // Criar objeto de vaga editada
+    const editedJobData = {
+      ...generatedJob.job,
+      ...editedData
+    };
+    
+    setEditedJob(editedJobData);
+    setStep(3); // Voltar para preview com dados editados
+  };
+
+  // Função para cancelar edição
+  const handleCancelEdit = () => {
+    setStep(3); // Voltar para preview
   };
 
   const handleRegenerate = () => {
@@ -213,19 +440,41 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
                 {/* Step 3: Preview */}
                 {step===3 && generatedJob && (
                     <div className="space-y-4">
-                      <h3 className="text-lg font-bold text-white">Pré-visualização da Vaga</h3>
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-bold text-white">Pré-visualização da Vaga</h3>
+                        {editedJob && (
+                          <Badge className="bg-green-600 text-white">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Editado
+                          </Badge>
+                        )}
+                      </div>
+                      
                       <Card className="bg-gray-700">
                         <CardHeader>
-                          <CardTitle className="text-white">{generatedJob.job.title}</CardTitle>
+                          <CardTitle className="text-white">
+                            {editedJob?.title || generatedJob.job.title}
+                          </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-gray-300 mb-2">{generatedJob.job.description}</p>
+                          <p className="text-gray-300 mb-2">
+                            {editedJob?.description || generatedJob.job.description}
+                          </p>
                           <div className="flex gap-4 flex-wrap text-sm text-gray-400">
-                            <Badge>{generatedJob.job.company_name}</Badge>
-                            <Badge>{generatedJob.job.location}</Badge>
+                            <Badge>{editedJob?.company || generatedJob.job.company_name}</Badge>
+                            <Badge>{editedJob?.location || generatedJob.job.location}</Badge>
+                            <Badge>{editedJob?.job_type || generatedJob.job.job_type}</Badge>
                           </div>
+                          {(editedJob?.salary_range || generatedJob.job.salary_range) && (
+                            <div className="mt-2">
+                              <Badge variant="outline" className="text-green-400 border-green-400">
+                                {editedJob?.salary_range || generatedJob.job.salary_range}
+                              </Badge>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
+                      
                       {Array.isArray(generatedJob.suggestions?.market_insights) && generatedJob.suggestions.market_insights.length > 0 && (
                           <Card className="bg-blue-900">
                             <CardHeader>
@@ -238,6 +487,7 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
                             </CardContent>
                           </Card>
                       )}
+                      
                       {Array.isArray(generatedJob.custom_questions) && generatedJob.custom_questions.length > 0 && (
                           <Card className="bg-purple-900">
                             <CardHeader>
@@ -253,9 +503,13 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
                             </CardContent>
                           </Card>
                       )}
+                      
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={handleRegenerate} className="text-white">
                           <RefreshCw className="w-4 h-4 mr-1"/> Regenerar
+                        </Button>
+                        <Button variant="outline" onClick={handleEdit} className="border-orange-600 text-orange-300 hover:bg-orange-700 hover:text-white">
+                          <Edit className="w-4 h-4 mr-1"/> Editar
                         </Button>
                         <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white">
                           <CheckCircle className="w-4 h-4 mr-1"/> Salvar Vaga
@@ -264,11 +518,39 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
                     </div>
                 )}
 
-                {/* Step 4: Success */}
-                {step===4 && (
+                {/* Step 4: Edit */}
+                {step===4 && generatedJob && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-orange-600 rounded-lg">
+                          <Edit className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-white">Editar Vaga</h3>
+                          <p className="text-gray-400 text-sm">
+                            Ajuste as informações da vaga gerada pela IA
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <EditJobForm 
+                        job={editedJob || generatedJob.job}
+                        onSave={handleSaveEdit}
+                        onCancel={handleCancelEdit}
+                      />
+                    </div>
+                )}
+
+                {/* Step 5: Success */}
+                {step===5 && (
                     <div className="flex flex-col items-center py-20">
                       <CheckCircle className="w-12 h-12 text-green-400 mb-4"/>
                       <p className="text-green-300 font-semibold">Vaga criada com sucesso!</p>
+                      {editedJob && (
+                        <p className="text-gray-400 text-sm mt-2">
+                          Suas edições foram aplicadas
+                        </p>
+                      )}
                     </div>
                 )}
 
