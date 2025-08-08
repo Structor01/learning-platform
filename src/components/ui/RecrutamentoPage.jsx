@@ -65,15 +65,12 @@ const RecrutamentoPage = () => {
 
   // Estados para Coresignal
   const [coresignalSearches, setCoresignalSearches] = useState({});
-  const [coresignalResults, setCoresignalResults] = useState({});
-  const [showCoresignalModal, setShowCoresignalModal] = useState(false);
 
   // Estados para Entrevista
   const [showInterviewModal, setShowInterviewModal] = useState(false);
   const [interviewJob, setInterviewJob] = useState(null);
   const [interviewQuestions, setInterviewQuestions] = useState([]);
   const [currentInterviewId, setCurrentInterviewId] = useState(null);
-  const [showInterviewCompletion, setShowInterviewCompletion] = useState(false);
   const [generatingQuestions, setGeneratingQuestions] = useState(false);
 
   // Estados para Finalização da Entrevista
@@ -1079,7 +1076,8 @@ const RecrutamentoPage = () => {
                                 className="border-gray-600  text-gray-300  hover:bg-gray-700 "
                               >
                                 <Eye className="h-4 w-4  mr-2 " />
-                                Ver Detalh                              </Button>
+                                Ver Detalhes
+                              </Button>
                             </div>
 
                             {/* Botão Fazer Entrevista */}
