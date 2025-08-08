@@ -363,7 +363,7 @@ const InterviewModal = ({
               {generatingQuestions && (
                 <div className="flex items-center gap-2 mt-2 text-blue-400">
                   <Loader className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Gerando perguntas com ChatGPT...</span>
+                  <span className="text-sm">Gerando perguntas...</span>
                 </div>
               )}
             </div>
@@ -398,20 +398,6 @@ const InterviewModal = ({
               />
             </div>
           </div>
-
-          {/* Pergunta Atual */}
-          {questions.length > 0 && (
-            <Card className="bg-gray-700 border-gray-600 mb-6">
-              <CardContent className="p-4">
-                <h3 className="text-white font-medium mb-2">
-                  Pergunta {currentQuestion + 1}:
-                </h3>
-                <p className="text-gray-300">
-                  {questions[currentQuestion]?.question}
-                </p>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Vídeo */}
           <Card className="bg-gray-700 border-gray-600 mb-6">
