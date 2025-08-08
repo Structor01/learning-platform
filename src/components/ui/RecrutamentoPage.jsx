@@ -137,7 +137,7 @@ const RecrutamentoPage = () => {
       // Usar o backend para buscar candidatos
       const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
       
-      const response = await fetch(`${API_BASE_URL}/recruitment/jobs/${jobId}/search-linkedin`, {
+      const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/${jobId}/search-linkedin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -1219,7 +1219,7 @@ const RecrutamentoPage = () => {
                         <CardContent className="p-4 ">
                           <div className="flex items-start  gap-4 ">
                             <img
-                              src={candidate.profile_image}
+                              src={candidate.imageUrl}
                               alt={candidate.name}
                               className="w-16 h-16  rounded-full "
                             />
@@ -1258,7 +1258,7 @@ const RecrutamentoPage = () => {
                                 <Button
                                   size="sm"
                                   className="bg-blue-600 hover:bg-blue-700  text-white "
-                                  onClick={() => window.open(candidate.linkedin_url, '_blank')}
+                                  onClick={() => window.open(candidate.profileUrl, '_blank')}
                                 >
                                   <ExternalLink className="h-4 w-4  mr-1 " />
                                   LinkedIn
