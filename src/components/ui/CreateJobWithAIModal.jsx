@@ -53,18 +53,47 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
 
   const loadCompanies = async () => {
     setLoadingCompanies(true);
+    setError(null); // Limpar erros anteriores
+    
     try {
+      console.log('🔍 Carregando empresas no modal...');
       const result = await companiesService.getCompaniesForSelect();
+      
       if (result.success) {
         setCompanies(result.companies);
         console.log(`✅ ${result.message}`);
       } else {
-        setCompanies(result.companies); // Usar dados mock
+        // Usar dados mock mas mostrar aviso
+        setCompanies(result.companies);
         console.log(`⚠️ ${result.message}`);
+        
+        // Mostrar aviso visual para o usuário
+        setError(`⚠️ ${result.message}. Usando dados locais.`);
+        
+        // Limpar erro após 5 segundos
+        setTimeout(() => {
+          setError(null);
+        }, 5000);
       }
     } catch (error) {
-      console.error('Erro ao carregar empresas:', error);
-      setCompanies([]);
+      console.error('❌ Erro crítico ao carregar empresas:', error);
+      
+      // Fallback para dados mock
+      const fallbackCompanies = [
+        { id: 1, name: 'Agroskills', corporate_name: 'AGSK' },
+        { id: 2, name: 'FAEG', corporate_name: 'Federação de Agricultura de Goiás' },
+        { id: 3, name: 'Senar Goiás', corporate_name: 'Senar GO' },
+        { id: 4, name: 'LinkAgroTech', corporate_name: 'LinkAgroTech Ltda' },
+        { id: 5, name: 'Campo Nutrição Animal', corporate_name: 'Campo Nutrição' }
+      ];
+      
+      setCompanies(fallbackCompanies);
+      setError('⚠️ Erro de conexão. Usando empresas padrão.');
+      
+      // Limpar erro após 5 segundos
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
     } finally {
       setLoadingCompanies(false);
     }
@@ -118,6 +147,10 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
         ...formData
       };
 
+      console.log('🔍 Gerando vaga com IA...');
+      console.log('🌐 URL:', `${API_BASE_URL}/api/recruitment/jobs/generate-with-ai`);
+      console.log('📊 Dados da requisição:', requestData);
+
       const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/generate-with-ai`, {
         method: 'POST',
         headers: {
@@ -126,22 +159,51 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
         body: JSON.stringify(requestData)
       });
 
+      console.log('📡 Status da resposta:', response.status);
+
       if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        let errorMessage = `Erro ${response.status}: ${response.statusText}`;
+        
+        try {
+          const errorData = await response.json();
+          if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (parseError) {
+          console.error('Erro ao parsear resposta de erro:', parseError);
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
+      console.log('✅ Vaga gerada com sucesso:', result);
       
       if (result.job) {
         setGeneratedJob(result);
         setStep(3);
       } else {
-        throw new Error('Resposta inválida da API');
+        throw new Error('Resposta inválida da API - vaga não encontrada na resposta');
       }
 
     } catch (error) {
-      console.error('Erro ao gerar vaga:', error);
-      setError(`Erro ao gerar vaga: ${error.message}`);
+      console.error('❌ Erro ao gerar vaga:', error);
+      
+      let userFriendlyMessage = 'Erro ao gerar vaga';
+      
+      if (error.message.includes('404')) {
+        userFriendlyMessage = 'Serviço de geração de vaga não encontrado. Verifique se o backend está funcionando.';
+      } else if (error.message.includes('500')) {
+        userFriendlyMessage = 'Erro interno do servidor. Tente novamente em alguns minutos.';
+      } else if (error.message.includes('Failed to fetch')) {
+        userFriendlyMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+      } else if (error.message.includes('timeout')) {
+        userFriendlyMessage = 'Tempo limite excedido. O servidor pode estar sobrecarregado.';
+      } else {
+        userFriendlyMessage = error.message;
+      }
+      
+      setError(userFriendlyMessage);
       setStep(1);
     } finally {
       setLoading(false);
@@ -150,12 +212,18 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
 
   const handleSaveJob = async () => {
     setLoading(true);
+    setError(null);
     
     try {
+      console.log('💾 Salvando vaga gerada...');
+      
       // A vaga já foi salva no backend durante a geração
       // Aqui apenas confirmamos e notificamos o componente pai
-      if (onJobCreated) {
+      if (onJobCreated && generatedJob?.job) {
+        console.log('✅ Notificando componente pai sobre vaga criada:', generatedJob.job);
         onJobCreated(generatedJob.job);
+      } else {
+        console.warn('⚠️ Dados da vaga não encontrados ou callback não definido');
       }
       
       setStep(4);
@@ -166,8 +234,19 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
       }, 2000);
 
     } catch (error) {
-      console.error('Erro ao salvar vaga:', error);
-      setError(`Erro ao salvar vaga: ${error.message}`);
+      console.error('❌ Erro ao salvar vaga:', error);
+      
+      let userFriendlyMessage = 'Erro ao salvar vaga';
+      
+      if (error.message.includes('network')) {
+        userFriendlyMessage = 'Erro de rede. Verifique sua conexão.';
+      } else if (error.message.includes('timeout')) {
+        userFriendlyMessage = 'Tempo limite excedido. Tente novamente.';
+      } else {
+        userFriendlyMessage = error.message;
+      }
+      
+      setError(userFriendlyMessage);
     } finally {
       setLoading(false);
     }
