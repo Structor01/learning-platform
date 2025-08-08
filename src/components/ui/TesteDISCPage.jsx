@@ -50,6 +50,54 @@ const TesteDISCPage = () => {
     return () => clearInterval(interval);
   }, [currentPhase, startTime]);
 
+  // Verificar se usuário já tem teste completo
+  useEffect(() => {
+    const checkExistingTest = async () => {
+      if (!userId || authLoading) return;
+
+      try {
+        setLoading(true);
+        
+        // Buscar testes psicológicos do usuário
+        const userTests = await testService.getUserPsychologicalTests(userId, 'completed', 1);
+        
+        if (userTests.tests && userTests.tests.length > 0) {
+          const completedTest = userTests.tests[0];
+          
+          // Obter relatório detalhado do teste
+          const report = await testService.getPsychologicalTestReport(completedTest.id);
+          
+          // Configurar resultados existentes
+          setTestResults({
+            test: completedTest,
+            scores: {
+              disc: completedTest.disc_scores,
+              bigFive: completedTest.big_five_scores,
+              leadership: completedTest.leadership_scores
+            },
+            analysis: {
+              overall: completedTest.overall_analysis,
+              recommendations: completedTest.recommendations
+            },
+            report: report,
+            isExisting: true // Flag para indicar que é um teste existente
+          });
+          
+          setTestId(completedTest.id);
+          setCurrentPhase('results');
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Erro ao verificar testes existentes:', error);
+        setLoading(false);
+        // Não mostrar erro aqui, apenas continuar para novo teste
+      }
+    };
+
+    checkExistingTest();
+  }, [userId, authLoading]);
+
   const formatTime = (ms) => {
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
@@ -156,6 +204,14 @@ const TesteDISCPage = () => {
     setStartTime(null);
     setTestId(null);
     setQuestions([]);
+    setError(null);
+  };
+
+  const startNewTest = () => {
+    // Limpar resultados existentes e iniciar novo teste
+    setTestResults(null);
+    setTestId(null);
+    setCurrentPhase('intro');
     setError(null);
   };
 
@@ -430,7 +486,7 @@ const TesteDISCPage = () => {
   const renderResults = () => {
     if (!testResults) return null;
 
-    const { scores, analysis, report } = testResults;
+    const { scores, analysis, report, isExisting } = testResults;
 
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -442,10 +498,22 @@ const TesteDISCPage = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full mb-6">
             <CheckCircle className="h-10 w-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-white mb-4">Resultados do Teste</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">
+            {isExisting ? 'Seus Resultados Salvos' : 'Resultados do Teste'}
+          </h1>
           <p className="text-xl text-gray-300">
-            Seu perfil psicológico completo foi gerado com sucesso
+            {isExisting 
+              ? 'Aqui estão os resultados do seu teste psicológico anterior'
+              : 'Seu perfil psicológico completo foi gerado com sucesso'
+            }
           </p>
+          {isExisting && (
+            <div className="bg-blue-900 border border-blue-700 rounded-lg p-4 mt-4 inline-block">
+              <p className="text-blue-200 text-sm">
+                ✅ Teste realizado anteriormente • Dados salvos no seu perfil
+              </p>
+            </div>
+          )}
         </motion.div>
 
         {/* Scores DISC */}
@@ -562,12 +630,12 @@ const TesteDISCPage = () => {
 
         <div className="flex justify-center space-x-4">
           <Button
-            onClick={restartTest}
+            onClick={isExisting ? startNewTest : restartTest}
             variant="outline"
             className="border-gray-600 text-gray-300 hover:bg-gray-700"
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Fazer Novo Teste
+            {isExisting ? 'Fazer Novo Teste' : 'Refazer Teste'}
           </Button>
           
           <Button

@@ -315,3 +315,31 @@ class TestService {
 const testService = new TestService();
 export default testService;
 
+
+  // Buscar testes psicológicos do usuário
+  async getUserPsychologicalTests(userId, status = null, limit = 10) {
+    let endpoint = `/psychological/user/${userId}`;
+    const params = new URLSearchParams();
+    
+    if (status) {
+      params.append('status', status);
+    }
+    if (limit) {
+      params.append('limit', limit.toString());
+    }
+    
+    if (params.toString()) {
+      endpoint += `?${params.toString()}`;
+    }
+    
+    return await this.makeRequest(endpoint);
+  }
+
+
+}
+
+// Criar instância única do serviço
+const testService = new TestService();
+
+export default testService;
+
