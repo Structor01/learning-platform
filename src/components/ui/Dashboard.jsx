@@ -24,7 +24,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         `welcome_seen_${user.email}`
       );
       if (!hasSeenWelcome) {
-        setShowWelcomeAnimation(true);
+        setShowWelcomeAnimation(false);
       }
     }
   }, [user]);
