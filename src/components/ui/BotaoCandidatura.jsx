@@ -13,7 +13,7 @@ export default function BotaoCandidatura({
     const jaCandidatou = jaSeCandidata(vaga.id);
 
     return (
-        <div className="xl:w-64 flex-shrink-0">
+        <div className="xl:w-50 flex-shrink-0">
             <button
                 onClick={() => {
                     if (jaCandidatou || isSubmitting) return;

@@ -100,10 +100,10 @@ const AdminPage = () => {
   const renderDashboard = () => (
     <div className="admin-dashboard">
       <h2>Dashboard Administrativo</h2>
-      
+
       {loading && <div className="loading">Carregando estatísticas...</div>}
       {error && <div className="error">{error}</div>}
-      
+
       {dashboardStats && (
         <>
           <div className="stats-grid">
@@ -111,53 +111,53 @@ const AdminPage = () => {
               <h3>Total de Entrevistas</h3>
               <div className="stat-value">{dashboardStats.totalInterviews}</div>
             </div>
-            
+
             <div className="stat-card">
               <h3>Entrevistas Concluídas</h3>
               <div className="stat-value">{dashboardStats.completedInterviews}</div>
               <div className="stat-subtitle">
-                {dashboardStats.totalInterviews > 0 
+                {dashboardStats.totalInterviews > 0
                   ? `${((dashboardStats.completedInterviews / dashboardStats.totalInterviews) * 100).toFixed(1)}%`
                   : '0%'
                 }
               </div>
             </div>
-            
+
             <div className="stat-card">
               <h3>Em Andamento</h3>
               <div className="stat-value">{dashboardStats.inProgressInterviews}</div>
             </div>
-            
+
             <div className="stat-card">
               <h3>Pontuação Média</h3>
               <div className="stat-value">{adminService.formatScore(dashboardStats.averageScore)}</div>
               <div className="stat-subtitle">de 10.0</div>
             </div>
-            
+
             <div className="stat-card">
               <h3>Taxa de Conclusão</h3>
               <div className="stat-value">{adminService.formatPercentage(dashboardStats.averageCompletionRate)}</div>
             </div>
-            
+
             <div className="stat-card">
               <h3>Hoje</h3>
               <div className="stat-value">{dashboardStats.interviewsToday}</div>
               <div className="stat-subtitle">entrevistas</div>
             </div>
-            
+
             <div className="stat-card">
               <h3>Esta Semana</h3>
               <div className="stat-value">{dashboardStats.interviewsThisWeek}</div>
               <div className="stat-subtitle">entrevistas</div>
             </div>
-            
+
             <div className="stat-card">
               <h3>Este Mês</h3>
               <div className="stat-value">{dashboardStats.interviewsThisMonth}</div>
               <div className="stat-subtitle">entrevistas</div>
             </div>
           </div>
-          
+
           <div className="dashboard-summary">
             <h3>Resumo Geral</h3>
             <div className="summary-grid">
@@ -180,10 +180,10 @@ const AdminPage = () => {
     <div className="admin-interviews">
       <div className="interviews-header">
         <h2>Gerenciar Entrevistas</h2>
-        
+
         <div className="filters">
-          <select 
-            value={filters.status} 
+          <select
+            value={filters.status}
             onChange={(e) => handleFilterChange('status', e.target.value)}
           >
             <option value="">Todos os Status</option>
@@ -191,16 +191,16 @@ const AdminPage = () => {
             <option value="in_progress">Em Andamento</option>
             <option value="pending">Pendentes</option>
           </select>
-          
+
           <input
             type="text"
             placeholder="Nome do candidato..."
             value={filters.candidateName}
             onChange={(e) => handleFilterChange('candidateName', e.target.value)}
           />
-          
-          <select 
-            value={filters.sortBy} 
+
+          <select
+            value={filters.sortBy}
             onChange={(e) => handleFilterChange('sortBy', e.target.value)}
           >
             <option value="created_at">Data de Criação</option>
@@ -208,9 +208,9 @@ const AdminPage = () => {
             <option value="overall_score">Pontuação</option>
             <option value="answered_questions">Perguntas Respondidas</option>
           </select>
-          
-          <select 
-            value={filters.sortOrder} 
+
+          <select
+            value={filters.sortOrder}
             onChange={(e) => handleFilterChange('sortOrder', e.target.value)}
           >
             <option value="DESC">Decrescente</option>
@@ -218,10 +218,10 @@ const AdminPage = () => {
           </select>
         </div>
       </div>
-      
+
       {loading && <div className="loading">Carregando entrevistas...</div>}
       {error && <div className="error">{error}</div>}
-      
+
       {interviews.length > 0 && (
         <>
           <div className="interviews-table">
@@ -258,7 +258,7 @@ const AdminPage = () => {
                       </div>
                     </td>
                     <td>
-                      <span 
+                      <span
                         className="status-badge"
                         style={{ backgroundColor: adminService.getStatusColor(interview.status) }}
                       >
@@ -268,13 +268,13 @@ const AdminPage = () => {
                     <td>
                       <div className="progress-info">
                         <div className="progress-bar">
-                          <div 
+                          <div
                             className="progress-fill"
                             style={{ width: `${interview.completionPercentage}%` }}
                           ></div>
                         </div>
                         <span className="progress-text">
-                          {interview.answeredQuestions}/{interview.totalQuestions} 
+                          {interview.answeredQuestions}/{interview.totalQuestions}
                           ({adminService.formatPercentage(interview.completionPercentage)})
                         </span>
                       </div>
@@ -285,13 +285,13 @@ const AdminPage = () => {
                     <td>{adminService.formatDate(interview.createdAt)}</td>
                     <td>
                       <div className="actions">
-                        <button 
+                        <button
                           className="btn-view"
                           onClick={() => handleViewDetails(interview)}
                         >
                           Ver Detalhes
                         </button>
-                        <button 
+                        <button
                           className="btn-delete"
                           onClick={() => handleDeleteInterview(interview.id)}
                         >
@@ -304,22 +304,22 @@ const AdminPage = () => {
               </tbody>
             </table>
           </div>
-          
+
           {pagination && pagination.totalPages > 1 && (
             <div className="pagination">
-              <button 
+              <button
                 disabled={pagination.page <= 1}
                 onClick={() => handlePageChange(pagination.page - 1)}
               >
                 Anterior
               </button>
-              
+
               <span className="page-info">
-                Página {pagination.page} de {pagination.totalPages} 
+                Página {pagination.page} de {pagination.totalPages}
                 ({pagination.total} entrevistas)
               </span>
-              
-              <button 
+
+              <button
                 disabled={pagination.page >= pagination.totalPages}
                 onClick={() => handlePageChange(pagination.page + 1)}
               >
@@ -329,7 +329,7 @@ const AdminPage = () => {
           )}
         </>
       )}
-      
+
       {interviews.length === 0 && !loading && (
         <div className="no-data">Nenhuma entrevista encontrada.</div>
       )}
@@ -346,14 +346,14 @@ const AdminPage = () => {
         <div className="modal-content">
           <div className="modal-header">
             <h2>Detalhes da Entrevista #{interview.id}</h2>
-            <button 
+            <button
               className="close-btn"
               onClick={() => setShowDetails(false)}
             >
               ×
             </button>
           </div>
-          
+
           <div className="modal-body">
             <div className="details-grid">
               <div className="detail-section">
@@ -401,7 +401,7 @@ const AdminPage = () => {
                   <span className="value">{adminService.getStatusLabel(interview.status)}</span>
                 </div>
               </div>
-              
+
               <div className="detail-section">
                 <h3>Estatísticas</h3>
                 <div className="detail-item">
@@ -420,7 +420,7 @@ const AdminPage = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="questions-section">
               <h3>Perguntas e Respostas</h3>
               <div className="questions-list">
@@ -436,26 +436,26 @@ const AdminPage = () => {
                     {question.answered && question.answer && (
                       <div className="answer-section">
                         <div className="answer-text">{question.answer.text}</div>
-                        
+
                         {/* Visualização de vídeo se disponível */}
                         {question.answer.bunny_video_id && question.answer.bunny_library_id && (
-                            <div style={{ position: 'relative', paddingTop: '56.25%' }}>
-                              <iframe
-                                  src={`https://iframe.mediadelivery.net/embed/${question.answer.bunny_library_id}/${question.answer.bunny_video_id}?autoplay=true&loop=false&muted=false&preload=true&responsive=true`}
-                                  loading="lazy"
-                                  style={{
-                                    border: 0,
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    width: '100%',
-                                    height: '100%'
-                                  }}
-                                  allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
-                                  allowFullScreen
-                                  title={`Resposta da pergunta ${question.order}`}
-                              ></iframe>
-                            </div>
+                          <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+                            <iframe
+                              src={`https://iframe.mediadelivery.net/embed/${question.answer.bunny_library_id}/${question.answer.bunny_video_id}?autoplay=true&loop=false&muted=false&preload=true&responsive=true`}
+                              loading="lazy"
+                              style={{
+                                border: 0,
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%'
+                              }}
+                              allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
+                              allowFullScreen
+                              title={`Resposta da pergunta ${question.order}`}
+                            ></iframe>
+                          </div>
                         )}
 
 
@@ -479,13 +479,13 @@ const AdminPage = () => {
       <div className="admin-header">
         <h1>Administração de Entrevistas</h1>
         <div className="admin-tabs">
-          <button 
+          <button
             className={activeTab === 'dashboard' ? 'active' : ''}
             onClick={() => setActiveTab('dashboard')}
           >
             Dashboard
           </button>
-          <button 
+          <button
             className={activeTab === 'interviews' ? 'active' : ''}
             onClick={() => setActiveTab('interviews')}
           >
@@ -493,12 +493,12 @@ const AdminPage = () => {
           </button>
         </div>
       </div>
-      
+
       <div className="admin-content">
         {activeTab === 'dashboard' && renderDashboard()}
         {activeTab === 'interviews' && renderInterviews()}
       </div>
-      
+
       {showDetails && renderInterviewDetails()}
     </div>
   );
