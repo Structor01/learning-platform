@@ -38,7 +38,9 @@ import {
   Zap,
   Video,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  Edit,
+  X
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import parse from 'html-react-parser';
@@ -48,6 +50,204 @@ function JobDescription({ html }) {
   const cleanHtml = DOMPurify.sanitize(html);
   return <div className="text-gray-300 text-sm">{parse(cleanHtml)}</div>;
 }
+
+// Componente de formulário de edição de vaga
+const EditJobForm = ({ job, onSave, onCancel }) => {
+  const [formData, setFormData] = useState({
+    title: job.title || '',
+    company: job.company || '',
+    location: job.location || '',
+    job_type: job.job_type || '',
+    salary_range: job.salary_range || '',
+    description: job.description || '',
+    requirements: job.requirements || '',
+    benefits: job.benefits || '',
+    summary: job.summary || ''
+  });
+
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      await onSave(formData);
+    } catch (error) {
+      console.error('Erro ao salvar:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-white font-medium mb-2">
+            Título da Vaga
+          </label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-white font-medium mb-2">
+            Empresa
+          </label>
+          <input
+            type="text"
+            name="company"
+            value={formData.company}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-white font-medium mb-2">
+            Localização
+          </label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-white font-medium mb-2">
+            Tipo de Trabalho
+          </label>
+          <select
+            name="job_type"
+            value={formData.job_type}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+          >
+            <option value="">Selecione o tipo</option>
+            <option value="Remoto">Remoto</option>
+            <option value="Presencial">Presencial</option>
+            <option value="Híbrido">Híbrido</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-white font-medium mb-2">
+          Faixa Salarial
+        </label>
+        <input
+          type="text"
+          name="salary_range"
+          value={formData.salary_range}
+          onChange={handleChange}
+          placeholder="Ex: R$ 5.000 - R$ 8.000"
+          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-white font-medium mb-2">
+          Descrição
+        </label>
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          rows={4}
+          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-white font-medium mb-2">
+          Requisitos
+        </label>
+        <textarea
+          name="requirements"
+          value={formData.requirements}
+          onChange={handleChange}
+          rows={3}
+          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-white font-medium mb-2">
+          Benefícios
+        </label>
+        <textarea
+          name="benefits"
+          value={formData.benefits}
+          onChange={handleChange}
+          rows={3}
+          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-white font-medium mb-2">
+          Resumo
+        </label>
+        <textarea
+          name="summary"
+          value={formData.summary}
+          onChange={handleChange}
+          rows={2}
+          className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+        />
+      </div>
+
+      <div className="flex gap-3 pt-4">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+        >
+          {loading ? (
+            <>
+              <Loader className="h-4 w-4 mr-2 animate-spin" />
+              Salvando...
+            </>
+          ) : (
+            <>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Salvar Alterações
+            </>
+          )}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="border-gray-600 text-gray-300 hover:bg-gray-700"
+        >
+          Cancelar
+        </Button>
+      </div>
+    </form>
+  );
+};
 
 const RecrutamentoPage = () => {
   const [jobs, setJobs] = useState([]);
@@ -80,6 +280,10 @@ const RecrutamentoPage = () => {
 
   // Estados para Criação de Vaga com IA
   const [showCreateJobModal, setShowCreateJobModal] = useState(false);
+
+  // Estados para Edição de Vaga
+  const [showEditJobModal, setShowEditJobModal] = useState(false);
+  const [editingJob, setEditingJob] = useState(null);
 
   // Estados para Administração
   const [showAdminPage, setShowAdminPage] = useState(false);
@@ -805,6 +1009,61 @@ const RecrutamentoPage = () => {
     fetchRecruitmentData();
   };
 
+  // Função para abrir modal de edição
+  const handleEditJob = (job) => {
+    console.log('✏️ Editando vaga:', job);
+    setEditingJob(job);
+    setShowEditJobModal(true);
+  };
+
+  // Função para salvar alterações da vaga
+  const handleSaveJobEdit = async (updatedJobData) => {
+    try {
+      console.log('💾 Salvando alterações da vaga:', updatedJobData);
+      
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
+      
+      const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/${editingJob.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedJobData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao atualizar vaga: ${response.status}`);
+      }
+
+      const updatedJob = await response.json();
+      console.log('✅ Vaga atualizada:', updatedJob);
+
+      // Atualizar a lista de vagas
+      setJobs(prevJobs => 
+        prevJobs.map(job => 
+          job.id === editingJob.id ? updatedJob : job
+        )
+      );
+
+      // Fechar modal
+      setShowEditJobModal(false);
+      setEditingJob(null);
+
+      // Recarregar dados para garantir sincronização
+      fetchRecruitmentData();
+
+    } catch (error) {
+      console.error('❌ Erro ao salvar alterações:', error);
+      alert(`Erro ao salvar alterações: ${error.message}`);
+    }
+  };
+
+  // Função para cancelar edição
+  const handleCancelEdit = () => {
+    setShowEditJobModal(false);
+    setEditingJob(null);
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return 'bg-green-500 ';
@@ -1111,6 +1370,14 @@ const RecrutamentoPage = () => {
                                 <Eye className="h-4 w-4  mr-2 " />
                                 Ver Detalhes
                               </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => handleEditJob(job)}
+                                className="border-orange-600  text-orange-300  hover:bg-orange-700 hover:text-white"
+                              >
+                                <Edit className="h-4 w-4  mr-2 " />
+                                Editar
+                              </Button>
                             </div>
 
                             {/* Botão Fazer Entrevista */}
@@ -1306,6 +1573,45 @@ const RecrutamentoPage = () => {
           onClose={() => setShowCreateJobModal(false)}
           onJobCreated={handleJobCreated}
         />
+
+        {/* Modal de Edição de Vaga */}
+        {showEditJobModal && editingJob && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-600 rounded-lg">
+                    <Edit className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Editar Vaga</h2>
+                    <p className="text-gray-400 text-sm">
+                      Atualize as informações da vaga
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCancelEdit}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                <EditJobForm 
+                  job={editingJob}
+                  onSave={handleSaveJobEdit}
+                  onCancel={handleCancelEdit}
+                />
+              </div>
+            </div>
+          </div>
+        )}
           </div>
         </>
       )}
