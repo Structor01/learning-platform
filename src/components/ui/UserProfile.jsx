@@ -64,17 +64,17 @@ const UserProfile = () => {
   }, [user]);
 
   useEffect(() => {
-      const verifyFiles = async () => {
-        const curriculoExists = await checkCurriculoExists();
-        if (curriculoExists && !curriculoUrl) {
-          setCurriculoUrl("exists"); // Marcador para indicar que existe
-        }
-      };
-
-      if (userId) {
-        verifyFiles();
+    const verifyFiles = async () => {
+      const curriculoExists = await checkCurriculoExists();
+      if (curriculoExists && !curriculoUrl) {
+        setCurriculoUrl("exists"); // Marcador para indicar que existe
       }
-    }, [userId, curriculoUrl]);
+    };
+
+    if (userId) {
+      verifyFiles();
+    }
+  }, [userId, curriculoUrl]);
 
   // Carregar dados do teste psicológico
   useEffect(() => {
@@ -164,7 +164,6 @@ const UserProfile = () => {
     };
 
     // 5. Use esta função para verificar se o currículo existe
-    
 
     // Carregar dados quando o componente monta e quando o userId muda
     loadUserData();
@@ -184,6 +183,94 @@ const UserProfile = () => {
   const handleSave = async () => {
     await updateUser({ name, role });
     setIsEditing(false);
+  };
+
+  const handleViewCurriculo = async () => {
+    try {
+      const token = sessionStorage.getItem("accessToken");
+      if (!token) {
+        alert("Sessão expirada. Faça login novamente.");
+        return;
+      }
+
+      // Use a URL correta com /api e método GET
+      const response = await fetch(`${API_BASE_URL}/api/users/curriculo`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          alert("Currículo não encontrado.");
+          return;
+        }
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      // Obter o blob do arquivo
+      const blob = await response.blob();
+
+      // Criar URL temporária para o blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Abrir em nova aba para visualizar (se for PDF) ou baixar
+      window.open(url, "_blank");
+
+      // Limpar a URL após um tempo
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+    } catch (error) {
+      console.error("Erro ao visualizar currículo:", error);
+      alert("Erro ao carregar currículo. Tente novamente.");
+    }
+  };
+
+  // 2. Adicione uma função alternativa para forçar download
+  const handleDownloadCurriculo = async () => {
+    try {
+      const token = sessionStorage.getItem("accessToken");
+      if (!token) {
+        alert("Sessão expirada. Faça login novamente.");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/users/curriculo`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          alert("Currículo não encontrado.");
+          return;
+        }
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Criar elemento de download
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = `curriculo_${user?.name || "usuario"}.pdf`;
+
+      document.body.appendChild(a);
+      a.click();
+
+      // Limpar
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Erro ao baixar currículo:", error);
+      alert("Erro ao baixar currículo. Tente novamente.");
+    }
   };
 
   // Substitua a função handleSaveLinks no seu UserProfile.jsx
@@ -766,15 +853,23 @@ const UserProfile = () => {
                             Currículo
                           </p>
                           {hasCurriculo ? (
-                            <a
-                              href={`${API_BASE_URL}/users/curriculo`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-green-400 hover:text-green-300 text-sm flex items-center space-x-1"
-                            >
-                              <span>Ver currículo</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={handleViewCurriculo}
+                                className="text-green-400 hover:text-green-300 text-sm flex items-center space-x-1 cursor-pointer"
+                              >
+                                <span>Ver currículo</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </button>
+                              <span className="text-gray-500">•</span>
+                              <button
+                                onClick={handleDownloadCurriculo}
+                                className="text-green-400 hover:text-green-300 text-sm flex items-center space-x-1 cursor-pointer"
+                              >
+                                <Download className="w-3 h-3" />
+                                <span>Baixar</span>
+                              </button>
+                            </div>
                           ) : (
                             <p className="text-gray-500 text-sm">
                               Não adicionado
