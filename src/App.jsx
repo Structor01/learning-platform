@@ -223,6 +223,9 @@ function App() {
         <Routes>
           {/* Página inicial = Login */}
           <Route path="/" element={<LoginPage />} />
+          
+          {/* Página de Perfil */}
+          <Route path="/profile" element={<UserProfile />} />
 
           {/* Página de detatlhes das vagas */}
           <Route path="/vagas/:vagaId" element={<DetalhesVaga />} />
