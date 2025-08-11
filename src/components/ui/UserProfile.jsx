@@ -32,6 +32,8 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import testService from "../../services/testService";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
 const UserProfile = () => {
   const { user, updateUser, isLoading } = useAuth();
 
@@ -39,6 +41,7 @@ const UserProfile = () => {
   const [role, setRole] = useState("Executivo de Vendas");
   const [linkedin, setLinkedin] = useState("");
   const [curriculoUrl, setCurriculoUrl] = useState("");
+  const [curriculoFile, setCurriculoFile] = useState(null); // Estado para o arquivo
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingLinks, setIsEditingLinks] = useState(false);
   const [isSavingLinks, setIsSavingLinks] = useState(false);
@@ -126,30 +129,79 @@ const UserProfile = () => {
     setIsEditing(false);
   };
 
+  // Substitua a função handleSaveLinks no seu UserProfile.jsx
+
   const handleSaveLinks = async () => {
+    console.log("API_BASE_URL:", API_BASE_URL);
+    console.log("URL completa:", `${API_BASE_URL}/api/users/curriculo`);
     try {
       setIsSavingLinks(true);
 
-      // Validar URLs se fornecidas
-      if (linkedin && !isValidUrl(linkedin)) {
-        alert("Por favor, insira uma URL válida para o LinkedIn");
+      // Verificar se o token existe
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        console.error("Token não encontrado no sessionStorage");
+        alert("Sessão expirada. Faça login novamente.");
         return;
       }
 
-      if (curriculoUrl && !isValidUrl(curriculoUrl)) {
-        alert("Por favor, insira uma URL válida para o currículo");
-        return;
-      }
+      console.log("Token encontrado:", token ? "✓" : "✗");
 
-      await updateUser({
-        linkedin:  linkedin?.trim() || undefined,
-        curriculoUrl: curriculoUrl?.trim() || undefined, // <-- Corrigido aqui
-      });
+      // Se há um arquivo para upload
+      if (curriculoFile) {
+        const formData = new FormData();
+        formData.append("linkedin", linkedin || "");
+        formData.append("curriculo", curriculoFile);
+
+        console.log("Enviando FormData:", {
+          linkedin: linkedin || "",
+          arquivo: curriculoFile.name,
+        });
+
+        const response = await fetch(`${API_BASE_URL}/api/users/curriculo`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // NÃO adicione Content-Type para FormData - o browser faz isso automaticamente
+          },
+          body: formData,
+        });
+
+        console.log("Resposta status:", response.status);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Erro na resposta:", errorText);
+          throw new Error(`Erro HTTP: ${response.status} - ${errorText}`);
+        }
+
+        const responseData = await response.json();
+        console.log("Dados da resposta:", responseData);
+
+        // Atualizar o usuário após upload bem-sucedido
+        await updateUser({ linkedin: linkedin?.trim() || undefined });
+      } else {
+        // Apenas atualizar LinkedIn se não há arquivo
+        console.log("Atualizando apenas LinkedIn:", linkedin);
+        await updateUser({ linkedin: linkedin?.trim() || undefined });
+      }
 
       setIsEditingLinks(false);
+      setCurriculoFile(null);
+      alert("Links salvos com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar links:", error);
-      alert("Erro ao salvar os links. Tente novamente.");
+
+      // Mensagem de erro mais específica
+      if (error.message.includes("401")) {
+        alert("Sessão expirada. Faça login novamente.");
+      } else if (error.message.includes("413")) {
+        alert("Arquivo muito grande. Tente um arquivo menor.");
+      } else if (error.message.includes("415")) {
+        alert("Formato de arquivo não suportado.");
+      } else {
+        alert(`Erro ao salvar os links: ${error.message}`);
+      }
     } finally {
       setIsSavingLinks(false);
     }
@@ -169,6 +221,8 @@ const UserProfile = () => {
     setCurriculoUrl(user?.curriculo_url || "");
     setIsEditingLinks(false);
   };
+
+  const hasCurriculo = Boolean(user?.curriculo_url || curriculoUrl);
 
   // Usar dados reais do teste ou dados mockados como fallback
   const getDiscProfile = () => {
@@ -516,21 +570,25 @@ const UserProfile = () => {
                       </div>
                     </div>
 
-                    {/* Currículo URL Input */}
+                    {/* Currículo Upload Input */}
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Link do Currículo
+                        Currículo (PDF)
                       </label>
                       <div className="relative">
                         <FileText className="w-4 h-4 text-green-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
                         <input
-                          type="url"
-                          placeholder="https://drive.google.com/file/d/..."
-                          value={curriculoUrl}
-                          onChange={(e) => setCurriculoUrl(e.target.value)}
-                          className="w-full pl-10 pr-3 py-2 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) => setCurriculoFile(e.target.files[0])}
+                          className="w-full pl-10 pr-3 py-2 bg-gray-800 border border-gray-600 rounded text-white focus:border-green-500 focus:outline-none"
                         />
                       </div>
+                      {curriculoFile && (
+                        <p className="text-sm text-green-400 mt-1">
+                          Arquivo selecionado: {curriculoFile.name}
+                        </p>
+                      )}
                     </div>
 
                     {/* Buttons */}
@@ -595,9 +653,9 @@ const UserProfile = () => {
                           <p className="text-sm text-gray-300 font-medium">
                             Currículo
                           </p>
-                          {curriculoUrl ? (
+                          {hasCurriculo ? (
                             <a
-                              href={curriculoUrl}
+                              href={`${API_BASE_URL}/users/curriculo`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-green-400 hover:text-green-300 text-sm flex items-center space-x-1"
