@@ -55,12 +55,26 @@ const UserProfile = () => {
 
   useEffect(() => {
     if (user) {
+      console.log("Dados do usuário no contexto:", user);
       setName(user.name || "");
       setRole(user.role || "Executivo de Vendas");
       setLinkedin(user.linkedin || "");
       setCurriculoUrl(user.curriculo_url || "");
     }
   }, [user]);
+
+  useEffect(() => {
+      const verifyFiles = async () => {
+        const curriculoExists = await checkCurriculoExists();
+        if (curriculoExists && !curriculoUrl) {
+          setCurriculoUrl("exists"); // Marcador para indicar que existe
+        }
+      };
+
+      if (userId) {
+        verifyFiles();
+      }
+    }, [userId, curriculoUrl]);
 
   // Carregar dados do teste psicológico
   useEffect(() => {
@@ -113,6 +127,49 @@ const UserProfile = () => {
     loadTestResults();
   }, [userId]);
 
+  //useEffect para recarregar dados do usuário após salvar
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!userId) return;
+
+      try {
+        const token = sessionStorage.getItem("accessToken");
+        if (!token) return;
+
+        // Buscar dados atualizados do usuário
+        const response = await fetch(`${API_BASE_URL}/api/users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          console.log("Dados do usuário carregados:", userData);
+
+          // Atualizar os estados locais com os dados do servidor
+          setName(userData.name || "");
+          setRole(userData.role || "Executivo de Vendas");
+          setLinkedin(userData.linkedin || "");
+          setCurriculoUrl(userData.curriculo_url || "");
+
+          // Atualizar o contexto também
+          await updateUser(userData);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados do usuário:", error);
+      }
+    };
+
+    // 5. Use esta função para verificar se o currículo existe
+    
+
+    // Carregar dados quando o componente monta e quando o userId muda
+    loadUserData();
+  }, [userId]); // Dependência no userId
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -134,19 +191,19 @@ const UserProfile = () => {
   const handleSaveLinks = async () => {
     console.log("API_BASE_URL:", API_BASE_URL);
     console.log("URL completa:", `${API_BASE_URL}/api/users/curriculo`);
-    // ADICIONE ESTAS LINHAS:
+
     const tokenFromStorage = sessionStorage.getItem("accessToken");
     console.log("Token do sessionStorage:", tokenFromStorage?.substring(0, 20));
     console.log("Token do contexto:", accessToken?.substring(0, 20));
     console.log("Tokens são iguais?", tokenFromStorage === accessToken);
+
     try {
       setIsSavingLinks(true);
 
-      // Verificar se o token existe
       const token = sessionStorage.getItem("accessToken");
-      console.log('SessionStorage:', Object.keys(sessionStorage));
-      // Verifique todos os itens do localStorage  
-      console.log('LocalStorage:', Object.keys(localStorage));
+      console.log("SessionStorage:", Object.keys(sessionStorage));
+      console.log("LocalStorage:", Object.keys(localStorage));
+
       if (!token) {
         console.error("Token não encontrado no sessionStorage");
         alert("Sessão expirada. Faça login novamente.");
@@ -154,20 +211,16 @@ const UserProfile = () => {
       }
 
       console.log("Token encontrado:", token ? "✓" : "✗");
-      // ADICIONE ESTAS LINHAS PARA DEBUG:
       console.log("Token completo:", token);
       console.log("Primeiros caracteres do token:", token?.substring(0, 20));
       console.log("Tamanho do token:", token?.length);
 
-
       // Se há um arquivo para upload
       if (curriculoFile) {
         const formData = new FormData();
-        // formData.append("linkedin", linkedin || "");
         formData.append("file", curriculoFile);
 
         console.log("Enviando FormData:", {
-          // linkedin: linkedin || "",
           arquivo: curriculoFile.name,
         });
 
@@ -175,7 +228,6 @@ const UserProfile = () => {
           method: "PATCH",
           headers: {
             Authorization: `Bearer ${token}`,
-            // NÃO adicione Content-Type para FormData - o browser faz isso automaticamente
           },
           body: formData,
         });
@@ -190,13 +242,39 @@ const UserProfile = () => {
 
         const responseData = await response.json();
         console.log("Dados da resposta:", responseData);
+      }
 
-        // Atualizar o usuário após upload bem-sucedido
-        await updateUser({ linkedin: linkedin?.trim() || undefined });
-      } else {
-        // Apenas atualizar LinkedIn se não há arquivo
-        console.log("Atualizando apenas LinkedIn:", linkedin);
-        await updateUser({ linkedin: linkedin?.trim() || undefined });
+      // Sempre atualizar LinkedIn (seja com arquivo ou não)
+      if (linkedin && linkedin.trim()) {
+        console.log("Atualizando LinkedIn:", linkedin);
+        await updateUser({ linkedin: linkedin.trim() });
+      }
+
+      // ADICIONE ESTA PARTE: Recarregar dados do usuário após salvar
+      try {
+        const userResponse = await fetch(`${API_BASE_URL}/api/users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          console.log("Dados atualizados do usuário:", userData);
+
+          // Atualizar estados locais
+          setName(userData.name || "");
+          setRole(userData.role || "Executivo de Vendas");
+          setLinkedin(userData.linkedin || "");
+          setCurriculoUrl(userData.curriculo_url || "");
+
+          // Forçar atualização do contexto
+          await updateUser(userData);
+        }
+      } catch (reloadError) {
+        console.error("Erro ao recarregar dados do usuário:", reloadError);
       }
 
       setIsEditingLinks(false);
@@ -205,7 +283,6 @@ const UserProfile = () => {
     } catch (error) {
       console.error("Erro ao salvar links:", error);
 
-      // Mensagem de erro mais específica
       if (error.message.includes("401")) {
         alert("Sessão expirada. Faça login novamente.");
       } else if (error.message.includes("413")) {
@@ -235,7 +312,29 @@ const UserProfile = () => {
     setIsEditingLinks(false);
   };
 
-  const hasCurriculo = Boolean(user?.curriculo_url || curriculoUrl);
+  // 4. Adicione uma função para verificar se há currículo
+  const checkCurriculoExists = async () => {
+    try {
+      const token = sessionStorage.getItem("accessToken");
+      if (!token) return false;
+
+      const response = await fetch(`${API_BASE_URL}/api/users/curriculo`, {
+        method: "HEAD", // Apenas verificar se existe
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error("Erro ao verificar currículo:", error);
+      return false;
+    }
+  };
+
+  const hasCurriculo = Boolean(
+    user?.curriculo_url || curriculoUrl || curriculoUrl === "exists"
+  );
 
   // Usar dados reais do teste ou dados mockados como fallback
   const getDiscProfile = () => {
@@ -763,14 +862,14 @@ const UserProfile = () => {
                                 {trait === "openness"
                                   ? "Abertura"
                                   : trait === "conscientiousness"
-                                    ? "Conscienciosidade"
-                                    : trait === "extraversion"
-                                      ? "Extroversão"
-                                      : trait === "agreeableness"
-                                        ? "Amabilidade"
-                                        : trait === "neuroticism"
-                                          ? "Neuroticismo"
-                                          : trait}
+                                  ? "Conscienciosidade"
+                                  : trait === "extraversion"
+                                  ? "Extroversão"
+                                  : trait === "agreeableness"
+                                  ? "Amabilidade"
+                                  : trait === "neuroticism"
+                                  ? "Neuroticismo"
+                                  : trait}
                               </span>
                               <div className="flex items-center space-x-2">
                                 <div className="w-20 bg-gray-700 rounded-full h-2">
@@ -811,14 +910,14 @@ const UserProfile = () => {
                                 {style === "autocratic"
                                   ? "Autocrático"
                                   : style === "democratic"
-                                    ? "Democrático"
-                                    : style === "transformational"
-                                      ? "Transformacional"
-                                      : style === "transactional"
-                                        ? "Transacional"
-                                        : style === "servant"
-                                          ? "Servidor"
-                                          : style}
+                                  ? "Democrático"
+                                  : style === "transformational"
+                                  ? "Transformacional"
+                                  : style === "transactional"
+                                  ? "Transacional"
+                                  : style === "servant"
+                                  ? "Servidor"
+                                  : style}
                               </span>
                               <div className="flex items-center space-x-2">
                                 <div className="w-20 bg-gray-700 rounded-full h-2">
@@ -870,10 +969,11 @@ const UserProfile = () => {
                             {track.name}
                           </span>
                           <span
-                            className={`text-xs px-2 py-1 rounded-full ${track.status === "Em andamento"
-                              ? "bg-green-600/20 text-green-400 border border-green-500/30"
-                              : "bg-gray-600/20 text-gray-400 border border-gray-500/30"
-                              }`}
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              track.status === "Em andamento"
+                                ? "bg-green-600/20 text-green-400 border border-green-500/30"
+                                : "bg-gray-600/20 text-gray-400 border border-gray-500/30"
+                            }`}
                           >
                             {track.status}
                           </span>
