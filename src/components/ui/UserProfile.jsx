@@ -35,7 +35,7 @@ import testService from "../../services/testService";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const UserProfile = () => {
-  const { user, updateUser, isLoading } = useAuth();
+  const { user, updateUser, isLoading, accessToken } = useAuth();
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("Executivo de Vendas");
@@ -134,11 +134,19 @@ const UserProfile = () => {
   const handleSaveLinks = async () => {
     console.log("API_BASE_URL:", API_BASE_URL);
     console.log("URL completa:", `${API_BASE_URL}/api/users/curriculo`);
+    // ADICIONE ESTAS LINHAS:
+    const tokenFromStorage = sessionStorage.getItem("accessToken");
+    console.log("Token do sessionStorage:", tokenFromStorage?.substring(0, 20));
+    console.log("Token do contexto:", accessToken?.substring(0, 20));
+    console.log("Tokens são iguais?", tokenFromStorage === accessToken);
     try {
       setIsSavingLinks(true);
 
       // Verificar se o token existe
-      const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("accessToken");
+      console.log('SessionStorage:', Object.keys(sessionStorage));
+      // Verifique todos os itens do localStorage  
+      console.log('LocalStorage:', Object.keys(localStorage));
       if (!token) {
         console.error("Token não encontrado no sessionStorage");
         alert("Sessão expirada. Faça login novamente.");
@@ -146,15 +154,20 @@ const UserProfile = () => {
       }
 
       console.log("Token encontrado:", token ? "✓" : "✗");
+      // ADICIONE ESTAS LINHAS PARA DEBUG:
+      console.log("Token completo:", token);
+      console.log("Primeiros caracteres do token:", token?.substring(0, 20));
+      console.log("Tamanho do token:", token?.length);
+
 
       // Se há um arquivo para upload
       if (curriculoFile) {
         const formData = new FormData();
-        formData.append("linkedin", linkedin || "");
-        formData.append("curriculo", curriculoFile);
+        // formData.append("linkedin", linkedin || "");
+        formData.append("file", curriculoFile);
 
         console.log("Enviando FormData:", {
-          linkedin: linkedin || "",
+          // linkedin: linkedin || "",
           arquivo: curriculoFile.name,
         });
 
@@ -750,14 +763,14 @@ const UserProfile = () => {
                                 {trait === "openness"
                                   ? "Abertura"
                                   : trait === "conscientiousness"
-                                  ? "Conscienciosidade"
-                                  : trait === "extraversion"
-                                  ? "Extroversão"
-                                  : trait === "agreeableness"
-                                  ? "Amabilidade"
-                                  : trait === "neuroticism"
-                                  ? "Neuroticismo"
-                                  : trait}
+                                    ? "Conscienciosidade"
+                                    : trait === "extraversion"
+                                      ? "Extroversão"
+                                      : trait === "agreeableness"
+                                        ? "Amabilidade"
+                                        : trait === "neuroticism"
+                                          ? "Neuroticismo"
+                                          : trait}
                               </span>
                               <div className="flex items-center space-x-2">
                                 <div className="w-20 bg-gray-700 rounded-full h-2">
@@ -798,14 +811,14 @@ const UserProfile = () => {
                                 {style === "autocratic"
                                   ? "Autocrático"
                                   : style === "democratic"
-                                  ? "Democrático"
-                                  : style === "transformational"
-                                  ? "Transformacional"
-                                  : style === "transactional"
-                                  ? "Transacional"
-                                  : style === "servant"
-                                  ? "Servidor"
-                                  : style}
+                                    ? "Democrático"
+                                    : style === "transformational"
+                                      ? "Transformacional"
+                                      : style === "transactional"
+                                        ? "Transacional"
+                                        : style === "servant"
+                                          ? "Servidor"
+                                          : style}
                               </span>
                               <div className="flex items-center space-x-2">
                                 <div className="w-20 bg-gray-700 rounded-full h-2">
@@ -857,11 +870,10 @@ const UserProfile = () => {
                             {track.name}
                           </span>
                           <span
-                            className={`text-xs px-2 py-1 rounded-full ${
-                              track.status === "Em andamento"
-                                ? "bg-green-600/20 text-green-400 border border-green-500/30"
-                                : "bg-gray-600/20 text-gray-400 border border-gray-500/30"
-                            }`}
+                            className={`text-xs px-2 py-1 rounded-full ${track.status === "Em andamento"
+                              ? "bg-green-600/20 text-green-400 border border-green-500/30"
+                              : "bg-gray-600/20 text-gray-400 border border-gray-500/30"
+                              }`}
                           >
                             {track.status}
                           </span>
