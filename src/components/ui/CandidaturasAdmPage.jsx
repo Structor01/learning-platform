@@ -27,6 +27,14 @@ import {
 import { API_URL } from "../utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "./Navbar";
+import testService from "../../services/testService";
+
+const discConfig = {
+    D: { name: "Dominância", color: "from-red-500 to-red-600" },
+    I: { name: "Influência", color: "from-yellow-500 to-orange-500" },
+    S: { name: "Estabilidade", color: "from-green-500 to-green-600" },
+    C: { name: "Conformidade", color: "from-blue-500 to-blue-600" }
+};
 
 const CandidaturasAdmPage = () => {
     const [candidaturas, setCandidaturas] = useState([]);
@@ -46,6 +54,19 @@ const CandidaturasAdmPage = () => {
         }
     }, [isAuthenticated, isLoading]);
 
+    const getPrincipalDisc = (discScores) => {
+        if (!discScores) return null;
+        let maxScore = 0;
+        let principal = null;
+        Object.entries(discScores).forEach(([letra, pontuacao]) => {
+            if (pontuacao > maxScore) {
+                maxScore = pontuacao;
+                principal = letra;
+            }
+        });
+        return principal;
+    };
+
     // Função para buscar candidaturas
     const fetchTodasCandidaturas = async () => {
         try {
@@ -58,38 +79,48 @@ const CandidaturasAdmPage = () => {
                 headers: { Authorization: `Bearer ${accessToken}` },
             });
 
-            console.log("✅ Candidaturas recebidas:", response.data);
-
             let candidaturas = response.data || [];
 
-            if (candidaturas.length > 0 && (!candidaturas[0].usuario || candidaturas[0].usuario.nome === "Usuário")) {
-                console.log("🔄 Buscando dados dos usuários...");
+            if (candidaturas.length > 0) {
 
                 const usuarioIdsUnicos = [...new Set(candidaturas.map(c => c.usuario_id))];
-                const usuariosData = {};
 
                 for (const usuarioId of usuarioIdsUnicos) {
+                    console.log(`🔍 Buscando DISC para usuário ${usuarioId}...`);
+
                     try {
-                        const userResponse = await axios.get(`${API_URL}/api/usuarios/${usuarioId}`, {
-                            headers: { Authorization: `Bearer ${accessToken}` }
-                        });
-                        usuariosData[usuarioId] = userResponse.data;
-                        console.log(`✅ Usuário ${usuarioId} encontrado`);
-                    } catch (userError) {
-                        console.warn(`⚠️ Usuário ${usuarioId} não encontrado:`, userError.response?.status);
-                        usuariosData[usuarioId] = {
-                            id: usuarioId,
-                            nome: "Usuário não encontrado",
-                            name: "Usuário não encontrado",
-                            email: "N/A"
-                        };
+                        const discData = await testService.getUserPsychologicalTests(usuarioId, 'completed', 1);
+
+                        if (discData.tests && discData.tests.length > 0) {
+                            const teste = discData.tests[0];
+
+                            // Encontrar todas as candidaturas deste usuário e adicionar DISC
+                            candidaturas = candidaturas.map(candidatura => {
+                                if (candidatura.usuario_id == usuarioId) {
+                                    return {
+                                        ...candidatura,
+                                        usuario: {
+                                            ...candidatura.usuario,
+                                            perfil_disc: {
+                                                principal: getPrincipalDisc(teste.disc_scores),
+                                                pontuacoes: teste.disc_scores,
+                                                analise: teste.overall_analysis,
+                                                recomendacoes: teste.recommendations
+                                            }
+                                        }
+                                    };
+                                }
+                                return candidatura;
+                            });
+
+                            console.log(`✅ DISC adicionado para usuário ${usuarioId}`);
+                        } else {
+                            console.log(`❌ SEM DADOS DISC para usuário ${usuarioId}`);
+                        }
+                    } catch (discError) {
+                        console.log(`💥 ERRO DISC para usuário ${usuarioId}:`, discError);
                     }
                 }
-
-                candidaturas = candidaturas.map(candidatura => ({
-                    ...candidatura,
-                    usuario: usuariosData[candidatura.usuario_id] || candidatura.usuario
-                }));
             }
 
             console.log("🎉 Dados finais processados:", candidaturas);
@@ -97,25 +128,7 @@ const CandidaturasAdmPage = () => {
 
         } catch (err) {
             console.error("💥 ERRO:", err);
-            if (err.response) {
-                console.error("Status:", err.response.status);
-                console.error("Data:", err.response.data);
-                console.error("URL que falhou:", err.config?.url);
-
-                if (err.response.status === 404) {
-                    setError("Rota não encontrada. Verifique se a API está configurada corretamente.");
-                } else if (err.response.status === 401) {
-                    setError("Não autorizado. Faça login novamente.");
-                } else if (err.response.status === 500) {
-                    setError(`Erro interno do servidor: ${err.response.data?.message || 'Erro desconhecido'}`);
-                } else {
-                    setError(`Erro ${err.response.status}: ${err.response.data?.message || 'Erro no servidor'}`);
-                }
-            } else if (err.request) {
-                setError("Não foi possível conectar à API. Verifique sua conexão ou se o servidor está rodando.");
-            } else {
-                setError(`Erro: ${err.message}`);
-            }
+            setError(`Erro: ${err.message}`);
         } finally {
             setLoading(false);
         }
@@ -168,13 +181,14 @@ const CandidaturasAdmPage = () => {
     );
 
     // Modal de Resultado DISC
+    // Modal de Resultado DISC - CORRIGIDO
     const DiscModal = () => (
-        modalDisc.isOpen && (
+        modalDisc.isOpen && modalDisc.resultado && (
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div className="bg-gray-900 rounded-2xl w-full max-w-lg p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
+                            <div className={`p-2 bg-gradient-to-r ${discConfig[modalDisc.resultado.principal]?.color || 'from-purple-500 to-pink-600'} rounded-lg`}>
                                 <Brain className="w-6 h-6 text-white" />
                             </div>
                             <div>
@@ -191,24 +205,31 @@ const CandidaturasAdmPage = () => {
                     </div>
 
                     <div className="text-center">
-                        <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center">
+                        <div className={`w-24 h-24 mx-auto mb-4 bg-gradient-to-r ${discConfig[modalDisc.resultado.principal]?.color || 'from-purple-500 to-pink-600'} rounded-full flex items-center justify-center`}>
                             <span className="text-3xl font-bold text-white">
-                                {modalDisc.resultado?.charAt(0)}
+                                {modalDisc.resultado.principal}
                             </span>
                         </div>
                         <h4 className="text-2xl font-bold text-white mb-2">
-                            {modalDisc.resultado}
+                            {discConfig[modalDisc.resultado.principal]?.name || modalDisc.resultado.principal}
                         </h4>
                         <p className="text-gray-400 mb-6">
-                            {getDescricaoDisc(modalDisc.resultado)}
+                            {modalDisc.resultado.analise || "Análise não disponível"}
                         </p>
 
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                            {getCaracteristicasDisc(modalDisc.resultado).map((caracteristica, index) => (
-                                <div key={index} className="bg-white/5 rounded-lg p-3">
-                                    <span className="text-white">{caracteristica}</span>
+                        {/* Pontuações DISC */}
+                        <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                            {Object.entries(modalDisc.resultado.pontuacoes || {}).map(([letra, pontuacao]) => (
+                                <div key={letra} className="bg-white/5 rounded-lg p-3">
+                                    <div className="font-bold text-white">{letra}: {pontuacao.toFixed(1)}</div>
                                 </div>
                             ))}
+                        </div>
+
+                        {/* Recomendações */}
+                        <div className="bg-white/5 rounded-lg p-3 text-left">
+                            <h5 className="font-bold text-white mb-2">Recomendações:</h5>
+                            <p className="text-gray-300 text-sm">{modalDisc.resultado.recomendacoes}</p>
                         </div>
                     </div>
                 </div>
