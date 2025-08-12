@@ -337,21 +337,16 @@ const RecrutamentoPage = () => {
       const job = jobs.find(job => job.id === jobId);
       setSelectedJob(job);
       
-      console.log('🔍 Iniciando busca de candidatos via backend para vaga:', job.title);
+      console.log('🔍 Iniciando busca inteligente de candidatos com ChatGPT para vaga:', job.title);
       
-      // Usar o backend para buscar candidatos
+      // Usar o backend com ChatGPT para buscar candidatos automaticamente
       const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
       
-      const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/${jobId}/search-linkedin`, {
+      const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/${jobId}/search-candidates`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          keywords: job.title || 'profissional',
-          location: job.location || 'Brasil',
-          experienceLevel: job.experience_level || 'mid'
-        })
+        }
       });
 
       if (!response.ok) {
