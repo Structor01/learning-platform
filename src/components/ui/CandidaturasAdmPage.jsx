@@ -28,10 +28,25 @@ import {
     BarChart3,
     Award,
     Clock4
+    Mail,
+    Video,
+    Play,
+    BarChart3,
+    Award,
+    Clock4
 } from "lucide-react";
 import { API_URL } from "../utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "./Navbar";
+import testService from "../../services/testService";
+import interviewService from "../../services/interviewService";
+
+const discConfig = {
+    D: { name: "Dominância", color: "from-red-500 to-red-600" },
+    I: { name: "Influência", color: "from-yellow-500 to-orange-500" },
+    S: { name: "Estabilidade", color: "from-green-500 to-green-600" },
+    C: { name: "Conformidade", color: "from-blue-500 to-blue-600" }
+};
 import testService from "../../services/testService";
 import interviewService from "../../services/interviewService";
 
@@ -52,13 +67,11 @@ const CandidaturasAdmPage = () => {
     const [modalCurriculo, setModalCurriculo] = useState({ isOpen: false, url: "", nome: "" });
     const [modalDisc, setModalDisc] = useState({ isOpen: false, resultado: "", nome: "" });
     const [modalInterview, setModalInterview] = useState({ isOpen: false, entrevistas: [], nome: "", candidaturaId: null });
-<<<<<<< HEAD
-=======
+    const [modalInterview, setModalInterview] = useState({ isOpen: false, entrevistas: [], nome: "", candidaturaId: null });
 
     // Cache para evitar requisições duplicadas
     const [discCache, setDiscCache] = useState(new Map());
     const [interviewCache, setInterviewCache] = useState(new Map());
->>>>>>> origin/AGS-20
 
     // Carregar dados da API
     useEffect(() => {
@@ -107,7 +120,6 @@ const CandidaturasAdmPage = () => {
         }
     };
 
-<<<<<<< HEAD
     // 1. Função para buscar currículo de um candidato específico
     const handleViewCurriculoCandidato = async (usuarioId, nomeUsuario) => {
         console.log("🚀 INICIANDO handleViewCurriculoCandidato");
@@ -119,7 +131,130 @@ const CandidaturasAdmPage = () => {
 
             if (!token) {
                 console.error("❌ ERRO: Token não encontrado");
-=======
+                alert("Sessão expirada. Faça login novamente.");
+                return;
+            }
+
+            // 2. CONSTRUIR URL
+            const url = `${API_BASE_URL}/api/users/${usuarioId}/curriculo`;
+            console.log("🌐 URL da requisição:", url);
+            console.log("🌐 API_BASE_URL:", API_BASE_URL);
+
+            console.log("📡 Fazendo requisição...");
+
+            // 3. FAZER REQUISIÇÃO
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            console.log("📨 Resposta recebida:");
+            console.log("   - Status:", response.status);
+            console.log("   - StatusText:", response.statusText);
+            console.log("   - OK:", response.ok);
+
+            // 4. VERIFICAR STATUS
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("❌ ERRO na resposta:");
+                console.error("   - Status:", response.status);
+                console.error("   - Texto:", errorText);
+
+                if (response.status === 404) {
+                    alert("Currículo não encontrado para este candidato.");
+                } else if (response.status === 401) {
+                    alert("Sessão expirada. Faça login novamente.");
+                } else {
+                    alert(`Erro ${response.status}: ${errorText}`);
+                }
+                return;
+            }
+
+            console.log("✅ Resposta OK, processando blob...");
+
+            // 5. PROCESSAR BLOB
+            const blob = await response.blob();
+            console.log("📄 Blob criado:");
+            console.log("   - Tamanho:", blob.size, "bytes");
+            console.log("   - Tipo:", blob.type);
+
+            if (blob.size === 0) {
+                console.error("❌ ERRO: Blob vazio");
+                alert("Arquivo de currículo está vazio.");
+                return;
+            }
+
+            // 6. CRIAR URL DO BLOB
+            const blobUrl = window.URL.createObjectURL(blob);
+            console.log("🔗 URL do blob criada:", blobUrl);
+
+            // 7. ABRIR MODAL
+            console.log("🎬 Abrindo modal...");
+            setModalCurriculo({
+                isOpen: true,
+                url: blobUrl,
+                nome: nomeUsuario || 'Usuário'
+            });
+
+            console.log("✅ Modal aberto com sucesso!");
+
+            // 8. LIMPAR MEMORIA
+            setTimeout(() => {
+                console.log("🧹 Limpando URL do blob...");
+                window.URL.revokeObjectURL(blobUrl);
+            }, 60000);
+
+        } catch (error) {
+            console.error("💥 ERRO CAPTURADO:");
+            console.error("   - Tipo:", error.name);
+            console.error("   - Mensagem:", error.message);
+            console.error("   - Stack:", error.stack);
+            alert(`Erro ao carregar currículo: ${error.message}`);
+        }
+    };
+
+    const getPrincipalDisc = (discScores) => {
+        if (!discScores) return null;
+        let maxScore = 0;
+        let principal = null;
+        Object.entries(discScores).forEach(([letra, pontuacao]) => {
+            if (pontuacao > maxScore) {
+                maxScore = pontuacao;
+                principal = letra;
+            }
+        });
+        return principal;
+    };
+
+    // FUNÇÕES AUXILIARES PARA ENTREVISTAS
+    const getInterviewStatusColor = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'completed':
+                return 'from-green-500 to-green-600';
+            case 'in_progress':
+                return 'from-yellow-500 to-orange-500';
+            case 'pending':
+                return 'from-blue-500 to-blue-600';
+            default:
+                return 'from-gray-500 to-gray-600';
+        }
+    };
+
+    const getInterviewStatusText = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'completed':
+                return 'Concluída';
+            case 'in_progress':
+                return 'Em Progresso';
+            case 'pending':
+                return 'Pendente';
+            default:
+                return 'Desconhecido';
+        }
+    };
+
     // 🚀 FUNÇÃO OTIMIZADA PARA BUSCAR DADOS DISC EM PARALELO
     const fetchDiscDataBatch = async (usuarioIds) => {
 
@@ -227,24 +362,12 @@ const CandidaturasAdmPage = () => {
             const token = sessionStorage.getItem("accessToken") || accessToken;
 
             if (!token) {
->>>>>>> origin/AGS-20
                 alert("Sessão expirada. Faça login novamente.");
                 return;
             }
 
-<<<<<<< HEAD
-            // 2. CONSTRUIR URL
-            const url = `${API_BASE_URL}/api/users/${usuarioId}/curriculo`;
-            console.log("🌐 URL da requisição:", url);
-            console.log("🌐 API_BASE_URL:", API_BASE_URL);
-
-            console.log("📡 Fazendo requisição...");
-
-            // 3. FAZER REQUISIÇÃO
-=======
             const url = `${API_URL}/api/users/${usuarioId}/curriculo`;
 
->>>>>>> origin/AGS-20
             const response = await fetch(url, {
                 method: "GET",
                 headers: {
@@ -252,23 +375,8 @@ const CandidaturasAdmPage = () => {
                 },
             });
 
-<<<<<<< HEAD
-            console.log("📨 Resposta recebida:");
-            console.log("   - Status:", response.status);
-            console.log("   - StatusText:", response.statusText);
-            console.log("   - OK:", response.ok);
-
-            // 4. VERIFICAR STATUS
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error("❌ ERRO na resposta:");
-                console.error("   - Status:", response.status);
-                console.error("   - Texto:", errorText);
-
-=======
-            if (!response.ok) {
-                const errorText = await response.text();
->>>>>>> origin/AGS-20
                 if (response.status === 404) {
                     alert("Currículo não encontrado para este candidato.");
                 } else if (response.status === 401) {
@@ -279,81 +387,37 @@ const CandidaturasAdmPage = () => {
                 return;
             }
 
-<<<<<<< HEAD
-            console.log("✅ Resposta OK, processando blob...");
-
-            // 5. PROCESSAR BLOB
-            const blob = await response.blob();
-            console.log("📄 Blob criado:");
-            console.log("   - Tamanho:", blob.size, "bytes");
-            console.log("   - Tipo:", blob.type);
-
-            if (blob.size === 0) {
-                console.error("❌ ERRO: Blob vazio");
-=======
             const blob = await response.blob();
 
             if (blob.size === 0) {
->>>>>>> origin/AGS-20
                 alert("Arquivo de currículo está vazio.");
                 return;
             }
 
-<<<<<<< HEAD
-            // 6. CRIAR URL DO BLOB
-            const blobUrl = window.URL.createObjectURL(blob);
-            console.log("🔗 URL do blob criada:", blobUrl);
-
-            // 7. ABRIR MODAL
-            console.log("🎬 Abrindo modal...");
-=======
             const blobUrl = window.URL.createObjectURL(blob);
 
->>>>>>> origin/AGS-20
             setModalCurriculo({
                 isOpen: true,
                 url: blobUrl,
                 nome: nomeUsuario || 'Usuário'
             });
 
-<<<<<<< HEAD
-            console.log("✅ Modal aberto com sucesso!");
-
-            // 8. LIMPAR MEMORIA
             setTimeout(() => {
-                console.log("🧹 Limpando URL do blob...");
-=======
-            setTimeout(() => {
->>>>>>> origin/AGS-20
                 window.URL.revokeObjectURL(blobUrl);
             }, 60000);
 
         } catch (error) {
-<<<<<<< HEAD
-            console.error("💥 ERRO CAPTURADO:");
-            console.error("   - Tipo:", error.name);
-            console.error("   - Mensagem:", error.message);
-            console.error("   - Stack:", error.stack);
-=======
->>>>>>> origin/AGS-20
             alert(`Erro ao carregar currículo: ${error.message}`);
         }
     };
 
-<<<<<<< HEAD
-    // Função para buscar candidaturas
-=======
     // 🚀 FUNÇÃO PRINCIPAL OTIMIZADA
->>>>>>> origin/AGS-20
     const fetchTodasCandidaturas = async () => {
         try {
             setLoading(true);
             setError("");
 
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/AGS-20
 
             const startTime = performance.now();
 
@@ -364,7 +428,6 @@ const CandidaturasAdmPage = () => {
 
             let candidaturas = response.data || [];
 
-<<<<<<< HEAD
             if (candidaturas.length > 0) {
 
 
@@ -449,11 +512,6 @@ const CandidaturasAdmPage = () => {
             }))
 
             setCandidaturas(candidaturas);
-
-        } catch (err) {
-            console.error("💥 ERRO:", err);
-            setError(`Erro: ${err.message}`);
-=======
             if (candidaturas.length === 0) {
                 setCandidaturas([]);
                 return;
@@ -501,15 +559,15 @@ const CandidaturasAdmPage = () => {
 
 
         } catch (err) {
+            console.error("💥 ERRO:", err);
+            setError(`Erro: ${err.message}`);
             setError(`Erro: ${err.message}`);
 
->>>>>>> origin/AGS-20
         } finally {
             setLoading(false);
         }
     };
 
-<<<<<<< HEAD
     // COMPONENTE INTERVIEW CARD - MOSTRA ID SEMPRE (QUALQUER STATUS)
     const InterviewCard = ({ entrevistas, usuario, candidaturaId }) => {
 
@@ -562,7 +620,150 @@ const CandidaturasAdmPage = () => {
         );
     };
 
-=======
+    // MODAL DE HISTÓRICO DE ENTREVISTAS
+    const InterviewHistoryModal = () => (
+        modalInterview.isOpen && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-6 border-b border-white/10">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
+                                <Video className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white">Histórico de Entrevistas</h3>
+                                <p className="text-gray-400">{modalInterview.nome}</p>
+                                <p className="text-xs text-blue-400">Candidatura #{modalInterview.candidaturaId}</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setModalInterview({ isOpen: false, entrevistas: [], nome: "", candidaturaId: null })}
+                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            <X className="w-6 h-6 text-gray-400" />
+                        </button>
+                    </div>
+
+                    {/* Conteúdo */}
+                    <div className="p-6">
+                        {modalInterview.entrevistas.length === 0 ? (
+                            <div className="text-center py-12">
+                                <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                                <h4 className="text-lg font-medium text-white mb-2">Nenhuma entrevista realizada</h4>
+                                <p className="text-gray-400">Esta candidatura ainda não possui entrevistas associadas.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {/* Lista de Entrevistas Detalhada */}
+                                <div>
+                                    <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                        <Clock4 className="w-5 h-5 text-purple-500" />
+                                        Detalhes por Entrevista
+                                    </h4>
+                                    <div className="space-y-4">
+                                        {modalInterview.entrevistas.map((entrevista, index) => (
+                                            <div key={entrevista.id} className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors border border-white/10">
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className="flex items-center gap-3">
+                                                        {/* Badge do ID - DESTAQUE PRINCIPAL */}
+                                                        <div className="flex items-center justify-center w-16 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white font-bold">
+                                                            <div className="text-center">
+                                                                <div className="text-xs text-blue-200">ID</div>
+                                                                <div className="text-lg font-black">#{entrevista.id}</div>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <h5 className="font-medium text-white">
+                                                                Entrevista #{entrevista.id}
+                                                            </h5>
+                                                            <p className="text-sm text-gray-400">
+                                                                {new Date(entrevista.created_at).toLocaleDateString('pt-BR', {
+                                                                    day: '2-digit',
+                                                                    month: '2-digit',
+                                                                    year: 'numeric',
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit'
+                                                                })}
+                                                            </p>
+                                                            <p className="text-xs text-blue-400">
+                                                                Candidatura #{modalInterview.candidaturaId}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${entrevista.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                                                        entrevista.status === 'in_progress' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                            'bg-blue-500/20 text-blue-400'
+                                                        }`}>
+                                                        {getInterviewStatusText(entrevista.status)}
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                                                    <div>
+                                                        <div className="text-sm text-gray-400">Progresso</div>
+                                                        <div className="text-white font-medium">
+                                                            {entrevista.answered_questions || 0}/{entrevista.total_questions || 5}
+                                                        </div>
+                                                        <div className="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                                                            <div
+                                                                className="bg-blue-500 h-1.5 rounded-full transition-all"
+                                                                style={{
+                                                                    width: `${((entrevista.answered_questions || 0) / (entrevista.total_questions || 5)) * 100}%`
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-sm text-gray-400">Pontuação</div>
+                                                        <div className="text-white font-medium">
+                                                            {entrevista.overall_score ? `${parseFloat(entrevista.overall_score).toFixed(1)}/10` : 'N/A'}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-sm text-gray-400">Duração</div>
+                                                        <div className="text-white font-medium">
+                                                            {entrevista.completed_at && entrevista.created_at ?
+                                                                `${Math.round((new Date(entrevista.completed_at) - new Date(entrevista.created_at)) / (1000 * 60))} min`
+                                                                : 'Em andamento'
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-sm text-gray-400">Conclusão</div>
+                                                        <div className="text-white font-medium">
+                                                            {entrevista.completed_at ?
+                                                                new Date(entrevista.completed_at).toLocaleDateString('pt-BR')
+                                                                : '-'
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {entrevista.status === 'completed' && entrevista.overall_score && (
+                                                    <div className="border-t border-white/10 pt-3">
+                                                        <div className="text-sm text-gray-400 mb-2">Análise Comportamental</div>
+                                                        <div className="text-sm text-gray-300">
+                                                            {entrevista.overall_score >= 8 ?
+                                                                "Excelente performance demonstrada durante a entrevista. Candidato apresentou boa comunicação e confiança." :
+                                                                entrevista.overall_score >= 6 ?
+                                                                    "Performance satisfatória na entrevista. Demonstrou adequação para a vaga com pontos de melhoria." :
+                                                                    "Performance abaixo do esperado. Recomenda-se nova avaliação ou desenvolvimento adicional."
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )
+    );
     // Função para buscar empresa (implementar conforme necessário)
     const buscarEmpresa = (candidatura) => {
         // Implementar lógica de busca de empresa
@@ -619,7 +820,6 @@ const CandidaturasAdmPage = () => {
         );
     };
 
->>>>>>> origin/AGS-20
     // MODAL DE HISTÓRICO DE ENTREVISTAS
     const InterviewHistoryModal = () => (
         modalInterview.isOpen && (
@@ -655,10 +855,6 @@ const CandidaturasAdmPage = () => {
                             </div>
                         ) : (
                             <div className="space-y-6">
-<<<<<<< HEAD
-                                {/* Lista de Entrevistas Detalhada */}
-=======
->>>>>>> origin/AGS-20
                                 <div>
                                     <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                                         <Clock4 className="w-5 h-5 text-purple-500" />
@@ -669,10 +865,6 @@ const CandidaturasAdmPage = () => {
                                             <div key={entrevista.id} className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors border border-white/10">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <div className="flex items-center gap-3">
-<<<<<<< HEAD
-                                                        {/* Badge do ID - DESTAQUE PRINCIPAL */}
-=======
->>>>>>> origin/AGS-20
                                                         <div className="flex items-center justify-center w-16 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white font-bold">
                                                             <div className="text-center">
                                                                 <div className="text-xs text-blue-200">ID</div>
@@ -805,10 +997,12 @@ const CandidaturasAdmPage = () => {
     // Modal de Resultado DISC
     const DiscModal = () => (
         modalDisc.isOpen && modalDisc.resultado && (
+        modalDisc.isOpen && modalDisc.resultado && (
             <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div className="bg-gray-900 rounded-2xl w-full max-w-lg p-6">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
+                            <div className={`p-2 bg-gradient-to-r ${discConfig[modalDisc.resultado.principal]?.color || 'from-purple-500 to-pink-600'} rounded-lg`}>
                             <div className={`p-2 bg-gradient-to-r ${discConfig[modalDisc.resultado.principal]?.color || 'from-purple-500 to-pink-600'} rounded-lg`}>
                                 <Brain className="w-6 h-6 text-white" />
                             </div>
@@ -827,17 +1021,26 @@ const CandidaturasAdmPage = () => {
 
                     <div className="text-center">
                         <div className={`w-24 h-24 mx-auto mb-4 bg-gradient-to-r ${discConfig[modalDisc.resultado.principal]?.color || 'from-purple-500 to-pink-600'} rounded-full flex items-center justify-center`}>
+                        <div className={`w-24 h-24 mx-auto mb-4 bg-gradient-to-r ${discConfig[modalDisc.resultado.principal]?.color || 'from-purple-500 to-pink-600'} rounded-full flex items-center justify-center`}>
                             <span className="text-3xl font-bold text-white">
+                                {modalDisc.resultado.principal}
                                 {modalDisc.resultado.principal}
                             </span>
                         </div>
                         <h4 className="text-2xl font-bold text-white mb-2">
                             {discConfig[modalDisc.resultado.principal]?.name || modalDisc.resultado.principal}
+                            {discConfig[modalDisc.resultado.principal]?.name || modalDisc.resultado.principal}
                         </h4>
                         <p className="text-gray-400 mb-6">
                             {modalDisc.resultado.analise || "Análise não disponível"}
+                            {modalDisc.resultado.analise || "Análise não disponível"}
                         </p>
 
+                        {/* Pontuações DISC */}
+                        <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+                            {Object.entries(modalDisc.resultado.pontuacoes || {}).map(([letra, pontuacao]) => (
+                                <div key={letra} className="bg-white/5 rounded-lg p-3">
+                                    <div className="font-bold text-white">{letra}: {pontuacao.toFixed(1)}</div>
                         {/* Pontuações DISC */}
                         <div className="grid grid-cols-2 gap-3 text-sm mb-4">
                             {Object.entries(modalDisc.resultado.pontuacoes || {}).map(([letra, pontuacao]) => (
@@ -852,13 +1055,18 @@ const CandidaturasAdmPage = () => {
                             <h5 className="font-bold text-white mb-2">Recomendações:</h5>
                             <p className="text-gray-300 text-sm">{modalDisc.resultado.recomendacoes}</p>
                         </div>
+
+                        {/* Recomendações */}
+                        <div className="bg-white/5 rounded-lg p-3 text-left">
+                            <h5 className="font-bold text-white mb-2">Recomendações:</h5>
+                            <p className="text-gray-300 text-sm">{modalDisc.resultado.recomendacoes}</p>
+                        </div>
                     </div>
                 </div>
             </div>
         )
     );
 
-<<<<<<< HEAD
     // Componente: Botão de Análise Compacto
     const CompactAnalysisButton = ({ type, data, usuario, size = "sm" }) => {
         const configs = {
@@ -914,8 +1122,6 @@ const CandidaturasAdmPage = () => {
         );
     };
 
-=======
->>>>>>> origin/AGS-20
     // Funções de estilo e formatação
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
@@ -957,7 +1163,6 @@ const CandidaturasAdmPage = () => {
         reprovadas: candidaturas.filter(c => c.status === "reprovado").length
     }), [candidaturas]);
 
-<<<<<<< HEAD
     // Candidaturas filtradas com DEBUG de entrevistas
     const candidaturasFiltradas = candidaturas.filter(candidatura => {
         const matchesSearch =
@@ -967,7 +1172,6 @@ const CandidaturasAdmPage = () => {
         const matchesFilter = filterStatus === "todos" || candidatura.status === filterStatus;
         return matchesSearch && matchesFilter;
     });
-=======
     // Candidaturas filtradas com useMemo para performance
     const candidaturasFiltradas = useMemo(() => {
         return candidaturas.filter(candidatura => {
@@ -979,7 +1183,6 @@ const CandidaturasAdmPage = () => {
             return matchesSearch && matchesFilter;
         });
     }, [candidaturas, searchTerm, filterStatus]);
->>>>>>> origin/AGS-20
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
@@ -987,11 +1190,20 @@ const CandidaturasAdmPage = () => {
             <CurriculoModal />
             <DiscModal />
             <InterviewHistoryModal />
+            <InterviewHistoryModal />
 
             {/* Navbar */}
             <Navbar />
+            {/* Header */}
+            <div className="mb-8 ">
+                <h1 className="text-3xl  font-bold  text-white  mb-2 ">
+                    CRM - Gestão de Leads
+                </h1>
+                <p className="text-gray-400 ">
+                    Dados em tempo real da tabela users via API NestJS
+                </p>
+            </div>
 
-<<<<<<< HEAD
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header com título e busca - VERSÃO HORIZONTAL */}
                 <div className="mb-8">
@@ -1006,6 +1218,17 @@ const CandidaturasAdmPage = () => {
                             </p>
                         </div>
 
+            {/* Container principal com padding responsivo */}
+            <div className="max-w-[2000px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 lg:py-8 mb-20">
+                {/* Header da seção com título e controles */}
+                <div className="mb-6 lg:mb-15">
+                    {/* Título da seção */}
+                    <div className="mb-4 sm:mb-6">
+                        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
+                            Candidaturas dos Usuários
+                        </h2>
+                    </div>
+
                         {/* Busca e Filtros */}
                         <div className="flex items-center gap-3 min-w-96">
                             <div className="relative flex-1">
@@ -1018,22 +1241,6 @@ const CandidaturasAdmPage = () => {
                                     className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
                                 />
                             </div>
-                            <select
-                                value={filterStatus}
-                                onChange={(e) => setFilterStatus(e.target.value)}
-                                className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-colors min-w-36"
-=======
-            {/* Container principal com padding responsivo */}
-            <div className="max-w-[2000px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 lg:py-8 mb-20">
-                {/* Header da seção com título e controles */}
-                <div className="mb-6 lg:mb-15">
-                    {/* Título da seção */}
-                    <div className="mb-4 sm:mb-6">
-                        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
-                            Candidaturas dos Usuários
-                        </h2>
-                    </div>
-
                     {/* Controles de busca e filtros - Responsivos */}
                     <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 mb-6">
                         {/* Busca */}
@@ -1053,8 +1260,8 @@ const CandidaturasAdmPage = () => {
                             <select
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
+                                className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-colors min-w-36"
                                 className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-colors text-sm sm:text-base min-w-0 sm:min-w-36"
->>>>>>> origin/AGS-20
                             >
                                 <option value="todos">Todos Status</option>
                                 <option value="aprovado">Aprovados</option>
@@ -1081,7 +1288,6 @@ const CandidaturasAdmPage = () => {
                         </div>
                     </div>
 
-<<<<<<< HEAD
                     {/* Estatísticas */}
                     <div className="grid grid-cols-4 gap-4 mb-8">
                         {/* Total */}
@@ -1118,7 +1324,7 @@ const CandidaturasAdmPage = () => {
                             </div>
                             <div className="text-xl font-bold text-white mb-1">{stats.reprovadas}</div>
                             <div className="text-sm text-gray-400">Reprovadas</div>
-=======
+                        </div>
                     {/* Estatísticas - Grid responsivo */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
                         {/* Total */}
@@ -1155,16 +1361,12 @@ const CandidaturasAdmPage = () => {
                             </div>
                             <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1">{stats.reprovadas}</div>
                             <div className="text-xs sm:text-sm text-gray-400">Reprovadas</div>
->>>>>>> origin/AGS-20
                         </div>
                     </div>
                 </div>
 
-<<<<<<< HEAD
                 {/* Grid de Candidaturas - VERSÃO COMPACTA */}
-=======
                 {/* Grid de Candidaturas - Altamente responsivo */}
->>>>>>> origin/AGS-20
                 {loading ? (
                     <div className="flex items-center justify-center py-8 sm:py-12">
                         <div className="flex flex-col items-center gap-4">
@@ -1186,11 +1388,7 @@ const CandidaturasAdmPage = () => {
                         </button>
                     </div>
                 ) : (
-<<<<<<< HEAD
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-=======
-                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 3xl:grid-cols-10 gap-2 sm:gap-3 lg:gap-4">
->>>>>>> origin/AGS-20
                         {candidaturasFiltradas.map((candidatura) => {
                             const hasInterview = candidatura.usuario?.entrevistas && candidatura.usuario.entrevistas.length > 0;
                             const lastInterview = hasInterview ? candidatura.usuario.entrevistas[0] : null;
@@ -1198,11 +1396,28 @@ const CandidaturasAdmPage = () => {
                             return (
                                 <div
                                     key={candidatura.id}
-<<<<<<< HEAD
                                     className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 cursor-pointer"
-=======
+                                    onClick={() => {
+                                        if (hasInterview) {
+                                            setModalInterview({
+                                                isOpen: true,
+                                                entrevistas: candidatura.usuario.entrevistas,
+                                                nome: candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário',
+                                                candidaturaId: candidatura.id
+                                            });
+                                        }
+                                    }}
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
+                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 3xl:grid-cols-10 gap-2 sm:gap-3 lg:gap-4">
+                        {candidaturasFiltradas.map((candidatura) => {
+                            const hasInterview = candidatura.usuario?.entrevistas && candidatura.usuario.entrevistas.length > 0;
+                            const lastInterview = hasInterview ? candidatura.usuario.entrevistas[0] : null;
+
+                            return (
+                                <div
+                                    key={candidatura.id}
                                     className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-2.5 sm:p-3 lg:p-4 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 cursor-pointer"
->>>>>>> origin/AGS-20
                                     onClick={() => {
                                         if (hasInterview) {
                                             setModalInterview({
@@ -1217,52 +1432,31 @@ const CandidaturasAdmPage = () => {
                                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
 
                                     <div className="relative z-10 text-center">
-<<<<<<< HEAD
                                         {/* Ícone Principal */}
                                         <div className={`w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center relative ${hasInterview
-=======
-                                        {/* Ícone Principal - Responsivo */}
-                                        <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 mx-auto mb-2 sm:mb-3 rounded-lg flex items-center justify-center relative ${hasInterview
->>>>>>> origin/AGS-20
                                             ? `bg-gradient-to-r ${getInterviewStatusColor(lastInterview.status)}`
                                             : 'bg-gray-700'
                                             }`}>
                                             {hasInterview ? (
-<<<<<<< HEAD
                                                 <BarChart3 className="w-5 h-5 text-white" />
                                             ) : (
                                                 <User className="w-5 h-5 text-gray-400" />
-=======
-                                                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
-                                            ) : (
-                                                <User className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-gray-400" />
->>>>>>> origin/AGS-20
                                             )}
 
                                             {/* Badge do ID da Entrevista */}
                                             {hasInterview && (
-<<<<<<< HEAD
                                                 <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-[8px] rounded-full px-1 py-0.5 font-bold min-w-[14px] text-center leading-tight">
-=======
-                                                <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-[7px] sm:text-[8px] rounded-full px-1 py-0.5 font-bold min-w-[12px] sm:min-w-[14px] text-center leading-tight">
->>>>>>> origin/AGS-20
                                                     {lastInterview.id}
                                                 </div>
                                             )}
                                         </div>
 
-<<<<<<< HEAD
                                         {/* Nome do Candidato */}
                                         <h3 className="font-bold text-white text-xs mb-1 truncate">
-=======
-                                        {/* Nome do Candidato - Responsivo */}
-                                        <h3 className="font-bold text-white text-[10px] sm:text-xs lg:text-sm mb-1 truncate px-1">
->>>>>>> origin/AGS-20
                                             {candidatura.usuario?.nome || candidatura.usuario?.name || "Nome não informado"}
                                         </h3>
 
                                         {/* Subtitle - Empresa */}
-<<<<<<< HEAD
                                         <p className="text-xs text-gray-400 mb-2 truncate">
                                             {candidatura.vaga?.empresa || "Empresa"}
                                         </p>
@@ -1274,7 +1468,33 @@ const CandidaturasAdmPage = () => {
                                                     #{lastInterview.id}
                                                 </p>
                                                 <p className="text-xs text-gray-400">
-=======
+                                                    {getInterviewStatusText(lastInterview.status)}
+                                    <div className="relative z-10 text-center">
+                                        {/* Ícone Principal - Responsivo */}
+                                        <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 mx-auto mb-2 sm:mb-3 rounded-lg flex items-center justify-center relative ${hasInterview
+                                            ? `bg-gradient-to-r ${getInterviewStatusColor(lastInterview.status)}`
+                                            : 'bg-gray-700'
+                                            }`}>
+                                            {hasInterview ? (
+                                                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+                                            ) : (
+                                                <User className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-gray-400" />
+                                            )}
+
+                                            {/* Badge do ID da Entrevista */}
+                                            {hasInterview && (
+                                                <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-[7px] sm:text-[8px] rounded-full px-1 py-0.5 font-bold min-w-[12px] sm:min-w-[14px] text-center leading-tight">
+                                                    {lastInterview.id}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Nome do Candidato - Responsivo */}
+                                        <h3 className="font-bold text-white text-[10px] sm:text-xs lg:text-sm mb-1 truncate px-1">
+                                            {candidatura.usuario?.nome || candidatura.usuario?.name || "Nome não informado"}
+                                        </h3>
+
+                                        {/* Subtitle - Empresa */}
                                         <p className="text-[9px] sm:text-xs text-gray-400 mb-2 truncate px-1">
                                             {candidatura.vaga?.empresa || "Empresa"}
                                         </p>
@@ -1286,36 +1506,27 @@ const CandidaturasAdmPage = () => {
                                                     #{lastInterview.id}
                                                 </p>
                                                 <p className="text-[8px] sm:text-xs text-gray-400">
->>>>>>> origin/AGS-20
                                                     {getInterviewStatusText(lastInterview.status)}
                                                 </p>
                                             </div>
                                         ) : (
-<<<<<<< HEAD
                                             <div className="bg-gray-700/50 border border-gray-600 rounded-md px-2 py-1 mb-2">
                                                 <p className="text-xs text-gray-400">
-=======
+                                                    Sem entrevista
+                                                </p>
+                                        ) : (
                                             <div className="bg-gray-700/50 border border-gray-600 rounded-md px-1.5 sm:px-2 py-1 mb-2">
                                                 <p className="text-[9px] sm:text-xs text-gray-400">
->>>>>>> origin/AGS-20
                                                     Sem entrevista
                                                 </p>
                                             </div>
                                         )}
 
-<<<<<<< HEAD
                                         {/* Botões de Ação Compactos */}
                                         <div className="flex items-center justify-center gap-1 mb-2">
                                             {/* Currículo */}
                                             <div
                                                 className={`w-5 h-5 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.curriculo_url
-=======
-                                        {/* Botões de Ação - Responsivos */}
-                                        <div className="flex items-center justify-center gap-1 mb-2">
-                                            {/* Currículo */}
-                                            <div
-                                                className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.curriculo_url
->>>>>>> origin/AGS-20
                                                     ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700'
                                                     : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                     }`}
@@ -1323,31 +1534,41 @@ const CandidaturasAdmPage = () => {
                                                     e.stopPropagation();
                                                     if (candidatura.usuario?.curriculo_url) {
                                                         handleViewCurriculoCandidato(
-<<<<<<< HEAD
                                                             candidatura.usuario_id,  // ID do usuário
-=======
-                                                            candidatura.usuario_id,
->>>>>>> origin/AGS-20
                                                             candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário'
                                                         );
                                                     }
                                                 }}
                                                 title={candidatura.usuario?.curriculo_url ? "Ver currículo" : "Currículo não disponível"}
                                             >
-<<<<<<< HEAD
                                                 <FileText className="w-2.5 h-2.5" />
-=======
+                                        )}
+
+                                        {/* Botões de Ação - Responsivos */}
+                                        <div className="flex items-center justify-center gap-1 mb-2">
+                                            {/* Currículo */}
+                                            <div
+                                                className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.curriculo_url
+                                                    ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700'
+                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                    }`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (candidatura.usuario?.curriculo_url) {
+                                                        handleViewCurriculoCandidato(
+                                                            candidatura.usuario_id,
+                                                            candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário'
+                                                        );
+                                                    }
+                                                }}
+                                                title={candidatura.usuario?.curriculo_url ? "Ver currículo" : "Currículo não disponível"}
+                                            >
                                                 <FileText className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3" />
->>>>>>> origin/AGS-20
                                             </div>
 
                                             {/* DISC */}
                                             <div
-<<<<<<< HEAD
                                                 className={`w-5 h-5 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.perfil_disc
-=======
-                                                className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.perfil_disc
->>>>>>> origin/AGS-20
                                                     ? 'bg-purple-600 text-white cursor-pointer hover:bg-purple-700'
                                                     : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                     }`}
@@ -1363,20 +1584,33 @@ const CandidaturasAdmPage = () => {
                                                 }}
                                                 title={candidatura.usuario?.perfil_disc ? "Ver perfil DISC" : "DISC não disponível"}
                                             >
-<<<<<<< HEAD
                                                 <Brain className="w-2.5 h-2.5" />
-=======
+                                            </div>
+
+                                            {/* DISC */}
+                                            <div
+                                                className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.perfil_disc
+                                                    ? 'bg-purple-600 text-white cursor-pointer hover:bg-purple-700'
+                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                    }`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (candidatura.usuario?.perfil_disc) {
+                                                        setModalDisc({
+                                                            isOpen: true,
+                                                            resultado: candidatura.usuario.perfil_disc,
+                                                            nome: candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário'
+                                                        });
+                                                    }
+                                                }}
+                                                title={candidatura.usuario?.perfil_disc ? "Ver perfil DISC" : "DISC não disponível"}
+                                            >
                                                 <Brain className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3" />
->>>>>>> origin/AGS-20
                                             </div>
 
                                             {/* LinkedIn */}
                                             <div
-<<<<<<< HEAD
                                                 className={`w-5 h-5 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.linkedin
-=======
-                                                className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.linkedin
->>>>>>> origin/AGS-20
                                                     ? 'bg-blue-700 text-white cursor-pointer hover:bg-blue-800'
                                                     : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                     }`}
@@ -1388,28 +1622,45 @@ const CandidaturasAdmPage = () => {
                                                 }}
                                                 title={candidatura.usuario?.linkedin ? "Ver LinkedIn" : "LinkedIn não disponível"}
                                             >
-<<<<<<< HEAD
                                                 <Linkedin className="w-2.5 h-2.5" />
-=======
+                                            {/* LinkedIn */}
+                                            <div
+                                                className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.linkedin
+                                                    ? 'bg-blue-700 text-white cursor-pointer hover:bg-blue-800'
+                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                                    }`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (candidatura.usuario?.linkedin) {
+                                                        window.open(candidatura.usuario.linkedin, '_blank');
+                                                    }
+                                                }}
+                                                title={candidatura.usuario?.linkedin ? "Ver LinkedIn" : "LinkedIn não disponível"}
+                                            >
                                                 <Linkedin className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3" />
->>>>>>> origin/AGS-20
                                             </div>
 
                                             {/* Empresa */}
                                             <div
-<<<<<<< HEAD
                                                 className="w-5 h-5 rounded-md flex items-center justify-center text-xs bg-indigo-600 text-white cursor-pointer hover:bg-indigo-700"
-=======
-                                                className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs bg-indigo-600 text-white cursor-pointer hover:bg-indigo-700"
->>>>>>> origin/AGS-20
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     buscarEmpresa(candidatura);
                                                 }}
                                                 title="Ver empresa"
                                             >
-<<<<<<< HEAD
                                                 <Building2 className="w-2.5 h-2.5" />
+                                            </div>
+                                            {/* Empresa */}
+                                            <div
+                                                className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs bg-indigo-600 text-white cursor-pointer hover:bg-indigo-700"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    buscarEmpresa(candidatura);
+                                                }}
+                                                title="Ver empresa"
+                                            >
+                                                <Building2 className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3" />
                                             </div>
                                         </div>
 
@@ -1417,21 +1668,18 @@ const CandidaturasAdmPage = () => {
                                         <div className="flex items-center justify-between text-xs text-gray-500">
                                             <span>#{candidatura.id}</span>
                                             <div className={`w-3 h-3 rounded-full flex items-center justify-center ${getStatusColor(candidatura.status).replace('bg-', 'bg-').replace('text-', 'text-').replace('border-', '')}`}>
-=======
-                                                <Building2 className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3" />
-                                            </div>
-                                        </div>
-
+                                                {getStatusIcon(candidatura.status)}
                                         {/* Footer - Responsivo */}
                                         <div className="flex items-center justify-between text-[8px] sm:text-xs text-gray-500">
                                             <span>#{candidatura.id}</span>
                                             <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center ${getStatusColor(candidatura.status).replace('bg-', 'bg-').replace('text-', 'text-').replace('border-', '')}`}>
->>>>>>> origin/AGS-20
                                                 {getStatusIcon(candidatura.status)}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                            );
+                        })}
                             );
                         })}
 
