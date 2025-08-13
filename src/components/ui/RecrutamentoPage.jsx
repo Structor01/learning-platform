@@ -356,12 +356,44 @@ const RecrutamentoPage = () => {
       const result = await response.json();
       
       if (result.success && result.candidates && result.candidates.length > 0) {
-        // Exibir resultados do backend
-        setSearchResults(result.candidates);
+        // Ajuste: transformar cada candidato para o novo formato
+        const formattedCandidates = result.candidates.map((data) => ({
+          id: data.id ?? 'mock_error',
+          name: data.full_name ?? 'Candidato Exemplo',
+          title: data.headline ?? 'Profissional da Área',
+          company: data.experience?.[0]?.company_name ?? 'Empresa Exemplo',
+          location: data.location_full ?? data.location_country ?? 'Brasil',
+          lastExperience: data.experience?.[0]?.position_title
+            ? `${data.experience[0].position_title} | ${data.experience.length}+ experiências`
+            : 'Experiência relevante',
+          skills: Array.isArray(data.inferred_skills) && data.inferred_skills.length > 0
+            ? data.inferred_skills.slice(0, 10)
+            : ['Habilidade 1', 'Habilidade 2'],
+          profileUrl: data.linkedin_url ?? '',
+          confidence: 0.7,
+          source: 'mock',
+          pictureUrl: data.picture_url ?? '',
+          summary: data.summary ?? '',
+          location_country: data.location_country ?? '',
+          location_city: data.location_city ?? '',
+          location_state: data.location_state ?? '',
+          location_full: data.location_full ?? '',
+          experience: Array.isArray(data.experience) ? data.experience : [],
+          education: Array.isArray(data.education) ? data.education : [],
+          recommendations: Array.isArray(data.recommendations) ? data.recommendations : [],
+          activity: Array.isArray(data.activity) ? data.activity : [],
+          awards: Array.isArray(data.awards) ? data.awards : [],
+          courses: Array.isArray(data.courses) ? data.courses : [],
+          certifications: Array.isArray(data.certifications) ? data.certifications : [],
+          languages: Array.isArray(data.languages) ? data.languages : [],
+          raw: data // inclui todos os dados originais para referência futura
+        }));
+
+        setSearchResults(formattedCandidates);
         setShowSearchModal(true);
-        
+
         console.log(`✅ Busca concluída via backend! ${result.message} Candidatos encontrados: ${result.total}`);
-        console.log('📊 Candidatos:', result.candidates.map(c => `${c.name} - ${c.title} (${c.company})`));
+        console.log('📊 Candidatos:', formattedCandidates.map(c => `${c.name} - ${c.title} (${c.company})`));
       } else {
         // Fallback para busca via frontend se backend falhar
         console.log('⚠️ Backend não retornou candidatos, tentando busca via frontend...');
@@ -1478,7 +1510,7 @@ const RecrutamentoPage = () => {
                         <CardContent className="p-4 ">
                           <div className="flex items-start  gap-4 ">
                             <img
-                              src={candidate.imageUrl}
+                              src={candidate.pictureUrl || candidate.imageUrl || '/default-avatar.png'}
                               alt={candidate.name}
                               className="w-16 h-16  rounded-full "
                             />
@@ -1492,10 +1524,13 @@ const RecrutamentoPage = () => {
                                   <p className="text-gray-400  text-sm ">
                                     {candidate.company} • {candidate.location}
                                   </p>
+                                  {candidate.lastExperience && (
+                                    <p className="text-gray-500 text-xs">{candidate.lastExperience}</p>
+                                  )}
                                 </div>
                                 <div className="flex items-center  gap-2 ">
                                   <Badge className="bg-green-500  text-white ">
-                                    {candidate.match_score}% match
+                                    {Math.round((candidate.confidence ?? 0.7) * 100)}% match
                                   </Badge>
                                   <Star className="h-4 w-4  text-yellow-400 " />
                                 </div>
@@ -1514,14 +1549,16 @@ const RecrutamentoPage = () => {
                               </div>
                               
                               <div className="flex gap-2 ">
-                                <Button
-                                  size="sm"
-                                  className="bg-blue-600 hover:bg-blue-700  text-white "
-                                  onClick={() => window.open(candidate.profileUrl, '_blank')}
-                                >
-                                  <ExternalLink className="h-4 w-4  mr-1 " />
-                                  LinkedIn
-                                </Button>
+                                {candidate.profileUrl && (
+                                  <Button
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700  text-white "
+                                    onClick={() => window.open(candidate.profileUrl, '_blank')}
+                                  >
+                                    <ExternalLink className="h-4 w-4  mr-1 " />
+                                    LinkedIn
+                                  </Button>
+                                )}
                                 <Button
                                   size="sm"
                                   variant="outline"
