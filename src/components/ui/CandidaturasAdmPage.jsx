@@ -101,13 +101,108 @@ const CandidaturasAdmPage = () => {
         }
     };
 
+    // 1. Função para buscar currículo de um candidato específico
+    const handleViewCurriculoCandidato = async (usuarioId, nomeUsuario) => {
+        console.log("🚀 INICIANDO handleViewCurriculoCandidato");
+        console.log("📋 Parâmetros recebidos:", { usuarioId, nomeUsuario });
+
+        try {
+            // 1. VERIFICAR TOKEN
+            const token = sessionStorage.getItem("accessToken") || accessToken;
+
+            if (!token) {
+                console.error("❌ ERRO: Token não encontrado");
+                alert("Sessão expirada. Faça login novamente.");
+                return;
+            }
+
+            // 2. CONSTRUIR URL
+            const url = `${API_BASE_URL}/api/users/${usuarioId}/curriculo`;
+            console.log("🌐 URL da requisição:", url);
+            console.log("🌐 API_BASE_URL:", API_BASE_URL);
+
+            console.log("📡 Fazendo requisição...");
+
+            // 3. FAZER REQUISIÇÃO
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            console.log("📨 Resposta recebida:");
+            console.log("   - Status:", response.status);
+            console.log("   - StatusText:", response.statusText);
+            console.log("   - OK:", response.ok);
+
+            // 4. VERIFICAR STATUS
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error("❌ ERRO na resposta:");
+                console.error("   - Status:", response.status);
+                console.error("   - Texto:", errorText);
+
+                if (response.status === 404) {
+                    alert("Currículo não encontrado para este candidato.");
+                } else if (response.status === 401) {
+                    alert("Sessão expirada. Faça login novamente.");
+                } else {
+                    alert(`Erro ${response.status}: ${errorText}`);
+                }
+                return;
+            }
+
+            console.log("✅ Resposta OK, processando blob...");
+
+            // 5. PROCESSAR BLOB
+            const blob = await response.blob();
+            console.log("📄 Blob criado:");
+            console.log("   - Tamanho:", blob.size, "bytes");
+            console.log("   - Tipo:", blob.type);
+
+            if (blob.size === 0) {
+                console.error("❌ ERRO: Blob vazio");
+                alert("Arquivo de currículo está vazio.");
+                return;
+            }
+
+            // 6. CRIAR URL DO BLOB
+            const blobUrl = window.URL.createObjectURL(blob);
+            console.log("🔗 URL do blob criada:", blobUrl);
+
+            // 7. ABRIR MODAL
+            console.log("🎬 Abrindo modal...");
+            setModalCurriculo({
+                isOpen: true,
+                url: blobUrl,
+                nome: nomeUsuario || 'Usuário'
+            });
+
+            console.log("✅ Modal aberto com sucesso!");
+
+            // 8. LIMPAR MEMORIA
+            setTimeout(() => {
+                console.log("🧹 Limpando URL do blob...");
+                window.URL.revokeObjectURL(blobUrl);
+            }, 60000);
+
+        } catch (error) {
+            console.error("💥 ERRO CAPTURADO:");
+            console.error("   - Tipo:", error.name);
+            console.error("   - Mensagem:", error.message);
+            console.error("   - Stack:", error.stack);
+            alert(`Erro ao carregar currículo: ${error.message}`);
+        }
+    };
+
     // Função para buscar candidaturas
     const fetchTodasCandidaturas = async () => {
         try {
             setLoading(true);
             setError("");
 
-            console.log("🔍 Buscando candidaturas...");
+
 
             const response = await axios.get(`${API_URL}/api/candidaturas`, {
                 headers: { Authorization: `Bearer ${accessToken}` },
@@ -116,7 +211,7 @@ const CandidaturasAdmPage = () => {
             let candidaturas = response.data || [];
 
             if (candidaturas.length > 0) {
-                console.log("🔄 Buscando dados DISC e entrevistas dos usuários...");
+
 
                 const usuarioIdsUnicos = [...new Set(candidaturas.map(c => c.usuario_id))];
                 const usuariosData = {};
@@ -141,12 +236,12 @@ const CandidaturasAdmPage = () => {
                                 analise: teste.overall_analysis,
                                 recomendacoes: teste.recommendations
                             };
-                            console.log(`✅ DISC adicionado para usuário ${usuarioId}`);
+
                         } else {
-                            console.log(`❌ SEM DADOS DISC para usuário ${usuarioId}`);
+
                         }
                     } catch (discError) {
-                        console.log(`💥 ERRO DISC para usuário ${usuarioId}:`, discError);
+
                     }
                 }
 
@@ -161,13 +256,13 @@ const CandidaturasAdmPage = () => {
                 }));
 
                 // BUSCAR ENTREVISTAS POR CANDIDATURA_ID - TODAS, INDEPENDENTE DO STATUS
-                console.log("🎬 Buscando TODAS as entrevistas por candidatura...");
+
                 for (const candidatura of candidaturas) {
                     try {
-                        console.log(`🔍 Buscando entrevistas para candidatura ${candidatura.id}...`);
+
 
                         const interviewData = await interviewService.getCandidaturaInterviews(candidatura.id);
-                        console.log(`🎬 RESPOSTA API para candidatura ${candidatura.id}:`, interviewData);
+
 
                         // Verificar se há entrevistas (qualquer status)
                         if (interviewData && interviewData.success && interviewData.interviews && Array.isArray(interviewData.interviews) && interviewData.interviews.length > 0) {
@@ -177,33 +272,27 @@ const CandidaturasAdmPage = () => {
                             );
 
                             candidatura.usuario.entrevistas = entrevistasOrdenadas;
-                            console.log(`✅ ${entrevistasOrdenadas.length} entrevista(s) encontrada(s) para candidatura ${candidatura.id}:`,
-                                entrevistasOrdenadas.map(e => `ID ${e.id} - Status: ${e.status}`));
+                            entrevistasOrdenadas.map(e => `ID ${e.id} - Status: ${e.status}`);
 
                             // LOG DETALHADO DAS ENTREVISTAS ENCONTRADAS
                             entrevistasOrdenadas.forEach(entrevista => {
-                                console.log(`📋 Entrevista ID: ${entrevista.id}, Status: ${entrevista.status}, Candidatura: ${candidatura.id}`);
                             });
                         } else {
-                            console.log(`❌ SEM ENTREVISTAS para candidatura ${candidatura.id} - resposta:`, interviewData);
                             candidatura.usuario.entrevistas = []; // Garantir array vazio
                         }
                     } catch (interviewError) {
-                        console.error(`💥 ERRO ENTREVISTAS para candidatura ${candidatura.id}:`, interviewError);
                         candidatura.usuario.entrevistas = []; // Garantir array vazio em caso de erro
                     }
                 }
             }
 
-            console.log("🎉 Dados finais processados:", candidaturas);
-            console.log("📊 Resumo de entrevistas por candidatura:",
-                candidaturas.map(c => ({
-                    candidaturaId: c.id,
-                    usuarioNome: c.usuario?.nome || c.usuario?.name,
-                    totalEntrevistas: c.usuario?.entrevistas?.length || 0,
-                    entrevistasIDs: c.usuario?.entrevistas?.map(e => `ID: ${e.id} (${e.status})`) || []
-                }))
-            );
+            candidaturas.map(c => ({
+                candidaturaId: c.id,
+                usuarioNome: c.usuario?.nome || c.usuario?.name,
+                totalEntrevistas: c.usuario?.entrevistas?.length || 0,
+                entrevistasIDs: c.usuario?.entrevistas?.map(e => `ID: ${e.id} (${e.status})`) || []
+            }))
+
             setCandidaturas(candidaturas);
 
         } catch (err) {
@@ -214,25 +303,8 @@ const CandidaturasAdmPage = () => {
         }
     };
 
-    const buscarEmpresa = async (candidatura) => {
-        try {
-            const vagaResponse = await axios.get(`${API_URL}/api/vagas/${candidatura.vaga_id}`);
-            const empresaId = vagaResponse.data.company_id;
-            if (empresaId) {
-                window.open(`/empresa/${empresaId}`, '_blank');
-            } else {
-                alert("Empresa não encontrada.");
-            }
-        } catch (error) {
-            console.error("Erro ao buscar empresa:", error);
-            alert("Erro ao buscar empresa.");
-        }
-    };
-
     // COMPONENTE INTERVIEW CARD - MOSTRA ID SEMPRE (QUALQUER STATUS)
     const InterviewCard = ({ entrevistas, usuario, candidaturaId }) => {
-        // Debug para verificar dados
-        console.log(`🎬 InterviewCard - Candidatura ${candidaturaId}:`, entrevistas);
 
         if (!entrevistas || entrevistas.length === 0) {
             return (
@@ -251,7 +323,6 @@ const CandidaturasAdmPage = () => {
         return (
             <button
                 onClick={() => {
-                    console.log('🖱️ Clique no botão de entrevista:', { entrevistas, usuario, candidaturaId });
                     setModalInterview({
                         isOpen: true,
                         entrevistas: entrevistas,
@@ -627,16 +698,8 @@ const CandidaturasAdmPage = () => {
 
     // Candidaturas filtradas com DEBUG de entrevistas
     const candidaturasFiltradas = candidaturas.filter(candidatura => {
-        // Debug para verificar estrutura das entrevistas
-        if (candidatura.usuario?.entrevistas) {
-            console.log(`🔍 DEBUG Candidatura ${candidatura.id}:`, {
-                usuarioNome: candidatura.usuario?.nome || candidatura.usuario?.name,
-                entrevistas: candidatura.usuario.entrevistas,
-                totalEntrevistas: candidatura.usuario.entrevistas.length
-            });
-        }
-
-        const matchesSearch = candidatura.vaga?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        const matchesSearch =
+            candidatura.vaga?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             candidatura.vaga?.empresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             candidatura.usuario?.nome?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = filterStatus === "todos" || candidatura.status === filterStatus;
@@ -861,11 +924,10 @@ const CandidaturasAdmPage = () => {
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     if (candidatura.usuario?.curriculo_url) {
-                                                        setModalCurriculo({
-                                                            isOpen: true,
-                                                            url: candidatura.usuario.curriculo_url,
-                                                            nome: candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário'
-                                                        });
+                                                        handleViewCurriculoCandidato(
+                                                            candidatura.usuario_id,  // ID do usuário
+                                                            candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário'
+                                                        );
                                                     }
                                                 }}
                                                 title={candidatura.usuario?.curriculo_url ? "Ver currículo" : "Currículo não disponível"}
