@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import axios from "axios";
 import {
     Briefcase,
@@ -52,10 +52,16 @@ const CandidaturasAdmPage = () => {
     const [modalCurriculo, setModalCurriculo] = useState({ isOpen: false, url: "", nome: "" });
     const [modalDisc, setModalDisc] = useState({ isOpen: false, resultado: "", nome: "" });
     const [modalInterview, setModalInterview] = useState({ isOpen: false, entrevistas: [], nome: "", candidaturaId: null });
+<<<<<<< HEAD
+=======
+
+    // Cache para evitar requisições duplicadas
+    const [discCache, setDiscCache] = useState(new Map());
+    const [interviewCache, setInterviewCache] = useState(new Map());
+>>>>>>> origin/AGS-20
 
     // Carregar dados da API
     useEffect(() => {
-        console.log("Auth State:", { isLoading, isAuthenticated });
         if (!isLoading && isAuthenticated) {
             fetchTodasCandidaturas();
         }
@@ -101,6 +107,7 @@ const CandidaturasAdmPage = () => {
         }
     };
 
+<<<<<<< HEAD
     // 1. Função para buscar currículo de um candidato específico
     const handleViewCurriculoCandidato = async (usuarioId, nomeUsuario) => {
         console.log("🚀 INICIANDO handleViewCurriculoCandidato");
@@ -112,10 +119,120 @@ const CandidaturasAdmPage = () => {
 
             if (!token) {
                 console.error("❌ ERRO: Token não encontrado");
+=======
+    // 🚀 FUNÇÃO OTIMIZADA PARA BUSCAR DADOS DISC EM PARALELO
+    const fetchDiscDataBatch = async (usuarioIds) => {
+
+
+        // Filtrar IDs que não estão no cache
+        const idsToFetch = usuarioIds.filter(id => !discCache.has(id));
+
+        if (idsToFetch.length === 0) {
+
+            return;
+        }
+
+
+
+        // Fazer todas as requisições em paralelo
+        const discPromises = idsToFetch.map(async (usuarioId) => {
+            try {
+                const discData = await testService.getUserPsychologicalTests(usuarioId, 'completed', 1);
+
+                let perfilDisc = null;
+                if (discData.tests && discData.tests.length > 0) {
+                    const teste = discData.tests[0];
+                    perfilDisc = {
+                        principal: getPrincipalDisc(teste.disc_scores),
+                        pontuacoes: teste.disc_scores,
+                        analise: teste.overall_analysis,
+                        recomendacoes: teste.recommendations
+                    };
+                }
+
+                return { usuarioId, perfilDisc };
+            } catch (error) {
+
+                return { usuarioId, perfilDisc: null };
+            }
+        });
+
+        // Aguardar todas as requisições
+        const results = await Promise.allSettled(discPromises);
+
+        // Atualizar cache
+        const newDiscCache = new Map(discCache);
+        results.forEach((result) => {
+            if (result.status === 'fulfilled') {
+                const { usuarioId, perfilDisc } = result.value;
+                newDiscCache.set(usuarioId, perfilDisc);
+            }
+        });
+
+        setDiscCache(newDiscCache);
+
+    };
+
+    // 🚀 FUNÇÃO OTIMIZADA PARA BUSCAR ENTREVISTAS EM PARALELO
+    const fetchInterviewsBatch = async (candidaturaIds) => {
+
+
+        // Filtrar IDs que não estão no cache
+        const idsToFetch = candidaturaIds.filter(id => !interviewCache.has(id));
+
+        if (idsToFetch.length === 0) {
+
+            return;
+        }
+
+
+
+        // Fazer todas as requisições em paralelo
+        const interviewPromises = idsToFetch.map(async (candidaturaId) => {
+            try {
+                const interviewData = await interviewService.getCandidaturaInterviews(candidaturaId);
+
+                let entrevistas = [];
+                if (interviewData && interviewData.success && interviewData.interviews && Array.isArray(interviewData.interviews)) {
+                    entrevistas = interviewData.interviews.sort((a, b) =>
+                        new Date(b.created_at) - new Date(a.created_at)
+                    );
+                }
+
+                return { candidaturaId, entrevistas };
+            } catch (error) {
+
+                return { candidaturaId, entrevistas: [] };
+            }
+        });
+
+        // Aguardar todas as requisições
+        const results = await Promise.allSettled(interviewPromises);
+
+        // Atualizar cache
+        const newInterviewCache = new Map(interviewCache);
+        results.forEach((result) => {
+            if (result.status === 'fulfilled') {
+                const { candidaturaId, entrevistas } = result.value;
+                newInterviewCache.set(candidaturaId, entrevistas);
+            }
+        });
+
+        setInterviewCache(newInterviewCache);
+    };
+
+    // 1. Função para buscar currículo de um candidato específico
+    const handleViewCurriculoCandidato = async (usuarioId, nomeUsuario) => {
+        try {
+            const token = sessionStorage.getItem("accessToken") || accessToken;
+
+            if (!token) {
+>>>>>>> origin/AGS-20
                 alert("Sessão expirada. Faça login novamente.");
                 return;
             }
 
+<<<<<<< HEAD
             // 2. CONSTRUIR URL
             const url = `${API_BASE_URL}/api/users/${usuarioId}/curriculo`;
             console.log("🌐 URL da requisição:", url);
@@ -124,6 +241,10 @@ const CandidaturasAdmPage = () => {
             console.log("📡 Fazendo requisição...");
 
             // 3. FAZER REQUISIÇÃO
+=======
+            const url = `${API_URL}/api/users/${usuarioId}/curriculo`;
+
+>>>>>>> origin/AGS-20
             const response = await fetch(url, {
                 method: "GET",
                 headers: {
@@ -131,6 +252,7 @@ const CandidaturasAdmPage = () => {
                 },
             });
 
+<<<<<<< HEAD
             console.log("📨 Resposta recebida:");
             console.log("   - Status:", response.status);
             console.log("   - StatusText:", response.statusText);
@@ -143,6 +265,10 @@ const CandidaturasAdmPage = () => {
                 console.error("   - Status:", response.status);
                 console.error("   - Texto:", errorText);
 
+=======
+            if (!response.ok) {
+                const errorText = await response.text();
+>>>>>>> origin/AGS-20
                 if (response.status === 404) {
                     alert("Currículo não encontrado para este candidato.");
                 } else if (response.status === 401) {
@@ -153,6 +279,7 @@ const CandidaturasAdmPage = () => {
                 return;
             }
 
+<<<<<<< HEAD
             console.log("✅ Resposta OK, processando blob...");
 
             // 5. PROCESSAR BLOB
@@ -163,53 +290,81 @@ const CandidaturasAdmPage = () => {
 
             if (blob.size === 0) {
                 console.error("❌ ERRO: Blob vazio");
+=======
+            const blob = await response.blob();
+
+            if (blob.size === 0) {
+>>>>>>> origin/AGS-20
                 alert("Arquivo de currículo está vazio.");
                 return;
             }
 
+<<<<<<< HEAD
             // 6. CRIAR URL DO BLOB
             const blobUrl = window.URL.createObjectURL(blob);
             console.log("🔗 URL do blob criada:", blobUrl);
 
             // 7. ABRIR MODAL
             console.log("🎬 Abrindo modal...");
+=======
+            const blobUrl = window.URL.createObjectURL(blob);
+
+>>>>>>> origin/AGS-20
             setModalCurriculo({
                 isOpen: true,
                 url: blobUrl,
                 nome: nomeUsuario || 'Usuário'
             });
 
+<<<<<<< HEAD
             console.log("✅ Modal aberto com sucesso!");
 
             // 8. LIMPAR MEMORIA
             setTimeout(() => {
                 console.log("🧹 Limpando URL do blob...");
+=======
+            setTimeout(() => {
+>>>>>>> origin/AGS-20
                 window.URL.revokeObjectURL(blobUrl);
             }, 60000);
 
         } catch (error) {
+<<<<<<< HEAD
             console.error("💥 ERRO CAPTURADO:");
             console.error("   - Tipo:", error.name);
             console.error("   - Mensagem:", error.message);
             console.error("   - Stack:", error.stack);
+=======
+>>>>>>> origin/AGS-20
             alert(`Erro ao carregar currículo: ${error.message}`);
         }
     };
 
+<<<<<<< HEAD
     // Função para buscar candidaturas
+=======
+    // 🚀 FUNÇÃO PRINCIPAL OTIMIZADA
+>>>>>>> origin/AGS-20
     const fetchTodasCandidaturas = async () => {
         try {
             setLoading(true);
             setError("");
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/AGS-20
 
+            const startTime = performance.now();
+
+            // 1. Buscar candidaturas básica
             const response = await axios.get(`${API_URL}/api/candidaturas`, {
                 headers: { Authorization: `Bearer ${accessToken}` },
             });
 
             let candidaturas = response.data || [];
 
+<<<<<<< HEAD
             if (candidaturas.length > 0) {
 
 
@@ -298,11 +453,63 @@ const CandidaturasAdmPage = () => {
         } catch (err) {
             console.error("💥 ERRO:", err);
             setError(`Erro: ${err.message}`);
+=======
+            if (candidaturas.length === 0) {
+                setCandidaturas([]);
+                return;
+            }
+
+
+
+            // 2. Extrair IDs únicos
+            const usuarioIdsUnicos = [...new Set(candidaturas.map(c => c.usuario_id))];
+            const candidaturaIds = candidaturas.map(c => c.id);
+
+
+            // 3. Buscar dados DISC e entrevistas EM PARALELO
+
+            await Promise.all([
+                fetchDiscDataBatch(usuarioIdsUnicos),
+                fetchInterviewsBatch(candidaturaIds)
+            ]);
+
+            // 4. Mapear dados para as candidaturas usando cache
+
+            const candidaturasComDados = candidaturas.map(candidatura => ({
+                ...candidatura,
+                usuario: {
+                    ...candidatura.usuario,
+                    perfil_disc: discCache.get(candidatura.usuario_id) || null,
+                    entrevistas: interviewCache.get(candidatura.id) || []
+                }
+            }));
+
+            setCandidaturas(candidaturasComDados);
+
+            const endTime = performance.now();
+            const totalTime = Math.round(endTime - startTime);
+
+
+            // Log das estatísticas finais
+            const estatisticas = {
+                totalCandidaturas: candidaturasComDados.length,
+                usuariosComDisc: candidaturasComDados.filter(c => c.usuario.perfil_disc).length,
+                candidaturasComEntrevistas: candidaturasComDados.filter(c => c.usuario.entrevistas.length > 0).length,
+                totalEntrevistas: candidaturasComDados.reduce((acc, c) => acc + (c.usuario.entrevistas?.length || 0), 0)
+            };
+
+
+
+        } catch (err) {
+            setError(`Erro: ${err.message}`);
+
+>>>>>>> origin/AGS-20
         } finally {
             setLoading(false);
         }
     };
 
+<<<<<<< HEAD
     // COMPONENTE INTERVIEW CARD - MOSTRA ID SEMPRE (QUALQUER STATUS)
     const InterviewCard = ({ entrevistas, usuario, candidaturaId }) => {
 
@@ -355,6 +562,64 @@ const CandidaturasAdmPage = () => {
         );
     };
 
+=======
+    // Função para buscar empresa (implementar conforme necessário)
+    const buscarEmpresa = (candidatura) => {
+        // Implementar lógica de busca de empresa
+    };
+
+    // COMPONENTE INTERVIEW CARD - MOSTRA ID SEMPRE (QUALQUER STATUS)
+    const InterviewCard = ({ entrevistas, usuario, candidaturaId }) => {
+        if (!entrevistas || entrevistas.length === 0) {
+            return (
+                <div className="relative w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center" title="Nenhuma entrevista encontrada">
+                    <BarChart3 className="w-4 h-4 text-gray-400" />
+                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] rounded-full w-3 h-3 flex items-center justify-center">
+                        0
+                    </div>
+                </div>
+            );
+        }
+
+        const ultimaEntrevista = entrevistas[0]; // Mais recente
+        const statusColor = getInterviewStatusColor(ultimaEntrevista.status);
+
+        return (
+            <button
+                onClick={() => {
+                    setModalInterview({
+                        isOpen: true,
+                        entrevistas: entrevistas,
+                        nome: usuario?.nome || usuario?.name || 'Usuário',
+                        candidaturaId: candidaturaId
+                    });
+                }}
+                className={`
+                relative w-8 h-8 bg-gradient-to-r ${statusColor} 
+                rounded-lg flex items-center justify-center 
+                cursor-pointer hover:scale-110 transition-all duration-200
+                shadow-lg hover:shadow-xl group
+            `}
+                title={`Entrevista ID #${ultimaEntrevista.id} - ${getInterviewStatusText(ultimaEntrevista.status)} (${entrevistas.length} total)`}
+            >
+                <BarChart3 className="w-4 h-4 text-white" />
+
+                {/* ID SEMPRE VISÍVEL */}
+                <div className="absolute -top-2 -right-2 bg-blue-600 text-white text-[9px] rounded-full px-1 py-0.5 font-bold min-w-[16px] text-center leading-tight">
+                    {ultimaEntrevista.id}
+                </div>
+
+                {/* Badge com quantidade se houver múltiplas */}
+                {entrevistas.length > 1 && (
+                    <div className="absolute -bottom-1 -left-1 bg-purple-500 text-white text-[8px] rounded-full w-3 h-3 flex items-center justify-center font-bold">
+                        {entrevistas.length}
+                    </div>
+                )}
+            </button>
+        );
+    };
+
+>>>>>>> origin/AGS-20
     // MODAL DE HISTÓRICO DE ENTREVISTAS
     const InterviewHistoryModal = () => (
         modalInterview.isOpen && (
@@ -390,7 +655,10 @@ const CandidaturasAdmPage = () => {
                             </div>
                         ) : (
                             <div className="space-y-6">
+<<<<<<< HEAD
                                 {/* Lista de Entrevistas Detalhada */}
+=======
+>>>>>>> origin/AGS-20
                                 <div>
                                     <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                                         <Clock4 className="w-5 h-5 text-purple-500" />
@@ -401,7 +669,10 @@ const CandidaturasAdmPage = () => {
                                             <div key={entrevista.id} className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors border border-white/10">
                                                 <div className="flex items-start justify-between mb-3">
                                                     <div className="flex items-center gap-3">
+<<<<<<< HEAD
                                                         {/* Badge do ID - DESTAQUE PRINCIPAL */}
+=======
+>>>>>>> origin/AGS-20
                                                         <div className="flex items-center justify-center w-16 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white font-bold">
                                                             <div className="text-center">
                                                                 <div className="text-xs text-blue-200">ID</div>
@@ -587,6 +858,7 @@ const CandidaturasAdmPage = () => {
         )
     );
 
+<<<<<<< HEAD
     // Componente: Botão de Análise Compacto
     const CompactAnalysisButton = ({ type, data, usuario, size = "sm" }) => {
         const configs = {
@@ -642,6 +914,8 @@ const CandidaturasAdmPage = () => {
         );
     };
 
+=======
+>>>>>>> origin/AGS-20
     // Funções de estilo e formatação
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
@@ -675,27 +949,15 @@ const CandidaturasAdmPage = () => {
         }
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return "Data não disponível";
-        try {
-            return new Date(dateString).toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-            });
-        } catch (error) {
-            return "Data inválida";
-        }
-    };
-
-    // Estatísticas calculadas
-    const stats = {
+    // Estatísticas calculadas com useMemo para performance
+    const stats = useMemo(() => ({
         total: candidaturas.length,
         aprovadas: candidaturas.filter(c => c.status === "aprovado").length,
         pendentes: candidaturas.filter(c => c.status === "em_analise" || c.status === "pendente").length,
         reprovadas: candidaturas.filter(c => c.status === "reprovado").length
-    };
+    }), [candidaturas]);
 
+<<<<<<< HEAD
     // Candidaturas filtradas com DEBUG de entrevistas
     const candidaturasFiltradas = candidaturas.filter(candidatura => {
         const matchesSearch =
@@ -705,6 +967,19 @@ const CandidaturasAdmPage = () => {
         const matchesFilter = filterStatus === "todos" || candidatura.status === filterStatus;
         return matchesSearch && matchesFilter;
     });
+=======
+    // Candidaturas filtradas com useMemo para performance
+    const candidaturasFiltradas = useMemo(() => {
+        return candidaturas.filter(candidatura => {
+            const matchesSearch =
+                candidatura.vaga?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                candidatura.vaga?.empresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                candidatura.usuario?.nome?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesFilter = filterStatus === "todos" || candidatura.status === filterStatus;
+            return matchesSearch && matchesFilter;
+        });
+    }, [candidaturas, searchTerm, filterStatus]);
+>>>>>>> origin/AGS-20
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
@@ -715,16 +990,8 @@ const CandidaturasAdmPage = () => {
 
             {/* Navbar */}
             <Navbar />
-            {/* Header */}
-            <div className="mb-8 ">
-                <h1 className="text-3xl  font-bold  text-white  mb-2 ">
-                    CRM - Gestão de Leads
-                </h1>
-                <p className="text-gray-400 ">
-                    Dados em tempo real da tabela users via API NestJS
-                </p>
-            </div>
 
+<<<<<<< HEAD
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header com título e busca - VERSÃO HORIZONTAL */}
                 <div className="mb-8">
@@ -755,6 +1022,39 @@ const CandidaturasAdmPage = () => {
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
                                 className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-colors min-w-36"
+=======
+            {/* Container principal com padding responsivo */}
+            <div className="max-w-[2000px] mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 py-4 sm:py-6 lg:py-8 mb-20">
+                {/* Header da seção com título e controles */}
+                <div className="mb-6 lg:mb-15">
+                    {/* Título da seção */}
+                    <div className="mb-4 sm:mb-6">
+                        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
+                            Candidaturas dos Usuários
+                        </h2>
+                    </div>
+
+                    {/* Controles de busca e filtros - Responsivos */}
+                    <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 mb-6">
+                        {/* Busca */}
+                        <div className="relative flex-1 lg:max-w-md xl:max-w-lg">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                                type="text"
+                                placeholder="Buscar por vaga, empresa ou candidato..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none transition-colors text-sm sm:text-base"
+                            />
+                        </div>
+
+                        {/* Filtros e botão - Mobile: horizontal, Desktop: flex */}
+                        <div className="flex gap-2 sm:gap-3">
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-colors text-sm sm:text-base min-w-0 sm:min-w-36"
+>>>>>>> origin/AGS-20
                             >
                                 <option value="todos">Todos Status</option>
                                 <option value="aprovado">Aprovados</option>
@@ -762,10 +1062,11 @@ const CandidaturasAdmPage = () => {
                                 <option value="pendente">Pendentes</option>
                                 <option value="reprovado">Reprovados</option>
                             </select>
+
                             <button
                                 onClick={fetchTodasCandidaturas}
                                 disabled={loading}
-                                className={`px-4 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 ${loading
+                                className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 text-sm sm:text-base whitespace-nowrap ${loading
                                     ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
                                     : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg'
                                     }`}
@@ -775,11 +1076,12 @@ const CandidaturasAdmPage = () => {
                                 ) : (
                                     <TrendingUp className="w-4 h-4" />
                                 )}
-                                Atualizar
+                                <span className="hidden sm:inline">Atualizar</span>
                             </button>
                         </div>
                     </div>
 
+<<<<<<< HEAD
                     {/* Estatísticas */}
                     <div className="grid grid-cols-4 gap-4 mb-8">
                         {/* Total */}
@@ -816,34 +1118,79 @@ const CandidaturasAdmPage = () => {
                             </div>
                             <div className="text-xl font-bold text-white mb-1">{stats.reprovadas}</div>
                             <div className="text-sm text-gray-400">Reprovadas</div>
+=======
+                    {/* Estatísticas - Grid responsivo */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 lg:mb-8">
+                        {/* Total */}
+                        <div className="rounded-xl p-3 sm:p-4 lg:p-6 from-slate-900 via-gray-900 to-slate-800 border border-gray-800 text-center hover:border-gray-700 transition-colors">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 mx-auto mb-2 sm:mb-3 bg-blue-600 rounded-lg flex items-center justify-center">
+                                <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+                            </div>
+                            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1">{stats.total}</div>
+                            <div className="text-xs sm:text-sm text-gray-400">Total</div>
+                        </div>
+
+                        {/* Aprovadas */}
+                        <div className="rounded-xl p-3 sm:p-4 lg:p-6 from-slate-900 via-gray-900 to-slate-800 border border-gray-800 text-center hover:border-gray-700 transition-colors">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 mx-auto mb-2 sm:mb-3 bg-green-600 rounded-lg flex items-center justify-center">
+                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+                            </div>
+                            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1">{stats.aprovadas}</div>
+                            <div className="text-xs sm:text-sm text-gray-400">Aprovadas</div>
+                        </div>
+
+                        {/* Em Análise */}
+                        <div className="rounded-xl p-3 sm:p-4 lg:p-6 from-slate-900 via-gray-900 to-slate-800 border border-gray-800 text-center hover:border-gray-700 transition-colors">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 mx-auto mb-2 sm:mb-3 bg-orange-600 rounded-lg flex items-center justify-center">
+                                <Clock className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+                            </div>
+                            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1">{stats.pendentes}</div>
+                            <div className="text-xs sm:text-sm text-gray-400">Em Análise</div>
+                        </div>
+
+                        {/* Reprovadas */}
+                        <div className="rounded-xl p-3 sm:p-4 lg:p-6 from-slate-900 via-gray-900 to-slate-800 border border-gray-800 text-center hover:border-gray-700 transition-colors">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 mx-auto mb-2 sm:mb-3 bg-red-600 rounded-lg flex items-center justify-center">
+                                <XCircle className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+                            </div>
+                            <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1">{stats.reprovadas}</div>
+                            <div className="text-xs sm:text-sm text-gray-400">Reprovadas</div>
+>>>>>>> origin/AGS-20
                         </div>
                     </div>
                 </div>
 
+<<<<<<< HEAD
                 {/* Grid de Candidaturas - VERSÃO COMPACTA */}
+=======
+                {/* Grid de Candidaturas - Altamente responsivo */}
+>>>>>>> origin/AGS-20
                 {loading ? (
-                    <div className="flex items-center justify-center py-12">
+                    <div className="flex items-center justify-center py-8 sm:py-12">
                         <div className="flex flex-col items-center gap-4">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                            <p className="text-white">Carregando candidaturas...</p>
+                            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-500"></div>
                         </div>
                     </div>
                 ) : error ? (
-                    <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-6 mb-6">
+                    <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-4 sm:p-6 mb-6">
                         <div className="flex items-center gap-3 mb-3">
-                            <AlertCircle className="w-6 h-6 text-red-400" />
-                            <h3 className="text-lg font-semibold text-red-300">Erro ao Carregar Dados</h3>
+                            <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-400 flex-shrink-0" />
+                            <h3 className="text-base sm:text-lg font-semibold text-red-300">Erro ao Carregar Dados</h3>
                         </div>
-                        <p className="text-red-200 mb-4">{error}</p>
+                        <p className="text-red-200 mb-4 text-sm sm:text-base">{error}</p>
                         <button
                             onClick={fetchTodasCandidaturas}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
                         >
                             Tentar Novamente
                         </button>
                     </div>
                 ) : (
+<<<<<<< HEAD
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
+=======
+                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 3xl:grid-cols-10 gap-2 sm:gap-3 lg:gap-4">
+>>>>>>> origin/AGS-20
                         {candidaturasFiltradas.map((candidatura) => {
                             const hasInterview = candidatura.usuario?.entrevistas && candidatura.usuario.entrevistas.length > 0;
                             const lastInterview = hasInterview ? candidatura.usuario.entrevistas[0] : null;
@@ -851,7 +1198,11 @@ const CandidaturasAdmPage = () => {
                             return (
                                 <div
                                     key={candidatura.id}
+<<<<<<< HEAD
                                     className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 cursor-pointer"
+=======
+                                    className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-2.5 sm:p-3 lg:p-4 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 cursor-pointer"
+>>>>>>> origin/AGS-20
                                     onClick={() => {
                                         if (hasInterview) {
                                             setModalInterview({
@@ -866,31 +1217,52 @@ const CandidaturasAdmPage = () => {
                                     <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
 
                                     <div className="relative z-10 text-center">
+<<<<<<< HEAD
                                         {/* Ícone Principal */}
                                         <div className={`w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center relative ${hasInterview
+=======
+                                        {/* Ícone Principal - Responsivo */}
+                                        <div className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 mx-auto mb-2 sm:mb-3 rounded-lg flex items-center justify-center relative ${hasInterview
+>>>>>>> origin/AGS-20
                                             ? `bg-gradient-to-r ${getInterviewStatusColor(lastInterview.status)}`
                                             : 'bg-gray-700'
                                             }`}>
                                             {hasInterview ? (
+<<<<<<< HEAD
                                                 <BarChart3 className="w-5 h-5 text-white" />
                                             ) : (
                                                 <User className="w-5 h-5 text-gray-400" />
+=======
+                                                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+                                            ) : (
+                                                <User className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-gray-400" />
+>>>>>>> origin/AGS-20
                                             )}
 
                                             {/* Badge do ID da Entrevista */}
                                             {hasInterview && (
+<<<<<<< HEAD
                                                 <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-[8px] rounded-full px-1 py-0.5 font-bold min-w-[14px] text-center leading-tight">
+=======
+                                                <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-[7px] sm:text-[8px] rounded-full px-1 py-0.5 font-bold min-w-[12px] sm:min-w-[14px] text-center leading-tight">
+>>>>>>> origin/AGS-20
                                                     {lastInterview.id}
                                                 </div>
                                             )}
                                         </div>
 
+<<<<<<< HEAD
                                         {/* Nome do Candidato */}
                                         <h3 className="font-bold text-white text-xs mb-1 truncate">
+=======
+                                        {/* Nome do Candidato - Responsivo */}
+                                        <h3 className="font-bold text-white text-[10px] sm:text-xs lg:text-sm mb-1 truncate px-1">
+>>>>>>> origin/AGS-20
                                             {candidatura.usuario?.nome || candidatura.usuario?.name || "Nome não informado"}
                                         </h3>
 
                                         {/* Subtitle - Empresa */}
+<<<<<<< HEAD
                                         <p className="text-xs text-gray-400 mb-2 truncate">
                                             {candidatura.vaga?.empresa || "Empresa"}
                                         </p>
@@ -902,22 +1274,48 @@ const CandidaturasAdmPage = () => {
                                                     #{lastInterview.id}
                                                 </p>
                                                 <p className="text-xs text-gray-400">
+=======
+                                        <p className="text-[9px] sm:text-xs text-gray-400 mb-2 truncate px-1">
+                                            {candidatura.vaga?.empresa || "Empresa"}
+                                        </p>
+
+                                        {/* Status da Entrevista - Responsivo */}
+                                        {hasInterview ? (
+                                            <div className="bg-blue-500/20 border border-blue-500/30 rounded-md px-1.5 sm:px-2 py-1 mb-2">
+                                                <p className="text-[9px] sm:text-xs text-blue-300 font-medium">
+                                                    #{lastInterview.id}
+                                                </p>
+                                                <p className="text-[8px] sm:text-xs text-gray-400">
+>>>>>>> origin/AGS-20
                                                     {getInterviewStatusText(lastInterview.status)}
                                                 </p>
                                             </div>
                                         ) : (
+<<<<<<< HEAD
                                             <div className="bg-gray-700/50 border border-gray-600 rounded-md px-2 py-1 mb-2">
                                                 <p className="text-xs text-gray-400">
+=======
+                                            <div className="bg-gray-700/50 border border-gray-600 rounded-md px-1.5 sm:px-2 py-1 mb-2">
+                                                <p className="text-[9px] sm:text-xs text-gray-400">
+>>>>>>> origin/AGS-20
                                                     Sem entrevista
                                                 </p>
                                             </div>
                                         )}
 
+<<<<<<< HEAD
                                         {/* Botões de Ação Compactos */}
                                         <div className="flex items-center justify-center gap-1 mb-2">
                                             {/* Currículo */}
                                             <div
                                                 className={`w-5 h-5 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.curriculo_url
+=======
+                                        {/* Botões de Ação - Responsivos */}
+                                        <div className="flex items-center justify-center gap-1 mb-2">
+                                            {/* Currículo */}
+                                            <div
+                                                className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.curriculo_url
+>>>>>>> origin/AGS-20
                                                     ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700'
                                                     : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                     }`}
@@ -925,19 +1323,31 @@ const CandidaturasAdmPage = () => {
                                                     e.stopPropagation();
                                                     if (candidatura.usuario?.curriculo_url) {
                                                         handleViewCurriculoCandidato(
+<<<<<<< HEAD
                                                             candidatura.usuario_id,  // ID do usuário
+=======
+                                                            candidatura.usuario_id,
+>>>>>>> origin/AGS-20
                                                             candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário'
                                                         );
                                                     }
                                                 }}
                                                 title={candidatura.usuario?.curriculo_url ? "Ver currículo" : "Currículo não disponível"}
                                             >
+<<<<<<< HEAD
                                                 <FileText className="w-2.5 h-2.5" />
+=======
+                                                <FileText className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3" />
+>>>>>>> origin/AGS-20
                                             </div>
 
                                             {/* DISC */}
                                             <div
+<<<<<<< HEAD
                                                 className={`w-5 h-5 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.perfil_disc
+=======
+                                                className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.perfil_disc
+>>>>>>> origin/AGS-20
                                                     ? 'bg-purple-600 text-white cursor-pointer hover:bg-purple-700'
                                                     : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                     }`}
@@ -953,12 +1363,20 @@ const CandidaturasAdmPage = () => {
                                                 }}
                                                 title={candidatura.usuario?.perfil_disc ? "Ver perfil DISC" : "DISC não disponível"}
                                             >
+<<<<<<< HEAD
                                                 <Brain className="w-2.5 h-2.5" />
+=======
+                                                <Brain className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3" />
+>>>>>>> origin/AGS-20
                                             </div>
 
                                             {/* LinkedIn */}
                                             <div
+<<<<<<< HEAD
                                                 className={`w-5 h-5 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.linkedin
+=======
+                                                className={`w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.linkedin
+>>>>>>> origin/AGS-20
                                                     ? 'bg-blue-700 text-white cursor-pointer hover:bg-blue-800'
                                                     : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                                     }`}
@@ -970,18 +1388,27 @@ const CandidaturasAdmPage = () => {
                                                 }}
                                                 title={candidatura.usuario?.linkedin ? "Ver LinkedIn" : "LinkedIn não disponível"}
                                             >
+<<<<<<< HEAD
                                                 <Linkedin className="w-2.5 h-2.5" />
+=======
+                                                <Linkedin className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3" />
+>>>>>>> origin/AGS-20
                                             </div>
 
                                             {/* Empresa */}
                                             <div
+<<<<<<< HEAD
                                                 className="w-5 h-5 rounded-md flex items-center justify-center text-xs bg-indigo-600 text-white cursor-pointer hover:bg-indigo-700"
+=======
+                                                className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 rounded-md flex items-center justify-center text-xs bg-indigo-600 text-white cursor-pointer hover:bg-indigo-700"
+>>>>>>> origin/AGS-20
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     buscarEmpresa(candidatura);
                                                 }}
                                                 title="Ver empresa"
                                             >
+<<<<<<< HEAD
                                                 <Building2 className="w-2.5 h-2.5" />
                                             </div>
                                         </div>
@@ -990,6 +1417,16 @@ const CandidaturasAdmPage = () => {
                                         <div className="flex items-center justify-between text-xs text-gray-500">
                                             <span>#{candidatura.id}</span>
                                             <div className={`w-3 h-3 rounded-full flex items-center justify-center ${getStatusColor(candidatura.status).replace('bg-', 'bg-').replace('text-', 'text-').replace('border-', '')}`}>
+=======
+                                                <Building2 className="w-2 h-2 sm:w-2.5 sm:h-2.5 lg:w-3 lg:h-3" />
+                                            </div>
+                                        </div>
+
+                                        {/* Footer - Responsivo */}
+                                        <div className="flex items-center justify-between text-[8px] sm:text-xs text-gray-500">
+                                            <span>#{candidatura.id}</span>
+                                            <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex items-center justify-center ${getStatusColor(candidatura.status).replace('bg-', 'bg-').replace('text-', 'text-').replace('border-', '')}`}>
+>>>>>>> origin/AGS-20
                                                 {getStatusIcon(candidatura.status)}
                                             </div>
                                         </div>
@@ -998,14 +1435,14 @@ const CandidaturasAdmPage = () => {
                             );
                         })}
 
-                        {/* Estado vazio */}
+                        {/* Estado vazio - Responsivo */}
                         {candidaturasFiltradas.length === 0 && (
-                            <div className="col-span-full text-center py-12">
-                                <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Search className="w-8 h-8 text-gray-400" />
+                            <div className="col-span-full text-center py-8 sm:py-12 lg:py-16">
+                                <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Search className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-gray-400" />
                                 </div>
-                                <h3 className="text-xl font-medium text-white mb-2">Nenhuma candidatura encontrada</h3>
-                                <p className="text-gray-400">
+                                <h3 className="text-lg sm:text-xl lg:text-2xl font-medium text-white mb-2">Nenhuma candidatura encontrada</h3>
+                                <p className="text-gray-400 text-sm sm:text-base px-4">
                                     {searchTerm || filterStatus !== "todos"
                                         ? "Tente ajustar os filtros de busca"
                                         : "Ainda não há candidaturas para exibir"
