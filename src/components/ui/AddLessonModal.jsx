@@ -7,43 +7,41 @@ export const AddLessonModal = ({ moduleId, onClose, onSave }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [videoUrl, setVideoUrl] = useState('');
-    const [coverFile, setCoverFile] = useState(null); // Estado para o arquivo
+    const [videoFile, setVideoFile] = useState(null); // Estado para o arquivo de vídeo
 
-    // Handler para o input de arquivo
-    const handleFileChange = (e) => {
+    // Handler para o input de arquivo de vídeo
+    const handleVideoFileChange = (e) => {
         if (e.target.files) {
-            setCoverFile(e.target.files[0]);
+            setVideoFile(e.target.files[0]);
         }
     };
 
     const handleSave = () => {
-        if (!title || !videoUrl || !moduleId) {
-            alert('Título, URL do Vídeo e ID do Módulo são obrigatórios.');
+        if (!title || (!videoUrl && !videoFile)) {
+            alert('Título e (URL do Vídeo OU Upload do Vídeo) são obrigatórios.');
             return;
         }
 
-        // --- INÍCIO DA CORREÇÃO ---
-        // 1. Criar um objeto FormData. É assim que se envia arquivos.
+        // 1. Criar um objeto FormData para enviar arquivos
         const formData = new FormData();
 
-        // 2. Adicionar cada campo ao formData.
-        // Os nomes ('title', 'videoUrl', etc.) devem ser EXATAMENTE os mesmos
-        // que o seu DTO no backend espera.
+        // 2. Adicionar cada campo ao formData
         formData.append('moduleId', moduleId);
         formData.append('title', title);
         formData.append('description', description);
-        formData.append('videoUrl', videoUrl);
 
-        // 3. Adicionar o arquivo, se ele foi selecionado.
-        // O nome 'coverFile' DEVE ser o mesmo que você usou no FileInterceptor no backend.
-        if (coverFile) {
-            formData.append('coverFile', coverFile);
+        // Só adiciona videoUrl se tiver valor
+        if (videoUrl.trim()) {
+            formData.append('videoUrl', videoUrl);
         }
 
-        // 4. Chamar a função onSave, passando o objeto FormData completo.
-        onSave(formData);
-        // --- FIM DA CORREÇÃO --- // Fecha o modal após o envio
+        // 3. Adicionar o arquivo de vídeo, se foi selecionado
+        if (videoFile) {
+            formData.append('videoFile', videoFile);
+        }
 
+        // 4. Chamar a função onSave, passando o FormData completo
+        onSave(formData);
     };
 
     return (
@@ -67,19 +65,19 @@ export const AddLessonModal = ({ moduleId, onClose, onSave }) => {
                     />
                     <input
                         type="text"
-                        placeholder="URL do Vídeo"
+                        placeholder="URL do Vídeo (opcional se fizer upload)"
                         value={videoUrl}
                         onChange={(e) => setVideoUrl(e.target.value)}
                         className="w-full bg-gray-800 border-gray-700 rounded p-2 text-white"
                     />
 
-                    {/* Novo campo para upload da imagem de capa */}
+                    {/* Campo para upload do vídeo */}
                     <div>
-                        <label className="text-sm text-gray-400 mb-1 block">Imagem de Capa (Opcional)</label>
+                        <label className="text-sm text-gray-400 mb-1 block">Upload do Vídeo (opcional se usar URL)</label>
                         <input
                             type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
+                            accept="video/*"
+                            onChange={handleVideoFileChange}
                             className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-gray-200 hover:file:bg-gray-600"
                         />
                     </div>
