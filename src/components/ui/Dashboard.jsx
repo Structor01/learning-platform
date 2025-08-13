@@ -529,6 +529,43 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Trilha 5: Mentoria de Empregabilidade */}
+              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-500 rounded-lg mb-4">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    Mentoria de Empregabilidade
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Acelere sua carreira no agro com nossa mentoria
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">10 módulos</span>
+                    <Button
+                      size="sm"
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                      onClick={() => navigate("/trilha/6")}
+                    >
+                      Iniciar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </section>
 
