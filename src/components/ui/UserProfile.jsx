@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Navbar from "./Navbar";
 import {
   User,
   Calendar,
@@ -22,18 +23,29 @@ import {
   Users,
   RefreshCw,
   AlertCircle,
+  Linkedin,
+  FileText,
+  ExternalLink,
+  Save,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import testService from "../../services/testService";
-import Navbar from "./Navbar";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const UserProfile = () => {
-  const { user, updateUser, isLoading } = useAuth();
+  const { user, updateUser, isLoading, accessToken } = useAuth();
 
   const [name, setName] = useState("");
   const [role, setRole] = useState("Executivo de Vendas");
+  const [linkedin, setLinkedin] = useState("");
+  const [curriculoUrl, setCurriculoUrl] = useState("");
+  const [curriculoFile, setCurriculoFile] = useState(null); // Estado para o arquivo
   const [isEditing, setIsEditing] = useState(false);
-  
+  const [isEditingLinks, setIsEditingLinks] = useState(false);
+  const [isSavingLinks, setIsSavingLinks] = useState(false);
+
   // Estados para dados do teste psicológico
   const [testResults, setTestResults] = useState(null);
   const [loadingTest, setLoadingTest] = useState(false);
@@ -43,10 +55,26 @@ const UserProfile = () => {
 
   useEffect(() => {
     if (user) {
+      console.log("Dados do usuário no contexto:", user);
       setName(user.name || "");
       setRole(user.role || "Executivo de Vendas");
+      setLinkedin(user.linkedin || "");
+      setCurriculoUrl(user.curriculo_url || "");
     }
   }, [user]);
+
+  useEffect(() => {
+    const verifyFiles = async () => {
+      const curriculoExists = await checkCurriculoExists();
+      if (curriculoExists && !curriculoUrl) {
+        setCurriculoUrl("exists"); // Marcador para indicar que existe
+      }
+    };
+
+    if (userId) {
+      verifyFiles();
+    }
+  }, [userId, curriculoUrl]);
 
   // Carregar dados do teste psicológico
   useEffect(() => {
@@ -58,40 +86,88 @@ const UserProfile = () => {
         setTestError(null);
 
         // Buscar teste psicológico completo do usuário
-        const userTests = await testService.getUserPsychologicalTests(userId, 'completed', 1);
-        
+        const userTests = await testService.getUserPsychologicalTests(
+          userId,
+          "completed",
+          1
+        );
+
         if (userTests.tests && userTests.tests.length > 0) {
           const completedTest = userTests.tests[0];
-          
+
           // Obter relatório detalhado
-          const report = await testService.getPsychologicalTestReport(completedTest.id);
-          
+          const report = await testService.getPsychologicalTestReport(
+            completedTest.id
+          );
+
           setTestResults({
             test: completedTest,
             scores: {
               disc: completedTest.disc_scores,
               bigFive: completedTest.big_five_scores,
-              leadership: completedTest.leadership_scores
+              leadership: completedTest.leadership_scores,
             },
             analysis: {
               overall: completedTest.overall_analysis,
-              recommendations: completedTest.recommendations
+              recommendations: completedTest.recommendations,
             },
             report: report,
-            completedAt: completedTest.completed_at
+            completedAt: completedTest.completed_at,
           });
         }
-        
+
         setLoadingTest(false);
       } catch (error) {
-        console.error('Erro ao carregar dados do teste:', error);
-        setTestError('Erro ao carregar dados do teste');
+        console.error("Erro ao carregar dados do teste:", error);
+        setTestError("Erro ao carregar dados do teste");
         setLoadingTest(false);
       }
     };
 
     loadTestResults();
   }, [userId]);
+
+  //useEffect para recarregar dados do usuário após salvar
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!userId) return;
+
+      try {
+        const token = sessionStorage.getItem("accessToken");
+        if (!token) return;
+
+        // Buscar dados atualizados do usuário
+        const response = await fetch(`${API_BASE_URL}/api/users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          console.log("Dados do usuário carregados:", userData);
+
+          // Atualizar os estados locais com os dados do servidor
+          setName(userData.name || "");
+          setRole(userData.role || "Executivo de Vendas");
+          setLinkedin(userData.linkedin || "");
+          setCurriculoUrl(userData.curriculo_url || "");
+
+          // Atualizar o contexto também
+          await updateUser(userData);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados do usuário:", error);
+      }
+    };
+
+    // 5. Use esta função para verificar se o currículo existe
+
+    // Carregar dados quando o componente monta e quando o userId muda
+    loadUserData();
+  }, [userId]); // Dependência no userId
 
   if (isLoading) {
     return (
@@ -109,39 +185,281 @@ const UserProfile = () => {
     setIsEditing(false);
   };
 
+  const handleViewCurriculo = async () => {
+    try {
+      const token = sessionStorage.getItem("accessToken");
+      if (!token) {
+        alert("Sessão expirada. Faça login novamente.");
+        return;
+      }
+
+      // Use a URL correta com /api e método GET
+      const response = await fetch(`${API_BASE_URL}/api/users/curriculo`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          alert("Currículo não encontrado.");
+          return;
+        }
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      // Obter o blob do arquivo
+      const blob = await response.blob();
+
+      // Criar URL temporária para o blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Abrir em nova aba para visualizar (se for PDF) ou baixar
+      window.open(url, "_blank");
+
+      // Limpar a URL após um tempo
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 1000);
+    } catch (error) {
+      console.error("Erro ao visualizar currículo:", error);
+      alert("Erro ao carregar currículo. Tente novamente.");
+    }
+  };
+
+  // 2. Adicione uma função alternativa para forçar download
+  const handleDownloadCurriculo = async () => {
+    try {
+      const token = sessionStorage.getItem("accessToken");
+      if (!token) {
+        alert("Sessão expirada. Faça login novamente.");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/users/curriculo`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          alert("Currículo não encontrado.");
+          return;
+        }
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      // Criar elemento de download
+      const a = document.createElement("a");
+      a.style.display = "none";
+      a.href = url;
+      a.download = `curriculo_${user?.name || "usuario"}.pdf`;
+
+      document.body.appendChild(a);
+      a.click();
+
+      // Limpar
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Erro ao baixar currículo:", error);
+      alert("Erro ao baixar currículo. Tente novamente.");
+    }
+  };
+
+  // Substitua a função handleSaveLinks no seu UserProfile.jsx
+
+  const handleSaveLinks = async () => {
+    console.log("API_BASE_URL:", API_BASE_URL);
+    console.log("URL completa:", `${API_BASE_URL}/api/users/curriculo`);
+
+    const tokenFromStorage = sessionStorage.getItem("accessToken");
+    console.log("Token do sessionStorage:", tokenFromStorage?.substring(0, 20));
+    console.log("Token do contexto:", accessToken?.substring(0, 20));
+    console.log("Tokens são iguais?", tokenFromStorage === accessToken);
+
+    try {
+      setIsSavingLinks(true);
+
+      const token = sessionStorage.getItem("accessToken");
+      console.log("SessionStorage:", Object.keys(sessionStorage));
+      console.log("LocalStorage:", Object.keys(localStorage));
+
+      if (!token) {
+        console.error("Token não encontrado no sessionStorage");
+        alert("Sessão expirada. Faça login novamente.");
+        return;
+      }
+
+      console.log("Token encontrado:", token ? "✓" : "✗");
+      console.log("Token completo:", token);
+      console.log("Primeiros caracteres do token:", token?.substring(0, 20));
+      console.log("Tamanho do token:", token?.length);
+
+      // Se há um arquivo para upload
+      if (curriculoFile) {
+        const formData = new FormData();
+        formData.append("file", curriculoFile);
+
+        console.log("Enviando FormData:", {
+          arquivo: curriculoFile.name,
+        });
+
+        const response = await fetch(`${API_BASE_URL}/api/users/curriculo`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        console.log("Resposta status:", response.status);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("Erro na resposta:", errorText);
+          throw new Error(`Erro HTTP: ${response.status} - ${errorText}`);
+        }
+
+        const responseData = await response.json();
+        console.log("Dados da resposta:", responseData);
+      }
+
+      // Sempre atualizar LinkedIn (seja com arquivo ou não)
+      if (linkedin && linkedin.trim()) {
+        console.log("Atualizando LinkedIn:", linkedin);
+        await updateUser({ linkedin: linkedin.trim() });
+      }
+
+      // ADICIONE ESTA PARTE: Recarregar dados do usuário após salvar
+      try {
+        const userResponse = await fetch(`${API_BASE_URL}/api/users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          console.log("Dados atualizados do usuário:", userData);
+
+          // Atualizar estados locais
+          setName(userData.name || "");
+          setRole(userData.role || "Executivo de Vendas");
+          setLinkedin(userData.linkedin || "");
+          setCurriculoUrl(userData.curriculo_url || "");
+
+          // Forçar atualização do contexto
+          await updateUser(userData);
+        }
+      } catch (reloadError) {
+        console.error("Erro ao recarregar dados do usuário:", reloadError);
+      }
+
+      setIsEditingLinks(false);
+      setCurriculoFile(null);
+      alert("Links salvos com sucesso!");
+    } catch (error) {
+      console.error("Erro ao salvar links:", error);
+
+      if (error.message.includes("401")) {
+        alert("Sessão expirada. Faça login novamente.");
+      } else if (error.message.includes("413")) {
+        alert("Arquivo muito grande. Tente um arquivo menor.");
+      } else if (error.message.includes("415")) {
+        alert("Formato de arquivo não suportado.");
+      } else {
+        alert(`Erro ao salvar os links: ${error.message}`);
+      }
+    } finally {
+      setIsSavingLinks(false);
+    }
+  };
+
+  const isValidUrl = (string) => {
+    try {
+      new URL(string);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  const cancelEditLinks = () => {
+    setLinkedin(user?.linkedin || "");
+    setCurriculoUrl(user?.curriculo_url || "");
+    setIsEditingLinks(false);
+  };
+
+  // 4. Adicione uma função para verificar se há currículo
+  const checkCurriculoExists = async () => {
+    try {
+      const token = sessionStorage.getItem("accessToken");
+      if (!token) return false;
+
+      const response = await fetch(`${API_BASE_URL}/api/users/curriculo`, {
+        method: "HEAD", // Apenas verificar se existe
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error("Erro ao verificar currículo:", error);
+      return false;
+    }
+  };
+
+  const hasCurriculo = Boolean(
+    user?.curriculo_url || curriculoUrl || curriculoUrl === "exists"
+  );
+
   // Usar dados reais do teste ou dados mockados como fallback
   const getDiscProfile = () => {
     if (testResults?.scores?.disc) {
       const discScores = testResults.scores.disc;
-      
+
       // Encontrar o perfil predominante
       const maxScore = Math.max(...Object.values(discScores));
-      const predominantKey = Object.keys(discScores).find(key => discScores[key] === maxScore);
-      
+      const predominantKey = Object.keys(discScores).find(
+        (key) => discScores[key] === maxScore
+      );
+
       const profileNames = {
-        D: 'Dominante',
-        I: 'Influente', 
-        S: 'Estável',
-        C: 'Conforme'
+        D: "Dominante",
+        I: "Influente",
+        S: "Estável",
+        C: "Conforme",
       };
-      
+
       return {
         dominante: Math.round(discScores.D || 0),
         influente: Math.round(discScores.I || 0),
         estavel: Math.round(discScores.S || 0),
         conforme: Math.round(discScores.C || 0),
-        predominant: profileNames[predominantKey] || 'Conforme',
+        predominant: profileNames[predominantKey] || "Conforme",
       };
     }
-    
+
     // Fallback para dados mockados
-    return user?.discProfile || {
-      dominante: 23,
-      influente: 13,
-      estavel: 27,
-      conforme: 38,
-      predominant: "Conforme",
-    };
+    return (
+      user?.discProfile || {
+        dominante: 23,
+        influente: 13,
+        estavel: 27,
+        conforme: 38,
+        predominant: "Conforme",
+      }
+    );
   };
 
   const discProfile = getDiscProfile();
@@ -153,17 +471,52 @@ const UserProfile = () => {
   };
 
   const learningTracks = [
-    { name: "Gestão de Carreira", progress: 85, color: "bg-orange-500", status: "Em andamento" },
-    { name: "Autoconhecimento para Carreiras", progress: 0, color: "bg-purple-500", status: "Bloqueado" },
-    { name: "Finanças Pessoais", progress: 0, color: "bg-green-500", status: "Bloqueado" },
-    { name: "Auto análise e Foco em metas", progress: 0, color: "bg-blue-500", status: "Bloqueado" },
+    {
+      name: "Gestão de Carreira",
+      progress: 85,
+      color: "bg-orange-500",
+      status: "Em andamento",
+    },
+    {
+      name: "Autoconhecimento para Carreiras",
+      progress: 0,
+      color: "bg-purple-500",
+      status: "Bloqueado",
+    },
+    {
+      name: "Finanças Pessoais",
+      progress: 0,
+      color: "bg-green-500",
+      status: "Bloqueado",
+    },
+    {
+      name: "Auto análise e Foco em metas",
+      progress: 0,
+      color: "bg-blue-500",
+      status: "Bloqueado",
+    },
   ];
 
   const achievements = [
     { name: "Primeiro Login", icon: "🎯", date: "Hoje", color: "bg-green-500" },
-    { name: "Perfil DISC Completo", icon: "📊", date: "Hoje", color: "bg-blue-500" },
-    { name: "Trilha Iniciada", icon: "🚀", date: "Hoje", color: "bg-orange-500" },
-    { name: "Bem-vindo AgroSkills", icon: "🌱", date: "Hoje", color: "bg-green-600" },
+    {
+      name: "Perfil DISC Completo",
+      icon: "📊",
+      date: "Hoje",
+      color: "bg-blue-500",
+    },
+    {
+      name: "Trilha Iniciada",
+      icon: "🚀",
+      date: "Hoje",
+      color: "bg-orange-500",
+    },
+    {
+      name: "Bem-vindo AgroSkills",
+      icon: "🌱",
+      date: "Hoje",
+      color: "bg-green-600",
+    },
   ];
 
   const discProfiles = [
@@ -172,28 +525,28 @@ const UserProfile = () => {
       value: discProfile.dominante,
       color: "bg-red-500",
       letter: "D",
-      description: "Direto e decidido"
+      description: "Direto e decidido",
     },
     {
       name: "Influente",
       value: discProfile.influente,
       color: "bg-green-500",
       letter: "I",
-      description: "Comunicativo e otimista"
+      description: "Comunicativo e otimista",
     },
     {
       name: "Estável",
       value: discProfile.estavel,
       color: "bg-blue-500",
       letter: "S",
-      description: "Paciente e leal"
+      description: "Paciente e leal",
     },
     {
       name: "Conforme",
       value: discProfile.conforme,
       color: "bg-orange-500",
       letter: "C",
-      description: "Preciso e sistemático"
+      description: "Preciso e sistemático",
     },
   ];
 
@@ -206,7 +559,9 @@ const UserProfile = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Meu Perfil</h1>
-              <p className="text-gray-400">Acompanhe seu progresso na AgroSkills</p>
+              <p className="text-gray-400">
+                Acompanhe seu progresso na AgroSkills
+              </p>
             </div>
             {isEditing ? (
               <div className="flex space-x-2">
@@ -257,9 +612,6 @@ const UserProfile = () => {
                   </div>
                 </div>
 
-                {/* Card de linkedin e curriculo */}
-
-
                 {isEditing ? (
                   <input
                     className="text-xl font-bold text-center text-white mb-1 w-full bg-gray-800 border border-gray-600 rounded px-2 py-1"
@@ -267,9 +619,7 @@ const UserProfile = () => {
                     onChange={(e) => setName(e.target.value)}
                   />
                 ) : (
-                  <h2 className="text-2xl font-bold text-white mb-1">
-                    {name}
-                  </h2>
+                  <h2 className="text-2xl font-bold text-white mb-1">{name}</h2>
                 )}
 
                 {isEditing ? (
@@ -290,7 +640,9 @@ const UserProfile = () => {
                 {/* Status Badge */}
                 <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-600/20 border border-green-500/30">
                   <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                  <span className="text-green-400 text-sm font-medium">Ativo</span>
+                  <span className="text-green-400 text-sm font-medium">
+                    Ativo
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -317,18 +669,21 @@ const UserProfile = () => {
                     </div>
                   </div>
                 )}
-                
+
                 {testResults && (
                   <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 mb-4">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="w-4 h-4 text-blue-400" />
                       <p className="text-blue-300 text-sm">
-                        Dados do teste psicológico realizado em {new Date(testResults.completedAt).toLocaleDateString('pt-BR')}
+                        Dados do teste psicológico realizado em{" "}
+                        {new Date(testResults.completedAt).toLocaleDateString(
+                          "pt-BR"
+                        )}
                       </p>
                     </div>
                   </div>
                 )}
-                
+
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   {discProfiles.map((profile) => (
                     <div key={profile.name} className="text-center">
@@ -367,29 +722,172 @@ const UserProfile = () => {
                   disabled={!testResults}
                 >
                   <Download className="w-4 h-4 mr-2" />
-                  {testResults ? 'Baixar Certificado DISC' : 'Realize o teste para baixar certificado'}
+                  {testResults
+                    ? "Baixar Certificado DISC"
+                    : "Realize o teste para baixar certificado"}
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Card de linkedin e curriculo */}
+            {/* LinkedIn e Currículo Card */}
             <Card className="bg-gray-900 border-gray-800">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-white">
-                  <TrendingUp className="w-5 h-5 text-green-500" />
-                  <span>Linkedin e Currículo</span>
+                <CardTitle className="flex items-center justify-between text-white">
+                  <div className="flex items-center space-x-2">
+                    <User className="w-5 h-5 text-green-500" />
+                    <span>LinkedIn e Currículo</span>
+                  </div>
+                  {!isEditingLinks && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsEditingLinks(true)}
+                      className="text-gray-400 hover:text-white p-1"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid grid-cols-2 gap-4 mb-6"></div>
+                {isEditingLinks ? (
+                  <div className="space-y-4">
+                    {/* LinkedIn Input */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        LinkedIn
+                      </label>
+                      <div className="relative">
+                        <Linkedin className="w-4 h-4 text-blue-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                        <input
+                          type="url"
+                          placeholder="https://linkedin.com/in/seu-perfil"
+                          value={linkedin}
+                          onChange={(e) => setLinkedin(e.target.value)}
+                          className="w-full pl-10 pr-3 py-2 bg-gray-800 border border-gray-600 rounded text-white placeholder-gray-400 focus:border-green-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
 
-                <Button
-                  variant="outline"
-                  className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Anexar currículo
-                </Button>
+                    {/* Currículo Upload Input */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Currículo (PDF)
+                      </label>
+                      <div className="relative">
+                        <FileText className="w-4 h-4 text-green-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                        <input
+                          type="file"
+                          accept="application/pdf"
+                          onChange={(e) => setCurriculoFile(e.target.files[0])}
+                          className="w-full pl-10 pr-3 py-2 bg-gray-800 border border-gray-600 rounded text-white focus:border-green-500 focus:outline-none"
+                        />
+                      </div>
+                      {curriculoFile && (
+                        <p className="text-sm text-green-400 mt-1">
+                          Arquivo selecionado: {curriculoFile.name}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex space-x-2 pt-2">
+                      <Button
+                        onClick={handleSaveLinks}
+                        disabled={isSavingLinks}
+                        className="bg-green-600 hover:bg-green-700 flex-1"
+                      >
+                        {isSavingLinks ? (
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                          <Save className="w-4 h-4 mr-2" />
+                        )}
+                        Salvar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={cancelEditLinks}
+                        disabled={isSavingLinks}
+                        className="border-gray-600 text-black hover:bg-gray-800"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* LinkedIn Display */}
+                    <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-700">
+                      <div className="flex items-center space-x-3">
+                        <Linkedin className="w-5 h-5 text-blue-500" />
+                        <div>
+                          <p className="text-sm text-gray-300 font-medium">
+                            LinkedIn
+                          </p>
+                          {linkedin ? (
+                            <a
+                              href={linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:text-blue-300 text-sm flex items-center space-x-1"
+                            >
+                              <span>Ver perfil</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          ) : (
+                            <p className="text-gray-500 text-sm">
+                              Não adicionado
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Currículo Display */}
+                    <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-700">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="w-5 h-5 text-green-500" />
+                        <div>
+                          <p className="text-sm text-gray-300 font-medium">
+                            Currículo
+                          </p>
+                          {hasCurriculo ? (
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={handleViewCurriculo}
+                                className="text-green-400 hover:text-green-300 text-sm flex items-center space-x-1 cursor-pointer"
+                              >
+                                <span>Ver currículo</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </button>
+                              <span className="text-gray-500">•</span>
+                              <button
+                                onClick={handleDownloadCurriculo}
+                                className="text-green-400 hover:text-green-300 text-sm flex items-center space-x-1 cursor-pointer"
+                              >
+                                <Download className="w-3 h-3" />
+                                <span>Baixar</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-gray-500 text-sm">
+                              Não adicionado
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Info Text */}
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 mt-4">
+                      <p className="text-blue-300 text-xs">
+                        💡 Dica: Mantenha seus links atualizados para uma melhor
+                        apresentação profissional
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -448,26 +946,40 @@ const UserProfile = () => {
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-4">
-                      {testResults.scores.bigFive && Object.entries(testResults.scores.bigFive).map(([trait, score]) => (
-                        <div key={trait} className="flex items-center justify-between">
-                          <span className="text-gray-300 capitalize text-sm">
-                            {trait === 'openness' ? 'Abertura' :
-                             trait === 'conscientiousness' ? 'Conscienciosidade' :
-                             trait === 'extraversion' ? 'Extroversão' :
-                             trait === 'agreeableness' ? 'Amabilidade' :
-                             trait === 'neuroticism' ? 'Neuroticismo' : trait}
-                          </span>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-20 bg-gray-700 rounded-full h-2">
-                              <div 
-                                className="bg-purple-500 h-2 rounded-full" 
-                                style={{ width: `${(score / 5) * 100}%` }}
-                              />
+                      {testResults.scores.bigFive &&
+                        Object.entries(testResults.scores.bigFive).map(
+                          ([trait, score]) => (
+                            <div
+                              key={trait}
+                              className="flex items-center justify-between"
+                            >
+                              <span className="text-gray-300 capitalize text-sm">
+                                {trait === "openness"
+                                  ? "Abertura"
+                                  : trait === "conscientiousness"
+                                  ? "Conscienciosidade"
+                                  : trait === "extraversion"
+                                  ? "Extroversão"
+                                  : trait === "agreeableness"
+                                  ? "Amabilidade"
+                                  : trait === "neuroticism"
+                                  ? "Neuroticismo"
+                                  : trait}
+                              </span>
+                              <div className="flex items-center space-x-2">
+                                <div className="w-20 bg-gray-700 rounded-full h-2">
+                                  <div
+                                    className="bg-purple-500 h-2 rounded-full"
+                                    style={{ width: `${(score / 5) * 100}%` }}
+                                  />
+                                </div>
+                                <span className="text-white font-medium w-8 text-sm">
+                                  {score.toFixed(1)}
+                                </span>
+                              </div>
                             </div>
-                            <span className="text-white font-medium w-8 text-sm">{score.toFixed(1)}</span>
-                          </div>
-                        </div>
-                      ))}
+                          )
+                        )}
                     </div>
                   </CardContent>
                 </Card>
@@ -482,26 +994,40 @@ const UserProfile = () => {
                   </CardHeader>
                   <CardContent className="p-6">
                     <div className="space-y-4">
-                      {testResults.scores.leadership && Object.entries(testResults.scores.leadership).map(([style, score]) => (
-                        <div key={style} className="flex items-center justify-between">
-                          <span className="text-gray-300 capitalize text-sm">
-                            {style === 'autocratic' ? 'Autocrático' :
-                             style === 'democratic' ? 'Democrático' :
-                             style === 'transformational' ? 'Transformacional' :
-                             style === 'transactional' ? 'Transacional' :
-                             style === 'servant' ? 'Servidor' : style}
-                          </span>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-20 bg-gray-700 rounded-full h-2">
-                              <div 
-                                className="bg-yellow-500 h-2 rounded-full" 
-                                style={{ width: `${(score / 10) * 100}%` }}
-                              />
+                      {testResults.scores.leadership &&
+                        Object.entries(testResults.scores.leadership).map(
+                          ([style, score]) => (
+                            <div
+                              key={style}
+                              className="flex items-center justify-between"
+                            >
+                              <span className="text-gray-300 capitalize text-sm">
+                                {style === "autocratic"
+                                  ? "Autocrático"
+                                  : style === "democratic"
+                                  ? "Democrático"
+                                  : style === "transformational"
+                                  ? "Transformacional"
+                                  : style === "transactional"
+                                  ? "Transacional"
+                                  : style === "servant"
+                                  ? "Servidor"
+                                  : style}
+                              </span>
+                              <div className="flex items-center space-x-2">
+                                <div className="w-20 bg-gray-700 rounded-full h-2">
+                                  <div
+                                    className="bg-yellow-500 h-2 rounded-full"
+                                    style={{ width: `${(score / 10) * 100}%` }}
+                                  />
+                                </div>
+                                <span className="text-white font-medium w-8 text-sm">
+                                  {score.toFixed(1)}
+                                </span>
+                              </div>
                             </div>
-                            <span className="text-white font-medium w-8 text-sm">{score.toFixed(1)}</span>
-                          </div>
-                        </div>
-                      ))}
+                          )
+                        )}
                     </div>
                   </CardContent>
                 </Card>
@@ -531,14 +1057,19 @@ const UserProfile = () => {
                     <div key={index} className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className={`w-3 h-3 ${track.color} rounded-full`}></div>
+                          <div
+                            className={`w-3 h-3 ${track.color} rounded-full`}
+                          ></div>
                           <span className="font-medium text-white">
                             {track.name}
                           </span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${track.status === 'Em andamento'
-                            ? 'bg-green-600/20 text-green-400 border border-green-500/30'
-                            : 'bg-gray-600/20 text-gray-400 border border-gray-500/30'
-                            }`}>
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              track.status === "Em andamento"
+                                ? "bg-green-600/20 text-green-400 border border-green-500/30"
+                                : "bg-gray-600/20 text-gray-400 border border-gray-500/30"
+                            }`}
+                          >
                             {track.status}
                           </span>
                         </div>
@@ -571,12 +1102,18 @@ const UserProfile = () => {
                       key={index}
                       className="flex items-center space-x-3 p-4 bg-gray-800 rounded-lg border border-gray-700 hover:bg-gray-750 transition-all duration-300"
                     >
-                      <div className={`w-10 h-10 ${achievement.color} rounded-full flex items-center justify-center`}>
+                      <div
+                        className={`w-10 h-10 ${achievement.color} rounded-full flex items-center justify-center`}
+                      >
                         <span className="text-lg">{achievement.icon}</span>
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-white">{achievement.name}</p>
-                        <p className="text-sm text-gray-400">{achievement.date}</p>
+                        <p className="font-medium text-white">
+                          {achievement.name}
+                        </p>
+                        <p className="text-sm text-gray-400">
+                          {achievement.date}
+                        </p>
                       </div>
                       <Star className="w-4 h-4 text-yellow-500" />
                     </div>
@@ -592,4 +1129,3 @@ const UserProfile = () => {
 };
 
 export default UserProfile;
-

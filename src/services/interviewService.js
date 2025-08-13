@@ -4,6 +4,109 @@ class InterviewService {
   }
 
   /**
+ * Buscar entrevistas de um usuário específico
+ */
+  async getUserInterviews(userId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/interviews/user/${userId}`);
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      return {
+        success: true,
+        interviews: result
+      };
+
+    } catch (error) {
+      console.error('Erro ao buscar entrevistas do usuário:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+
+  /**
+ * Buscar entrevistas de uma candidatura específica
+ */
+  async getCandidaturaInterviews(candidaturaId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/interviews/candidatura/${candidaturaId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      return {
+        success: true,
+        interviews: result || []
+      };
+
+    } catch (error) {
+      console.error('Erro ao buscar entrevistas da candidatura:', error);
+      return {
+        success: false,
+        error: error.message,
+        interviews: []
+      };
+    }
+  }
+
+  /**
+ * Criar nova entrevista com candidatura_id (MÉTODO ATUALIZADO)
+ */
+  async createInterview(jobId, candidateName, candidateEmail, userId = null, candidaturaId = null) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/interviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          job_id: jobId,
+          candidate_name: candidateName,
+          candidate_email: candidateEmail,
+          user_id: userId,
+          candidatura_id: candidaturaId, // NOVO CAMPO
+          status: 'in_progress'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Erro HTTP: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      return {
+        success: true,
+        interview: result
+      };
+
+    } catch (error) {
+      console.error('Erro ao criar entrevista:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+
+  /**
    * Upload de vídeo com processamento completo no backend
    */
   async uploadVideoResponse(interviewId, questionNumber, videoBlob, faceAnalysisData = []) {
@@ -24,9 +127,9 @@ class InterviewService {
       }
 
       const result = await response.json();
-      
+
       console.log(`✅ Vídeo enviado para backend! Resposta ID: ${result.data.responseId}. Processamento IA iniciado. Dados faciais: ${result.data.faceDataPoints} pontos.`);
-      
+
       return {
         success: true,
         responseId: result.data.responseId,
@@ -53,13 +156,13 @@ class InterviewService {
   async getResponseProcessingStatus(interviewId, responseId) {
     try {
       const response = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/responses/${responseId}/status`);
-      
+
       if (!response.ok) {
         throw new Error(`Erro HTTP: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       return {
         success: true,
         responseId: result.responseId,
@@ -85,7 +188,7 @@ class InterviewService {
   async waitForProcessingCompletion(interviewId, responseId, maxAttempts = 30, intervalMs = 2000) {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const status = await this.getResponseProcessingStatus(interviewId, responseId);
-      
+
       if (!status.success) {
         throw new Error(`Erro ao verificar status: ${status.error}`);
       }
@@ -138,7 +241,7 @@ class InterviewService {
       }
 
       const result = await response.json();
-      
+
       return {
         success: true,
         interview: result
@@ -159,13 +262,13 @@ class InterviewService {
   async getInterview(interviewId) {
     try {
       const response = await fetch(`${this.baseUrl}/api/interviews/${interviewId}`);
-      
+
       if (!response.ok) {
         throw new Error(`Erro HTTP: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       return {
         success: true,
         interview: result
@@ -203,7 +306,7 @@ class InterviewService {
 
       // 2. Gerar relatório
       const reportResponse = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/report`);
-      
+
       if (!reportResponse.ok) {
         throw new Error(`Erro ao gerar relatório: ${reportResponse.status}`);
       }
@@ -211,7 +314,7 @@ class InterviewService {
       const report = await reportResponse.json();
 
       console.log(`✅ Entrevista ${interviewId} finalizada com sucesso!`);
-      
+
       return {
         success: true,
         report: report,
@@ -233,13 +336,13 @@ class InterviewService {
   async generateReportPDF(interviewId) {
     try {
       const response = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/report/pdf`);
-      
+
       if (!response.ok) {
         throw new Error(`Erro ao gerar PDF: ${response.status}`);
       }
 
       const blob = await response.blob();
-      
+
       // Criar URL para download
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -251,7 +354,7 @@ class InterviewService {
       window.URL.revokeObjectURL(url);
 
       console.log(`✅ PDF do relatório baixado com sucesso!`);
-      
+
       return {
         success: true,
         message: 'PDF gerado e baixado com sucesso'
@@ -272,13 +375,13 @@ class InterviewService {
   async getInterviewResponses(interviewId) {
     try {
       const response = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/responses`);
-      
+
       if (!response.ok) {
         throw new Error(`Erro HTTP: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       return {
         success: true,
         responses: result
@@ -299,13 +402,13 @@ class InterviewService {
   async getInterviewStats(interviewId) {
     try {
       const response = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/stats`);
-      
+
       if (!response.ok) {
         throw new Error(`Erro HTTP: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       return {
         success: true,
         stats: result
@@ -335,7 +438,7 @@ class InterviewService {
       const response = await fetch(`${this.baseUrl}/api/interviews`, {
         method: 'GET'
       });
-      
+
       return response.ok;
     } catch (error) {
       console.warn('Backend não disponível:', error.message);
