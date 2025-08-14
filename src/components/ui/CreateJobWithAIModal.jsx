@@ -401,7 +401,7 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
                 <textarea
                   className="w-full p-2 rounded bg-gray-700 text-white"
                   rows={3}
-                  placeholder="Descreva a vaga"
+                  placeholder="Ex.: Analista de Marketing — responsável por campanhas digitais, requisitos: graduação em Marketing, 2 anos de experiência, benefícios: plano de saúde, vale-alimentação, trabalho híbrido"
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)} />
                 <select name="company_id" value={formData.company_id} onChange={handleCompanyChange} className="w-full p-2 rounded bg-gray-700 text-white">

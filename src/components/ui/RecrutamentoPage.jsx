@@ -52,7 +52,7 @@ function JobDescription({ html }) {
 }
 
 // Componente de formulário de edição de vaga
-const EditJobForm = ({ job, onSave, onCancel }) => {
+const EditJobForm = ({ job, onSave, onCancel, companies }) => {
   const [formData, setFormData] = useState({
     title: job.title || '',
     company: job.company || '',
@@ -109,14 +109,20 @@ const EditJobForm = ({ job, onSave, onCancel }) => {
           <label className="block text-white font-medium mb-2">
             Empresa
           </label>
-          <input
-            type="text"
+          <select
             name="company"
             value={formData.company}
             onChange={handleChange}
             className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             required
-          />
+          >
+            <option value="">Selecione a empresa</option>
+            {companies && companies.map((empresa) => (
+              <option key={empresa.id} value={empresa.name}>
+                {empresa.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -288,9 +294,27 @@ const RecrutamentoPage = () => {
   // Estados para Administração
   const [showAdminPage, setShowAdminPage] = useState(false);
 
+  const [companies, setCompanies] = useState([]);
+
   useEffect(() => {
     fetchRecruitmentData();
+    fetchCompanies();
   }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+      const response = await fetch(`${API_BASE_URL}/api/companies`);
+      if (response.ok) {
+        const data = await response.json();
+        setCompanies(data);
+      } else {
+        setCompanies([]);
+      }
+    } catch {
+      setCompanies([]);
+    }
+  };
 
   const fetchRecruitmentData = async () => {
     try {
@@ -356,44 +380,9 @@ const RecrutamentoPage = () => {
       const result = await response.json();
       
       if (result.success && result.candidates && result.candidates.length > 0) {
-        // Ajuste: transformar cada candidato para o novo formato
-        const formattedCandidates = result.candidates.map((data) => ({
-          id: data.id ?? 'mock_error',
-          name: data.full_name ?? 'Candidato Exemplo',
-          title: data.headline ?? 'Profissional da Área',
-          company: data.experience?.[0]?.company_name ?? 'Empresa Exemplo',
-          location: data.location_full ?? data.location_country ?? 'Brasil',
-          lastExperience: data.experience?.[0]?.position_title
-            ? `${data.experience[0].position_title} | ${data.experience.length}+ experiências`
-            : 'Experiência relevante',
-          skills: Array.isArray(data.inferred_skills) && data.inferred_skills.length > 0
-            ? data.inferred_skills.slice(0, 10)
-            : ['Habilidade 1', 'Habilidade 2'],
-          profileUrl: data.linkedin_url ?? '',
-          confidence: 0.7,
-          source: 'mock',
-          pictureUrl: data.picture_url ?? '',
-          summary: data.summary ?? '',
-          location_country: data.location_country ?? '',
-          location_city: data.location_city ?? '',
-          location_state: data.location_state ?? '',
-          location_full: data.location_full ?? '',
-          experience: Array.isArray(data.experience) ? data.experience : [],
-          education: Array.isArray(data.education) ? data.education : [],
-          recommendations: Array.isArray(data.recommendations) ? data.recommendations : [],
-          activity: Array.isArray(data.activity) ? data.activity : [],
-          awards: Array.isArray(data.awards) ? data.awards : [],
-          courses: Array.isArray(data.courses) ? data.courses : [],
-          certifications: Array.isArray(data.certifications) ? data.certifications : [],
-          languages: Array.isArray(data.languages) ? data.languages : [],
-          raw: data // inclui todos os dados originais para referência futura
-        }));
-
-        setSearchResults(formattedCandidates);
+        setSearchResults(result.candidates);
         setShowSearchModal(true);
 
-        console.log(`✅ Busca concluída via backend! ${result.message} Candidatos encontrados: ${result.total}`);
-        console.log('📊 Candidatos:', formattedCandidates.map(c => `${c.name} - ${c.title} (${c.company})`));
       } else {
         // Fallback para busca via frontend se backend falhar
         console.log('⚠️ Backend não retornou candidatos, tentando busca via frontend...');
@@ -1392,9 +1381,10 @@ const RecrutamentoPage = () => {
                               })()}
                               <Button
                                 variant="outline"
-                                className="border-gray-600  text-gray-300  hover:bg-gray-700 "
+                                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                                onClick={() => window.open(`${window.location.origin}/vagas/${job.id}`, '_blank')}
                               >
-                                <Eye className="h-4 w-4  mr-2 " />
+                                <Eye className="h-4 w-4 mr-2" />
                                 Ver Detalhes
                               </Button>
                               <Button
@@ -1639,6 +1629,7 @@ const RecrutamentoPage = () => {
                   job={editingJob}
                   onSave={handleSaveJobEdit}
                   onCancel={handleCancelEdit}
+                  companies={companies}
                 />
               </div>
             </div>

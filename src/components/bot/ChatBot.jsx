@@ -131,7 +131,7 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
             <Bot className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-semibold text-sm">Assistente Virtual</h3>
+            <h3 className="font-semibold text-sm">IZA</h3>
             <p className="text-xs text-blue-100">
               {isCompleted ? 'Conversa concluída' : 'Online'}
             </p>
