@@ -8,6 +8,9 @@ import WelcomeAnimation from "./WelcomeAnimation";
 import TrilhaRequirementModal from "./TrilhaRequirementModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@radix-ui/react-progress";
+import axios from "axios";
+import { API_URL } from "@/components/utils/api"; // certifique-se de que este caminho está correto
+import { MapPin, Briefcase, Building2 } from "lucide-react";
 
 const Dashboard = ({ onCourseSelect = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
@@ -18,11 +21,15 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showTrilhaModal, setShowTrilhaModal] = useState(false);
   const [selectedTrilha, setSelectedTrilha] = useState("");
+  const [vagasRecentes, setVagasRecentes] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
+  const [loadingVagas, setLoadingVagas] = useState(true);
 
   // Buscar dados do DISC do usuário
   useEffect(() => {
     if (user?.id) {
-      testService.makeRequest(`/psychological/user/${user.id}?status=completed&limit=1`)
+      testService
+        .makeRequest(`/psychological/user/${user.id}?status=completed&limit=1`)
         .then((response) => {
           // Resposta esperada: { tests: [ { disc_scores: {...}, ... } ], ... }
           if (response && response.tests && response.tests.length > 0) {
@@ -30,14 +37,21 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             // Determinar perfil predominante
             let predominant = "Conforme";
             if (discScores) {
-              const maxKey = Object.keys(discScores).reduce((a, b) => discScores[a] > discScores[b] ? a : b);
-              const discMap = { D: "Dominante", I: "Influente", S: "Estável", C: "Conforme" };
+              const maxKey = Object.keys(discScores).reduce((a, b) =>
+                discScores[a] > discScores[b] ? a : b
+              );
+              const discMap = {
+                D: "Dominante",
+                I: "Influente",
+                S: "Estável",
+                C: "Conforme",
+              };
               predominant = discMap[maxKey] || "Conforme";
             }
             setDiscProfile({
               ...discScores,
               predominant,
-              overall_analysis: response.tests[0].overall_analysis
+              overall_analysis: response.tests[0].overall_analysis,
             });
           } else {
             setDiscProfile(null);
@@ -58,6 +72,40 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       }
     }
   }, [user]);
+
+  useEffect(() => {
+    const fetchVagasRecentes = async () => {
+      try {
+        setLoadingVagas(true);
+
+        // Buscar vagas
+        const vagasResponse = await axios.get(
+          `${API_URL}/api/recruitment/jobs`
+        );
+        const todasVagas = vagasResponse.data || [];
+
+        // Pegar apenas as 5 últimas vagas (assumindo que as mais recentes estão no final)
+        const ultimasVagas = todasVagas.slice(-5).reverse();
+        setVagasRecentes(ultimasVagas);
+
+        // Buscar empresas para pegar os nomes
+        const empresasResponse = await axios.get(`${API_URL}/api/companies`);
+        setEmpresas(empresasResponse.data || []);
+      } catch (error) {
+        console.error("Erro ao buscar vagas recentes:", error);
+        setVagasRecentes([]);
+      } finally {
+        setLoadingVagas(false);
+      }
+    };
+
+    fetchVagasRecentes();
+  }, []);
+
+  const getEmpresaNome = (empresaId) => {
+    const empresa = empresas.find((e) => e.id === empresaId);
+    return empresa?.name || "Empresa";
+  };
 
   // Função para completar a animação de boas-vindas
   const handleWelcomeComplete = () => {
@@ -159,22 +207,23 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     </div>
                     <span className="text-gray-300">Perfil: {predominant}</span>
                     {/* Card Análise DISC ocupando 1/3 da tela */}
-              
                   </div>
                 </div>
                 {discProfile && discProfile.overall_analysis && (
-                <div className="lg:w-1/3 w-full">
-                  <Card className="bg-black/60 border border-gray-800 shadow-lg">
-                    <CardContent className="p-3">
-                      <h4 className="text-lg font-bold text-white mb-2">Análise DISC</h4>
-                      <p className="text-gray-300 text-sm whitespace-pre-line">{discProfile.overall_analysis}</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
+                  <div className="lg:w-1/3 w-full">
+                    <Card className="bg-black/60 border border-gray-800 shadow-lg">
+                      <CardContent className="p-3">
+                        <h4 className="text-lg font-bold text-white mb-2">
+                          Análise DISC
+                        </h4>
+                        <p className="text-gray-300 text-sm whitespace-pre-line">
+                          {discProfile.overall_analysis}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </div>
-
-          
 
               {/* Card Gestão de Carreira - Acesso Gratuito */}
               <div className="lg:!w-80 flex-shrink-0">
@@ -324,7 +373,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
               {/* Ver Vagas */}
               <Card
-                onClick={() => navigate('/vagas')}
+                onClick={() => navigate("/vagas")}
                 className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">
@@ -611,6 +660,94 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 </CardContent>
               </Card>
             </div>
+          </section>
+
+          {/* Últimas Vagas - Nova Seção */}
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">
+                Últimas Vagas Disponíveis
+              </h2>
+              <Button
+                variant="ghost"
+                className="text-gray-300 hover:text-white"
+                onClick={() => navigate("/vagas")}
+              >
+                Ver todas as vagas
+              </Button>
+            </div>
+
+            {loadingVagas ? (
+              <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
+                {[...Array(5)].map((_, index) => (
+                  <Card
+                    key={index}
+                    className="bg-gray-900 border-gray-800 animate-pulse"
+                  >
+                    <CardContent className="p-6">
+                      <div className="w-12 h-12 bg-gray-800 rounded-lg mb-4"></div>
+                      <div className="h-5 bg-gray-800 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-800 rounded mb-3"></div>
+                      <div className="h-3 bg-gray-800 rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : vagasRecentes.length > 0 ? (
+              <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
+                {vagasRecentes.map((vaga) => (
+                  <Card
+                    key={vaga.id}
+                    onClick={() => navigate(`/vagas/${vaga.id}`)}
+                    className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
+                        <Briefcase className="w-6 h-6 text-white" />
+                      </div>
+
+                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">
+                        {vaga.title || vaga.nome}
+                      </h3>
+
+                      <p className="text-gray-400 text-sm mb-3 line-clamp-2">
+                        {getEmpresaNome(vaga.empresa_id)}
+                      </p>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate">
+                            {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <Building2 className="w-3 h-3" />
+                          <span className="truncate">
+                            {vaga.job_type || vaga.modalidade}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-gray-900 rounded-lg border border-gray-800">
+                <Briefcase className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400">
+                  Nenhuma vaga disponível no momento
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-4 bg-blue-600 hover:bg-blue-700"
+                  onClick={() => navigate("/vagas")}
+                >
+                  Explorar Vagas
+                </Button>
+              </div>
+            )}
           </section>
 
           {/* Última Aula - Nova Seção */}
