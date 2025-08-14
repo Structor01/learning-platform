@@ -1,0 +1,14 @@
+[debug] [2025-08-14T12:08:57.807Z] ----------------------------------------------------------------------
+[debug] [2025-08-14T12:08:57.813Z] Command:       /usr/local/bin/node /usr/local/bin/firebase deploy
+[debug] [2025-08-14T12:08:57.815Z] CLI Version:   13.15.2
+[debug] [2025-08-14T12:08:57.815Z] Platform:      darwin
+[debug] [2025-08-14T12:08:57.815Z] Node Version:  v22.13.1
+[debug] [2025-08-14T12:08:57.816Z] Time:          Thu Aug 14 2025 09:08:57 GMT-0300 (Brasilia Standard Time)
+[debug] [2025-08-14T12:08:57.816Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-08-14T12:08:57.865Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-08-14T12:08:57.866Z] > authorizing via signed-in user (arthur.barros@structor.com.br)
+[debug] [2025-08-14T12:08:57.866Z] [iam] checking project agroskills-aa41a for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2025-08-14T12:08:57.867Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/agroskills-aa41a:testIamPermissions [none]
+[debug] [2025-08-14T12:08:57.867Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/agroskills-aa41a:testIamPermissions x-goog-quota-user=projects/agroskills-aa41a
+[debug] [2025-08-14T12:08:57.867Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/agroskills-aa41a:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
