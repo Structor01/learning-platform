@@ -34,6 +34,7 @@ import MinhasCandidaturasPage from "./components/ui/MinhasCandidaturasPage";
 import DetalhesVaga from "./components/ui/DetalhesVaga";
 import InterviewPage from "./components/ui/InterviewPage";
 import CandidaturasAdmPage from "./components/ui/CandidaturasAdmPage";
+import MeusInteresses from './components/ui/MeusInteresses';
 import "./App.css";
 
 const getApiUrl = () => {
@@ -240,6 +241,9 @@ function App() {
 
           {/* Página de Vagas */}
           <Route path="/vagas" element={<VagasPage />} />
+
+          {/* Página de Meus Interesses */}
+          <Route path="/meus-interesses" element={<MeusInteresses />} />
 
           {/* Página de Candidaturas */}
           <Route path="/minhas-candidaturas" element={<MinhasCandidaturasPage />} />

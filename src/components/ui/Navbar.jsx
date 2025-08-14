@@ -115,6 +115,13 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                 Vagas
               </a>
 
+              <a
+                href="/MeusInteresses"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                Meus interesses
+              </a>
+
               {/* Menu Administrador */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
