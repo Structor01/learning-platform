@@ -52,7 +52,7 @@ function JobDescription({ html }) {
 }
 
 // Componente de formulário de edição de vaga
-const EditJobForm = ({ job, onSave, onCancel }) => {
+const EditJobForm = ({ job, onSave, onCancel, companies }) => {
   const [formData, setFormData] = useState({
     title: job.title || '',
     company: job.company || '',
@@ -109,14 +109,20 @@ const EditJobForm = ({ job, onSave, onCancel }) => {
           <label className="block text-white font-medium mb-2">
             Empresa
           </label>
-          <input
-            type="text"
+          <select
             name="company"
             value={formData.company}
             onChange={handleChange}
             className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             required
-          />
+          >
+            <option value="">Selecione a empresa</option>
+            {companies && companies.map((empresa) => (
+              <option key={empresa.id} value={empresa.name}>
+                {empresa.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -288,9 +294,27 @@ const RecrutamentoPage = () => {
   // Estados para Administração
   const [showAdminPage, setShowAdminPage] = useState(false);
 
+  const [companies, setCompanies] = useState([]);
+
   useEffect(() => {
     fetchRecruitmentData();
+    fetchCompanies();
   }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+      const response = await fetch(`${API_BASE_URL}/api/companies`);
+      if (response.ok) {
+        const data = await response.json();
+        setCompanies(data);
+      } else {
+        setCompanies([]);
+      }
+    } catch {
+      setCompanies([]);
+    }
+  };
 
   const fetchRecruitmentData = async () => {
     try {
@@ -337,21 +361,16 @@ const RecrutamentoPage = () => {
       const job = jobs.find(job => job.id === jobId);
       setSelectedJob(job);
       
-      console.log('🔍 Iniciando busca de candidatos via backend para vaga:', job.title);
+      console.log('🔍 Iniciando busca inteligente de candidatos com ChatGPT para vaga:', job.title);
       
-      // Usar o backend para buscar candidatos
+      // Usar o backend com ChatGPT para buscar candidatos automaticamente
       const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
       
-      const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/${jobId}/search-linkedin`, {
+      const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/${jobId}/search-candidates`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          keywords: job.title || 'profissional',
-          location: job.location || 'Brasil',
-          experienceLevel: job.experience_level || 'mid'
-        })
+        }
       });
 
       if (!response.ok) {
@@ -361,12 +380,9 @@ const RecrutamentoPage = () => {
       const result = await response.json();
       
       if (result.success && result.candidates && result.candidates.length > 0) {
-        // Exibir resultados do backend
         setSearchResults(result.candidates);
         setShowSearchModal(true);
-        
-        console.log(`✅ Busca concluída via backend! ${result.message} Candidatos encontrados: ${result.total}`);
-        console.log('📊 Candidatos:', result.candidates.map(c => `${c.name} - ${c.title} (${c.company})`));
+
       } else {
         // Fallback para busca via frontend se backend falhar
         console.log('⚠️ Backend não retornou candidatos, tentando busca via frontend...');
@@ -1365,9 +1381,10 @@ const RecrutamentoPage = () => {
                               })()}
                               <Button
                                 variant="outline"
-                                className="border-gray-600  text-gray-300  hover:bg-gray-700 "
+                                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                                onClick={() => window.open(`${window.location.origin}/vagas/${job.id}`, '_blank')}
                               >
-                                <Eye className="h-4 w-4  mr-2 " />
+                                <Eye className="h-4 w-4 mr-2" />
                                 Ver Detalhes
                               </Button>
                               <Button
@@ -1483,7 +1500,7 @@ const RecrutamentoPage = () => {
                         <CardContent className="p-4 ">
                           <div className="flex items-start  gap-4 ">
                             <img
-                              src={candidate.imageUrl}
+                              src={candidate.pictureUrl || candidate.imageUrl || '/default-avatar.png'}
                               alt={candidate.name}
                               className="w-16 h-16  rounded-full "
                             />
@@ -1497,10 +1514,13 @@ const RecrutamentoPage = () => {
                                   <p className="text-gray-400  text-sm ">
                                     {candidate.company} • {candidate.location}
                                   </p>
+                                  {candidate.lastExperience && (
+                                    <p className="text-gray-500 text-xs">{candidate.lastExperience}</p>
+                                  )}
                                 </div>
                                 <div className="flex items-center  gap-2 ">
                                   <Badge className="bg-green-500  text-white ">
-                                    {candidate.match_score}% match
+                                    {Math.round((candidate.confidence ?? 0.7) * 100)}% match
                                   </Badge>
                                   <Star className="h-4 w-4  text-yellow-400 " />
                                 </div>
@@ -1519,14 +1539,16 @@ const RecrutamentoPage = () => {
                               </div>
                               
                               <div className="flex gap-2 ">
-                                <Button
-                                  size="sm"
-                                  className="bg-blue-600 hover:bg-blue-700  text-white "
-                                  onClick={() => window.open(candidate.profileUrl, '_blank')}
-                                >
-                                  <ExternalLink className="h-4 w-4  mr-1 " />
-                                  LinkedIn
-                                </Button>
+                                {candidate.profileUrl && (
+                                  <Button
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700  text-white "
+                                    onClick={() => window.open(candidate.profileUrl, '_blank')}
+                                  >
+                                    <ExternalLink className="h-4 w-4  mr-1 " />
+                                    LinkedIn
+                                  </Button>
+                                )}
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -1607,6 +1629,7 @@ const RecrutamentoPage = () => {
                   job={editingJob}
                   onSave={handleSaveJobEdit}
                   onCancel={handleCancelEdit}
+                  companies={companies}
                 />
               </div>
             </div>

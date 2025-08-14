@@ -3,6 +3,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ChatBotProvider } from "./components/bot/ChatBotProvider";
 import LoginPage from "./components/ui/LoginPage";
 import SignUpPage from "./components/ui/SignUpPage";
 import Navbar from "./components/ui/Navbar";
@@ -220,7 +221,8 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <ChatBotProvider>
+          <Routes>
           {/* Página inicial = Login */}
           <Route path="/" element={<LoginPage />} />
           
@@ -275,6 +277,7 @@ function App() {
           {/* Catch-all: redireciona para "/" */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>{" "}
+        </ChatBotProvider>
       </AuthProvider>
     </BrowserRouter>
   );

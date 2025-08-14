@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  CheckCircle, 
-  Download, 
-  Star, 
-  Clock, 
-  User, 
-  FileText, 
+import {
+  CheckCircle,
+  Download,
+  Star,
+  Clock,
+  User,
+  FileText,
   TrendingUp,
   Award,
   MessageSquare,
@@ -15,11 +15,11 @@ import {
   RefreshCw
 } from 'lucide-react';
 
-const InterviewCompletionPage = ({ 
-  interviewData, 
-  onDownloadPDF, 
-  onReturnHome, 
-  onStartNewInterview 
+const InterviewCompletionPage = ({
+  interviewData,
+  onDownloadPDF,
+  onReturnHome,
+  onStartNewInterview
 }) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -80,10 +80,10 @@ const InterviewCompletionPage = ({
   // Animações
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { 
+      transition: {
         duration: 0.6,
         staggerChildren: 0.1
       }
@@ -104,7 +104,7 @@ const InterviewCompletionPage = ({
         animate="visible"
       >
         {/* Header de Sucesso */}
-        <motion.div 
+        <motion.div
           className="text-center mb-8"
           variants={itemVariants}
         >
@@ -122,7 +122,7 @@ const InterviewCompletionPage = ({
         {/* Cards de Resumo */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Score Geral */}
-          <motion.div 
+          <motion.div
             className={`${getScoreBgColor(data.averageScore)} rounded-xl p-6 text-center`}
             variants={itemVariants}
           >
@@ -136,7 +136,7 @@ const InterviewCompletionPage = ({
           </motion.div>
 
           {/* Progresso */}
-          <motion.div 
+          <motion.div
             className="bg-blue-100 rounded-xl p-6 text-center"
             variants={itemVariants}
           >
@@ -152,7 +152,7 @@ const InterviewCompletionPage = ({
           </motion.div>
 
           {/* Duração */}
-          <motion.div 
+          <motion.div
             className="bg-purple-100 rounded-xl p-6 text-center"
             variants={itemVariants}
           >
@@ -167,7 +167,7 @@ const InterviewCompletionPage = ({
         </div>
 
         {/* Feedback Resumido */}
-        <motion.div 
+        <motion.div
           className="bg-white rounded-xl shadow-lg p-6 mb-8"
           variants={itemVariants}
         >
@@ -251,7 +251,7 @@ const InterviewCompletionPage = ({
         </motion.div>
 
         {/* Ações Principais */}
-        <motion.div 
+        <motion.div
           className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           variants={itemVariants}
         >
@@ -259,7 +259,7 @@ const InterviewCompletionPage = ({
           <button
             onClick={handleDownloadPDF}
             disabled={isGeneratingPDF}
-            className="flex items-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+            className="flex items-center px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 duration-200"
           >
             {isGeneratingPDF ? (
               <>
@@ -277,7 +277,7 @@ const InterviewCompletionPage = ({
           {/* Botão Nova Entrevista */}
           <button
             onClick={onStartNewInterview}
-            className="flex items-center px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+            className="flex items-center px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
           >
             <RefreshCw className="w-5 h-5 mr-3" />
             Nova Entrevista
@@ -286,7 +286,7 @@ const InterviewCompletionPage = ({
           {/* Botão Voltar ao Início */}
           <button
             onClick={onReturnHome}
-            className="flex items-center px-6 py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+            className="flex items-center px-6 py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
           >
             <Home className="w-5 h-5 mr-3" />
             Voltar ao Início
@@ -294,7 +294,7 @@ const InterviewCompletionPage = ({
         </motion.div>
 
         {/* Informações Adicionais */}
-        <motion.div 
+        <motion.div
           className="mt-8 text-center text-gray-500 text-sm"
           variants={itemVariants}
         >
