@@ -71,14 +71,9 @@ const AdminPage = () => {
   };
 
   const handleDeleteInterview = async (id) => {
-    if (!window.confirm('Tem certeza que deseja excluir esta entrevista?')) {
-      return;
-    }
-
     try {
       await adminService.deleteInterview(id);
       loadInterviews(); // Reload list
-      alert('Entrevista excluída com sucesso!');
     } catch (err) {
       alert('Erro ao excluir entrevista: ' + err.message);
     }

@@ -52,6 +52,7 @@ const CandidaturasAdmPage = () => {
     const [modalCurriculo, setModalCurriculo] = useState({ isOpen: false, url: "", nome: "" });
     const [modalDisc, setModalDisc] = useState({ isOpen: false, resultado: "", nome: "" });
     const [modalInterview, setModalInterview] = useState({ isOpen: false, entrevistas: [], nome: "", candidaturaId: null });
+    const [selectedVideo, setSelectedVideo] = useState(null);
 
     // Carregar dados da API
     useEffect(() => {
@@ -396,101 +397,88 @@ const CandidaturasAdmPage = () => {
                                         <Clock4 className="w-5 h-5 text-purple-500" />
                                         Detalhes por Entrevista
                                     </h4>
-                                    <div className="space-y-4">
-                                        {modalInterview.entrevistas.map((entrevista, index) => (
-                                            <div key={entrevista.id} className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors border border-white/10">
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className="flex items-center gap-3">
-                                                        {/* Badge do ID - DESTAQUE PRINCIPAL */}
-                                                        <div className="flex items-center justify-center w-16 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg text-white font-bold">
-                                                            <div className="text-center">
-                                                                <div className="text-xs text-blue-200">ID</div>
-                                                                <div className="text-lg font-black">#{entrevista.id}</div>
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <h5 className="font-medium text-white">
-                                                                Entrevista #{entrevista.id}
-                                                            </h5>
-                                                            <p className="text-sm text-gray-400">
-                                                                {new Date(entrevista.created_at).toLocaleDateString('pt-BR', {
-                                                                    day: '2-digit',
-                                                                    month: '2-digit',
-                                                                    year: 'numeric',
-                                                                    hour: '2-digit',
-                                                                    minute: '2-digit'
-                                                                })}
-                                                            </p>
-                                                            <p className="text-xs text-blue-400">
-                                                                Candidatura #{modalInterview.candidaturaId}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${entrevista.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                                                        entrevista.status === 'in_progress' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                            'bg-blue-500/20 text-blue-400'
-                                                        }`}>
-                                                        {getInterviewStatusText(entrevista.status)}
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
-                                                    <div>
-                                                        <div className="text-sm text-gray-400">Progresso</div>
-                                                        <div className="text-white font-medium">
-                                                            {entrevista.answered_questions || 0}/{entrevista.total_questions || 5}
-                                                        </div>
-                                                        <div className="w-full bg-gray-700 rounded-full h-1.5 mt-1">
-                                                            <div
-                                                                className="bg-blue-500 h-1.5 rounded-full transition-all"
-                                                                style={{
-                                                                    width: `${((entrevista.answered_questions || 0) / (entrevista.total_questions || 5)) * 100}%`
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-sm text-gray-400">Pontuação</div>
-                                                        <div className="text-white font-medium">
-                                                            {entrevista.overall_score ? `${parseFloat(entrevista.overall_score).toFixed(1)}/10` : 'N/A'}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-sm text-gray-400">Duração</div>
-                                                        <div className="text-white font-medium">
-                                                            {entrevista.completed_at && entrevista.created_at ?
-                                                                `${Math.round((new Date(entrevista.completed_at) - new Date(entrevista.created_at)) / (1000 * 60))} min`
-                                                                : 'Em andamento'
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-sm text-gray-400">Conclusão</div>
-                                                        <div className="text-white font-medium">
-                                                            {entrevista.completed_at ?
-                                                                new Date(entrevista.completed_at).toLocaleDateString('pt-BR')
-                                                                : '-'
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {entrevista.status === 'completed' && entrevista.overall_score && (
-                                                    <div className="border-t border-white/10 pt-3">
-                                                        <div className="text-sm text-gray-400 mb-2">Análise Comportamental</div>
-                                                        <div className="text-sm text-gray-300">
-                                                            {entrevista.overall_score >= 8 ?
-                                                                "Excelente performance demonstrada durante a entrevista. Candidato apresentou boa comunicação e confiança." :
-                                                                entrevista.overall_score >= 6 ?
-                                                                    "Performance satisfatória na entrevista. Demonstrou adequação para a vaga com pontos de melhoria." :
-                                                                    "Performance abaixo do esperado. Recomenda-se nova avaliação ou desenvolvimento adicional."
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                )}
+                                    {modalInterview.entrevistas.map((entrevista) => (
+                                        <div key={entrevista.id} className="mb-8">
+                                            <div className="font-bold text-white mb-2">
+                                                Entrevista #{entrevista.id} - {getInterviewStatusText(entrevista.status)}
                                             </div>
-                                        ))}
-                                    </div>
+                                            {entrevista.questions && entrevista.questions.length > 0 ? (
+                                                entrevista.questions.map((question) => (
+                                                    <div key={question.id} className="bg-white/5 rounded-lg p-4 mb-4 border border-white/10">
+                                                        <div className="font-semibold text-white mb-1">{question.title}</div>
+                                                        <div className="text-xs text-gray-400 mb-2">{question.description}</div>
+                                                        {question.answers && question.answers.length > 0 ? (
+                                                            question.answers.map((answer) => {
+                                                                const isVideoOpen =
+                                                                    selectedVideo &&
+                                                                    selectedVideo.bunny_video_id === answer.bunny_video_id &&
+                                                                    selectedVideo.bunny_library_id === answer.bunny_library_id;
+
+                                                                return (
+                                                                    <div key={answer.id} className="bg-gray-800 rounded-lg p-3 mb-2">
+                                                                        <div className="flex items-center gap-2 mb-2">
+                                                                            <button
+                                                                                className={`px-3 py-1 ${isVideoOpen ? 'bg-gray-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded transition`}
+                                                                                onClick={() =>
+                                                                                    setSelectedVideo(isVideoOpen ? null : {
+                                                                                        bunny_library_id: answer.bunny_library_id,
+                                                                                        bunny_video_id: answer.bunny_video_id,
+                                                                                        order: question.order
+                                                                                    })
+                                                                                }
+                                                                                disabled={!answer.bunny_video_url}
+                                                                            >
+                                                                                <Play className="inline w-4 h-4 mr-1" />
+                                                                                {isVideoOpen ? "Esconder Vídeo" : "Ver Vídeo"}
+                                                                            </button>
+                                                                        </div>
+                                                                        {/* Visualização de vídeo se disponível */}
+                                                                        {isVideoOpen && (
+                                                                            <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+                                                                                <iframe
+                                                                                    src={`https://iframe.mediadelivery.net/embed/${selectedVideo.bunny_library_id}/${selectedVideo.bunny_video_id}?autoplay=true&loop=false&muted=false&preload=true&responsive=true`}
+                                                                                    loading="lazy"
+                                                                                    style={{
+                                                                                        border: 0,
+                                                                                        position: 'absolute',
+                                                                                        top: 0,
+                                                                                        left: 0,
+                                                                                        width: '100%',
+                                                                                        height: '100%'
+                                                                                    }}
+                                                                                    allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
+                                                                                    allowFullScreen
+                                                                                    title={`Resposta da pergunta ${selectedVideo.order}`}
+                                                                                ></iframe>
+                                                                            </div>
+                                                                        )}
+                                                                        <div className="text-gray-200 text-sm mb-2">
+                                                                            <span className="font-bold">Resposta:</span> {answer.answers}
+                                                                        </div>
+                                                                        {answer.analysis && (
+                                                                            <div className="bg-white/10 rounded p-2 mt-2">
+                                                                                <div className="text-xs text-blue-300 font-bold mb-1">
+                                                                                    Pontuação: {answer.analysis.score}/10
+                                                                                </div>
+                                                                                <div className="text-xs text-gray-300 mb-1">
+                                                                                    <span className="font-bold">Recomendação:</span> {answer.analysis.recommendation}
+                                                                                </div>
+                                                                                <div className="text-xs text-gray-400" dangerouslySetInnerHTML={{ __html: answer.analysis.fullAnalysis.replace(/\n/g, "<br/>") }} />
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })
+                                                        ) : (
+                                                            <div className="text-gray-400 text-sm mb-2">Nenhuma resposta registrada.</div>
+                                                        )}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-gray-400 text-sm">Nenhuma pergunta registrada.</div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
