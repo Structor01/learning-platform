@@ -28,7 +28,7 @@ const ChatBotButton = ({ onClick, isOpen, hasUnreadMessages = false }) => {
       
       {!isOpen && (
         <div className="absolute -top-12 right-0 bg-gray-800 text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-          Assistente Virtual
+          IZA
           <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
         </div>
       )}

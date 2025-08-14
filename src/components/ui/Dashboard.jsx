@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import testService from "@/services/testService";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,11 +12,40 @@ import { Progress } from "@radix-ui/react-progress";
 const Dashboard = ({ onCourseSelect = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, isLoading } = useAuth();
+  const [discProfile, setDiscProfile] = useState(null);
   const navigate = useNavigate();
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const [showTrilhaModal, setShowTrilhaModal] = useState(false);
   const [selectedTrilha, setSelectedTrilha] = useState("");
+
+  // Buscar dados do DISC do usuário
+  useEffect(() => {
+    if (user?.id) {
+      testService.makeRequest(`/psychological/user/${user.id}?status=completed&limit=1`)
+        .then((response) => {
+          // Resposta esperada: { tests: [ { disc_scores: {...}, ... } ], ... }
+          if (response && response.tests && response.tests.length > 0) {
+            const discScores = response.tests[0].disc_scores;
+            // Determinar perfil predominante
+            let predominant = "Conforme";
+            if (discScores) {
+              const maxKey = Object.keys(discScores).reduce((a, b) => discScores[a] > discScores[b] ? a : b);
+              const discMap = { D: "Dominante", I: "Influente", S: "Estável", C: "Conforme" };
+              predominant = discMap[maxKey] || "Conforme";
+            }
+            setDiscProfile({
+              ...discScores,
+              predominant,
+              overall_analysis: response.tests[0].overall_analysis
+            });
+          } else {
+            setDiscProfile(null);
+          }
+        })
+        .catch(() => setDiscProfile(null));
+    }
+  }, [user]);
 
   // Verificar se é a primeira vez do usuário
   useEffect(() => {
@@ -73,12 +103,11 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   // Dados padrão caso user seja null
   const userData = user || {
     name: "Usuário",
-    discProfile: { predominant: "Conforme" },
     progress: { currentProgress: 0 },
   };
 
   // Protegendo acesso aos campos de DISC e progresso
-  const predominant = userData.discProfile?.predominant ?? "Conforme";
+  const predominant = discProfile?.predominant ?? "Conforme";
   const currentProgress = userData.progress?.currentProgress ?? 0;
 
   // Função para lidar com clique em curso
@@ -111,12 +140,13 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
           <div className="mb-8 overflow-x-auto">
-            <div className="flex flex-col lg:!flex-row lg:!items-center lg:!justify-between gap-6 min-w-fit">
-              <div className="flex-shrink-0">
+            <div className="flex flex-col lg:!flex-row lg:!items-start lg:!justify-between gap-6 min-w-fit">
+              {/* Bloco de boas-vindas e perfil DISC */}
+              <div className="flex-shrink-0 lg:w-2/3">
                 <h1 className="text-3xl font-bold text-white mb-2">
                   Olá, {userData.name.split(" ")[0]}!
                 </h1>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center m-3 space-x-4">
                   <div className="flex items-center space-x-2">
                     <div
                       className={`w-6 h-6 ${getDiscColor(
@@ -128,9 +158,23 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       </span>
                     </div>
                     <span className="text-gray-300">Perfil: {predominant}</span>
+                    {/* Card Análise DISC ocupando 1/3 da tela */}
+              
                   </div>
                 </div>
+                {discProfile && discProfile.overall_analysis && (
+                <div className="lg:w-1/3 w-full">
+                  <Card className="bg-black/60 border border-gray-800 shadow-lg">
+                    <CardContent className="p-3">
+                      <h4 className="text-lg font-bold text-white mb-2">Análise DISC</h4>
+                      <p className="text-gray-300 text-sm whitespace-pre-line">{discProfile.overall_analysis}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
               </div>
+
+          
 
               {/* Card Gestão de Carreira - Acesso Gratuito */}
               <div className="lg:!w-80 flex-shrink-0">

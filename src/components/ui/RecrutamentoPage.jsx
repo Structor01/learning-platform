@@ -52,7 +52,7 @@ function JobDescription({ html }) {
 }
 
 // Componente de formulário de edição de vaga
-const EditJobForm = ({ job, onSave, onCancel }) => {
+const EditJobForm = ({ job, onSave, onCancel, companies }) => {
   const [formData, setFormData] = useState({
     title: job.title || '',
     company: job.company || '',
@@ -109,14 +109,20 @@ const EditJobForm = ({ job, onSave, onCancel }) => {
           <label className="block text-white font-medium mb-2">
             Empresa
           </label>
-          <input
-            type="text"
+          <select
             name="company"
             value={formData.company}
             onChange={handleChange}
             className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             required
-          />
+          >
+            <option value="">Selecione a empresa</option>
+            {companies && companies.map((empresa) => (
+              <option key={empresa.id} value={empresa.name}>
+                {empresa.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -288,9 +294,27 @@ const RecrutamentoPage = () => {
   // Estados para Administração
   const [showAdminPage, setShowAdminPage] = useState(false);
 
+  const [companies, setCompanies] = useState([]);
+
   useEffect(() => {
     fetchRecruitmentData();
+    fetchCompanies();
   }, []);
+
+  const fetchCompanies = async () => {
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+      const response = await fetch(`${API_BASE_URL}/api/companies`);
+      if (response.ok) {
+        const data = await response.json();
+        setCompanies(data);
+      } else {
+        setCompanies([]);
+      }
+    } catch {
+      setCompanies([]);
+    }
+  };
 
   const fetchRecruitmentData = async () => {
     try {
@@ -1392,9 +1416,10 @@ const RecrutamentoPage = () => {
                               })()}
                               <Button
                                 variant="outline"
-                                className="border-gray-600  text-gray-300  hover:bg-gray-700 "
+                                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                                onClick={() => window.open(`${window.location.origin}/vagas/${job.id}`, '_blank')}
                               >
-                                <Eye className="h-4 w-4  mr-2 " />
+                                <Eye className="h-4 w-4 mr-2" />
                                 Ver Detalhes
                               </Button>
                               <Button
@@ -1639,6 +1664,7 @@ const RecrutamentoPage = () => {
                   job={editingJob}
                   onSave={handleSaveJobEdit}
                   onCancel={handleCancelEdit}
+                  companies={companies}
                 />
               </div>
             </div>
