@@ -116,7 +116,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
               </a>
 
               <a
-                href="/MeusInteresses"
+                href="/meus-interesses"
                 className="text-gray-300 hover:text-white transition-colors text-sm"
               >
                 Meus interesses

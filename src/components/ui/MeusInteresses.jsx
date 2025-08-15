@@ -11,15 +11,20 @@ import {
   AlertCircle,
   ArrowLeft,
   Search,
+  Briefcase,
 } from "lucide-react";
 import { API_URL } from "../utils/api";
 import Navbar from "./Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotification } from "../ui/Notification";
+import { Navigate } from "react-router-dom";
 
 const MeusInteresses = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const [vagas, setVagas] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
+
+  const { user, isAuthenticated, isLoading } = useAuth();
   const { showNotification, NotificationComponent } = useNotification();
 
   const [interesses, setInteresses] = useState([]);
@@ -28,54 +33,123 @@ const MeusInteresses = () => {
   const [removingId, setRemovingId] = useState(null);
 
   useEffect(() => {
+    if (isLoading) return; // ainda carregando estado de autenticação
     if (!isAuthenticated) {
-      navigate("/");
+      navigate("/login");
       return;
     }
     fetchInteresses();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading]);
 
   const fetchInteresses = async () => {
     try {
       setLoading(true);
-      const token = sessionStorage.getItem("accessToken");
 
-      const response = await axios.get(
+      // Pegar o token do sessionStorage (mesmo padrão que está funcionando)
+      const token =
+        sessionStorage.getItem("accessToken") ||
+        sessionStorage.getItem("token");
+
+      if (!token) {
+        console.error("Token não encontrado");
+        showNotification({
+          type: "error",
+          title: "Erro de autenticação",
+          message: "Por favor, faça login novamente",
+          duration: 4000,
+        });
+        navigate("/");
+        return;
+      }
+
+      const authToken = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
+
+      // Buscar interesses
+      const interessesResponse = await axios.get(
         `${API_URL}/api/interesses/meus-interesses`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: authToken,
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      console.log("Interesses carregados:", response.data);
-      setInteresses(response.data);
+      console.log("Interesses carregados:", interessesResponse.data);
+      setInteresses(interessesResponse.data);
+
+      // Buscar empresas para fazer o mapeamento correto
+      try {
+        const empresasResponse = await axios.get(`${API_URL}/api/companies`);
+        console.log("✅ Empresas carregadas:", empresasResponse.data);
+        setEmpresas(empresasResponse.data);
+      } catch (empresasError) {
+        console.error("Erro ao carregar empresas:", empresasError);
+        // Continua mesmo se não conseguir carregar empresas
+      }
     } catch (error) {
       console.error("Erro ao buscar interesses:", error);
-      showNotification({
-        type: "error",
-        title: "Erro ao carregar",
-        message: "Não foi possível carregar seus interesses",
-        duration: 4000,
-      });
+
+      if (error.response?.status === 401) {
+        showNotification({
+          type: "error",
+          title: "Sessão expirada",
+          message: "Por favor, faça login novamente",
+          duration: 4000,
+        });
+        navigate("/");
+      } else {
+        showNotification({
+          type: "error",
+          title: "Erro ao carregar",
+          message: "Não foi possível carregar seus interesses",
+          duration: 4000,
+        });
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  const getEmpresaName = (empresaId) => {
+    const empresa = empresas.find((e) => e.id === empresaId);
+    return empresa?.name || "Empresa";
   };
 
   const handleRemoverInteresse = async (vagaId, vagaNome) => {
     if (removingId) return;
 
     setRemovingId(vagaId);
-    const token = sessionStorage.getItem("accessToken");
+
+    const token =
+      sessionStorage.getItem("accessToken") || sessionStorage.getItem("token");
+
+    if (!token) {
+      showNotification({
+        type: "error",
+        title: "Erro de autenticação",
+        message: "Por favor, faça login novamente",
+        duration: 4000,
+      });
+      return;
+    }
+
+    const authToken = token.startsWith("Bearer ") ? token : `Bearer ${token}`;
 
     try {
       await axios.delete(`${API_URL}/api/interesses/vaga/${vagaId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: authToken,
+          "Content-Type": "application/json",
+        },
       });
 
       // Remover da lista local
       setInteresses((prev) =>
-        prev.filter((interesse) => interesse.job?.id !== vagaId)
+        prev.filter((interesse) => {
+          const vaga = interesse.job || interesse.vaga;
+          return vaga?.id !== vagaId;
+        })
       );
 
       showNotification({
@@ -97,20 +171,20 @@ const MeusInteresses = () => {
     }
   };
 
-  // Filtrar interesses
+  // Filtrar interesses baseado na busca
   const interessesFiltrados = interesses.filter((interesse) => {
     const vaga = interesse.job || interesse.vaga;
     if (!vaga) return false;
 
-    const titulo = (vaga.titulo || vaga.title || "").toLowerCase();
-    const empresa = (vaga.empresa || vaga.company || "").toLowerCase();
-    const localizacao = (vaga.localizacao || vaga.location || "").toLowerCase();
+    const titulo = (vaga.title || vaga.nome || vaga.titulo || "").toLowerCase();
+    const empresaNome = getEmpresaName(vaga.empresa_id).toLowerCase();
+    const cidade = (vaga.cidade || vaga.location || "").toLowerCase();
     const search = searchTerm.toLowerCase();
 
     return (
       titulo.includes(search) ||
-      empresa.includes(search) ||
-      localizacao.includes(search)
+      empresaNome.includes(search) ||
+      cidade.includes(search)
     );
   });
 
@@ -124,7 +198,7 @@ const MeusInteresses = () => {
     });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-black">
         <Navbar
@@ -229,6 +303,14 @@ const MeusInteresses = () => {
                 const vaga = interesse.job || interesse.vaga;
                 if (!vaga) return null;
 
+                // Pegar o nome da vaga seguindo o padrão do VagasPage
+                const nomeVaga = vaga.title || vaga.nome;
+                const empresaNome = getEmpresaName(vaga.empresa_id);
+                const localizacao =
+                  vaga.location || `${vaga.cidade}, ${vaga.uf}`;
+                const modalidade = vaga.job_type || vaga.modalidade;
+                const descricao = vaga.description || vaga.descricao;
+
                 return (
                   <article
                     key={interesse.id}
@@ -239,34 +321,44 @@ const MeusInteresses = () => {
                         <header className="mb-4">
                           <div className="flex items-start justify-between gap-4 mb-3">
                             <h3 className="text-xl sm:text-2xl font-bold text-white line-clamp-2 flex-1">
-                              {vaga.titulo || vaga.title}
+                              {nomeVaga}
                             </h3>
-                            <span className="bg-gradient-to-r from-red-500/20 to-pink-500/20 text-red-300 px-3 py-1 rounded-full text-sm font-medium border border-red-500/20">
-                              {vaga.empresa || vaga.company || "Empresa"}
-                            </span>
+                            <button
+                              onClick={() =>
+                                navigate(`/empresa/${vaga.empresa_id}`)
+                              }
+                              className="bg-gradient-to-r from-red-500/20 to-pink-500/20 text-red-300 px-3 py-1 rounded-full text-sm font-medium border border-red-500/20 hover:from-red-500/30 hover:to-pink-500/30 transition-all duration-200"
+                            >
+                              {empresaNome}
+                            </button>
                           </div>
 
                           <div className="flex flex-wrap gap-3 sm:gap-4 text-sm">
-                            {vaga.localizacao && (
+                            <div className="flex items-center gap-2 text-gray-400">
+                              <MapPin className="w-4 h-4 text-red-500" />
+                              <span>{localizacao}</span>
+                            </div>
+                            {modalidade && (
                               <div className="flex items-center gap-2 text-gray-400">
-                                <MapPin className="w-4 h-4 text-red-500" />
-                                <span>{vaga.localizacao}</span>
-                              </div>
-                            )}
-                            {vaga.tipo && (
-                              <div className="flex items-center gap-2 text-gray-400">
-                                <Building2 className="w-4 h-4 text-blue-500" />
-                                <span className="capitalize">{vaga.tipo}</span>
+                                <Clock className="w-4 h-4 text-blue-500" />
+                                <span>{modalidade}</span>
                               </div>
                             )}
                             <div className="flex items-center gap-2 text-gray-400">
-                              <Clock className="w-4 h-4 text-green-500" />
+                              <Building2 className="w-4 h-4 text-green-500" />
                               <span>
                                 Salvo em {formatarData(interesse.dataInteresse)}
                               </span>
                             </div>
                           </div>
                         </header>
+
+                        {/* Descrição resumida */}
+                        {descricao && (
+                          <p className="text-gray-300 text-sm line-clamp-2 mb-4">
+                            {descricao}
+                          </p>
+                        )}
 
                         {/* Tag de vaga externa */}
                         <div className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg text-sm">
@@ -278,9 +370,7 @@ const MeusInteresses = () => {
                       {/* Ações */}
                       <div className="xl:w-48 flex-shrink-0 space-y-3">
                         <button
-                          onClick={() =>
-                            window.open(`/vagas/${vaga.id}`, "_blank")
-                          }
+                          onClick={() => navigate(`/vagas/${vaga.id}`)}
                           className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 font-semibold flex items-center justify-center gap-2"
                         >
                           <ExternalLink className="w-5 h-5" />
@@ -289,10 +379,7 @@ const MeusInteresses = () => {
 
                         <button
                           onClick={() =>
-                            handleRemoverInteresse(
-                              vaga.id,
-                              vaga.titulo || vaga.title
-                            )
+                            handleRemoverInteresse(vaga.id, nomeVaga)
                           }
                           disabled={removingId === vaga.id}
                           className="w-full px-4 py-3 bg-gray-800 text-gray-300 rounded-xl hover:bg-red-600/20 hover:text-red-400 hover:border-red-600/30 border border-gray-700 transition-all duration-300 font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"

@@ -243,7 +243,7 @@ function App() {
           <Route path="/vagas" element={<VagasPage />} />
 
           {/* Página de Meus Interesses */}
-          <Route path="/meus-interesses" element={<MeusInteresses />} />
+          <Route path="/meus-interesses" element={<MeusInteresses/>} />
 
           {/* Página de Candidaturas */}
           <Route path="/minhas-candidaturas" element={<MinhasCandidaturasPage />} />
