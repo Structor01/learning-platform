@@ -22,26 +22,29 @@ export const AddLessonModal = ({ moduleId, onClose, onSave }) => {
             return;
         }
 
-        // 1. Criar um objeto FormData para enviar arquivos
-        const formData = new FormData();
-
-        // 2. Adicionar cada campo ao formData
-        formData.append('moduleId', moduleId);
-        formData.append('title', title);
-        formData.append('description', description);
-
-        // Só adiciona videoUrl se tiver valor
-        if (videoUrl.trim()) {
-            formData.append('videoUrl', videoUrl);
-        }
-
-        // 3. Adicionar o arquivo de vídeo, se foi selecionado
+        // OPÇÃO 1: Se tem arquivo, envia FormData (para upload)
         if (videoFile) {
+            const formData = new FormData();
+            formData.append('moduleId', moduleId);
+            formData.append('title', title);
+            formData.append('description', description);
             formData.append('videoFile', videoFile);
-        }
 
-        // 4. Chamar a função onSave, passando o FormData completo
-        onSave(formData);
+            console.log('>>> ENVIANDO ARQUIVO PARA UPLOAD');
+            onSave(formData);
+        }
+        // OPÇÃO 2: Se só tem URL, envia JSON simples
+        else if (videoUrl.trim()) {
+            const jsonData = {
+                moduleId,
+                title,
+                description,
+                videoUrl: videoUrl.trim()
+            };
+
+            console.log('>>> ENVIANDO URL DIRETA');
+            onSave(jsonData);
+        }
     };
 
     return (

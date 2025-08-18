@@ -40,6 +40,12 @@ const TrilhaPage = () => {
       .then((res) => {
         const fetchedModules = res.data; // ✅ Já vem filtrado e ordenado!
 
+        // ✅ LOG ESPECÍFICO DAS URLs
+        fetchedModules.forEach(module => {
+          module.lessons?.forEach(lesson => {
+          });
+        });
+
         setModules(fetchedModules); // ✅ Remove o filter, usa direto
 
         if (fetchedModules.length > 0) {
@@ -126,16 +132,40 @@ const TrilhaPage = () => {
     setIsAddLessonModalOpen(true);
   };
   // Função para salvar nova aula
-  const handleSaveNewLesson = async (formData) => {
-    try {
-      // URL simples e direta
-      const API_URL = "http://localhost:3001";
-      const response = await axios.post(`${API_URL}/api/videos`, formData);
+  // No TrilhaPage.jsx - handleSaveNewLesson atualizado:
 
-      // Atualizar o módulo correto com a nova aula
+  const handleSaveNewLesson = async (data) => {
+    try {
+      const API_URL = "http://localhost:3001";
+      let response;
+
+      // Se recebeu FormData (upload de arquivo)
+      if (data instanceof FormData) {
+        console.log('>>> ENVIANDO FORMDATA (COM ARQUIVO)');
+        response = await axios.post(`${API_URL}/api/videos`, data, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      }
+      // Se recebeu objeto JSON (só URL)
+      else {
+        console.log('>>> ENVIANDO JSON (SÓ URL)');
+        response = await axios.post(`${API_URL}/api/videos`, data, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+
+      // Atualizar estado local
       setModules((prevModules) =>
         prevModules.map((module) => {
-          if (module.id === Number(formData.get("moduleId"))) {
+          const moduleId = data instanceof FormData ?
+            Number(data.get("moduleId")) :
+            data.moduleId;
+
+          if (module.id === moduleId) {
             return {
               ...module,
               lessons: [...(module.lessons || []), response.data],
@@ -147,6 +177,7 @@ const TrilhaPage = () => {
 
       setIsAddLessonModalOpen(false);
       console.log("Aula salva com sucesso!");
+
     } catch (error) {
       console.error("Erro ao salvar a nova aula:", error.response?.data || error.message);
     }
@@ -201,25 +232,46 @@ const TrilhaPage = () => {
               <Card className="bg-gray-900 border-gray-800 overflow-hidden">
                 <CardContent className="p-0">
                   <div className="relative aspect-video bg-black group">
-                    {selectedLesson ? (
-                      <video
-                        key={selectedLesson.id} // ESSENCIAL: Força o React a recarregar o player ao mudar de aula
-                        ref={videoRef}
-                        className="w-full h-full object-cover"
-                        poster={selectedLesson.coverUrl || ""}
-                        onPlay={() => setIsPlaying(true)}
-                        onPause={() => setIsPlaying(false)}
-                        onTimeUpdate={(e) => {
-                          const time = e.target.currentTime;
-                          const minutes = Math.floor(time / 60);
-                          const seconds = Math.floor(time % 60)
-                            .toString()
-                            .padStart(2, "0");
-                          setCurrentTime(`${minutes}:${seconds}`);
-                        }}
-                        src={selectedLesson.videoUrl}
-                        controls // Usando controles nativos por simplicidade
-                      />
+                    {selectedLesson?.videoUrl ? (
+                      selectedLesson.videoUrl.includes('iframe.mediadelivery.net') ? (
+                        // Player Bunny.net (iframe) - CSS corrigido
+                        <iframe
+                          key={selectedLesson.id}
+                          className="w-full h-full border-0"
+                          src={selectedLesson.videoUrl}
+                          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                          allowFullScreen
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            border: 'none',
+                            display: 'block'
+                          }}
+                        />
+                      ) : (
+                        // Player tradicional
+                        <>
+                          {console.log('>>> USANDO VIDEO')}
+                          <video
+                            key={selectedLesson.id}
+                            ref={videoRef}
+                            className="w-full h-full object-cover"
+                            poster={selectedLesson.coverUrl || ""}
+                            onPlay={() => setIsPlaying(true)}
+                            onPause={() => setIsPlaying(false)}
+                            onTimeUpdate={(e) => {
+                              const time = e.target.currentTime;
+                              const minutes = Math.floor(time / 60);
+                              const seconds = Math.floor(time % 60)
+                                .toString()
+                                .padStart(2, "0");
+                              setCurrentTime(`${minutes}:${seconds}`);
+                            }}
+                            src={selectedLesson.videoUrl}
+                            controls
+                          />
+                        </>
+                      )
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-900">
                         <p className="text-gray-500">
@@ -345,10 +397,10 @@ const TrilhaPage = () => {
             {/* --- FIM DA COLUNA DIREITA --- */}
           </div>
         </div>
-      </div>
+      </div >
 
       {/* MODAIS */}
-      <EditModulesModal
+      < EditModulesModal
         open={showEditModules}
         modules={modules}
         onClose={() => setShowEditModules(false)}
