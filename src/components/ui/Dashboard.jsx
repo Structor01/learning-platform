@@ -225,55 +225,97 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 )}
               </div>
 
-              {/* Card Gestão de Carreira - Acesso Gratuito */}
-              <div className="lg:!w-80 flex-shrink-0">
-                <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-90 cursor-pointer shadow-xl">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                          <svg
-                            className="w-6 h-6 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M13 10V3L4 14h7v7l9-11h-7z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                          GRÁTIS
-                        </div>
-                      </div>
-                    </div>
 
-                    <h3 className="text-xl font-bold text-white mb-2">
-                      Gestão de Carreira
-                    </h3>
-                    <p className="text-gray-400 text-sm mb-4 leading-relaxed">
-                      Estratégias avançadas para acelerar sua carreira no agro
-                    </p>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500 text-sm">17 módulos</span>
-                      <Button
-                        size="sm"
-                        onClick={() => navigate("/trilha/2")}
-                        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold"
-                      >
-                        Iniciar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
             </div>
           </div>
+
+          {/* Últimas Vagas - Nova Seção */}
+          <section className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">
+                Últimas Vagas
+              </h2>
+              <Button
+                  variant="ghost"
+                  className="text-gray-300 hover:text-white"
+                  onClick={() => navigate("/vagas")}
+              >
+                Ver todas as vagas
+              </Button>
+            </div>
+
+            {loadingVagas ? (
+                <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
+                  {[...Array(5)].map((_, index) => (
+                      <Card
+                          key={index}
+                          className="bg-gray-900 border-gray-800 animate-pulse"
+                      >
+                        <CardContent className="p-6">
+                          <div className="w-12 h-12 bg-gray-800 rounded-lg mb-4"></div>
+                          <div className="h-5 bg-gray-800 rounded mb-2"></div>
+                          <div className="h-4 bg-gray-800 rounded mb-3"></div>
+                          <div className="h-3 bg-gray-800 rounded"></div>
+                        </CardContent>
+                      </Card>
+                  ))}
+                </div>
+            ) : vagasRecentes.length > 0 ? (
+                <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
+                  {vagasRecentes.map((vaga) => (
+                      <Card
+                          key={vaga.id}
+                          onClick={() => navigate(`/vagas/${vaga.id}`)}
+                          className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
+                            <Briefcase className="w-6 h-6 text-white" />
+                          </div>
+
+                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">
+                            {vaga.title || vaga.nome}
+                          </h3>
+
+                          <p className="text-gray-400 text-sm mb-3 line-clamp-2">
+                            {getEmpresaNome(vaga.empresa_id)}
+                          </p>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate">
+                            {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
+                          </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <Building2 className="w-3 h-3" />
+                              <span className="truncate">
+                            {vaga.job_type || vaga.modalidade}
+                          </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                  ))}
+                </div>
+            ) : (
+                <div className="text-center py-12 bg-gray-900 rounded-lg border border-gray-800">
+                  <Briefcase className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400">
+                    Nenhuma vaga disponível no momento
+                  </p>
+                  <Button
+                      size="sm"
+                      className="mt-4 bg-blue-600 hover:bg-blue-700"
+                      onClick={() => navigate("/vagas")}
+                  >
+                    Explorar Vagas
+                  </Button>
+                </div>
+            )}
+          </section>
 
           {/* Biblioteca de Aplicativos - Movida para cima */}
           <section className="mb-12">
@@ -660,94 +702,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 </CardContent>
               </Card>
             </div>
-          </section>
-
-          {/* Últimas Vagas - Nova Seção */}
-          <section className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
-                Últimas Vagas Disponíveis
-              </h2>
-              <Button
-                variant="ghost"
-                className="text-gray-300 hover:text-white"
-                onClick={() => navigate("/vagas")}
-              >
-                Ver todas as vagas
-              </Button>
-            </div>
-
-            {loadingVagas ? (
-              <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
-                {[...Array(5)].map((_, index) => (
-                  <Card
-                    key={index}
-                    className="bg-gray-900 border-gray-800 animate-pulse"
-                  >
-                    <CardContent className="p-6">
-                      <div className="w-12 h-12 bg-gray-800 rounded-lg mb-4"></div>
-                      <div className="h-5 bg-gray-800 rounded mb-2"></div>
-                      <div className="h-4 bg-gray-800 rounded mb-3"></div>
-                      <div className="h-3 bg-gray-800 rounded"></div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : vagasRecentes.length > 0 ? (
-              <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
-                {vagasRecentes.map((vaga) => (
-                  <Card
-                    key={vaga.id}
-                    onClick={() => navigate(`/vagas/${vaga.id}`)}
-                    className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
-                        <Briefcase className="w-6 h-6 text-white" />
-                      </div>
-
-                      <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">
-                        {vaga.title || vaga.nome}
-                      </h3>
-
-                      <p className="text-gray-400 text-sm mb-3 line-clamp-2">
-                        {getEmpresaNome(vaga.empresa_id)}
-                      </p>
-
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <MapPin className="w-3 h-3" />
-                          <span className="truncate">
-                            {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <Building2 className="w-3 h-3" />
-                          <span className="truncate">
-                            {vaga.job_type || vaga.modalidade}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-gray-900 rounded-lg border border-gray-800">
-                <Briefcase className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400">
-                  Nenhuma vaga disponível no momento
-                </p>
-                <Button
-                  size="sm"
-                  className="mt-4 bg-blue-600 hover:bg-blue-700"
-                  onClick={() => navigate("/vagas")}
-                >
-                  Explorar Vagas
-                </Button>
-              </div>
-            )}
           </section>
 
           {/* Última Aula - Nova Seção */}
