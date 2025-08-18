@@ -128,7 +128,6 @@ class InterviewService {
 
       const result = await response.json();
 
-      console.log(`✅ Vídeo enviado para backend! Resposta ID: ${result.data.responseId}. Processamento IA iniciado. Dados faciais: ${result.data.faceDataPoints} pontos.`);
 
       return {
         success: true,
@@ -193,10 +192,8 @@ class InterviewService {
         throw new Error(`Erro ao verificar status: ${status.error}`);
       }
 
-      console.log(`🔄 Tentativa ${attempt}/${maxAttempts}: Status = ${status.processingStatus}`);
 
       if (status.processingStatus === 'completed') {
-        console.log(`✅ Processamento concluído! Score: ${status.analysisScore}/10`);
         return {
           success: true,
           transcription: status.transcription,
@@ -286,43 +283,83 @@ class InterviewService {
   /**
    * Finalizar entrevista e gerar relatório
    */
+  /**
+ * Finalizar entrevista e gerar relatório - VERSÃO CORRIGIDA
+ */
   async finishInterview(interviewId) {
     try {
-      // 1. Atualizar status da entrevista
-      const updateResponse = await fetch(`${this.baseUrl}/api/interviews/${interviewId}`, {
-        method: 'PATCH',
+      console.log(`🏁 Finalizando entrevista ${interviewId}...`);
+
+      // ✅ CORREÇÃO: Usar o endpoint correto do backend
+      const completeResponse = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/complete`, {
+        method: 'POST', // ✅ POST em vez de PATCH
         headers: {
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        })
+        }
+        // ✅ Sem body - o backend não espera parâmetros
       });
 
-      if (!updateResponse.ok) {
-        throw new Error(`Erro ao finalizar entrevista: ${updateResponse.status}`);
+      if (!completeResponse.ok) {
+        const errorData = await completeResponse.json();
+        throw new Error(`Erro ao finalizar entrevista: ${completeResponse.status} - ${errorData.message || 'Erro desconhecido'}`);
       }
 
-      // 2. Gerar relatório
-      const reportResponse = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/report`);
-
-      if (!reportResponse.ok) {
-        throw new Error(`Erro ao gerar relatório: ${reportResponse.status}`);
-      }
-
-      const report = await reportResponse.json();
-
+      const result = await completeResponse.json();
       console.log(`✅ Entrevista ${interviewId} finalizada com sucesso!`);
 
-      return {
-        success: true,
-        report: report,
-        message: 'Entrevista finalizada com sucesso'
-      };
+      // ✅ Opcional: Também gerar relatório se o backend suportar
+      try {
+        const reportResponse = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/report`);
+
+        if (reportResponse.ok) {
+          const contentType = reportResponse.headers.get('content-type');
+          
+          if (contentType && contentType.includes('application/json')) {
+            const report = await reportResponse.json();
+            console.log(`📊 Relatório gerado com sucesso!`);
+
+            return {
+              success: true,
+              interview: result,
+              report: report,
+              message: 'Entrevista finalizada e relatório gerado com sucesso'
+            };
+          } else {
+            // Se não for JSON, tente ler como texto
+            const textResponse = await reportResponse.text();
+            console.warn('⚠️ Resposta do relatório não é JSON:', textResponse);
+
+            return {
+              success: true,
+              interview: result,
+              report: null,
+              message: 'Entrevista finalizada com sucesso'
+            };
+          }
+        } else {
+          console.warn('⚠️ Entrevista finalizada, mas relatório não pôde ser gerado');
+
+          return {
+            success: true,
+            interview: result,
+            report: null,
+            message: 'Entrevista finalizada com sucesso'
+          };
+        }
+      } catch (reportError) {
+        console.warn('⚠️ Erro ao gerar relatório:', reportError.message);
+
+        return {
+          success: true,
+          interview: result,
+          report: null,
+          message: 'Entrevista finalizada com sucesso'
+        };
+      }
 
     } catch (error) {
-      console.error('Erro ao finalizar entrevista:', error);
+      console.error('❌ Erro ao finalizar entrevista:', error);
+
       return {
         success: false,
         error: error.message
@@ -353,7 +390,6 @@ class InterviewService {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      console.log(`✅ PDF do relatório baixado com sucesso!`);
 
       return {
         success: true,

@@ -102,7 +102,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
             {/* Links de Navegação */}
             <div className="md:flex items-center space-x-4">
               {/* Menu Administrador */}
-              {userData.email === "admin@agsk.com" && (
+              {userData.email === "kauanytorres19@gmail.com" && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
