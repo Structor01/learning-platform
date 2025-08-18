@@ -101,55 +101,43 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
           <div className="flex items-center space-x-4">
             {/* Links de Navegação */}
             <div className="md:flex items-center space-x-4">
-              <a
-                href="/dashboard"
-                className="text-gray-300 hover:text-white transition-colors text-sm"
-              >
-                Dashboard
-              </a>
-
-              <a
-                href="/Vagas"
-                className="text-gray-300 hover:text-white transition-colors text-sm"
-              >
-                Vagas
-              </a>
-
               {/* Menu Administrador */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="text-gray-300 hover:text-black transition-colors text-sm px-3 py-2"
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    Administrador
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48" align="start">
-                  <DropdownMenuItem asChild>
-                    <a href="/crm" className="flex items-center w-full">
-                      <span className="mr-2">📊</span>
-                      CRM - Gestão de Leads
-                    </a>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <a
-                      href="/recrutamento"
-                      className="flex items-center w-full"
+              {userData.email === "admin@agsk.com" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="text-gray-300 hover:text-black transition-colors text-sm px-3 py-2"
                     >
-                      <span className="mr-2">👥</span>
-                      Recrutamento LinkedIn
-                    </a>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <a href="/candidaturas" className="flex items-center w-full">
-                      <span className="mr-2">📚</span>
-                      Candidaturas
-                    </a>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Administrador
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-48" align="start">
+                    <DropdownMenuItem asChild>
+                      <a href="/crm" className="flex items-center w-full">
+                        <span className="mr-2">📊</span>
+                        CRM - Gestão de Leads
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a
+                        href="/recrutamento"
+                        className="flex items-center w-full"
+                      >
+                        <span className="mr-2">👥</span>
+                        Recrutamento LinkedIn
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a href="/candidaturas" className="flex items-center w-full">
+                        <span className="mr-2">📚</span>
+                        Candidaturas
+                      </a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
 
             {/* DISC Profile Badge */}
