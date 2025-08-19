@@ -101,6 +101,27 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
           <div className="flex items-center space-x-4">
             {/* Links de Navegação */}
             <div className="md:flex items-center space-x-4">
+              <a
+                href="/dashboard"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                Dashboard
+              </a>
+
+              <a
+                href="/Vagas"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                Vagas
+              </a>
+
+              <a
+                href="/meus-interesses"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                Meus interesses
+              </a>
+
               {/* Menu Administrador */}
               {userData.email === "admin@agsk.com" && (
                 <DropdownMenu>
