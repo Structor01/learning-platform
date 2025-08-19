@@ -1175,21 +1175,6 @@ const RecrutamentoPage = () => {
                   <Sparkles className="h-4 w-4 mr-2" />
                   Criar Vaga com IA
                 </Button>
-                <Button
-                  onClick={async () => {
-                    const result = await coresignalService.testApiKey();
-                    if (result.success) {
-                      console.log(`✅ ${result.message} Teste realizado com sucesso! API Coresignal funcionando corretamente.`);
-                    } else {
-                      console.error(`❌ ${result.error} Verifique a API Key do Coresignal.`);
-                    }
-                  }}
-                  variant="outline"
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                >
-                  <Target className="h-4 w-4 mr-2" />
-                  Testar Coresignal API
-                </Button>
               </div>
             </div>
           </div>
