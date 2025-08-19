@@ -28,6 +28,26 @@ const AdminPage = () => {
     }
   }, [activeTab, filters]);
 
+  // Auto-refresh das entrevistas a cada 30 segundos quando na aba de entrevistas
+  useEffect(() => {
+    let intervalId;
+    
+    if (activeTab === 'interviews') {
+      console.log('🔄 Iniciando auto-refresh das entrevistas...');
+      intervalId = setInterval(() => {
+        console.log('🔄 Auto-refresh das entrevistas');
+        loadInterviews();
+      }, 30000); // 30 segundos
+    }
+    
+    return () => {
+      if (intervalId) {
+        console.log('🛑 Parando auto-refresh das entrevistas');
+        clearInterval(intervalId);
+      }
+    };
+  }, [activeTab]);
+
   const loadDashboardStats = async () => {
     try {
       setLoading(true);
@@ -177,6 +197,18 @@ const AdminPage = () => {
         <h2>Gerenciar Entrevistas</h2>
 
         <div className="filters">
+          <button
+            onClick={() => {
+              console.log('🔄 Forçando refresh das entrevistas...');
+              loadInterviews();
+            }}
+            disabled={loading}
+            className="btn-refresh"
+            title="Atualizar lista de entrevistas"
+          >
+            {loading ? '🔄' : '🔄'} Atualizar
+          </button>
+
           <select
             value={filters.status}
             onChange={(e) => handleFilterChange('status', e.target.value)}
@@ -334,7 +366,9 @@ const AdminPage = () => {
   const renderInterviewDetails = () => {
     if (!selectedInterview) return null;
 
-    const { interview, questions, stats } = selectedInterview;
+    // selectedInterview já contém os dados diretamente
+    const interview = selectedInterview;
+    const questions = interview.questions || [];
 
     return (
       <div className="interview-details-modal">
@@ -356,7 +390,7 @@ const AdminPage = () => {
                 <div className="detail-item">
                   <span className="label">Nome:</span>
                   <span className="value">
-                    {interview.user?.name || interview.candidate_name}
+                    {interview.user?.name || interview.name || interview.candidate_name}
                   </span>
                 </div>
                 <div className="detail-item">
@@ -392,26 +426,38 @@ const AdminPage = () => {
                   </div>
                 )}
                 <div className="detail-item">
-                  <span className="label">Status:</span>
-                  <span className="value">{adminService.getStatusLabel(interview.status)}</span>
+                  <span className="label">Criada em:</span>
+                  <span className="value">{interview.created_at ? new Date(interview.created_at).toLocaleDateString('pt-BR') : 'N/A'}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="label">Última atualização:</span>
+                  <span className="value">{interview.updated_at ? new Date(interview.updated_at).toLocaleDateString('pt-BR') : 'N/A'}</span>
                 </div>
               </div>
 
               <div className="detail-section">
                 <h3>Estatísticas</h3>
                 <div className="detail-item">
-                  <span className="label">Pontuação Geral:</span>
-                  <span className="value">{adminService.formatScore(interview.overall_score)}/10</span>
+                  <span className="label">Total de Perguntas:</span>
+                  <span className="value">{questions.length}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="label">Progresso:</span>
+                  <span className="label">Perguntas Respondidas:</span>
                   <span className="value">
-                    {interview.answered_questions}/{interview.total_questions} perguntas
+                    {questions.filter(q => q.answers && q.answers.length > 0).length}
                   </span>
                 </div>
                 <div className="detail-item">
                   <span className="label">Taxa de Conclusão:</span>
-                  <span className="value">{adminService.formatPercentage(stats.completionRate)}</span>
+                  <span className="value">
+                    {questions.length > 0 
+                      ? Math.round((questions.filter(q => q.answers && q.answers.length > 0).length / questions.length) * 100)
+                      : 0}%
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="label">Status:</span>
+                  <span className="value">{interview.status || 'in_progress'}</span>
                 </div>
               </div>
             </div>
@@ -419,48 +465,65 @@ const AdminPage = () => {
             <div className="questions-section">
               <h3>Perguntas e Respostas</h3>
               <div className="questions-list">
-                {questions.map(question => (
-                  <div key={question.id} className="question-item">
-                    <div className="question-header">
-                      <span className="question-number">Pergunta {question.order}</span>
-                      <span className={`question-status ${question.answered ? 'answered' : 'unanswered'}`}>
-                        {question.answered ? 'Respondida' : 'Não Respondida'}
-                      </span>
-                    </div>
-                    <div className="question-text">{question.title}</div>
-                    {question.answered && question.answer && (
-                      <div className="answer-section">
-                        <div className="answer-text">{question.answer.text}</div>
-
-                        {/* Visualização de vídeo se disponível */}
-                        {question.answer.bunny_video_id && question.answer.bunny_library_id && (
-                          <div style={{ position: 'relative', paddingTop: '56.25%' }}>
-                            <iframe
-                              src={`https://iframe.mediadelivery.net/embed/${question.answer.bunny_library_id}/${question.answer.bunny_video_id}?autoplay=true&loop=false&muted=false&preload=true&responsive=true`}
-                              loading="lazy"
-                              style={{
-                                border: 0,
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                width: '100%',
-                                height: '100%'
-                              }}
-                              allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
-                              allowFullScreen
-                              title={`Resposta da pergunta ${question.order}`}
-                            ></iframe>
-                          </div>
-                        )}
-
-
-                        <div className="answer-meta">
-                          Respondida em: {adminService.formatDate(question.answer.createdAt)}
-                        </div>
+                {questions.map(question => {
+                  const hasAnswers = question.answers && question.answers.length > 0;
+                  const firstAnswer = hasAnswers ? question.answers[0] : null;
+                  
+                  return (
+                    <div key={question.id} className="question-item">
+                      <div className="question-header">
+                        <span className="question-number">Pergunta {question.order}</span>
+                        <span className={`question-status ${hasAnswers ? 'answered' : 'unanswered'}`}>
+                          {hasAnswers ? 'Respondida' : 'Não Respondida'}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <div className="question-text">{question.title}</div>
+                      {hasAnswers && firstAnswer && (
+                        <div className="answer-section">
+                          <div className="answer-text">
+                            <strong>Transcrição:</strong> {firstAnswer.answers || 'Sem transcrição'}
+                          </div>
+
+                          {/* Visualização de vídeo se disponível */}
+                          {firstAnswer.bunny_video_id && firstAnswer.bunny_library_id && (
+                            <div style={{ position: 'relative', paddingTop: '56.25%', marginTop: '10px' }}>
+                              <iframe
+                                src={`https://iframe.mediadelivery.net/embed/${firstAnswer.bunny_library_id}/${firstAnswer.bunny_video_id}?autoplay=false&loop=false&muted=false&preload=true&responsive=true`}
+                                loading="lazy"
+                                style={{
+                                  border: 0,
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 0,
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '8px'
+                                }}
+                                allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
+                                allowFullScreen
+                                title={`Resposta da pergunta ${question.order}`}
+                              ></iframe>
+                            </div>
+                          )}
+
+                          {/* Mostrar análise se disponível */}
+                          {firstAnswer.analysis && (
+                            <div className="answer-analysis" style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+                              <strong>Análise IA:</strong>
+                              <div>Pontuação: {firstAnswer.analysis.score}/10</div>
+                              <div>Recomendação: {firstAnswer.analysis.recommendation}</div>
+                            </div>
+                          )}
+
+                          <div className="answer-meta" style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+                            Processamento: {firstAnswer.processing_status} | 
+                            Tamanho: {Math.round(parseInt(firstAnswer.video_size_bytes || 0) / 1024)}KB
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

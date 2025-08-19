@@ -47,13 +47,11 @@ const InterviewButton = ({
         console.warn('⚠️ Popup bloqueado, redirecionando na mesma aba');
         window.location.href = interviewUrl;
       } else {
-        console.log('🎬 Entrevista aberta em nova aba:', job.title);
         
         // Opcional: escutar quando a aba é fechada
         const checkClosed = setInterval(() => {
           if (newWindow.closed) {
             clearInterval(checkClosed);
-            console.log('📝 Aba de entrevista foi fechada');
             
             // Callback opcional quando entrevista é fechada/completa
             if (onInterviewComplete) {

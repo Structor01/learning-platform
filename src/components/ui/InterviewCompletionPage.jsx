@@ -68,7 +68,6 @@ const InterviewCompletionPage = ({
       } else {
         // Simular geração de PDF
         await new Promise(resolve => setTimeout(resolve, 2000));
-        console.log('PDF gerado com sucesso');
       }
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
