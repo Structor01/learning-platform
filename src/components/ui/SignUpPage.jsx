@@ -34,7 +34,11 @@ const SignUpPage = () => {
         <CardContent className="p-8">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl font-bold text-black">G</span>
+              <img
+                  src="/1.png"
+                  alt="Logo da empresa"
+                  className="w-full h-full object-contain"
+                />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Criar Conta</h1>
             <p className="text-white/70">
