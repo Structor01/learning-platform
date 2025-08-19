@@ -39,22 +39,185 @@ class AdminService {
 
   // Interviews Management
   async getInterviewsList(filters = {}) {
-    const queryParams = new URLSearchParams();
-    
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        queryParams.append(key, value);
+    try {
+      let allInterviews = [];
+      
+      // Buscar TODAS as entrevistas via endpoint geral primeiro
+      try {
+        console.log('📊 Buscando todas as entrevistas via endpoint geral...');
+        const generalResponse = await fetch(`${API_BASE_URL}/api/interviews`);
+        if (generalResponse.ok) {
+          const generalData = await generalResponse.json();
+          const generalInterviews = Array.isArray(generalData.interviews) ? generalData.interviews : 
+                                    Array.isArray(generalData) ? generalData : [];
+          
+          console.log(`📊 Encontradas ${generalInterviews.length} entrevistas no endpoint geral`);
+          allInterviews = [...generalInterviews];
+        }
+      } catch (error) {
+        console.warn('Erro ao buscar entrevistas gerais:', error);
       }
-    });
-
-    const queryString = queryParams.toString();
-    const endpoint = queryString ? `/interviews?${queryString}` : '/interviews';
-    
-    return this.makeRequest(endpoint);
+      
+      // Tentar buscar entrevistas via endpoint administrativo se disponível
+      try {
+        console.log('📊 Tentando buscar via endpoint administrativo...');
+        const adminResponse = await fetch(`${API_BASE_URL}/api/admin/interviews`);
+        if (adminResponse.ok) {
+          const adminData = await adminResponse.json();
+          const adminInterviews = Array.isArray(adminData.interviews) ? adminData.interviews : 
+                                  Array.isArray(adminData) ? adminData : [];
+          
+          console.log(`📊 Encontradas ${adminInterviews.length} entrevistas via admin`);
+          
+          // Adicionar entrevistas que não estão na lista geral
+          adminInterviews.forEach(interview => {
+            if (!allInterviews.find(existing => existing.id === interview.id)) {
+              allInterviews.push(interview);
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Erro ao buscar via endpoint administrativo:', error);
+      }
+      
+      // Se ainda não temos entrevistas suficientes, buscar por usuários específicos
+      if (allInterviews.length === 0) {
+        console.log('📊 Nenhuma entrevista encontrada via endpoints gerais, buscando por usuários específicos...');
+        const knownUserIds = [1921]; // Adicione outros IDs conforme necessário
+        
+        for (const userId of knownUserIds) {
+          try {
+            const userResponse = await fetch(`${API_BASE_URL}/api/interviews/user/${userId}`);
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              if (Array.isArray(userData)) {
+                console.log(`📊 Encontradas ${userData.length} entrevistas do usuário ${userId}`);
+                allInterviews.push(...userData);
+              }
+            }
+          } catch (error) {
+            console.warn(`Erro ao buscar entrevistas do usuário ${userId}:`, error);
+          }
+        }
+      }
+      
+      // Log detalhado das entrevistas encontradas
+      console.log(`📊 Total de entrevistas encontradas: ${allInterviews.length}`);
+      console.log(`📋 IDs das entrevistas:`, allInterviews.map(i => i.id).sort((a, b) => parseInt(b) - parseInt(a)));
+      
+      if (allInterviews.length > 0) {
+        console.log(`📋 Detalhes das entrevistas:`, allInterviews.map(i => ({
+          id: i.id,
+          candidateName: i.name || i.candidate_name,
+          candidateEmail: i.candidate_email,
+          status: i.status,
+          created_at: i.created_at,
+          user_id: i.user_id,
+          candidatura_id: i.candidatura_id
+        })));
+      } else {
+        console.warn('⚠️ Nenhuma entrevista foi encontrada nos endpoints disponíveis!');
+        console.log('🔍 Endpoints testados:');
+        console.log('  - /api/interviews (geral)');
+        console.log('  - /api/admin/interviews (administrativo)'); 
+        console.log('  - /api/interviews/user/[id] (usuário específico)');
+      }
+      
+      // Aplicar filtros se necessário
+      let filteredInterviews = allInterviews;
+      
+      if (filters.candidateName) {
+        filteredInterviews = filteredInterviews.filter(interview => 
+          interview.name && interview.name.toLowerCase().includes(filters.candidateName.toLowerCase())
+        );
+      }
+      
+      if (filters.status) {
+        filteredInterviews = filteredInterviews.filter(interview => 
+          interview.status === filters.status
+        );
+      }
+      
+      // Sorting - ordenar por ID (mais recente primeiro) por padrão
+      filteredInterviews.sort((a, b) => {
+        if (filters.sortBy) {
+          let aVal = a[filters.sortBy];
+          let bVal = b[filters.sortBy];
+          
+          if (filters.sortOrder === 'ASC') {
+            return aVal > bVal ? 1 : -1;
+          } else {
+            return aVal < bVal ? 1 : -1;
+          }
+        } else {
+          // Ordenar por ID decrescente (mais recente primeiro)
+          return parseInt(b.id) - parseInt(a.id);
+        }
+      });
+      
+      // Pagination
+      const page = parseInt(filters.page) || 1;
+      const limit = parseInt(filters.limit) || 20;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      
+      const paginatedInterviews = filteredInterviews.slice(startIndex, endIndex);
+      
+      return {
+        success: true,
+        data: paginatedInterviews.map(interview => ({
+          id: interview.id,
+          candidateName: interview.name,
+          candidateEmail: interview.user?.email || 'N/A',
+          status: interview.status || 'in_progress',
+          totalQuestions: interview.questions?.length || 0,
+          answeredQuestions: interview.questions?.filter(q => q.answers?.length > 0).length || 0,
+          completionPercentage: interview.questions?.length > 0 
+            ? Math.round((interview.questions.filter(q => q.answers?.length > 0).length / interview.questions.length) * 100)
+            : 0,
+          overallScore: 0, // Calcular se necessário
+          createdAt: interview.created_at,
+          completedAt: interview.updated_at,
+          facialDataPoints: 0,
+          user: interview.user
+        })),
+        pagination: {
+          page,
+          limit,
+          total: filteredInterviews.length,
+          totalPages: Math.ceil(filteredInterviews.length / limit)
+        }
+      };
+      
+    } catch (error) {
+      console.error('AdminService Error getting interviews:', error);
+      throw error;
+    }
   }
 
   async getInterviewDetails(id) {
-    return this.makeRequest(`/interviews/${id}`);
+    try {
+      // Usar endpoint direto em vez do admin endpoint
+      const url = `${API_BASE_URL}/api/interviews/${id}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      console.log(`AdminService: Detalhes da entrevista ${id}:`, data);
+      
+      return {
+        success: true,
+        data: data
+      };
+      
+    } catch (error) {
+      console.error(`AdminService Error getting interview ${id} details:`, error);
+      throw error;
+    }
   }
 
   async deleteInterview(id) {

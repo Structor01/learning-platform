@@ -12,9 +12,13 @@ import {
   Clock,
   Loader,
   BarChart3,
-  Pause
+  Pause,
+  Camera,
+  Mic,
+  Settings
 } from 'lucide-react';
 import * as faceapi from 'face-api.js';
+import interviewService from '@/services/interviewService.js';
 
 const InterviewModal = ({
   isOpen,
@@ -23,7 +27,8 @@ const InterviewModal = ({
   questions = [],
   onVideoResponse,
   onFinishInterview,
-  generatingQuestions = false
+  generatingQuestions = false,
+  currentInterviewId = null
 }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [cameraEnabled, setCameraEnabled] = useState(false);
@@ -32,12 +37,12 @@ const InterviewModal = ({
   const [stream, setStream] = useState(null);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [interviewStarted, setInterviewStarted] = useState(false);
   const [processingQuestions, setProcessingQuestions] = useState(new Set());
-  const [testMode, setTestMode] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
+  const [interviewStatus, setInterviewStatus] = useState(null);
 
-  // Face API states (silenciosos - não visíveis ao usuário)
+  // Face API states
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [faceAnalysisData, setFaceAnalysisData] = useState([]);
 
@@ -46,48 +51,111 @@ const InterviewModal = ({
   const timerRef = useRef(null);
   const faceIntervalRef = useRef(null);
 
-  // ✅ CORREÇÃO 1: Adicionar refs para contador independente
-  const questionCounterRef = useRef(0); // Contador independente do React state
-  const isProcessingRef = useRef(false); // Flag para evitar múltiplas execuções
+  // ✅ Contador independente para controle preciso
+  const questionCounterRef = useRef(0);
+  const isProcessingRef = useRef(false);
 
-  // ✅ LOGS DE DEBUG MELHORADOS
-  console.log(`🔍 ESTADO: Q${currentQuestion}/${questions.length}, Counter:${questionCounterRef.current}, Recording:${isRecording}, Started:${interviewStarted}, Processing:${isProcessingRef.current}, TestMode:${testMode}`);
-
-  // Carregar modelos Face API silenciosamente
+  // Carregar modelos Face API de forma otimizada
   useEffect(() => {
     const loadModels = async () => {
       try {
+        // Carregar apenas o detector básico primeiro para iniciar mais rápido
         await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-        await faceapi.nets.ageGenderNet.loadFromUri('/models');
-        await faceapi.nets.faceExpressionNet.loadFromUri('/models');
         setModelsLoaded(true);
+        console.log('✅ Detector Face API carregado (modo rápido)');
+        
+        // Carregar modelos adicionais em background
+        Promise.all([
+          faceapi.nets.ageGenderNet.loadFromUri('/models'),
+          faceapi.nets.faceExpressionNet.loadFromUri('/models')
+        ]).then(() => {
+          console.log('✅ Todos os modelos Face API carregados');
+        }).catch(err => {
+          console.warn('⚠️ Alguns modelos Face API não carregaram:', err);
+        });
+        
       } catch (error) {
-        console.warn('Modelos Face API não carregados:', error);
+        console.warn('⚠️ Modelos Face API não carregados:', error);
       }
     };
 
+    const checkCompatibility = async () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('❌ Navigator.mediaDevices.getUserMedia não suportado');
+        setCameraError('Seu navegador não suporta captura de mídia. Use Chrome, Firefox ou Safari.');
+        return;
+      }
+
+      if (!window.MediaRecorder) {
+        console.error('❌ MediaRecorder não suportado');
+        setCameraError('Seu navegador não suporta gravação de vídeo. Use Chrome, Firefox ou Safari.');
+        return;
+      }
+
+      // Verificar dispositivos disponíveis
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        const audioDevices = devices.filter(device => device.kind === 'audioinput');
+        
+        console.log('📱 Dispositivos encontrados:', {
+          cameras: videoDevices.length,
+          microphones: audioDevices.length
+        });
+        
+        if (videoDevices.length === 0) {
+          console.warn('⚠️ Nenhuma câmera encontrada');
+          setCameraError('Nenhuma câmera encontrada no sistema');
+          return;
+        }
+        
+        if (audioDevices.length === 0) {
+          console.warn('⚠️ Nenhum microfone encontrado');
+          setCameraError('Nenhum microfone encontrado no sistema');
+          return;
+        }
+        
+      } catch (error) {
+        console.warn('⚠️ Não foi possível enumerar dispositivos:', error);
+      }
+
+      const supportedMimeType = getSupportedMimeType();
+      console.log('🎬 Compatibilidade verificada:', {
+        getUserMedia: !!navigator.mediaDevices.getUserMedia,
+        MediaRecorder: !!window.MediaRecorder,
+        supportedCodec: supportedMimeType || 'padrão do navegador'
+      });
+    };
+
     if (isOpen) {
+      checkCompatibility();
       loadModels();
     }
   }, [isOpen]);
 
+  // Inicializar câmera ao abrir modal
   useEffect(() => {
-    if (isOpen && !cameraEnabled) {
-      checkCameraPermissions().then(canAccess => {
-        if (canAccess) {
-          initializeCamera();
-        }
-      });
+    if (isOpen) {
+      console.log('🎬 Modal aberto, tentando inicializar câmera...');
+      console.log('📊 Estados atuais:', { cameraEnabled, cameraError });
+      
+      if (!cameraEnabled && !cameraError) {
+        console.log('🚀 Iniciando câmera...');
+        initializeCamera();
+      }
     }
 
     return () => {
-      cleanup();
+      if (isOpen) {
+        console.log('🧹 Modal fechando, limpando recursos...');
+        cleanup();
+      }
     };
   }, [isOpen]);
 
   // Timer de gravação
   useEffect(() => {
-    if (isRecording && !testMode) {
+    if (isRecording) {
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => {
           if (prev >= 120) { // 2 minutos máximo
@@ -108,37 +176,35 @@ const InterviewModal = ({
         clearInterval(timerRef.current);
       }
     };
-  }, [isRecording, testMode]);
+  }, [isRecording]);
 
-  // Análise facial silenciosa
+  // Análise facial durante gravação
   useEffect(() => {
-    if (isRecording && modelsLoaded && videoRef.current && canvasRef.current && !testMode) {
+    if (isRecording && modelsLoaded && videoRef.current && canvasRef.current) {
       faceIntervalRef.current = setInterval(async () => {
         try {
+          // Usar apenas o detector básico para melhor performance
           const detections = await faceapi
             .detectAllFaces(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-            .withAgeAndGender()
-            .withFaceExpressions();
+            .withFaceExpressions(); // Remover age/gender para performance
 
           if (detections.length > 0) {
             const detection = detections[0];
             const faceData = {
               timestamp: Date.now(),
-              confidence: detection.detection.score,
-              gender: detection.gender,
-              age: detection.age,
               expressions: detection.expressions,
               dominantEmotion: Object.keys(detection.expressions).reduce((a, b) =>
                 detection.expressions[a] > detection.expressions[b] ? a : b
               )
             };
 
-            setFaceAnalysisData(prev => [...prev, faceData]);
+            // Manter apenas últimos 15 dados para evitar acúmulo
+            setFaceAnalysisData(prev => [...prev.slice(-14), faceData]);
           }
         } catch (error) {
-          // Silencioso - não mostrar erros ao usuário
+          // Análise facial é opcional
         }
-      }, 1000);
+      }, 1500); // Reduzir frequência de 1000ms para 1500ms
     } else {
       if (faceIntervalRef.current) {
         clearInterval(faceIntervalRef.current);
@@ -150,176 +216,369 @@ const InterviewModal = ({
         clearInterval(faceIntervalRef.current);
       }
     };
-  }, [isRecording, modelsLoaded, testMode]);
+  }, [isRecording, modelsLoaded]);
 
-  // ✅ CORREÇÃO 2: Função para resetar contador
+  // Buscar status da entrevista quando modal abrir
+  useEffect(() => {
+    if (isOpen) {
+      // Priorizar usar ID da entrevista se disponível
+      if (currentInterviewId) {
+        console.log('🔍 Buscando status usando currentInterviewId:', currentInterviewId);
+        fetchInterviewStatusById(currentInterviewId);
+      } else if (job) {
+        // Fallback para buscar por job_id
+        const jobId = job.job_id || job.vaga_id || job.id;
+        console.log('🔍 Job object:', job);
+        console.log('🔍 Tentando buscar status com jobId:', jobId);
+        if (jobId) {
+          fetchInterviewStatus(jobId);
+        }
+      }
+    }
+  }, [isOpen, job, currentInterviewId]);
+
   const resetQuestionCounter = () => {
     questionCounterRef.current = 0;
     isProcessingRef.current = false;
-    console.log('🔄 Contador resetado para 0');
+    console.log('🔄 Contador resetado para início da entrevista');
   };
 
+  // Função para buscar status da entrevista do banco de dados por job_id
+  const fetchInterviewStatus = async (jobId) => {
+    if (!jobId) return;
+    
+    try {
+      console.log(`🔍 Buscando status da entrevista para job_id: ${jobId}`);
+      const result = await interviewService.getInterviewStatusByJobId(jobId);
+      
+      if (result.success) {
+        console.log('✅ Status da entrevista encontrado:', result.status);
+        setInterviewStatus(result.status);
+      } else {
+        console.warn('⚠️ Não foi possível buscar status da entrevista:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao buscar status da entrevista:', error);
+    }
+  };
+
+  // Função para buscar status da entrevista do banco de dados por interview_id
+  const fetchInterviewStatusById = async (interviewId) => {
+    if (!interviewId) return;
+    
+    try {
+      console.log(`🔍 Buscando status da entrevista para interview_id: ${interviewId}`);
+      const result = await interviewService.getInterviewStatusById(interviewId);
+      
+      if (result.success) {
+        console.log('✅ Status da entrevista encontrado:', result.status);
+        setInterviewStatus(result.status);
+      } else {
+        console.warn('⚠️ Não foi possível buscar status da entrevista:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao buscar status da entrevista:', error);
+    }
+  };
+
+  // ✅ Inicializar câmera com estratégias robustas
   const initializeCamera = async () => {
-    console.log('📹 Tentando inicializar câmera real...');
+    console.log('📹 Inicializando câmera...');
+    setCameraError(null);
 
     try {
+      // Verificar se getUserMedia está disponível
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('getUserMedia não suportado neste navegador');
+      }
+
+      // Limpar stream anterior se existir
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
         setStream(null);
       }
 
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Reduzir delay de limpeza de recursos
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      const streamPromise = navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 640 }, height: { ideal: 480 } },
-        audio: true
-      });
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout câmera real')), 5000)
-      );
+      // Configurações otimizadas (começar com a mais compatível)
+      const constraints = [
+        // Configuração básica otimizada
+        {
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            frameRate: { ideal: 15, max: 30 } // Reduzir FPS inicial para performance
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true
+          }
+        },
+        // Fallback simples
+        {
+          video: true,
+          audio: true
+        }
+      ];
 
-      const mediaStream = await Promise.race([streamPromise, timeoutPromise]);
+      let mediaStream = null;
+      let lastError = null;
 
-      console.log('✅ Câmera real funcionando!');
+      for (let i = 0; i < constraints.length; i++) {
+        const constraint = constraints[i];
+        try {
+          console.log(`🔍 Tentativa ${i + 1}/${constraints.length} - Configuração:`, 
+            typeof constraint.video === 'boolean' ? 'básica' : constraint.video);
+
+          // Timeout otimizado
+          const streamPromise = navigator.mediaDevices.getUserMedia(constraint);
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Timeout aguardando permissão')), 10000)
+          );
+
+          console.log(`⏳ Aguardando permissão de câmera/microfone...`);
+          mediaStream = await Promise.race([streamPromise, timeoutPromise]);
+
+          console.log(`✅ Câmera inicializada com sucesso!`);
+          console.log(`📊 Video tracks: ${mediaStream.getVideoTracks().length}`);
+          console.log(`🎵 Audio tracks: ${mediaStream.getAudioTracks().length}`);
+
+          // Verificar se as tracks estão funcionando
+          const videoTrack = mediaStream.getVideoTracks()[0];
+          const audioTrack = mediaStream.getAudioTracks()[0];
+          
+          console.log(`📹 Video track status: ${videoTrack ? videoTrack.readyState : 'não encontrado'}`);
+          console.log(`🎤 Audio track status: ${audioTrack ? audioTrack.readyState : 'não encontrado'}`);
+
+          break;
+
+        } catch (error) {
+          console.warn(`⚠️ Tentativa ${i + 1} falhou:`, error.message);
+          lastError = error;
+          
+          // Se for erro de permissão, não tentar outras configurações
+          if (error.name === 'NotAllowedError') {
+            console.error('❌ Permissão negada pelo usuário');
+            break;
+          }
+          
+          continue;
+        }
+      }
+
+      if (!mediaStream) {
+        throw lastError || new Error('Não foi possível acessar câmera e microfone');
+      }
+
       setStream(mediaStream);
       setCameraEnabled(true);
-      setTestMode(false);
 
-      setTimeout(() => {
+      // Aguardar elemento de vídeo estar disponível
+      console.log('🎬 Configurando elemento de vídeo...');
+      
+      const configureVideo = () => {
         if (videoRef.current && mediaStream) {
-          videoRef.current.srcObject = mediaStream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current.play()
-              .then(() => console.log('✅ Vídeo real reproduzindo'))
-              .catch(err => console.warn('⚠️ Erro ao reproduzir:', err));
+          const videoElement = videoRef.current;
+          
+          console.log('📹 Elemento de vídeo encontrado, configurando...');
+          
+          // Configurar stream
+          videoElement.srcObject = mediaStream;
+          
+          // Configurar propriedades
+          videoElement.muted = true;
+          videoElement.playsInline = true;
+          videoElement.autoplay = true;
+          
+          // Event listeners
+          videoElement.onloadedmetadata = () => {
+            console.log('📹 Metadata carregada, iniciando reprodução...');
+            videoElement.play()
+              .then(() => {
+                console.log('✅ Vídeo reproduzindo com sucesso');
+                console.log(`📐 Dimensões: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
+              })
+              .catch(err => {
+                console.warn('⚠️ Erro ao reproduzir vídeo:', err);
+                setCameraError(`Erro ao reproduzir vídeo: ${err.message}`);
+              });
           };
+
+          videoElement.oncanplay = () => {
+            console.log('▶️ Vídeo pronto para reproduzir');
+          };
+
+          videoElement.onerror = (error) => {
+            console.error('❌ Erro no elemento video:', error);
+            setCameraError('Erro na reprodução do vídeo');
+          };
+          
+          return true;
         }
-      }, 100);
-
-    } catch (error) {
-      console.warn('⚠️ Câmera real falhou, ativando MODO TESTE:', error.message);
-      initializeTestMode();
-    }
-  };
-
-  const initializeTestMode = async () => {
-    console.log('🧪 Iniciando MODO TESTE...');
-
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 640;
-      canvas.height = 480;
-      const ctx = canvas.getContext('2d');
-
-      const animate = () => {
-        ctx.fillStyle = `rgb(${Math.floor(Math.random() * 100 + 50)}, 50, 50)`;
-        ctx.fillRect(0, 0, 640, 480);
-        ctx.fillStyle = 'white';
-        ctx.font = '20px Arial';
-        ctx.fillText('🧪 MODO TESTE - SEM CÂMERA', 160, 220);
-        ctx.fillText(`Pergunta ${questionCounterRef.current + 1} de ${questions.length}`, 200, 260);
-        requestAnimationFrame(animate);
+        return false;
       };
-      animate();
 
-      const fakeStream = canvas.captureStream(30);
-
-      setStream(fakeStream);
-      setCameraEnabled(true);
-      setTestMode(true);
-
-      console.log('✅ MODO TESTE ativado!');
-
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = fakeStream;
-          videoRef.current.play().catch(console.warn);
-        }
-      }, 100);
+      // Tentar configurar imediatamente
+      if (!configureVideo()) {
+        // Se não conseguir, aguardar um pouco e tentar novamente
+        console.log('⏳ Elemento de vídeo não disponível, aguardando...');
+        setTimeout(() => {
+          if (!configureVideo()) {
+            console.warn('⚠️ Elemento videoRef não está disponível após timeout');
+          }
+        }, 500);
+      }
 
     } catch (error) {
-      console.error('❌ Erro no modo teste:', error);
-      setCameraEnabled(true);
-      setTestMode(true);
+      console.error('❌ Erro ao inicializar câmera:', error);
+
+      let errorMessage = 'Erro ao acessar câmera e microfone. ';
+
+      if (error.name === 'NotAllowedError') {
+        errorMessage += 'Permissão negada. Clique no ícone da câmera na barra de endereço e permita o acesso.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage += 'Câmera ou microfone não encontrados.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage += 'Câmera está sendo usada por outro aplicativo.';
+      } else if (error.message.includes('Timeout')) {
+        errorMessage += 'Timeout ao inicializar. Recarregue a página e tente novamente.';
+      } else {
+        errorMessage += error.message;
+      }
+
+      setCameraError(errorMessage);
     }
   };
 
-  const checkCameraPermissions = async () => {
-    try {
-      const result = await navigator.permissions.query({ name: 'camera' });
-      console.log(`📹 Permissão da câmera: ${result.state}`);
-      return result.state !== 'denied';
-    } catch (error) {
-      console.warn('⚠️ Não foi possível verificar permissões:', error);
-      return true;
-    }
-  };
-
-  // ✅ CORREÇÃO 3: Iniciar entrevista com contador resetado
-  const startInterview = () => {
+  // ✅ Iniciar entrevista
+  const startInterview = async () => {
     if (!cameraEnabled) {
-      console.warn('Câmera não habilitada, tentando modo teste...');
-      initializeTestMode();
+      setCameraError('Câmera deve estar funcionando para iniciar a entrevista');
       return;
     }
 
-    console.log(`🎬 INICIANDO ENTREVISTA - Resetando contador`);
+    // Verificar se o stream ainda está ativo antes de iniciar
+    if (stream) {
+      const videoTracks = stream.getVideoTracks();
+      if (videoTracks.length === 0 || !videoTracks[0] || videoTracks[0].readyState !== 'live') {
+        console.log('🔄 Stream inativo, reinicializando câmera...');
+        await initializeCamera();
+      }
+    }
+
+    console.log(`🎬 Iniciando entrevista com ${questions.length} perguntas`);
     resetQuestionCounter();
     setInterviewStarted(true);
     setCurrentQuestion(0);
-    startRecordingWithCounter(0); // ✅ Começar explicitamente na pergunta 0
+    startRecordingWithCounter(0);
   };
 
-  // ✅ CORREÇÃO 4: Gravação com contador independente
+  // ✅ Detecção de codec suportado
+  const getSupportedMimeType = () => {
+    const possibleTypes = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus', 
+      'video/webm;codecs=h264,opus',
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm',
+      'video/mp4;codecs=h264,aac',
+      'video/mp4'
+    ];
+
+    for (const type of possibleTypes) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        console.log(`✅ Usando codec: ${type}`);
+        return type;
+      }
+    }
+
+    console.warn('⚠️ Nenhum codec preferido suportado, usando padrão');
+    return '';
+  };
+
+  // ✅ Gravação com contador independente
   const startRecordingWithCounter = (questionIndex) => {
     if (!stream) {
-      console.warn('Stream não disponível para gravação');
+      console.error('❌ Stream não disponível para gravação');
       return;
     }
 
-    // ✅ VERIFICAÇÕES DE SEGURANÇA
+    // Verificar se o stream está ativo
+    const videoTracks = stream.getVideoTracks();
+    const audioTracks = stream.getAudioTracks();
+    
+    if (videoTracks.length === 0 || !videoTracks[0] || videoTracks[0].readyState !== 'live') {
+      console.error('❌ Stream de vídeo inativo ou indisponível');
+      setCameraError('Stream de vídeo está inativo. Tente reinicializar a câmera.');
+      return;
+    }
+
+    if (audioTracks.length === 0 || !audioTracks[0] || audioTracks[0].readyState !== 'live') {
+      console.error('❌ Stream de áudio inativo ou indisponível');
+      setCameraError('Stream de áudio está inativo. Tente reinicializar a câmera.');
+      return;
+    }
+
     if (questionIndex >= questions.length) {
-      console.log(`🛑 SEGURANÇA: Tentativa de gravar pergunta ${questionIndex + 1}, mas só temos ${questions.length}`);
+      console.log(`🛑 Tentativa de gravar pergunta ${questionIndex + 1}, mas só temos ${questions.length}`);
       return;
     }
 
     if (isProcessingRef.current) {
-      console.log(`🛑 SEGURANÇA: Já processando, ignorando nova gravação`);
+      console.log(`🛑 Já processando, ignorando nova gravação`);
       return;
     }
 
     isProcessingRef.current = true;
     questionCounterRef.current = questionIndex;
-    setCurrentQuestion(questionIndex);
+    
+    console.log(`🔴 Iniciando gravação - Pergunta ${questionIndex + 1}/${questions.length}`);
+    
+    // Atualizar currentQuestion apenas quando necessário para UI
+    if (currentQuestion !== questionIndex) {
+      setCurrentQuestion(questionIndex);
+    }
 
-    console.log(`🔴 INICIANDO ${testMode ? 'TESTE' : 'REAL'} - Pergunta ${questionIndex + 1}/${questions.length}`);
+    try {
+      const supportedMimeType = getSupportedMimeType();
+      const recorderOptions = supportedMimeType ? { mimeType: supportedMimeType } : {};
+      
+      const recorder = new MediaRecorder(stream, recorderOptions);
 
-    if (testMode) {
-      // ✅ MODO TESTE - Versão limpa
+      const chunks = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        console.log(`⏹️ Gravação finalizada - Pergunta ${questionIndex + 1}`);
+        const mimeType = supportedMimeType || 'video/webm';
+        const videoBlob = new Blob(chunks, { type: mimeType });
+        console.log(`📦 Blob criado com tipo: ${mimeType}, tamanho: ${videoBlob.size} bytes`);
+        handleVideoCompleteWithCounter(videoBlob, questionIndex);
+        setRecordedChunks([]);
+      };
+
+      setMediaRecorder(recorder);
+      setRecordedChunks(chunks);
+      recorder.start();
       setIsRecording(true);
       setRecordingTime(0);
       setFaceAnalysisData([]);
 
-      const fakeTimer = setTimeout(() => {
-        console.log(`⏹️ TESTE - Finalizando pergunta ${questionIndex + 1}`);
-        const fakeBlob = new Blob(['fake video data'], { type: 'video/webm' });
-        setIsRecording(false);
-        handleVideoCompleteWithCounter(fakeBlob, questionIndex);
-      }, 2000);
-
-      setMediaRecorder({
-        stop: () => {
-          clearTimeout(fakeTimer);
-          isProcessingRef.current = false;
-        }
-      });
-    } else {
-      // ✅ MODO REAL - MediaRecorder
+    } catch (error) {
+      console.error('❌ Erro ao iniciar gravação:', error);
+      console.error('Detalhes do erro:', error.message);
+      
+      // Tentar fallback sem especificar mimeType
       try {
-        const recorder = new MediaRecorder(stream, {
-          mimeType: 'video/webm;codecs=vp9'
-        });
-
+        console.log('🔄 Tentando gravação sem codec específico...');
+        const recorder = new MediaRecorder(stream);
         const chunks = [];
 
         recorder.ondataavailable = (event) => {
@@ -329,8 +588,9 @@ const InterviewModal = ({
         };
 
         recorder.onstop = () => {
-          console.log(`⏹️ REAL - Gravação parada para pergunta ${questionIndex + 1}`);
+          console.log(`⏹️ Gravação finalizada (fallback) - Pergunta ${questionIndex + 1}`);
           const videoBlob = new Blob(chunks, { type: 'video/webm' });
+          console.log(`📦 Blob fallback criado, tamanho: ${videoBlob.size} bytes`);
           handleVideoCompleteWithCounter(videoBlob, questionIndex);
           setRecordedChunks([]);
         };
@@ -342,89 +602,93 @@ const InterviewModal = ({
         setRecordingTime(0);
         setFaceAnalysisData([]);
 
-      } catch (error) {
-        console.error('Erro ao iniciar gravação real:', error);
+        console.log('✅ Gravação iniciada com fallback');
+
+      } catch (fallbackError) {
+        console.error('❌ Erro também no fallback:', fallbackError);
+        alert('Erro ao iniciar gravação. Verifique se seu navegador suporta gravação de vídeo.');
         isProcessingRef.current = false;
       }
     }
   };
 
-  // ✅ CORREÇÃO 5: Handle video complete com contador
+  // ✅ Handle video complete com contador
   const handleVideoCompleteWithCounter = async (videoBlob, questionIndex) => {
     const isLastQuestion = questionIndex >= questions.length - 1;
 
-    console.log(`🎬 VIDEO COMPLETE - CONTADOR:`);
-    console.log(`- questionIndex: ${questionIndex}`);
-    console.log(`- questionCounterRef: ${questionCounterRef.current}`);
-    console.log(`- currentQuestion: ${currentQuestion}`);
-    console.log(`- questions.length: ${questions.length}`);
-    console.log(`- isLastQuestion: ${isLastQuestion}`);
+    console.log(`🎬 Processando pergunta ${questionIndex + 1}/${questions.length}`);
+    console.log(`- É última pergunta: ${isLastQuestion}`);
 
     setProcessingQuestions(prev => new Set([...prev, questionIndex]));
     setIsRecording(false);
 
-    if (isLastQuestion) {
-      console.log(`🏁 ÚLTIMA PERGUNTA - CONTADOR FINALIZADO!`);
-      setInterviewStarted(false);
-      setCurrentQuestion(questions.length - 1);
-      isProcessingRef.current = false;
-      // ✅ NÃO INICIAR NOVA GRAVAÇÃO - PARAR AQUI!
-    } else {
-      const nextQuestionIndex = questionIndex + 1;
-      console.log(`➡️ AVANÇANDO COM CONTADOR: ${questionIndex + 1} → ${nextQuestionIndex + 1}`);
-
-      setTimeout(() => {
-        isProcessingRef.current = false;
-
-        if (nextQuestionIndex < questions.length) {
-          console.log(`🔴 PRÓXIMA GRAVAÇÃO: Q${nextQuestionIndex + 1}`);
-          startRecordingWithCounter(nextQuestionIndex);
-        } else {
-          console.log(`🛑 CONTADOR - Não iniciar, fora do range`);
-        }
-      }, 300);
-    }
-
     try {
-      if (testMode) {
-        console.log(`📤 TESTE - Simulando envio Q${questionIndex + 1}...`);
+      // ✅ ENVIAR DADOS REAIS PARA O BACKEND
+      console.log(`📤 Enviando resposta real para backend - Pergunta ${questionIndex + 1}`);
+      console.log(`📊 Dados faciais coletados: ${faceAnalysisData.length} pontos`);
 
-        setTimeout(() => {
-          console.log(`✅ TESTE - Q${questionIndex + 1} processada`);
-          setProcessingQuestions(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(questionIndex);
-            return newSet;
-          });
-        }, 500);
-      } else {
-        await onVideoResponse(videoBlob, questionIndex, faceAnalysisData);
-        console.log(`✅ REAL - Q${questionIndex + 1} processada`);
+      await onVideoResponse(videoBlob, questionIndex, faceAnalysisData);
 
-        setProcessingQuestions(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(questionIndex);
-          return newSet;
-        });
-      }
+      console.log(`✅ Pergunta ${questionIndex + 1} processada com sucesso`);
 
-    } catch (error) {
-      console.error(`❌ Erro Q${questionIndex + 1}:`, error);
+      // Marcar pergunta como respondida
+      questions[questionIndex].answered = true;
+
       setProcessingQuestions(prev => {
         const newSet = new Set(prev);
         newSet.delete(questionIndex);
         return newSet;
       });
+
+      // Prosseguir para próxima pergunta ou finalizar
+      if (isLastQuestion) {
+        console.log(`🏁 Última pergunta finalizada!`);
+        setInterviewStarted(false);
+        setCurrentQuestion(questions.length - 1);
+        isProcessingRef.current = false;
+        
+        // Auto-finalizar entrevista quando todas perguntas são respondidas
+        setTimeout(() => {
+          if (onFinishInterview) {
+            console.log('🎯 Auto-finalizando entrevista...');
+            onFinishInterview();
+          }
+        }, 500);
+      } else {
+        const nextQuestionIndex = questionIndex + 1;
+        console.log(`➡️ Próxima pergunta: ${nextQuestionIndex + 1}/${questions.length}`);
+
+        setTimeout(() => {
+          isProcessingRef.current = false;
+
+          if (nextQuestionIndex < questions.length) {
+            startRecordingWithCounter(nextQuestionIndex);
+          }
+        }, 200);
+      }
+
+    } catch (error) {
+      console.error(`❌ Erro ao processar pergunta ${questionIndex + 1}:`, error);
+      setProcessingQuestions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(questionIndex);
+        return newSet;
+      });
+      
+      // Em caso de erro, ainda permitir prosseguir
+      if (!isLastQuestion) {
+        const nextQuestionIndex = questionIndex + 1;
+        setTimeout(() => {
+          isProcessingRef.current = false;
+          if (nextQuestionIndex < questions.length) {
+            startRecordingWithCounter(nextQuestionIndex);
+          }
+        }, 200);
+      } else {
+        setInterviewStarted(false);
+        isProcessingRef.current = false;
+      }
     }
-  };
-
-  // ✅ CORREÇÃO 6: Manter função original para compatibilidade
-  const startRecording = () => {
-    startRecordingWithCounter(questionCounterRef.current);
-  };
-
-  const handleVideoComplete = async (videoBlob, questionIndex) => {
-    return handleVideoCompleteWithCounter(videoBlob, questionIndex);
   };
 
   const handleSendResponse = () => {
@@ -441,62 +705,49 @@ const InterviewModal = ({
     }
   };
 
-  // ✅ CORREÇÃO 7: Funções de teste melhoradas
-  const resetCamera = async () => {
-    console.log('🔄 Resetando...');
-    cleanup();
-    setTimeout(initializeCamera, 1000);
-  };
-
-  const forceTestMode = () => {
-    console.log('🧪 Forçando modo teste...');
-    cleanup();
-    setTimeout(initializeTestMode, 500);
-  };
-
-  const resetToQuestion = (questionNum) => {
-    console.log(`🧪 TESTE - Resetando para pergunta ${questionNum + 1}`);
-    cleanup();
-    setTimeout(() => {
-      questionCounterRef.current = questionNum;
-      setCurrentQuestion(questionNum);
-      setCameraEnabled(true);
-      setTestMode(true);
-      setInterviewStarted(true);
-      startRecordingWithCounter(questionNum);
-    }, 500);
-  };
-
   const skipQuestion = () => {
     if (isRecording) {
+      console.log(`⏭️ Pulando pergunta ${currentQuestion + 1}`);
       handleSendResponse();
-    } else if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
-      setFaceAnalysisData([]);
-      if (interviewStarted) {
-        setTimeout(() => startRecording(), 500);
-      }
     }
   };
 
-  const togglePause = () => {
+  const togglePause = async () => {
     if (isRecording) {
       handleSendResponse();
-    } else if (interviewStarted) {
-      startRecording();
+    } else if (interviewStarted && currentQuestion < questions.length) {
+      // Verificar se o stream ainda está ativo
+      if (stream) {
+        const videoTracks = stream.getVideoTracks();
+        if (videoTracks.length === 0 || !videoTracks[0] || videoTracks[0].readyState !== 'live') {
+          console.log('🔄 Stream inativo, reinicializando câmera antes de continuar...');
+          await initializeCamera();
+        }
+      }
+      startRecordingWithCounter(currentQuestion);
     }
   };
 
-  // ✅ CORREÇÃO 8: Cleanup melhorado
-  const cleanup = () => {
-    console.log('🧹 Limpando recursos...');
+  const handleFinishInterview = () => {
+    if (onFinishInterview) {
+      onFinishInterview();
+      // Atualizar o status local para mostrar "Entrevista Realizada" imediatamente
+      setInterviewStatus('completed');
+    }
+  };
 
-    // ✅ Parar flags e contadores
+  // ✅ Cleanup completo
+  const cleanup = () => {
+    console.log('🧹 Limpando recursos da entrevista...');
+
     isProcessingRef.current = false;
     questionCounterRef.current = 0;
 
     if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+      stream.getTracks().forEach(track => {
+        console.log(`🛑 Parando track: ${track.kind}`);
+        track.stop();
+      });
     }
 
     if (videoRef.current) {
@@ -525,7 +776,7 @@ const InterviewModal = ({
     setProcessingQuestions(new Set());
     setMediaRecorder(null);
     setRecordedChunks([]);
-    setTestMode(false);
+    setCameraError(null);
 
     console.log('✅ Limpeza concluída');
   };
@@ -546,7 +797,7 @@ const InterviewModal = ({
           <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-2xl font-bold text-white mb-2">
-                Entrevista Simulada com IA {testMode && '🧪'}
+                Entrevista com IA
               </h2>
               <p className="text-gray-400">
                 {job?.nome || job?.title} - {job?.empresa || job?.company}
@@ -554,7 +805,7 @@ const InterviewModal = ({
               {generatingQuestions && (
                 <div className="flex items-center gap-2 mt-2 text-blue-400">
                   <Loader className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Gerando perguntas...</span>
+                  <span className="text-sm">Preparando perguntas...</span>
                 </div>
               )}
             </div>
@@ -568,44 +819,6 @@ const InterviewModal = ({
             </Button>
           </div>
 
-          {/* ✅ PAINEL DE TESTE MELHORADO */}
-          {testMode && (
-            <div className="mb-4 p-3 bg-yellow-600 rounded-lg">
-              <h3 className="text-white font-bold mb-2">
-                🧪 MODO TESTE - Q{questionCounterRef.current + 1}/{questions.length}
-              </h3>
-              <div className="flex gap-2 text-sm flex-wrap">
-                <Button onClick={() => resetToQuestion(0)} variant="outline" size="sm">
-                  Q1
-                </Button>
-                <Button onClick={() => resetToQuestion(3)} variant="outline" size="sm">
-                  Q4
-                </Button>
-                <Button onClick={() => resetToQuestion(4)} variant="outline" size="sm">
-                  Q5 (última)
-                </Button>
-                <Button onClick={resetCamera} variant="outline" size="sm">
-                  🔄 Reset
-                </Button>
-                <Button
-                  onClick={() => {
-                    console.log('🔍 DEBUG:', {
-                      counter: questionCounterRef.current,
-                      processing: isProcessingRef.current,
-                      currentQ: currentQuestion,
-                      recording: isRecording,
-                      started: interviewStarted
-                    });
-                  }}
-                  variant="outline"
-                  size="sm"
-                >
-                  🔍 Debug
-                </Button>
-              </div>
-            </div>
-          )}
-
           {/* Progresso */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
@@ -615,6 +828,7 @@ const InterviewModal = ({
               <span className="text-sm text-gray-400">
                 {processingQuestions.size > 0 && (
                   <span className="text-blue-400">
+                    <Loader className="h-3 w-3 inline animate-spin mr-1" />
                     {processingQuestions.size} processando...
                   </span>
                 )}
@@ -622,7 +836,7 @@ const InterviewModal = ({
             </div>
             <div className="w-full bg-gray-700 rounded-full h-2">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
               />
             </div>
@@ -647,36 +861,42 @@ const InterviewModal = ({
                     />
 
                     {/* Overlay da pergunta */}
-                    <div className="absolute top-4 left-4 right-32 bg-black bg-opacity-70 rounded-lg p-3">
-                      <p className="text-white text-sm font-medium">
+                    <div className="absolute top-4 left-4 right-32 bg-black bg-opacity-80 rounded-lg p-4 backdrop-blur-sm">
+                      <p className="text-white text-sm font-medium leading-relaxed">
                         {questions[currentQuestion]?.question}
                       </p>
                     </div>
 
-                    {/* Indicador de modo */}
+                    {/* Indicadores de status */}
                     <div className="absolute top-4 right-4 flex gap-2">
-                      <div className={`${testMode ? 'bg-yellow-600' : 'bg-green-600'} text-white px-2 py-1 rounded-full flex items-center gap-1 text-xs`}>
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                        <span>{testMode ? 'TESTE' : 'CAM'}</span>
+                      <div className="bg-green-600 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs">
+                        <Camera className="w-3 h-3" />
+                        <span>CÂMERA</span>
                       </div>
-                      <div className={`${testMode ? 'bg-yellow-600' : 'bg-green-600'} text-white px-2 py-1 rounded-full flex items-center gap-1 text-xs`}>
-                        <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                        <span>MIC</span>
+                      <div className="bg-green-600 text-white px-3 py-1 rounded-full flex items-center gap-1 text-xs">
+                        <Mic className="w-3 h-3" />
+                        <span>ÁUDIO</span>
                       </div>
                     </div>
 
                     {/* Status de gravação */}
                     {isRecording && (
-                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-full flex items-center gap-2">
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-full flex items-center gap-2 shadow-lg">
                         <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-                        <span className="font-medium">{testMode ? 'TESTE' : 'GRAVANDO'}</span>
-                        <span>{formatTime(recordingTime)}</span>
+                        <span className="font-medium">GRAVANDO</span>
+                        <span className="font-mono">{formatTime(recordingTime)}</span>
+                        <div className="w-20 bg-red-800 rounded-full h-1">
+                          <div
+                            className="bg-white h-1 rounded-full transition-all duration-1000"
+                            style={{ width: `${(recordingTime / 120) * 100}%` }}
+                          />
+                        </div>
                       </div>
                     )}
 
                     {/* Status de entrevista */}
                     {!interviewStarted && (
-                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-full">
+                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg">
                         <span className="font-medium">Pronto para iniciar</span>
                       </div>
                     )}
@@ -684,11 +904,37 @@ const InterviewModal = ({
                 ) : (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <VideoOff className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-                      <p className="text-gray-400 mb-4">Câmera não disponível</p>
-                      <Button onClick={forceTestMode} variant="outline">
-                        🧪 Usar Modo Teste
-                      </Button>
+                      <VideoOff className="h-16 w-16 text-gray-500 mx-auto mb-4" />
+                      <p className="text-white text-lg font-medium mb-2">Câmera não disponível</p>
+                      {cameraError && (
+                        <p className="text-red-400 text-sm mb-4 max-w-md mx-auto">
+                          {cameraError}
+                        </p>
+                      )}
+                      <div className="space-y-3">
+                        <Button
+                          onClick={() => {
+                            console.log('🔄 Botão "Tentar Novamente" clicado');
+                            setCameraError(null);
+                            setCameraEnabled(false);
+                            initializeCamera();
+                          }}
+                          variant="outline"
+                          className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          Tentar Novamente
+                        </Button>
+                        
+                        <div className="text-xs text-gray-500 max-w-sm text-center">
+                          <p>Dicas:</p>
+                          <ul className="list-disc list-inside space-y-1 mt-2">
+                            <li>Clique em "Permitir" quando o navegador solicitar</li>
+                            <li>Verifique se sua câmera não está sendo usada</li>
+                            <li>Tente recarregar a página se persistir</li>
+                          </ul>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -700,9 +946,9 @@ const InterviewModal = ({
                   <Button
                     onClick={startInterview}
                     disabled={!cameraEnabled || generatingQuestions}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-8 py-2 text-lg font-medium"
                   >
-                    <Play className="h-4 w-4 mr-2" />
+                    <Play className="h-5 w-5 mr-2" />
                     Iniciar Entrevista
                   </Button>
                 ) : (
@@ -710,7 +956,7 @@ const InterviewModal = ({
                     {isRecording ? (
                       <Button
                         onClick={handleSendResponse}
-                        className="bg-blue-600 hover:bg-blue-700"
+                        className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-6 py-2"
                       >
                         <Send className="h-4 w-4 mr-2" />
                         Enviar Resposta
@@ -718,7 +964,7 @@ const InterviewModal = ({
                     ) : (
                       <Button
                         onClick={togglePause}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 px-6 py-2"
                       >
                         <Play className="h-4 w-4 mr-2" />
                         Continuar
@@ -726,25 +972,16 @@ const InterviewModal = ({
                     )}
 
                     <Button
-                      onClick={togglePause}
+                      onClick={skipQuestion}
                       variant="outline"
-                      size="sm"
-                      disabled={!interviewStarted}
+                      disabled={!isRecording || currentQuestion >= questions.length - 1}
+                      className="border-orange-500 text-orange-400 hover:bg-orange-500 hover:text-white"
                     >
-                      {isRecording ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                      <SkipForward className="h-4 w-4 mr-2" />
+                      Pular
                     </Button>
                   </>
                 )}
-
-                <Button
-                  onClick={skipQuestion}
-                  variant="outline"
-                  size="sm"
-                  disabled={!interviewStarted || currentQuestion >= questions.length - 1}
-                >
-                  <SkipForward className="h-4 w-4 mr-2" />
-                  Pular
-                </Button>
               </div>
             </CardContent>
           </Card>
@@ -754,7 +991,7 @@ const InterviewModal = ({
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-sm flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
-                Status das Perguntas
+                Progresso da Entrevista
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
@@ -762,12 +999,12 @@ const InterviewModal = ({
                 {questions.map((question, index) => (
                   <div
                     key={index}
-                    className={`p-2 rounded text-center text-xs ${index === currentQuestion
-                        ? 'bg-blue-600 text-white'
+                    className={`p-3 rounded-lg text-center text-xs transition-all duration-200 ${index === currentQuestion
+                        ? 'bg-blue-600 text-white shadow-lg'
                         : question.answered
                           ? 'bg-green-600 text-white'
                           : processingQuestions.has(index)
-                            ? 'bg-yellow-600 text-white'
+                            ? 'bg-yellow-600 text-white animate-pulse'
                             : 'bg-gray-600 text-gray-300'
                       }`}
                   >
@@ -779,27 +1016,27 @@ const InterviewModal = ({
                       ) : index === currentQuestion ? (
                         <Clock className="h-3 w-3" />
                       ) : null}
-                      <span>P{index + 1}</span>
+                      <span className="font-medium">Q{index + 1}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Legenda */}
-              <div className="flex flex-wrap gap-4 mt-3 text-xs text-gray-400">
-                <div className="flex items-center gap-1">
+              <div className="flex flex-wrap gap-4 mt-4 text-xs text-gray-400">
+                <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-blue-600 rounded"></div>
-                  <span>Atual</span>
+                  <span>Em andamento</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-yellow-600 rounded"></div>
                   <span>Processando</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-600 rounded"></div>
                   <span>Concluída</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-gray-600 rounded"></div>
                   <span>Pendente</span>
                 </div>
@@ -807,26 +1044,37 @@ const InterviewModal = ({
             </CardContent>
           </Card>
 
-          {/* ✅ BOTÃO FINALIZAR - CONDIÇÃO CORRIGIDA */}
+          {/* Botão Finalizar */}
           {currentQuestion >= questions.length - 1 && !isRecording && !interviewStarted && (
             <div className="mt-6 text-center">
               <Button
-                onClick={onFinishInterview}
-                className="bg-purple-600 hover:bg-purple-700"
-                disabled={processingQuestions.size > 0}
+                onClick={handleFinishInterview}
+                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 px-8 py-3 text-lg font-medium"
+                disabled={processingQuestions.size > 0 || interviewStatus === 'completed'}
               >
                 {processingQuestions.size > 0 ? (
                   <>
-                    <Loader className="h-4 w-4 mr-2 animate-spin" />
-                    Aguardando processamento...
+                    <Loader className="h-5 w-5 mr-2 animate-spin" />
+                    Processando respostas...
+                  </>
+                ) : interviewStatus === 'completed' ? (
+                  <>
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    Entrevista Realizada
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="h-4 w-4 mr-2" />
+                    <CheckCircle className="h-5 w-5 mr-2" />
                     Finalizar Entrevista
                   </>
                 )}
               </Button>
+
+              {processingQuestions.size === 0 && (
+                <p className="text-gray-400 text-sm mt-2">
+                  Todas as respostas foram processadas com sucesso
+                </p>
+              )}
             </div>
           )}
         </div>

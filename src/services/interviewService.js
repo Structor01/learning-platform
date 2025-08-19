@@ -69,19 +69,23 @@ class InterviewService {
  */
   async createInterview(jobId, candidateName, candidateEmail, userId = null, candidaturaId = null) {
     try {
+      const payload = {
+        job_id: parseInt(jobId),
+        candidate_name: candidateName,
+        candidate_email: candidateEmail,
+        user_id: parseInt(userId),
+        candidatura_id: parseInt(candidaturaId), // NOVO CAMPO - garantir que é number
+        status: 'in_progress'
+      };
+
+      console.log('🚀 Criando entrevista com payload:', payload);
+
       const response = await fetch(`${this.baseUrl}/api/interviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          job_id: jobId,
-          candidate_name: candidateName,
-          candidate_email: candidateEmail,
-          user_id: userId,
-          candidatura_id: candidaturaId, // NOVO CAMPO
-          status: 'in_progress'
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -111,18 +115,82 @@ class InterviewService {
    */
   async uploadVideoResponse(interviewId, questionNumber, videoBlob, faceAnalysisData = []) {
     try {
+      console.log(`📤 Iniciando upload - Entrevista: ${interviewId}, Pergunta: ${questionNumber}`);
+      console.log(`📦 VideoBlob - Tamanho: ${videoBlob.size} bytes, Tipo: ${videoBlob.type}`);
+      console.log(`🧠 Face Analysis Data: ${faceAnalysisData.length} pontos`);
+
+      // Verificar se os dados básicos estão corretos
+      if (!interviewId) {
+        throw new Error('InterviewId é obrigatório');
+      }
+      if (!questionNumber || questionNumber < 1) {
+        throw new Error('QuestionNumber deve ser >= 1');
+      }
+      if (!videoBlob || videoBlob.size === 0) {
+        throw new Error('VideoBlob está vazio ou inválido');
+      }
+
+      // Verificar e limpar tipo do blob
+      console.log(`🔍 Tipo original do blob: "${videoBlob.type}"`);
+      
+      if (!videoBlob.type || !videoBlob.type.includes('video/')) {
+        console.warn('⚠️ Tipo do blob não é reconhecido como vídeo, corrigindo...');
+        // Criar novo blob com tipo simples
+        videoBlob = new Blob([videoBlob], { type: 'video/webm' });
+      } else if (videoBlob.type.includes('codecs=')) {
+        // Remover codecs que podem confundir o backend
+        console.warn('⚠️ Removendo codecs do tipo MIME para compatibilidade...');
+        const baseType = videoBlob.type.includes('mp4') ? 'video/mp4' : 'video/webm';
+        videoBlob = new Blob([videoBlob], { type: baseType });
+      }
+      
+      console.log(`✅ Tipo final do blob: "${videoBlob.type}"`);
+
+
       const formData = new FormData();
-      formData.append('video', videoBlob, `interview_${interviewId}_q${questionNumber}.webm`);
+      
+      // Determinar extensão baseada no tipo do blob
+      let extension = '.webm'; // padrão
+      if (videoBlob.type.includes('mp4')) {
+        extension = '.mp4';
+      } else if (videoBlob.type.includes('webm')) {
+        extension = '.webm';
+      } else if (videoBlob.type.includes('ogg')) {
+        extension = '.ogg';
+      }
+      
+      const fileName = `interview_${interviewId}_q${questionNumber}${extension}`;
+      console.log(`📝 Nome do arquivo final: ${fileName}`);
+      console.log(`🎬 Tipo MIME final: ${videoBlob.type}`);
+      
+      formData.append('video', videoBlob, fileName);
       formData.append('questionNumber', questionNumber.toString());
       formData.append('faceAnalysisData', JSON.stringify(faceAnalysisData));
 
-      const response = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/responses/upload-video`, {
+      console.log(`📁 Arquivo: ${fileName}`);
+      console.log(`🔢 Número da pergunta: ${questionNumber}`);
+
+      const url = `${this.baseUrl}/api/interviews/${interviewId}/responses/upload-video`;
+      console.log(`🌐 URL: ${url}`);
+
+      const response = await fetch(url, {
         method: 'POST',
-        body: formData
+        body: formData,
+        // Não definir Content-Type - deixar o browser definir automaticamente com boundary
       });
 
+      console.log(`📨 Status da resposta: ${response.status}`);
+
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+          console.error('❌ Erro do servidor:', errorData);
+        } catch (e) {
+          const textError = await response.text();
+          console.error('❌ Erro (texto):', textError);
+          throw new Error(`Erro HTTP ${response.status}: ${textError}`);
+        }
         throw new Error(errorData.message || `Erro HTTP: ${response.status}`);
       }
 
@@ -213,45 +281,7 @@ class InterviewService {
     throw new Error('Timeout: Processamento não concluído no tempo esperado');
   }
 
-  /**
-   * Criar nova entrevista
-   */
-  async createInterview(jobId, candidateName, candidateEmail, userId = null) {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/interviews`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          job_id: jobId,
-          candidate_name: candidateName,
-          candidate_email: candidateEmail,
-          user_id: userId,
-          status: 'in_progress'
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Erro HTTP: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      return {
-        success: true,
-        interview: result
-      };
-
-    } catch (error) {
-      console.error('Erro ao criar entrevista:', error);
-      return {
-        success: false,
-        error: error.message
-      };
-    }
-  }
+  // Método duplicado removido - usar apenas o método atualizado acima
 
   /**
    * Obter entrevista por ID
@@ -464,6 +494,74 @@ class InterviewService {
    */
   async delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Buscar status da entrevista por job_id
+   */
+  async getInterviewStatusByJobId(jobId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/interviews/status/${jobId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      return {
+        success: true,
+        status: result.status,
+        interview: result
+      };
+
+    } catch (error) {
+      console.error('Erro ao buscar status da entrevista:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Buscar status da entrevista por ID da entrevista
+   */
+  async getInterviewStatusById(interviewId) {
+    try {
+      if (!interviewId) return { success: false, error: 'ID da entrevista não fornecido' };
+
+      const response = await fetch(`${this.baseUrl}/api/interviews/${interviewId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      return {
+        success: true,
+        status: result.status,
+        interview: result
+      };
+
+    } catch (error) {
+      console.error('Erro ao buscar status da entrevista por ID:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   }
 
   /**

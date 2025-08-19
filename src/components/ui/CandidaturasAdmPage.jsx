@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import {
     Briefcase,
@@ -27,7 +27,8 @@ import {
     Play,
     BarChart3,
     Award,
-    Clock4
+    Clock4,
+    MessageSquare
 } from "lucide-react";
 import { API_URL } from "../utils/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -102,6 +103,12 @@ const CandidaturasAdmPage = () => {
         }
     };
 
+    const buscarEmpresa = (candidatura) => {
+        // Função placeholder - pode ser implementada futuramente
+        console.log('Ver empresa:', candidatura.vaga?.empresa);
+        alert(`Empresa: ${candidatura.vaga?.empresa || 'Não informada'}`);
+    };
+
     // 1. Função para buscar currículo de um candidato específico
     const handleViewCurriculoCandidato = async (usuarioId, nomeUsuario) => {
         console.log("🚀 INICIANDO handleViewCurriculoCandidato");
@@ -118,9 +125,9 @@ const CandidaturasAdmPage = () => {
             }
 
             // 2. CONSTRUIR URL
-            const url = `${API_BASE_URL}/api/users/${usuarioId}/curriculo`;
+            const url = `${API_URL}/api/users/${usuarioId}/curriculo`;
             console.log("🌐 URL da requisição:", url);
-            console.log("🌐 API_BASE_URL:", API_BASE_URL);
+            console.log("🌐 API_URL:", API_URL);
 
             console.log("📡 Fazendo requisição...");
 
@@ -197,102 +204,105 @@ const CandidaturasAdmPage = () => {
         }
     };
 
-    // Função para buscar candidaturas
+    // Função para buscar candidaturas com LEFT JOIN otimizado
     const fetchTodasCandidaturas = async () => {
         try {
             setLoading(true);
             setError("");
 
-
-
-            const response = await axios.get(`${API_URL}/api/candidaturas`, {
+            // OTIMIZAÇÃO: Usar endpoint com LEFT JOIN na coluna interview_id
+            // Backend agora retorna candidaturas com entrevistas já incluídas via JOIN
+            // Isso elimina a necessidade de múltiplas requisições por candidatura
+            const response = await axios.get(`${API_URL}/api/candidaturas?include_interviews=true`, {
                 headers: { Authorization: `Bearer ${accessToken}` },
             });
 
             let candidaturas = response.data || [];
 
             if (candidaturas.length > 0) {
-
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('🚀 Processando candidaturas com dados otimizados do LEFT JOIN...');
+                }
 
                 const usuarioIdsUnicos = [...new Set(candidaturas.map(c => c.usuario_id))];
                 const usuariosData = {};
 
-                for (const usuarioId of usuarioIdsUnicos) {
-                    console.log(`🔍 Processando usuário ${usuarioId}...`);
-
-                    usuariosData[usuarioId] = {
-                        entrevistas: [],
-                        perfil_disc: null
-                    };
-
-                    // BUSCAR DADOS DISC
+                // BUSCAR DADOS DISC EM PARALELO (entrevistas já vêm do LEFT JOIN)
+                const discPromises = usuarioIdsUnicos.map(async (usuarioId) => {
                     try {
                         const discData = await testService.getUserPsychologicalTests(usuarioId, 'completed', 1);
-
+                        
                         if (discData.tests && discData.tests.length > 0) {
                             const teste = discData.tests[0];
-                            usuariosData[usuarioId].perfil_disc = {
-                                principal: getPrincipalDisc(teste.disc_scores),
-                                pontuacoes: teste.disc_scores,
-                                analise: teste.overall_analysis,
-                                recomendacoes: teste.recommendations
+                            return {
+                                usuarioId,
+                                perfil_disc: {
+                                    principal: getPrincipalDisc(teste.disc_scores),
+                                    pontuacoes: teste.disc_scores,
+                                    analise: teste.overall_analysis,
+                                    recomendacoes: teste.recommendations
+                                }
                             };
-
-                        } else {
-
                         }
                     } catch (discError) {
-
+                        console.warn(`Erro ao buscar DISC para usuário ${usuarioId}:`, discError);
                     }
-                }
+                    return { usuarioId, perfil_disc: null };
+                });
 
-                // MAPEAR DADOS PARA AS CANDIDATURAS
-                candidaturas = candidaturas.map(candidatura => ({
-                    ...candidatura,
-                    usuario: {
-                        ...candidatura.usuario,
-                        perfil_disc: usuariosData[candidatura.usuario_id]?.perfil_disc || null,
-                        entrevistas: []
+                // Aguardar todos os perfis DISC em paralelo
+                const discResults = await Promise.allSettled(discPromises);
+                discResults.forEach((result) => {
+                    if (result.status === 'fulfilled' && result.value) {
+                        usuariosData[result.value.usuarioId] = {
+                            perfil_disc: result.value.perfil_disc
+                        };
                     }
-                }));
+                });
 
-                // BUSCAR ENTREVISTAS POR CANDIDATURA_ID - TODAS, INDEPENDENTE DO STATUS
+                // MAPEAR DADOS OTIMIZADOS (entrevistas já incluídas via LEFT JOIN)
+                candidaturas = candidaturas.map(candidatura => {
+                    // Processar entrevistas que já vêm do backend via LEFT JOIN
+                    // Podem vir em candidatura.entrevistas ou candidatura.interviews
+                    const entrevistasRaw = candidatura.entrevistas || candidatura.interviews || [];
+                    const entrevistas = Array.isArray(entrevistasRaw) ? entrevistasRaw : [];
+                    
+                    // Ordenar entrevistas por data de criação (mais recente primeiro)
+                    const entrevistasOrdenadas = entrevistas.sort((a, b) =>
+                        new Date(b.created_at) - new Date(a.created_at)
+                    );
 
-                for (const candidatura of candidaturas) {
-                    try {
+                    // Log apenas se necessário para debug
+                    if (process.env.NODE_ENV === 'development' && entrevistasOrdenadas.length > 0) {
+                        console.log(`📋 Candidatura ${candidatura.id}: ${entrevistasOrdenadas.length} entrevistas via LEFT JOIN - IDs: ${entrevistasOrdenadas.map(e => `#${e.id}`).join(', ')}`);
+                    }
 
-
-                        const interviewData = await interviewService.getCandidaturaInterviews(candidatura.id);
-
-
-                        // Verificar se há entrevistas (qualquer status)
-                        if (interviewData && interviewData.success && interviewData.interviews && Array.isArray(interviewData.interviews) && interviewData.interviews.length > 0) {
-                            // Ordenar por data de criação (mais recente primeiro)
-                            const entrevistasOrdenadas = interviewData.interviews.sort((a, b) =>
-                                new Date(b.created_at) - new Date(a.created_at)
-                            );
-
-                            candidatura.usuario.entrevistas = entrevistasOrdenadas;
-                            entrevistasOrdenadas.map(e => `ID ${e.id} - Status: ${e.status}`);
-
-                            // LOG DETALHADO DAS ENTREVISTAS ENCONTRADAS
-                            entrevistasOrdenadas.forEach(entrevista => {
-                            });
-                        } else {
-                            candidatura.usuario.entrevistas = []; // Garantir array vazio
+                    return {
+                        ...candidatura,
+                        usuario: {
+                            ...candidatura.usuario,
+                            perfil_disc: usuariosData[candidatura.usuario_id]?.perfil_disc || null,
+                            entrevistas: entrevistasOrdenadas
                         }
-                    } catch (interviewError) {
-                        candidatura.usuario.entrevistas = []; // Garantir array vazio em caso de erro
-                    }
+                    };
+                });
+
+                if (process.env.NODE_ENV === 'development') {
+                    console.log(`✅ Processamento concluído: ${candidaturas.length} candidaturas com dados otimizados`);
                 }
             }
 
-            candidaturas.map(c => ({
-                candidaturaId: c.id,
-                usuarioNome: c.usuario?.nome || c.usuario?.name,
-                totalEntrevistas: c.usuario?.entrevistas?.length || 0,
-                entrevistasIDs: c.usuario?.entrevistas?.map(e => `ID: ${e.id} (${e.status})`) || []
-            }))
+            // Log de debug final das candidaturas processadas (apenas em desenvolvimento)
+            if (process.env.NODE_ENV === 'development') {
+                console.log('📊 Resumo final das candidaturas processadas:', candidaturas.map(c => ({
+                    candidaturaId: c.id,
+                    usuarioNome: c.usuario?.nome || c.usuario?.name,
+                    totalEntrevistas: c.usuario?.entrevistas?.length || 0,
+                    entrevistasIDs: c.usuario?.entrevistas?.map(e => `ID: ${e.id} (${e.status})`) || [],
+                    temInterviewId: !!c.interview_id,
+                    interviewId: c.interview_id
+                })));
+            }
 
             setCandidaturas(candidaturas);
 
@@ -304,57 +314,6 @@ const CandidaturasAdmPage = () => {
         }
     };
 
-    // COMPONENTE INTERVIEW CARD - MOSTRA ID SEMPRE (QUALQUER STATUS)
-    const InterviewCard = ({ entrevistas, usuario, candidaturaId }) => {
-
-        if (!entrevistas || entrevistas.length === 0) {
-            return (
-                <div className="relative w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center" title="Nenhuma entrevista encontrada">
-                    <BarChart3 className="w-4 h-4 text-gray-400" />
-                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] rounded-full w-3 h-3 flex items-center justify-center">
-                        0
-                    </div>
-                </div>
-            );
-        }
-
-        const ultimaEntrevista = entrevistas[0]; // Mais recente
-        const statusColor = getInterviewStatusColor(ultimaEntrevista.status);
-
-        return (
-            <button
-                onClick={() => {
-                    setModalInterview({
-                        isOpen: true,
-                        entrevistas: entrevistas,
-                        nome: usuario?.nome || usuario?.name || 'Usuário',
-                        candidaturaId: candidaturaId
-                    });
-                }}
-                className={`
-                relative w-8 h-8 bg-gradient-to-r ${statusColor} 
-                rounded-lg flex items-center justify-center 
-                cursor-pointer hover:scale-110 transition-all duration-200
-                shadow-lg hover:shadow-xl group
-            `}
-                title={`Entrevista ID #${ultimaEntrevista.id} - ${getInterviewStatusText(ultimaEntrevista.status)} (${entrevistas.length} total)`}
-            >
-                <BarChart3 className="w-4 h-4 text-white" />
-
-                {/* ID SEMPRE VISÍVEL - não só no hover */}
-                <div className="absolute -top-2 -right-2 bg-blue-600 text-white text-[9px] rounded-full px-1 py-0.5 font-bold min-w-[16px] text-center leading-tight">
-                    {ultimaEntrevista.id}
-                </div>
-
-                {/* Badge com quantidade se houver múltiplas */}
-                {entrevistas.length > 1 && (
-                    <div className="absolute -bottom-1 -left-1 bg-purple-500 text-white text-[8px] rounded-full w-3 h-3 flex items-center justify-center font-bold">
-                        {entrevistas.length}
-                    </div>
-                )}
-            </button>
-        );
-    };
 
     // MODAL DE HISTÓRICO DE ENTREVISTAS
     const InterviewHistoryModal = () => (
@@ -394,91 +353,220 @@ const CandidaturasAdmPage = () => {
                                 {/* Lista de Entrevistas Detalhada */}
                                 <div>
                                     <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                        <Clock4 className="w-5 h-5 text-purple-500" />
-                                        Detalhes por Entrevista
+                                        <BarChart3 className="w-5 h-5 text-purple-500" />
+                                        Entrevistas Realizadas
                                     </h4>
-                                    {modalInterview.entrevistas.map((entrevista) => (
-                                        <div key={entrevista.id} className="mb-8">
-                                            <div className="font-bold text-white mb-2">
-                                                Entrevista #{entrevista.id} - {getInterviewStatusText(entrevista.status)}
-                                            </div>
-                                            {entrevista.questions && entrevista.questions.length > 0 ? (
-                                                entrevista.questions.map((question) => (
-                                                    <div key={question.id} className="bg-white/5 rounded-lg p-4 mb-4 border border-white/10">
-                                                        <div className="font-semibold text-white mb-1">{question.title}</div>
-                                                        <div className="text-xs text-gray-400 mb-2">{question.description}</div>
-                                                        {question.answers && question.answers.length > 0 ? (
-                                                            question.answers.map((answer) => {
-                                                                const isVideoOpen =
-                                                                    selectedVideo &&
-                                                                    selectedVideo.bunny_video_id === answer.bunny_video_id &&
-                                                                    selectedVideo.bunny_library_id === answer.bunny_library_id;
+                                    {modalInterview.entrevistas.map((entrevista) => {
+                                        const totalQuestions = entrevista.questions ? entrevista.questions.length : 0;
+                                        const answeredQuestions = entrevista.questions ?
+                                            entrevista.questions.filter(q => q.answers && q.answers.length > 0).length : 0;
+                                        const completionRate = totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
 
-                                                                return (
-                                                                    <div key={answer.id} className="bg-gray-800 rounded-lg p-3 mb-2">
-                                                                        <div className="flex items-center gap-2 mb-2">
-                                                                            <button
-                                                                                className={`px-3 py-1 ${isVideoOpen ? 'bg-gray-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded transition`}
-                                                                                onClick={() =>
-                                                                                    setSelectedVideo(isVideoOpen ? null : {
-                                                                                        bunny_library_id: answer.bunny_library_id,
-                                                                                        bunny_video_id: answer.bunny_video_id,
-                                                                                        order: question.order
-                                                                                    })
-                                                                                }
-                                                                                disabled={!answer.bunny_video_url}
-                                                                            >
-                                                                                <Play className="inline w-4 h-4 mr-1" />
-                                                                                {isVideoOpen ? "Esconder Vídeo" : "Ver Vídeo"}
-                                                                            </button>
-                                                                        </div>
-                                                                        {/* Visualização de vídeo se disponível */}
-                                                                        {isVideoOpen && (
-                                                                            <div style={{ position: 'relative', paddingTop: '56.25%' }}>
-                                                                                <iframe
-                                                                                    src={`https://iframe.mediadelivery.net/embed/${selectedVideo.bunny_library_id}/${selectedVideo.bunny_video_id}?autoplay=true&loop=false&muted=false&preload=true&responsive=true`}
-                                                                                    loading="lazy"
-                                                                                    style={{
-                                                                                        border: 0,
-                                                                                        position: 'absolute',
-                                                                                        top: 0,
-                                                                                        left: 0,
-                                                                                        width: '100%',
-                                                                                        height: '100%'
-                                                                                    }}
-                                                                                    allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
-                                                                                    allowFullScreen
-                                                                                    title={`Resposta da pergunta ${selectedVideo.order}`}
-                                                                                ></iframe>
-                                                                            </div>
-                                                                        )}
-                                                                        <div className="text-gray-200 text-sm mb-2">
-                                                                            <span className="font-bold">Resposta:</span> {answer.answers}
-                                                                        </div>
-                                                                        {answer.analysis && (
-                                                                            <div className="bg-white/10 rounded p-2 mt-2">
-                                                                                <div className="text-xs text-blue-300 font-bold mb-1">
-                                                                                    Pontuação: {answer.analysis.score}/10
-                                                                                </div>
-                                                                                <div className="text-xs text-gray-300 mb-1">
-                                                                                    <span className="font-bold">Recomendação:</span> {answer.analysis.recommendation}
-                                                                                </div>
-                                                                                <div className="text-xs text-gray-400" dangerouslySetInnerHTML={{ __html: answer.analysis.fullAnalysis.replace(/\n/g, "<br/>") }} />
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                );
-                                                            })
-                                                        ) : (
-                                                            <div className="text-gray-400 text-sm mb-2">Nenhuma resposta registrada.</div>
-                                                        )}
+                                        return (
+                                            <div key={entrevista.id} className="mb-8 bg-white/5 rounded-xl p-6 border border-white/10">
+                                                {/* Header da Entrevista */}
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div>
+                                                        <div className="font-bold text-white text-lg">
+                                                            Entrevista #{entrevista.id}
+                                                        </div>
+                                                        <div className="text-gray-400 text-sm">
+                                                            {entrevista.created_at ? new Date(entrevista.created_at).toLocaleDateString('pt-BR') : 'Data não disponível'}
+                                                        </div>
                                                     </div>
-                                                ))
-                                            ) : (
-                                                <div className="text-gray-400 text-sm">Nenhuma pergunta registrada.</div>
-                                            )}
-                                        </div>
-                                    ))}
+                                                    <div className="text-right">
+                                                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${entrevista.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                                                                entrevista.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400' :
+                                                                    'bg-gray-500/20 text-gray-400'
+                                                            }`}>
+                                                            {getInterviewStatusText(entrevista.status)}
+                                                        </div>
+                                                        <div className="text-gray-400 text-sm mt-1">
+                                                            {answeredQuestions}/{totalQuestions} respondidas ({completionRate}%)
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Progresso */}
+                                                <div className="mb-4">
+                                                    <div className="flex items-center justify-between text-sm text-gray-400 mb-1">
+                                                        <span>Progresso da Entrevista</span>
+                                                        <span>{completionRate}%</span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-700 rounded-full h-2">
+                                                        <div
+                                                            className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                                                            style={{ width: `${completionRate}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                                {/* Perguntas e Respostas */}
+                                                <div className="space-y-4">
+                                                    <h5 className="text-white font-semibold flex items-center gap-2">
+                                                        <MessageSquare className="w-4 h-4" />
+                                                        Perguntas e Respostas ({totalQuestions})
+                                                    </h5>
+
+                                                    {entrevista.questions && entrevista.questions.length > 0 ? (
+                                                        entrevista.questions.map((question) => {
+                                                            const hasAnswers = question.answers && question.answers.length > 0;
+                                                            const firstAnswer = hasAnswers ? question.answers[0] : null;
+
+                                                            return (
+                                                                <div key={question.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                                                                    {/* Header da Pergunta */}
+                                                                    <div className="flex items-start justify-between mb-3">
+                                                                        <div className="flex-1">
+                                                                            <div className="flex items-center gap-2 mb-1">
+                                                                                <span className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs font-medium">
+                                                                                    Pergunta {question.order}
+                                                                                </span>
+                                                                                <span className={`px-2 py-1 rounded text-xs font-medium ${hasAnswers ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
+                                                                                    }`}>
+                                                                                    {hasAnswers ? 'Respondida' : 'Não Respondida'}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="text-white font-medium">{question.title}</div>
+                                                                            <div className="text-gray-400 text-sm mt-1">{question.description}</div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {/* Resposta */}
+                                                                    {hasAnswers && firstAnswer && (
+                                                                        <div className="bg-gray-800/50 rounded-lg p-4 mt-3">
+                                                                            {/* Transcrição */}
+                                                                            <div className="mb-3">
+                                                                                <div className="text-gray-300 text-sm font-medium mb-1">Transcrição:</div>
+                                                                                <div className="text-gray-200 text-sm bg-gray-700/50 rounded p-2">
+                                                                                    {firstAnswer.answers || 'Transcrição não disponível'}
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {/* Análise IA */}
+                                                                            {firstAnswer.analysis && (
+                                                                                <div className="mb-3">
+                                                                                    <div className="text-gray-300 text-sm font-medium mb-2">Análise IA:</div>
+                                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                                                        <div className="bg-blue-500/10 border border-blue-500/20 rounded p-3">
+                                                                                            <div className="text-blue-400 text-xs font-medium">PONTUAÇÃO</div>
+                                                                                            <div className="text-blue-300 text-lg font-bold">
+                                                                                                {firstAnswer.analysis.score || 'N/A'}/10
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div className="bg-purple-500/10 border border-purple-500/20 rounded p-3">
+                                                                                            <div className="text-purple-400 text-xs font-medium">RECOMENDAÇÃO</div>
+                                                                                            <div className="text-purple-300 text-sm">
+                                                                                                {firstAnswer.analysis.recommendation || 'N/A'}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    {/* Pontos Fortes e Melhorias */}
+                                                                                    {(firstAnswer.analysis.strengths || firstAnswer.analysis.improvements) && (
+                                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                                                                                            {firstAnswer.analysis.strengths && (
+                                                                                                <div>
+                                                                                                    <div className="text-green-400 text-xs font-medium mb-1">PONTOS FORTES</div>
+                                                                                                    <div className="text-gray-300 text-xs">
+                                                                                                        {Array.isArray(firstAnswer.analysis.strengths)
+                                                                                                            ? firstAnswer.analysis.strengths.join(', ')
+                                                                                                            : firstAnswer.analysis.strengths}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            )}
+                                                                                            {firstAnswer.analysis.improvements && (
+                                                                                                <div>
+                                                                                                    <div className="text-orange-400 text-xs font-medium mb-1">MELHORIAS</div>
+                                                                                                    <div className="text-gray-300 text-xs">
+                                                                                                        {Array.isArray(firstAnswer.analysis.improvements)
+                                                                                                            ? firstAnswer.analysis.improvements.join(', ')
+                                                                                                            : firstAnswer.analysis.improvements}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* Botão de Vídeo */}
+                                                                            {firstAnswer.bunny_video_id && firstAnswer.bunny_library_id && (
+                                                                                <div className="mb-3">
+                                                                                    <button
+                                                                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${selectedVideo &&
+                                                                                                selectedVideo.bunny_video_id === firstAnswer.bunny_video_id
+                                                                                                ? 'bg-red-600 hover:bg-red-700 text-white'
+                                                                                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                                                            }`}
+                                                                                        onClick={() => {
+                                                                                            const isVideoOpen = selectedVideo &&
+                                                                                                selectedVideo.bunny_video_id === firstAnswer.bunny_video_id;
+                                                                                            setSelectedVideo(isVideoOpen ? null : {
+                                                                                                bunny_library_id: firstAnswer.bunny_library_id,
+                                                                                                bunny_video_id: firstAnswer.bunny_video_id,
+                                                                                                order: question.order
+                                                                                            });
+                                                                                        }}
+                                                                                    >
+                                                                                        <Play className="w-4 h-4" />
+                                                                                        {selectedVideo && selectedVideo.bunny_video_id === firstAnswer.bunny_video_id
+                                                                                            ? "Fechar Vídeo"
+                                                                                            : "Assistir Resposta"}
+                                                                                    </button>
+
+                                                                                    {/* Player de Vídeo */}
+                                                                                    {selectedVideo && selectedVideo.bunny_video_id === firstAnswer.bunny_video_id && (
+                                                                                        <div className="mt-3 rounded-lg overflow-hidden" style={{ position: 'relative', paddingTop: '56.25%' }}>
+                                                                                            <iframe
+                                                                                                src={`https://iframe.mediadelivery.net/embed/${selectedVideo.bunny_library_id}/${selectedVideo.bunny_video_id}?autoplay=false&loop=false&muted=false&preload=true&responsive=true`}
+                                                                                                loading="lazy"
+                                                                                                style={{
+                                                                                                    border: 0,
+                                                                                                    position: 'absolute',
+                                                                                                    top: 0,
+                                                                                                    left: 0,
+                                                                                                    width: '100%',
+                                                                                                    height: '100%',
+                                                                                                    borderRadius: '8px'
+                                                                                                }}
+                                                                                                allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture"
+                                                                                                allowFullScreen
+                                                                                                title={`Resposta da pergunta ${question.order}`}
+                                                                                            ></iframe>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            )}
+
+                                                                            {/* Metadados */}
+                                                                            <div className="text-xs text-gray-500 mt-2 flex items-center gap-4">
+                                                                                <span>Status: {firstAnswer.processing_status}</span>
+                                                                                <span>Tamanho: {Math.round(parseInt(firstAnswer.video_size_bytes || 0) / 1024)}KB</span>
+                                                                                {firstAnswer.analysis?.timestamp && (
+                                                                                    <span>Analisado: {new Date(firstAnswer.analysis.timestamp).toLocaleDateString('pt-BR')}</span>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Estado não respondida */}
+                                                                    {!hasAnswers && (
+                                                                        <div className="text-center py-4 text-gray-500">
+                                                                            <div className="text-sm">Esta pergunta não foi respondida</div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })
+                                                    ) : (
+                                                        <div className="text-center py-4 text-gray-500">
+                                                            <div className="text-sm">Nenhuma pergunta encontrada para esta entrevista</div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
@@ -676,23 +764,25 @@ const CandidaturasAdmPage = () => {
         }
     };
 
-    // Estatísticas calculadas
-    const stats = {
+    // Estatísticas calculadas com memoization
+    const stats = useMemo(() => ({
         total: candidaturas.length,
         aprovadas: candidaturas.filter(c => c.status === "aprovado").length,
         pendentes: candidaturas.filter(c => c.status === "em_analise" || c.status === "pendente").length,
         reprovadas: candidaturas.filter(c => c.status === "reprovado").length
-    };
+    }), [candidaturas]);
 
-    // Candidaturas filtradas com DEBUG de entrevistas
-    const candidaturasFiltradas = candidaturas.filter(candidatura => {
-        const matchesSearch =
-            candidatura.vaga?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            candidatura.vaga?.empresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            candidatura.usuario?.nome?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = filterStatus === "todos" || candidatura.status === filterStatus;
-        return matchesSearch && matchesFilter;
-    });
+    // Candidaturas filtradas com memoization para otimizar performance
+    const candidaturasFiltradas = useMemo(() => {
+        return candidaturas.filter(candidatura => {
+            const matchesSearch = !searchTerm || 
+                candidatura.vaga?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                candidatura.vaga?.empresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                candidatura.usuario?.nome?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesFilter = filterStatus === "todos" || candidatura.status === filterStatus;
+            return matchesSearch && matchesFilter;
+        });
+    }, [candidaturas, searchTerm, filterStatus]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
