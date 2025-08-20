@@ -110,9 +110,13 @@ const EditJobForm = ({ job, onSave, onCancel }) => {
             className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             <option value="">Selecione o tipo</option>
-            <option value="Remoto">Remoto</option>
-            <option value="Presencial">Presencial</option>
-            <option value="Híbrido">Híbrido</option>
+            <option value="cooperado">Cooperado</option>
+            <option value="freelancer">Freelancer</option>
+            <option value="jovem_aprendiz">Jovem Aprendiz</option>
+            <option value="estagio">Estágio</option>
+            <option value="temporario">Temporário</option>
+            <option value="pj">PJ</option>
+            <option value="clt">CLT</option>
           </select>
         </div>
       </div>
@@ -228,9 +232,9 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
     company_id: '',
     company_name: '',
     location: 'São Paulo, SP',
-    job_type: 'full-time',
-    experience_level: 'mid',
-    work_model: 'hybrid',
+    job_type: 'clt',
+    experience_level: 'pleno',
+    work_model: 'Híbrido',
     include_benefits: true,
     generate_questions: true,
     tone: 'professional'
@@ -294,7 +298,7 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
     setLoading(false);
     setFormData({
       company_id: '', company_name: '', location: 'São Paulo, SP',
-      job_type: 'full-time', experience_level: 'mid', work_model: 'hybrid',
+      job_type: 'clt', experience_level: 'pleno', work_model: 'Híbrido',
       include_benefits: true, generate_questions: true, tone: 'professional'
     });
     onClose();
@@ -399,26 +403,62 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
                 </div>
                 {error && <p className="text-red-400">{error}</p>}
                 <textarea
-                  className="w-full p-2 rounded bg-gray-700 text-white"
-                  rows={3}
+                  className="w-full p-3 rounded bg-gray-700 text-white"
+                  rows={6}
                   placeholder="Ex.: Analista de Marketing — responsável por campanhas digitais, requisitos: graduação em Marketing, 2 anos de experiência, benefícios: plano de saúde, vale-alimentação, trabalho híbrido"
                   value={prompt}
                   onChange={e => setPrompt(e.target.value)} />
-                <select name="company_id" value={formData.company_id} onChange={handleCompanyChange} className="w-full p-2 rounded bg-gray-700 text-white">
+                <label htmlFor="company_id" className="block text-white font-medium mb-2">
+                  Empresa
+                </label>
+                <select id="company_id" name="company_id" value={formData.company_id} onChange={handleCompanyChange} className="w-full p-2 rounded bg-gray-700 text-white">
                   <option value="">Selecione empresa</option>
                   {Array.isArray(companies) ? companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>) : null}
                 </select>
                 <input name="location" value={formData.location} onChange={handleChange} placeholder="Localização" className="w-full p-2 rounded bg-gray-700 text-white" />
                 <div className="flex gap-2">
-                  <select name="job_type" value={formData.job_type} onChange={handleChange} className="flex-1 p-2 rounded bg-gray-700 text-white">
-                    <option value="full-time">Full-time</option>
-                    <option value="part-time">Part-time</option>
-                    <option value="contract">Contract</option>
-                  </select>
-                  <select name="experience_level" value={formData.experience_level} onChange={handleChange} className="flex-1 p-2 rounded bg-gray-700 text-white">
-                    <option value="entry">Entry</option>
-                    <option value="mid">Mid</option>
-                    <option value="senior">Senior</option>
+                  <div className="flex-1">
+                    <label htmlFor="job_type" className="block text-white font-medium mb-2">
+                      Tipo de Contratação
+                    </label>
+                    <select id="job_type" name="job_type" value={formData.job_type} onChange={handleChange} className="w-full p-2 rounded bg-gray-700 text-white">
+                      <option value="cooperado">Cooperado</option>
+                      <option value="freelancer">Freelancer</option>
+                      <option value="jovem_aprendiz">Jovem Aprendiz</option>
+                      <option value="estagio">Estágio</option>
+                      <option value="temporario">Temporário</option>
+                      <option value="pj">PJ</option>
+                      <option value="clt">CLT</option>
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <label htmlFor="experience_level" className="block text-white font-medium mb-2">
+                      Nível de Experiência
+                    </label>
+                    <select id="experience_level" name="experience_level" value={formData.experience_level} onChange={handleChange} className="w-full p-2 rounded bg-gray-700 text-white">
+                      <option value="inicial">Inicial</option>
+                      <option value="junior">Júnior</option>
+                      <option value="pleno">Pleno</option>
+                      <option value="senior">Sênior</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <label htmlFor="work_model" className="block text-white font-medium mb-2">
+                    Modelo de Trabalho
+                  </label>
+                  <select
+                    id="work_model"
+                    name="work_model"
+                    value={formData.work_model}
+                    onChange={handleChange}
+                    className="w-full p-2 rounded bg-gray-700 text-white"
+                  >
+                    <option value="Presencial">Presencial</option>
+                    <option value="Remoto / Home Office">Remoto / Home Office</option>
+                    <option value="Híbrido">Híbrido</option>
+                    <option value="Trabalho de Campo">Trabalho de Campo</option>
+                    <option value="Part Time (Meio Período)">Part Time (Meio Período)</option>
                   </select>
                 </div>
                 <div className="flex justify-end">

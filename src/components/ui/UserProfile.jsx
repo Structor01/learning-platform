@@ -28,6 +28,7 @@ import {
   ExternalLink,
   Save,
   X,
+  Camera,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import testService from "../../services/testService";
@@ -42,9 +43,11 @@ const UserProfile = () => {
   const [linkedin, setLinkedin] = useState("");
   const [curriculoUrl, setCurriculoUrl] = useState("");
   const [curriculoFile, setCurriculoFile] = useState(null); // Estado para o arquivo
+  const [profileImage, setProfileImage] = useState(""); // Estado para imagem de perfil
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingLinks, setIsEditingLinks] = useState(false);
   const [isSavingLinks, setIsSavingLinks] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Estados para dados do teste psicológico
   const [testResults, setTestResults] = useState(null);
@@ -60,6 +63,7 @@ const UserProfile = () => {
       setRole(user.role || "Executivo de Vendas");
       setLinkedin(user.linkedin || "");
       setCurriculoUrl(user.curriculo_url || "");
+      setProfileImage(user.profile_image || user.userLegacy?.image || "");
     }
   }, [user]);
 
@@ -183,6 +187,81 @@ const UserProfile = () => {
   const handleSave = async () => {
     await updateUser({ name, role });
     setIsEditing(false);
+  };
+
+  // Função para converter imagem para base64
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  // Função para upload da imagem de perfil
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Formato de arquivo não suportado. Use JPEG, PNG ou GIF.');
+      return;
+    }
+
+    // Validar tamanho (máximo 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert('Arquivo muito grande. O tamanho máximo é 5MB.');
+      return;
+    }
+
+    try {
+      setIsUploadingImage(true);
+
+      // Converter para base64
+      const base64Image = await convertToBase64(file);
+      
+      // Salvar no backend
+      const token = sessionStorage.getItem("accessToken");
+      if (!token) {
+        alert("Sessão expirada. Faça login novamente.");
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/users/profile-image`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          profile_image: base64Image
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+
+      const responseData = await response.json();
+      
+      // Atualizar estado local
+      setProfileImage(base64Image);
+      
+      // Atualizar contexto do usuário
+      await updateUser({ profile_image: base64Image });
+      
+      alert("Foto de perfil atualizada com sucesso!");
+      
+    } catch (error) {
+      console.error("Erro ao fazer upload da imagem:", error);
+      alert("Erro ao atualizar foto de perfil. Tente novamente.");
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const handleViewCurriculo = async () => {
@@ -598,15 +677,44 @@ const UserProfile = () => {
             <Card className="bg-gray-900 border-gray-800">
               <CardContent className="p-6 text-center">
                 <div className="relative mb-4">
-                  <Avatar className="w-24 h-24 mx-auto border-4 border-green-500">
-                    <AvatarImage src="/placeholder-avatar.jpg" alt={name} />
-                    <AvatarFallback className="bg-green-600 text-white text-2xl">
-                      {name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="w-24 h-24 mx-auto border-4 border-green-500">
+                      <AvatarImage 
+                        src={profileImage || user?.userLegacy?.image || "/placeholder-avatar.jpg"} 
+                        alt={name} 
+                      />
+                      <AvatarFallback className="bg-green-600 text-white text-2xl">
+                        {name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    {/* Botão de upload de imagem */}
+                    <div className="">
+                      <label 
+                        htmlFor="profile-image-upload" 
+                        className="w-8 h-8 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-colors"
+                        title="Alterar foto de perfil"
+                      >
+                        {isUploadingImage ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Camera className="w-4 h-4 text-white" />
+                        )}
+                      </label>
+                      <input
+                        id="profile-image-upload"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={isUploadingImage}
+                      />
+                    </div>
+                  </div>
+                  
                   <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                     <CheckCircle className="w-5 h-5 text-white" />
                   </div>

@@ -25,42 +25,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [empresas, setEmpresas] = useState([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
 
-  // Buscar dados do DISC do usuário
-  useEffect(() => {
-    if (user?.id) {
-      testService
-        .makeRequest(`/psychological/user/${user.id}?status=completed&limit=1`)
-        .then((response) => {
-          // Resposta esperada: { tests: [ { disc_scores: {...}, ... } ], ... }
-          if (response && response.tests && response.tests.length > 0) {
-            const discScores = response.tests[0].disc_scores;
-            // Determinar perfil predominante
-            let predominant = "Conforme";
-            if (discScores) {
-              const maxKey = Object.keys(discScores).reduce((a, b) =>
-                discScores[a] > discScores[b] ? a : b
-              );
-              const discMap = {
-                D: "Dominante",
-                I: "Influente",
-                S: "Estável",
-                C: "Conforme",
-              };
-              predominant = discMap[maxKey] || "Conforme";
-            }
-            setDiscProfile({
-              ...discScores,
-              predominant,
-              overall_analysis: response.tests[0].overall_analysis,
-            });
-          } else {
-            setDiscProfile(null);
-          }
-        })
-        .catch(() => setDiscProfile(null));
-    }
-  }, [user]);
-
   // Verificar se é a primeira vez do usuário
   useEffect(() => {
     if (user?.email) {
@@ -155,7 +119,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   };
 
   // Protegendo acesso aos campos de DISC e progresso
-  const predominant = discProfile?.predominant ?? "Conforme";
+  const predominant = userData.discProfile?.predominant ?? "Conforme";
   const currentProgress = userData.progress?.currentProgress ?? 0;
 
   // Função para lidar com clique em curso
@@ -184,44 +148,57 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         />
       )}
 
-      <div className="min-h-screen bg-black pt-20">
+      <div className="min-h-screen bg-white pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
           <div className="mb-8 overflow-x-auto">
-            <div className="flex flex-col lg:!flex-row lg:!items-start lg:!justify-between gap-6 min-w-fit">
+            <div className="flex justify-between items-center">
               {/* Bloco de boas-vindas e perfil DISC */}
-              <div className="flex-shrink-0 lg:w-2/3">
-                <h1 className="text-3xl font-bold text-white mb-2">
+              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''}/>
+              <div className={"flex flex-col"}>
+                <h1 className="text-3xl text-black font-bold mb-2">
                   Olá, {userData.name.split(" ")[0]}!
                 </h1>
+
+                <div className={"grid grid-cols-2 gap-3"}>
+                  <div className={"flex items-center justify-start"}>
+                    <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_disc)} rounded-full flex items-center justify-center`}>
+                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc.charAt(0)}</span>
+                    </div>
+                    <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_disc}</span>
+                  </div>
+                  <div className={"flex items-center justify-start"}>
+                    <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_lideranca)} rounded-full flex items-center justify-center`}>
+                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca.charAt(0)}</span>
+                    </div>
+                    <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
+                  </div>
+                </div>
+
+
+              </div>
+
+              <div className="flex-shrink-0 lg:w-2/3">
+
                 <div className="flex items-center m-3 space-x-4">
                   <div className="flex items-center space-x-2">
-                    <div
-                      className={`w-6 h-6 ${getDiscColor(
-                        predominant
-                      )} rounded-full flex items-center justify-center`}
-                    >
-                      <span className="text-white text-xs font-bold">
-                        {predominant.charAt(0)}
-                      </span>
-                    </div>
-                    <span className="text-gray-300">Perfil: {predominant}</span>
+
                     {/* Card Análise DISC ocupando 1/3 da tela */}
                   </div>
                 </div>
                 {discProfile && discProfile.overall_analysis && (
-                  <div className="lg:w-1/3 w-full">
-                    <Card className="bg-black/60 border border-gray-800 shadow-lg">
-                      <CardContent className="p-3">
-                        <h4 className="text-lg font-bold text-white mb-2">
-                          Análise DISC
-                        </h4>
-                        <p className="text-gray-300 text-sm whitespace-pre-line">
-                          {discProfile.overall_analysis}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
+                    <div className="lg:w-1/3 w-full">
+                      <Card className="bg-black/60 border border-gray-800 shadow-lg">
+                        <CardContent className="p-3">
+                          <h4 className="text-lg font-bold text-white mb-2">
+                            Análise DISC
+                          </h4>
+                          <p className="text-gray-300 text-sm whitespace-pre-line">
+                            {discProfile.overall_analysis}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
                 )}
               </div>
 
@@ -232,12 +209,12 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           {/* Últimas Vagas - Nova Seção */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-black">
                 Últimas Vagas
               </h2>
               <Button
                   variant="ghost"
-                  className="text-gray-300 hover:text-white"
+                  className="text-gray-800 hover:text-white"
                   onClick={() => navigate("/vagas")}
               >
                 Ver todas as vagas
@@ -249,13 +226,13 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   {[...Array(5)].map((_, index) => (
                       <Card
                           key={index}
-                          className="bg-gray-900 border-gray-800 animate-pulse"
+                          className="bg-white border-gray-200 animate-pulse"
                       >
                         <CardContent className="p-6">
-                          <div className="w-12 h-12 bg-gray-800 rounded-lg mb-4"></div>
-                          <div className="h-5 bg-gray-800 rounded mb-2"></div>
-                          <div className="h-4 bg-gray-800 rounded mb-3"></div>
-                          <div className="h-3 bg-gray-800 rounded"></div>
+                          <div className="w-12 h-12 bg-gray-200 rounded-lg mb-4"></div>
+                          <div className="h-5 bg-gray-200 rounded mb-2"></div>
+                          <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                          <div className="h-3 bg-gray-200 rounded"></div>
                         </CardContent>
                       </Card>
                   ))}
@@ -266,30 +243,30 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       <Card
                           key={vaga.id}
                           onClick={() => navigate(`/vagas/${vaga.id}`)}
-                          className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                          className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
                       >
                         <CardContent className="p-6">
                           <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
                             <Briefcase className="w-6 h-6 text-white" />
                           </div>
 
-                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">
+                          <h3 className="text-lg font-semibold text-black mb-2 line-clamp-2">
                             {vaga.title || vaga.nome}
                           </h3>
 
-                          <p className="text-gray-400 text-sm mb-3 line-clamp-2">
+                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                             {getEmpresaNome(vaga.empresa_id)}
                           </p>
 
                           <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-gray-600">
                               <MapPin className="w-3 h-3" />
                               <span className="truncate">
                             {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
                           </span>
                             </div>
 
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-gray-600">
                               <Building2 className="w-3 h-3" />
                               <span className="truncate">
                             {vaga.job_type || vaga.modalidade}
@@ -301,9 +278,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   ))}
                 </div>
             ) : (
-                <div className="text-center py-12 bg-gray-900 rounded-lg border border-gray-800">
-                  <Briefcase className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-400">
+                <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                  <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">
                     Nenhuma vaga disponível no momento
                   </p>
                   <Button
@@ -320,7 +297,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           {/* Biblioteca de Aplicativos - Movida para cima */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-black">
                 Biblioteca de Aplicativos
               </h2>
               {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
@@ -332,7 +309,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               {/* Meu Cartão Virtual */}
               <Card
                 onClick={() => handleAppClick("Cartão Virtual")}
-                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -350,17 +327,17 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-white text-sm mb-1">
+                  <h3 className="font-semibold text-black text-sm mb-1">
                     Cartão Virtual
                   </h3>
-                  <p className="text-xs text-gray-400">Cartão digital</p>
+                  <p className="text-xs text-gray-600">Cartão digital</p>
                 </CardContent>
               </Card>
 
               {/* Agenda de Eventos */}
               <Card
                 onClick={() => handleAppClick("Agenda de Eventos")}
-                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -378,17 +355,17 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-white text-sm mb-1">
+                  <h3 className="font-semibold text-black text-sm mb-1">
                     Agenda
                   </h3>
-                  <p className="text-xs text-gray-400">Eventos</p>
+                  <p className="text-xs text-gray-600">Eventos</p>
                 </CardContent>
               </Card>
 
               {/* Meus Testes */}
               <Card
                 onClick={() => handleAppClick("Meus Testes")}
-                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -406,17 +383,17 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-white text-sm mb-1">
+                  <h3 className="font-semibold text-black text-sm mb-1">
                     Testes
                   </h3>
-                  <p className="text-xs text-gray-400">Avaliações</p>
+                  <p className="text-xs text-gray-600">Avaliações</p>
                 </CardContent>
               </Card>
 
               {/* Ver Vagas */}
               <Card
                 onClick={() => navigate("/vagas")}
-                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -434,80 +411,19 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-white text-sm mb-1">
+                  <h3 className="font-semibold text-black text-sm mb-1">
                     Ver Vagas
                   </h3>
-                  <p className="text-xs text-gray-400">Avaliações</p>
+                  <p className="text-xs text-gray-600">Avaliações</p>
                 </CardContent>
               </Card>
             </div>
           </section>
 
-          <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 gap-6 mb-8">
-            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">
-                      Progresso Geral
-                    </p>
-                    <p className="text-3xl font-bold text-white">
-                      {currentProgress}%
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-                <Progress value={currentProgress} className="mt-4" />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">
-                      Próximo Conteúdo
-                    </p>
-                    <p className="text-lg font-semibold text-white">
-                      Autoconhecimento para Aceleração de Carreiras
-                    </p>
-                    <p className="text-sm text-gray-500">45 min</p>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={() => handleCourseClick()}
-                  >
-                    <Play className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">
-                      Meta Semanal
-                    </p>
-                    <p className="text-3xl font-bold text-white">4/5</p>
-                    <p className="text-sm text-gray-500">dias de estudo</p>
-                  </div>
-                  <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <Award className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Trilhas para acelerar sua carreira */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-black">
                 Trilhas para acelerar sua carreira
               </h2>
               {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
@@ -517,24 +433,24 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
             <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-4 gap-6">
               {/* Trilha 1: Autoconhecimento para Aceleração de Carreiras */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg mb-4">
                     <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                     >
                       <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-black mb-2">
                     Autoconhecimento para Aceleração de Carreiras
                   </h3>
                   <p className="text-gray-400 text-sm mb-4">
@@ -544,9 +460,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">7 módulos</span>
                     <Button
-                      size="sm"
-                      onClick={() => navigate("/trilha/3")}
-                      className="bg-purple-600 hover:bg-purple-700"
+                        size="sm"
+                        onClick={() => navigate("/trilha/3")}
+                        className="bg-purple-600 hover:bg-purple-700"
                     >
                       Iniciar
                     </Button>
@@ -555,35 +471,35 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </Card>
 
               {/* Trilha 2: Introdução a Finanças Pessoais */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg mb-4">
                     <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                     >
                       <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-black mb-2">
                     Introdução a Finanças Pessoais
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">
+                  <p className="text-gray-600 text-sm mb-4">
                     Fundamentos para gerenciar suas finanças no agronegócio
                   </p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">5 módulos</span>
                     <Button
-                      size="sm"
-                      onClick={() => navigate("/trilha/4")}
-                      className="bg-green-600 hover:bg-green-700"
+                        size="sm"
+                        onClick={() => navigate("/trilha/4")}
+                        className="bg-green-600 hover:bg-green-700"
                     >
                       Iniciar
                     </Button>
@@ -592,35 +508,35 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </Card>
 
               {/* Trilha 3: Auto análise e Foco em metas */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg mb-4">
                     <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                     >
                       <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-black mb-2">
                     Auto análise e Foco em metas
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">
+                  <p className="text-gray-600 text-sm mb-4">
                     Defina objetivos claros e alcance suas metas profissionais
                   </p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">7 módulos</span>
                     <Button
-                      size="sm"
-                      onClick={() => navigate("/trilha/5")}
-                      className="bg-blue-600 hover:bg-blue-700"
+                        size="sm"
+                        onClick={() => navigate("/trilha/5")}
+                        className="bg-blue-600 hover:bg-blue-700"
                     >
                       Iniciar
                     </Button>
@@ -629,35 +545,35 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </Card>
 
               {/* Trilha 4: Gestão de Carreira */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
                     <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                     >
                       <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-black mb-2">
                     Gestão de Carreira
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">
+                  <p className="text-gray-600 text-sm mb-4">
                     Estratégias avançadas para acelerar sua carreira no agro
                   </p>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">17 módulos</span>
                     <Button
-                      size="sm"
-                      className="bg-orange-600 hover:bg-orange-700"
-                      onClick={() => navigate("/trilha/2")}
+                        size="sm"
+                        className="bg-orange-600 hover:bg-orange-700"
+                        onClick={() => navigate("/trilha/2")}
                     >
                       Iniciar
                     </Button>
@@ -666,24 +582,24 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </Card>
 
               {/* Trilha 5: Mentoria de Empregabilidade */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-500 rounded-lg mb-4">
                     <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                     >
                       <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-black mb-2">
                     Mentoria de Empregabilidade
                   </h3>
                   <p className="text-gray-400 text-sm mb-4">
@@ -692,9 +608,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">10 módulos</span>
                     <Button
-                      size="sm"
-                      className="bg-yellow-600 hover:bg-yellow-700"
-                      onClick={() => navigate("/trilha/6")}
+                        size="sm"
+                        className="bg-yellow-600 hover:bg-yellow-700"
+                        onClick={() => navigate("/trilha/6")}
                     >
                       Iniciar
                     </Button>
@@ -715,9 +631,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 {/* Thumbnail estática */}
                 <div className="md:w-1/3 relative">
                   <img
-                    src="https://img.youtube.com/vi/DogH89e7Ib0/hqdefault.jpg"
-                    alt="Thumbnail Aulão"
-                    className="w-full aspect-video rounded-l-lg object-cover"
+                      src="https://img.youtube.com/vi/DogH89e7Ib0/hqdefault.jpg"
+                      alt="Thumbnail Aulão"
+                      className="w-full aspect-video rounded-l-lg object-cover"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Play className="w-16 h-16 text-white opacity-75" />
@@ -746,38 +662,38 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                         </div>
                         <div className="flex items-center space-x-1">
                           <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
                           >
                             <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                             />
                           </svg>
                           <span>Samantha Andrade</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
                           >
                             <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                             />
                             <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                             />
                           </svg>
                           <span>1.2k assistindo</span>
@@ -786,8 +702,8 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     </div>
 
                     <Button
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-semibold"
-                      onClick={() => setIsVideoOpen(true)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-semibold"
+                        onClick={() => setIsVideoOpen(true)}
                     >
                       <Play className="w-5 h-5 mr-2" />
                       Assistir Aula
@@ -800,45 +716,47 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
           {/* Modal */}
           {isVideoOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-              <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
-                <button
-                  className="absolute top-2 right-2 text-white p-1 rounded-full hover:bg-white/20"
-                  onClick={() => setIsVideoOpen(false)}
-                >
-                  <X className="w-6 h-6" />
-                </button>
-                <div className="relative pb-[56.25%]">
-                  <iframe
-                    src="https://www.youtube.com/embed/DogH89e7Ib0"
-                    title="Aulão - Etapas de processo seletivo e sua carreira no Agro"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="absolute top-0 left-0 w-full h-full"
-                  />
-                </div>
-                <div className="p-4 flex justify-end">
-                  <Button
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-                    onClick={() => setIsVideoOpen(false)}
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+                <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
+                  <button
+                      className="absolute top-2 right-2 text-white p-1 rounded-full hover:bg-white/20"
+                      onClick={() => setIsVideoOpen(false)}
                   >
-                    Sair da aula
-                  </Button>
+                    <X className="w-6 h-6" />
+                  </button>
+                  <div className="relative pb-[56.25%]">
+                    <iframe
+                        src="https://www.youtube.com/embed/DogH89e7Ib0"
+                        title="Aulão - Etapas de processo seletivo e sua carreira no Agro"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="absolute top-0 left-0 w-full h-full"
+                    />
+                  </div>
+                  <div className="p-4 flex justify-end">
+                    <Button
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                        onClick={() => setIsVideoOpen(false)}
+                    >
+                      Sair da aula
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
           )}
         </div>
       </div>
 
-      {/* Modais */}
-      <TrilhaRequirementModal
-        isOpen={showTrilhaModal}
-        onClose={() => setShowTrilhaModal(false)}
-        trilhaName={selectedTrilha}
-      />
+      {showTrilhaModal && (
+        <TrilhaRequirementModal
+          trilhaName={selectedTrilha}
+          onClose={() => setShowTrilhaModal(false)}
+        />
+      )}
     </>
   );
 };
 
 export default Dashboard;
+
+
