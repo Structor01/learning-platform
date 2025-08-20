@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "cross-env VITE_API_URL=https://learning-platform-backend-2x39.onrender.com vite build && firebase deploy",
+    "build": "cross-env VITE_API_URL=https://learning-platform-backend-2x39.onrender.com vite build && firebase deploy && git add . && git commit -m 'Build to Prod' && git push",
     "lint": "eslint .",
     "preview": "vite preview"
   },
