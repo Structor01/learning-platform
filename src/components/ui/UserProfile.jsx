@@ -692,7 +692,7 @@ const UserProfile = () => {
                     </Avatar>
                     
                     {/* Botão de upload de imagem */}
-                    <div className="absolute -bottom-1 -right-1">
+                    <div className="">
                       <label 
                         htmlFor="profile-image-upload" 
                         className="w-8 h-8 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center cursor-pointer transition-colors"
