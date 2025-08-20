@@ -123,7 +123,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
               </a>
 
               {/* Menu Administrador */}
-              {userData.email === "kauanytorres19@gmail.com" && (
+              {userData.email === "artfbgyn@gmail.com" && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
