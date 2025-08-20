@@ -49,7 +49,7 @@ const InterviewCompletionPage = ({
   const getScoreColor = (score) => {
     if (score >= 8) return 'text-green-600';
     if (score >= 6) return 'text-yellow-600';
-    return 'text-red-600';
+    return 'text-red-700';
   };
 
   // Determinar cor de fundo do score
@@ -68,7 +68,6 @@ const InterviewCompletionPage = ({
       } else {
         // Simular geração de PDF
         await new Promise(resolve => setTimeout(resolve, 2000));
-        console.log('PDF gerado com sucesso');
       }
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);

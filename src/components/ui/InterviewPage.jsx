@@ -66,8 +66,6 @@ const InterviewPage = () => {
         setCandidaturaId(candidaturaIdParam);
       }
 
-      console.log('📋 Dados da vaga carregados:', decodedJobData);
-      console.log('🎯 ID da candidatura:', candidaturaIdParam);
 
     } catch (error) {
       console.error('Erro ao carregar dados da vaga:', error);
@@ -88,7 +86,6 @@ const InterviewPage = () => {
       setGeneratingQuestions(true);
       setShowInterviewModal(true);
       
-      console.log('🎬 Iniciando entrevista para:', jobData.title);
       
       // Criar entrevista no backend
       const createResult = await interviewService.createInterview(
@@ -132,7 +129,6 @@ const InterviewPage = () => {
         
         setInterviewQuestions(defaultQuestions);
         
-        console.log(`✅ Entrevista criada! ID: ${createResult.interview.id}. ${defaultQuestions.length} perguntas preparadas.`);
       } else {
         throw new Error(createResult.error || 'Erro ao criar entrevista');
       }
@@ -154,7 +150,6 @@ const InterviewPage = () => {
     }
 
     try {
-      console.log(`📹 Processando resposta da pergunta ${questionIndex + 1}...`);
       
       // Usar uploadVideoResponse em vez de submitVideoResponse
       const result = await interviewService.uploadVideoResponse(
@@ -165,7 +160,6 @@ const InterviewPage = () => {
       );
 
       if (result.success) {
-        console.log(`✅ Resposta ${questionIndex + 1} enviada com sucesso!`);
         
         // Aguardar processamento IA
         try {
@@ -177,7 +171,6 @@ const InterviewPage = () => {
           );
 
           if (processingResult.success) {
-            console.log(`🤖 IA processou resposta ${questionIndex + 1}: Score ${processingResult.analysisScore}/10`);
           }
         } catch (processingError) {
           console.warn('⚠️ Processamento IA demorou mais que esperado:', processingError.message);
@@ -207,13 +200,11 @@ const InterviewPage = () => {
     }
 
     try {
-      console.log('🏁 Finalizando entrevista...');
       
       // Usar finishInterview em vez de completeInterview
       const result = await interviewService.finishInterview(currentInterviewId);
       
       if (result.success) {
-        console.log('✅ Entrevista finalizada com sucesso!');
         
         setInterviewCompleted(true);
         setCompletionData({
