@@ -608,24 +608,8 @@ const InterviewModal = ({
         setCurrentQuestion(questions.length - 1);
         isProcessingRef.current = false;
 
-        // Auto-finalizar entrevista quando todas perguntas são respondidas
-        setTimeout(() => {
-          if (onFinishInterview) {
-            console.log('🎯 Auto-finalizando entrevista...');
-            onFinishInterview();
-          }
-        }, 1000);
-      } else {
-        const nextQuestionIndex = questionIndex + 1;
-        console.log(`➡️ Próxima pergunta: ${nextQuestionIndex + 1}/${questions.length}`);
-
-        setTimeout(() => {
-          isProcessingRef.current = false;
-
-          if (nextQuestionIndex < questions.length) {
-            startRecordingWithCounter(nextQuestionIndex);
-          }
-        }, 500);
+        // ✅ ADICIONAR:
+        console.log('🏁 Todas as perguntas finalizadas. Aguardando ação do usuário.');
       }
 
     } catch (error) {
@@ -1009,14 +993,14 @@ const InterviewModal = ({
               <Button
                 onClick={handleFinishInterview}
                 className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 px-8 py-3 text-lg font-medium"
-                disabled={processingQuestions.size > 0 || interviewCompleted}
+                disabled={processingQuestions.size > 0 || interviewStatus === 'completed'}
               >
                 {processingQuestions.size > 0 ? (
                   <>
                     <Loader className="h-5 w-5 mr-2 animate-spin" />
                     Processando respostas...
                   </>
-                ) : interviewCompleted ? (
+                ) : interviewStatus === 'completed' ? (
                   <>
                     <CheckCircle className="h-5 w-5 mr-2" />
                     Entrevista Concluída

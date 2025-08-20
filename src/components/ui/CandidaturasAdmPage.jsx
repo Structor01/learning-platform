@@ -231,7 +231,7 @@ const CandidaturasAdmPage = () => {
                 const discPromises = usuarioIdsUnicos.map(async (usuarioId) => {
                     try {
                         const discData = await testService.getUserPsychologicalTests(usuarioId, 'completed', 1);
-                        
+
                         if (discData.tests && discData.tests.length > 0) {
                             const teste = discData.tests[0];
                             return {
@@ -266,7 +266,7 @@ const CandidaturasAdmPage = () => {
                     // Podem vir em candidatura.entrevistas ou candidatura.interviews
                     const entrevistasRaw = candidatura.entrevistas || candidatura.interviews || [];
                     const entrevistas = Array.isArray(entrevistasRaw) ? entrevistasRaw : [];
-                    
+
                     // Ordenar entrevistas por data de criação (mais recente primeiro)
                     const entrevistasOrdenadas = entrevistas.sort((a, b) =>
                         new Date(b.created_at) - new Date(a.created_at)
@@ -376,8 +376,8 @@ const CandidaturasAdmPage = () => {
                                                     </div>
                                                     <div className="text-right">
                                                         <div className={`px-3 py-1 rounded-full text-xs font-medium ${entrevista.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                                                                entrevista.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400' :
-                                                                    'bg-gray-500/20 text-gray-400'
+                                                            entrevista.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400' :
+                                                                'bg-gray-500/20 text-gray-400'
                                                             }`}>
                                                             {getInterviewStatusText(entrevista.status)}
                                                         </div>
@@ -494,9 +494,9 @@ const CandidaturasAdmPage = () => {
                                                                                 <div className="mb-3">
                                                                                     <button
                                                                                         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${selectedVideo &&
-                                                                                                selectedVideo.bunny_video_id === firstAnswer.bunny_video_id
-                                                                                                ? 'bg-red-600 hover:bg-red-700 text-white'
-                                                                                                : 'bg-blue-600 hover:bg-blue-700 text-white'
+                                                                                            selectedVideo.bunny_video_id === firstAnswer.bunny_video_id
+                                                                                            ? 'bg-red-600 hover:bg-red-700 text-white'
+                                                                                            : 'bg-blue-600 hover:bg-blue-700 text-white'
                                                                                             }`}
                                                                                         onClick={() => {
                                                                                             const isVideoOpen = selectedVideo &&
@@ -775,7 +775,7 @@ const CandidaturasAdmPage = () => {
     // Candidaturas filtradas com memoization para otimizar performance
     const candidaturasFiltradas = useMemo(() => {
         return candidaturas.filter(candidatura => {
-            const matchesSearch = !searchTerm || 
+            const matchesSearch = !searchTerm ||
                 candidatura.vaga?.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 candidatura.vaga?.empresa?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 candidatura.usuario?.nome?.toLowerCase().includes(searchTerm.toLowerCase());
