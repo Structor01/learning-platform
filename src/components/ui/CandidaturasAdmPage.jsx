@@ -35,6 +35,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "./Navbar";
 import testService from "../../services/testService";
 import interviewService from "../../services/interviewService";
+import CandidaturasPorVaga from './CandidaturasPorVaga';
+import InterviewDetailsModal from "./InterviewDetailsModal";
 
 const discConfig = {
     D: { name: "Dominância", color: "from-red-500 to-red-600" },
@@ -54,6 +56,8 @@ const CandidaturasAdmPage = () => {
     const [modalDisc, setModalDisc] = useState({ isOpen: false, resultado: "", nome: "" });
     const [modalInterview, setModalInterview] = useState({ isOpen: false, entrevistas: [], nome: "", candidaturaId: null });
     const [selectedVideo, setSelectedVideo] = useState(null);
+    const [selectedInterviewDetails, setSelectedInterviewDetails] = useState(null);
+    const [showInterviewDetails, setShowInterviewDetails] = useState(false);
 
     // Carregar dados da API
     useEffect(() => {
@@ -103,10 +107,176 @@ const CandidaturasAdmPage = () => {
         }
     };
 
-    const buscarEmpresa = (candidatura) => {
-        // Função placeholder - pode ser implementada futuramente
-        console.log('Ver empresa:', candidatura.vaga?.empresa);
-        alert(`Empresa: ${candidatura.vaga?.empresa || 'Não informada'}`);
+    // Função para visualizar detalhes da entrevista
+    const handleViewInterviewDetails = async (interview) => {
+        try {
+            setLoading(true);
+            console.log('🔍 Iniciando busca de detalhes da entrevista:', {
+                interviewId: interview.id,
+                status: interview.status,
+                candidato: interview.candidato?.nome || interview.candidato?.name
+            });
+
+            // Verificar se temos token de acesso
+            const token = sessionStorage.getItem("accessToken") || accessToken;
+            if (!token) {
+                throw new Error('❌ Token de acesso não encontrado. Faça login novamente.');
+            }
+
+            console.log('🔐 Token encontrado, fazendo requisição...');
+
+            // Tentar buscar detalhes completos primeiro
+            let response = await fetch(`${API_URL}/api/interviews/${interview.id}/details`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Se endpoint /details não existir, usar método alternativo
+            if (!response.ok && response.status === 404) {
+                console.log('📋 Endpoint /details não encontrado, usando método alternativo...');
+                return await handleViewInterviewDetailsAlternative(interview.id, token);
+            }
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Erro na requisição:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: errorText
+                });
+                throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ Detalhes da entrevista carregados:', {
+                id: result.id,
+                questionsCount: result.questions?.length || 0,
+                status: result.status
+            });
+
+            setSelectedInterviewDetails(result);
+            setShowInterviewDetails(true);
+
+        } catch (error) {
+            console.error('❌ Erro completo ao buscar detalhes da entrevista:', {
+                message: error.message,
+                stack: error.stack
+            });
+            alert('Erro ao carregar detalhes da entrevista: ' + error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Método alternativo para buscar detalhes da entrevista
+    const handleViewInterviewDetailsAlternative = async (interviewId, token) => {
+        try {
+            console.log('🔄 Usando método alternativo para buscar detalhes...');
+
+            // Buscar entrevista básica
+            console.log(`📋 Buscando entrevista básica: ${API_URL}/api/interviews/${interviewId}`);
+            const interviewResponse = await fetch(`${API_URL}/api/interviews/${interviewId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!interviewResponse.ok) {
+                const errorText = await interviewResponse.text();
+                console.error('❌ Erro ao buscar entrevista básica:', {
+                    status: interviewResponse.status,
+                    error: errorText
+                });
+                throw new Error(`Erro ao buscar entrevista: ${interviewResponse.status} - ${interviewResponse.statusText}`);
+            }
+
+            const interview = await interviewResponse.json();
+            console.log('✅ Entrevista básica carregada:', {
+                id: interview.id,
+                status: interview.status,
+                candidate_name: interview.candidate_name
+            });
+
+            // Buscar respostas
+            console.log(`📋 Buscando respostas: ${API_URL}/api/interviews/${interviewId}/responses`);
+            const responsesResponse = await fetch(`${API_URL}/api/interviews/${interviewId}/responses`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            let responses = [];
+            if (responsesResponse.ok) {
+                responses = await responsesResponse.json();
+                console.log('✅ Respostas carregadas:', {
+                    count: responses.length,
+                    ids: responses.map(r => r.id)
+                });
+            } else {
+                const errorText = await responsesResponse.text();
+                console.warn('⚠️ Não foi possível buscar respostas:', {
+                    status: responsesResponse.status,
+                    error: errorText
+                });
+            }
+
+            // Estruturar dados no formato esperado pelo modal
+            const detailedInterview = {
+                ...interview,
+                questions: mapResponsesToQuestions(responses),
+                user: interview.user || {
+                    name: interview.candidate_name,
+                    email: interview.candidate_email
+                }
+            };
+
+            console.log('✅ Dados estruturados para modal:', {
+                id: detailedInterview.id,
+                questionsCount: detailedInterview.questions.length,
+                userName: detailedInterview.user?.name
+            });
+
+            setSelectedInterviewDetails(detailedInterview);
+            setShowInterviewDetails(true);
+
+        } catch (error) {
+            console.error('❌ Erro no método alternativo:', error);
+            throw error;
+        }
+    };
+
+    // Mapear respostas para formato de perguntas esperado pelo modal
+    const mapResponsesToQuestions = (responses) => {
+        if (!Array.isArray(responses)) return [];
+
+        return responses.map((response, index) => ({
+            id: response.id || `q-${index}`,
+            order: response.question_number || index + 1,
+            question: response.question || `Pergunta ${index + 1}`,
+            answers: response ? [{
+                id: response.id,
+                bunny_video_id: response.bunny_video_id,
+                bunny_library_id: response.bunny_library_id || '265939',
+                video_url: response.video_url,
+                stream_url: response.stream_url,
+                thumbnail_url: response.thumbnail_url,
+                video_size_bytes: response.video_size_bytes,
+                processing_status: response.processing_status || 'completed',
+                transcription: response.transcription,
+                analysis: response.analysis ? {
+                    score: response.analysis.score,
+                    feedback: response.analysis.feedback,
+                    timestamp: response.analysis.timestamp
+                } : null,
+                created_at: response.created_at,
+                updated_at: response.updated_at
+            }] : []
+        }));
     };
 
     // 1. Função para buscar currículo de um candidato específico
@@ -262,19 +432,42 @@ const CandidaturasAdmPage = () => {
 
                 // MAPEAR DADOS OTIMIZADOS (entrevistas já incluídas via LEFT JOIN)
                 candidaturas = candidaturas.map(candidatura => {
-                    // Processar entrevistas que já vêm do backend via LEFT JOIN
-                    // Podem vir em candidatura.entrevistas ou candidatura.interviews
-                    const entrevistasRaw = candidatura.entrevistas || candidatura.interviews || [];
-                    const entrevistas = Array.isArray(entrevistasRaw) ? entrevistasRaw : [];
+                    // Processar entrevistas que vêm em diferentes estruturas do backend
+                    let entrevistas = [];
+
+                    // 1. Verificar candidatura.usuario.entrevistas (array do JSON)
+                    if (candidatura.usuario?.entrevistas && Array.isArray(candidatura.usuario.entrevistas)) {
+                        entrevistas = [...candidatura.usuario.entrevistas];
+                    }
+
+                    // 2. Verificar candidatura.interview (objeto único)
+                    if (candidatura.interview && !entrevistas.find(e => e.id === candidatura.interview.id)) {
+                        entrevistas.push(candidatura.interview);
+                    }
+
+                    // 3. Verificar outras possíveis estruturas (fallback)
+                    if (entrevistas.length === 0) {
+                        const entrevistasRaw = candidatura.entrevistas || candidatura.interviews || [];
+                        entrevistas = Array.isArray(entrevistasRaw) ? entrevistasRaw : [];
+                    }
 
                     // Ordenar entrevistas por data de criação (mais recente primeiro)
-                    const entrevistasOrdenadas = entrevistas.sort((a, b) =>
-                        new Date(b.created_at) - new Date(a.created_at)
-                    );
+                    const entrevistasOrdenadas = entrevistas
+                        .filter(e => e && e.id) // Filtrar entrevistas válidas
+                        .sort((a, b) => {
+                            const dateA = new Date(a.updated_at || a.created_at || 0);
+                            const dateB = new Date(b.updated_at || b.created_at || 0);
+                            return dateB - dateA;
+                        });
 
-                    // Log apenas se necessário para debug
-                    if (process.env.NODE_ENV === 'development' && entrevistasOrdenadas.length > 0) {
-                        console.log(`📋 Candidatura ${candidatura.id}: ${entrevistasOrdenadas.length} entrevistas via LEFT JOIN - IDs: ${entrevistasOrdenadas.map(e => `#${e.id}`).join(', ')}`);
+                    // Log de debug
+                    if (process.env.NODE_ENV === 'development' && (entrevistasOrdenadas.length > 0 || candidatura.interview_id)) {
+                        console.log(`📋 Candidatura ${candidatura.id}:`, {
+                            interview_id: candidatura.interview_id,
+                            entrevistas_encontradas: entrevistasOrdenadas.length,
+                            entrevistas_ids: entrevistasOrdenadas.map(e => `#${e.id} (${e.status})`),
+                            status_candidatura: candidatura.status
+                        });
                     }
 
                     return {
@@ -313,7 +506,6 @@ const CandidaturasAdmPage = () => {
             setLoading(false);
         }
     };
-
 
     // MODAL DE HISTÓRICO DE ENTREVISTAS
     const InterviewHistoryModal = () => (
@@ -663,61 +855,6 @@ const CandidaturasAdmPage = () => {
         )
     );
 
-    // Componente: Botão de Análise Compacto
-    const CompactAnalysisButton = ({ type, data, usuario, size = "sm" }) => {
-        const configs = {
-            curriculo: {
-                icon: FileText,
-                color: "from-blue-500 to-blue-600",
-                onClick: () => setModalCurriculo({
-                    isOpen: true,
-                    url: data,
-                    nome: usuario?.nome || usuario?.name || 'Usuário'
-                })
-            },
-            disc: {
-                icon: Brain,
-                color: "from-purple-500 to-purple-600",
-                onClick: () => setModalDisc({
-                    isOpen: true,
-                    resultado: data,
-                    nome: usuario?.nome || usuario?.name || 'Usuário'
-                })
-            },
-            linkedin: {
-                icon: Linkedin,
-                color: "from-blue-600 to-blue-700",
-                onClick: () => window.open(data, '_blank')
-            }
-        };
-
-        const config = configs[type];
-        const Icon = config.icon;
-        const hasData = !!data;
-
-        const sizeClasses = {
-            sm: "w-8 h-8",
-            md: "w-10 h-10"
-        };
-
-        return (
-            <button
-                onClick={hasData ? config.onClick : undefined}
-                disabled={!hasData}
-                className={`
-                    ${sizeClasses[size]} rounded-lg flex items-center justify-center transition-all duration-200 
-                    ${hasData
-                        ? `bg-gradient-to-r ${config.color} hover:scale-110 hover:shadow-lg text-white cursor-pointer`
-                        : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                    }
-                `}
-                title={hasData ? `Ver ${type}` : `${type} não disponível`}
-            >
-                <Icon className={size === 'sm' ? "w-4 h-4" : "w-5 h-5"} />
-            </button>
-        );
-    };
-
     // Funções de estilo e formatação
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
@@ -751,19 +888,6 @@ const CandidaturasAdmPage = () => {
         }
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return "Data não disponível";
-        try {
-            return new Date(dateString).toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-            });
-        } catch (error) {
-            return "Data inválida";
-        }
-    };
-
     // Estatísticas calculadas com memoization
     const stats = useMemo(() => ({
         total: candidaturas.length,
@@ -793,309 +917,121 @@ const CandidaturasAdmPage = () => {
 
             {/* Navbar */}
             <Navbar />
-            {/* Header */}
-            <div className="mb-8 ">
-                <h1 className="text-3xl  font-bold  text-white  mb-2 ">
-                    CRM - Gestão de Leads
-                </h1>
-                <p className="text-gray-400 ">
-                    Dados em tempo real da tabela users via API NestJS
-                </p>
-            </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header com título e busca - VERSÃO HORIZONTAL */}
-                <div className="mb-8">
-                    <div className="flex items-center justify-between gap-6 mb-6">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+                {/* Header com título e busca - Responsivo */}
+                <div className="mt-20 sm:mb-8">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 mb-6">
                         {/* Título */}
                         <div className="min-w-0 flex-1">
-                            <h1 className="text-3xl font-bold text-white mb-2">
-                                Candidaturas dos Usuários
+                            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                                Candidaturas por Vagas
                             </h1>
                             <p className="text-gray-400 text-sm">
-                                Analise currículos, perfis DISC, resumos de entrevistas e gerencie candidaturas
+                                Visualize entrevistas agrupadas por vaga e gerencie candidaturas
                             </p>
                         </div>
 
-                        {/* Busca e Filtros */}
-                        <div className="flex items-center gap-3 min-w-96">
-                            <div className="relative flex-1">
+                        {/* Busca e Filtros - Responsivos */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto lg:min-w-80 xl:min-w-96">
+                            <div className="relative flex-1 lg:min-w-64">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                 <input
                                     type="text"
                                     placeholder="Buscar por vaga, empresa ou candidato..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none transition-colors"
+                                    className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-gray-400 focus:border-blue-500 focus:outline-none transition-colors text-sm sm:text-base"
                                 />
                             </div>
-                            <select
-                                value={filterStatus}
-                                onChange={(e) => setFilterStatus(e.target.value)}
-                                className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-colors min-w-36"
-                            >
-                                <option value="todos">Todos Status</option>
-                                <option value="aprovado">Aprovados</option>
-                                <option value="em_analise">Em Análise</option>
-                                <option value="pendente">Pendentes</option>
-                                <option value="reprovado">Reprovados</option>
-                            </select>
-                            <button
-                                onClick={fetchTodasCandidaturas}
-                                disabled={loading}
-                                className={`px-4 py-3 rounded-xl font-medium transition-all duration-300 flex items-center gap-2 ${loading
-                                    ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
-                                    : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg'
-                                    }`}
-                            >
-                                {loading ? (
-                                    <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
-                                ) : (
-                                    <TrendingUp className="w-4 h-4" />
-                                )}
-                                Atualizar
-                            </button>
+                            <div className="flex gap-3">
+                                <select
+                                    value={filterStatus}
+                                    onChange={(e) => setFilterStatus(e.target.value)}
+                                    className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:border-blue-500 focus:outline-none transition-colors text-sm sm:text-base flex-1 sm:flex-none sm:min-w-36"
+                                >
+                                    <option value="todos">Todos Status</option>
+                                    <option value="aprovado">Aprovados</option>
+                                    <option value="em_analise">Em Análise</option>
+                                    <option value="pendente">Pendentes</option>
+                                    <option value="reprovado">Reprovados</option>
+                                </select>
+                                <button
+                                    onClick={fetchTodasCandidaturas}
+                                    disabled={loading}
+                                    className={`px-4 py-3 rounded-xl font-medium transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base flex-shrink-0 ${loading
+                                        ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                                        : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg'
+                                        }`}
+                                >
+                                    {loading ? (
+                                        <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <TrendingUp className="w-4 h-4" />
+                                    )}
+                                    <span className="hidden sm:inline">Atualizar</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Estatísticas */}
-                    <div className="grid grid-cols-4 gap-4 mb-8">
+                    {/* Estatísticas - Responsivas */}
+                    <div className="grid grid-cols-4 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
                         {/* Total */}
-                        <div className="rounded-xl p-4 from-slate-900 via-gray-900 to-slate-800 border border-gray-800 text-center hover:border-gray-700 transition-colors">
-                            <div className="w-10 h-10 mx-auto mb-3 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <Briefcase className="w-5 h-5 text-white" />
+                        <div className="rounded-xl p-3 sm:p-4 bg-white/5 border border-gray-800 text-center hover:border-gray-700 transition-colors">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 sm:mb-3 bg-blue-600 rounded-lg flex items-center justify-center">
+                                <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             </div>
-                            <div className="text-xl font-bold text-white mb-1">{stats.total}</div>
-                            <div className="text-sm text-gray-400">Total</div>
+                            <div className="text-lg sm:text-xl font-bold text-white mb-1">{stats.total}</div>
+                            <div className="text-xs sm:text-sm text-gray-400">Total</div>
                         </div>
 
                         {/* Aprovadas */}
-                        <div className="rounded-xl p-4 from-slate-900 via-gray-900 to-slate-800 border border-gray-800 text-center hover:border-gray-700 transition-colors">
-                            <div className="w-10 h-10 mx-auto mb-3 bg-green-600 rounded-lg flex items-center justify-center">
-                                <CheckCircle className="w-5 h-5 text-white" />
+                        <div className="rounded-xl p-3 sm:p-4 bg-white/5 border border-gray-800 text-center hover:border-gray-700 transition-colors">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 sm:mb-3 bg-green-600 rounded-lg flex items-center justify-center">
+                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             </div>
-                            <div className="text-xl font-bold text-white mb-1">{stats.aprovadas}</div>
-                            <div className="text-sm text-gray-400">Aprovadas</div>
+                            <div className="text-lg sm:text-xl font-bold text-white mb-1">{stats.aprovadas}</div>
+                            <div className="text-xs sm:text-sm text-gray-400">Aprovadas</div>
                         </div>
 
                         {/* Em Análise */}
-                        <div className="rounded-xl p-4 from-slate-900 via-gray-900 to-slate-800 border border-gray-800 text-center hover:border-gray-700 transition-colors">
-                            <div className="w-10 h-10 mx-auto mb-3 bg-orange-600 rounded-lg flex items-center justify-center">
-                                <Clock className="w-5 h-5 text-white" />
+                        <div className="rounded-xl p-3 sm:p-4 bg-white/5 border border-gray-800 text-center hover:border-gray-700 transition-colors">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 sm:mb-3 bg-orange-600 rounded-lg flex items-center justify-center">
+                                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             </div>
-                            <div className="text-xl font-bold text-white mb-1">{stats.pendentes}</div>
-                            <div className="text-sm text-gray-400">Em Análise</div>
+                            <div className="text-lg sm:text-xl font-bold text-white mb-1">{stats.pendentes}</div>
+                            <div className="text-xs sm:text-sm text-gray-400">Em Análise</div>
                         </div>
 
                         {/* Reprovadas */}
-                        <div className="rounded-xl p-4 from-slate-900 via-gray-900 to-slate-800 border border-gray-800 text-center hover:border-gray-700 transition-colors">
-                            <div className="w-10 h-10 mx-auto mb-3 bg-red-600 rounded-lg flex items-center justify-center">
-                                <XCircle className="w-5 h-5 text-white" />
+                        <div className="rounded-xl p-3 sm:p-4 bg-white/5 border border-gray-800 text-center hover:border-gray-700 transition-colors">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 sm:mb-3 bg-red-600 rounded-lg flex items-center justify-center">
+                                <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                             </div>
-                            <div className="text-xl font-bold text-white mb-1">{stats.reprovadas}</div>
-                            <div className="text-sm text-gray-400">Reprovadas</div>
+                            <div className="text-lg sm:text-xl font-bold text-white mb-1">{stats.reprovadas}</div>
+                            <div className="text-xs sm:text-sm text-gray-400">Reprovadas</div>
                         </div>
                     </div>
                 </div>
 
-                {/* Grid de Candidaturas - VERSÃO COMPACTA */}
-                {loading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                            <p className="text-white">Carregando candidaturas...</p>
-                        </div>
-                    </div>
-                ) : error ? (
-                    <div className="bg-red-900/30 border border-red-700/50 rounded-xl p-6 mb-6">
-                        <div className="flex items-center gap-3 mb-3">
-                            <AlertCircle className="w-6 h-6 text-red-400" />
-                            <h3 className="text-lg font-semibold text-red-300">Erro ao Carregar Dados</h3>
-                        </div>
-                        <p className="text-red-200 mb-4">{error}</p>
-                        <button
-                            onClick={fetchTodasCandidaturas}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
-                        >
-                            Tentar Novamente
-                        </button>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-                        {candidaturasFiltradas.map((candidatura) => {
-                            const hasInterview = candidatura.usuario?.entrevistas && candidatura.usuario.entrevistas.length > 0;
-                            const lastInterview = hasInterview ? candidatura.usuario.entrevistas[0] : null;
-
-                            return (
-                                <div
-                                    key={candidatura.id}
-                                    className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-3 hover:bg-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 cursor-pointer"
-                                    onClick={() => {
-                                        if (hasInterview) {
-                                            setModalInterview({
-                                                isOpen: true,
-                                                entrevistas: candidatura.usuario.entrevistas,
-                                                nome: candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário',
-                                                candidaturaId: candidatura.id
-                                            });
-                                        }
-                                    }}
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
-
-                                    <div className="relative z-10 text-center">
-                                        {/* Ícone Principal */}
-                                        <div className={`w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center relative ${hasInterview
-                                            ? `bg-gradient-to-r ${getInterviewStatusColor(lastInterview.status)}`
-                                            : 'bg-gray-700'
-                                            }`}>
-                                            {hasInterview ? (
-                                                <BarChart3 className="w-5 h-5 text-white" />
-                                            ) : (
-                                                <User className="w-5 h-5 text-gray-400" />
-                                            )}
-
-                                            {/* Badge do ID da Entrevista */}
-                                            {hasInterview && (
-                                                <div className="absolute -top-1 -right-1 bg-blue-600 text-white text-[8px] rounded-full px-1 py-0.5 font-bold min-w-[14px] text-center leading-tight">
-                                                    {lastInterview.id}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Nome do Candidato */}
-                                        <h3 className="font-bold text-white text-xs mb-1 truncate">
-                                            {candidatura.usuario?.nome || candidatura.usuario?.name || "Nome não informado"}
-                                        </h3>
-
-                                        {/* Subtitle - Empresa */}
-                                        <p className="text-xs text-gray-400 mb-2 truncate">
-                                            {candidatura.vaga?.empresa || "Empresa"}
-                                        </p>
-
-                                        {/* Status da Entrevista */}
-                                        {hasInterview ? (
-                                            <div className="bg-blue-500/20 border border-blue-500/30 rounded-md px-2 py-1 mb-2">
-                                                <p className="text-xs text-blue-300 font-medium">
-                                                    #{lastInterview.id}
-                                                </p>
-                                                <p className="text-xs text-gray-400">
-                                                    {getInterviewStatusText(lastInterview.status)}
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <div className="bg-gray-700/50 border border-gray-600 rounded-md px-2 py-1 mb-2">
-                                                <p className="text-xs text-gray-400">
-                                                    Sem entrevista
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Botões de Ação Compactos */}
-                                        <div className="flex items-center justify-center gap-1 mb-2">
-                                            {/* Currículo */}
-                                            <div
-                                                className={`w-5 h-5 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.curriculo_url
-                                                    ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700'
-                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                                                    }`}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (candidatura.usuario?.curriculo_url) {
-                                                        handleViewCurriculoCandidato(
-                                                            candidatura.usuario_id,  // ID do usuário
-                                                            candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário'
-                                                        );
-                                                    }
-                                                }}
-                                                title={candidatura.usuario?.curriculo_url ? "Ver currículo" : "Currículo não disponível"}
-                                            >
-                                                <FileText className="w-2.5 h-2.5" />
-                                            </div>
-
-                                            {/* DISC */}
-                                            <div
-                                                className={`w-5 h-5 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.perfil_disc
-                                                    ? 'bg-purple-600 text-white cursor-pointer hover:bg-purple-700'
-                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                                                    }`}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (candidatura.usuario?.perfil_disc) {
-                                                        setModalDisc({
-                                                            isOpen: true,
-                                                            resultado: candidatura.usuario.perfil_disc,
-                                                            nome: candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário'
-                                                        });
-                                                    }
-                                                }}
-                                                title={candidatura.usuario?.perfil_disc ? "Ver perfil DISC" : "DISC não disponível"}
-                                            >
-                                                <Brain className="w-2.5 h-2.5" />
-                                            </div>
-
-                                            {/* LinkedIn */}
-                                            <div
-                                                className={`w-5 h-5 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.linkedin
-                                                    ? 'bg-blue-700 text-white cursor-pointer hover:bg-blue-800'
-                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                                                    }`}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (candidatura.usuario?.linkedin) {
-                                                        window.open(candidatura.usuario.linkedin, '_blank');
-                                                    }
-                                                }}
-                                                title={candidatura.usuario?.linkedin ? "Ver LinkedIn" : "LinkedIn não disponível"}
-                                            >
-                                                <Linkedin className="w-2.5 h-2.5" />
-                                            </div>
-
-                                            {/* Empresa */}
-                                            <div
-                                                className="w-5 h-5 rounded-md flex items-center justify-center text-xs bg-indigo-600 text-white cursor-pointer hover:bg-indigo-700"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    buscarEmpresa(candidatura);
-                                                }}
-                                                title="Ver empresa"
-                                            >
-                                                <Building2 className="w-2.5 h-2.5" />
-                                            </div>
-                                        </div>
-
-                                        {/* Footer Minimalista */}
-                                        <div className="flex items-center justify-between text-xs text-gray-500">
-                                            <span>#{candidatura.id}</span>
-                                            <div className={`w-3 h-3 rounded-full flex items-center justify-center ${getStatusColor(candidatura.status).replace('bg-', 'bg-').replace('text-', 'text-').replace('border-', '')}`}>
-                                                {getStatusIcon(candidatura.status)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-
-                        {/* Estado vazio */}
-                        {candidaturasFiltradas.length === 0 && (
-                            <div className="col-span-full text-center py-12">
-                                <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Search className="w-8 h-8 text-gray-400" />
-                                </div>
-                                <h3 className="text-xl font-medium text-white mb-2">Nenhuma candidatura encontrada</h3>
-                                <p className="text-gray-400">
-                                    {searchTerm || filterStatus !== "todos"
-                                        ? "Tente ajustar os filtros de busca"
-                                        : "Ainda não há candidaturas para exibir"
-                                    }
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                )}
+                {/* Componente de Candidaturas Agrupadas por Vaga */}
+                <CandidaturasPorVaga
+                    candidaturasFiltradas={candidaturasFiltradas}
+                    loading={loading}
+                    error={error}
+                    searchTerm={searchTerm}
+                    filterStatus={filterStatus}
+                    onRetry={fetchTodasCandidaturas}
+                    onOpenInterviewModal={setModalInterview}
+                    onViewCurriculo={handleViewCurriculoCandidato}
+                    onViewDisc={setModalDisc}
+                    onViewLinkedin={(url) => window.open(url, '_blank')}
+                    onViewInterviewDetails={handleViewInterviewDetails}
+                />
             </div>
         </div>
     );
-}
+};
 
 export default CandidaturasAdmPage;
