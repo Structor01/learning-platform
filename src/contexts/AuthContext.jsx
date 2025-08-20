@@ -1,7 +1,32 @@
 // src/contexts/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
 
 const AuthContext = createContext();
+
+const api = axios.create({
+  baseURL: "https://app.agroskills.com.br/api",
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  }
+});
+
+api.defaults.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('token');
+
+api.interceptors.response.use(
+    response => response,
+    async error => {
+      if (error.response?.status === 401) {
+        if (error.response?.data.error !== "Usuário ou senha incorretos"){
+          Storage.removeApiToken();
+          window.location.href = '/';
+        }
+
+      }
+      return Promise.reject(error);
+    }
+);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -98,6 +123,11 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     console.log(">>> [DEBUG] Tentando conectar à API em:", API_URL);
+
+    const token = await api.post('auth', { email, password });
+
+    localStorage.setItem('token', token.data.data.token);
+
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -147,31 +147,6 @@ const DISCIncentiveModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* DISC Profiles Preview */}
-            <div className="mb-8">
-              <h3 className="text-xl font-semibold text-white mb-6 text-center">
-                Conheça os 4 Perfis DISC:
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {profiles.map((profile, index) => (
-                  <motion.div
-                    key={profile.type}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5 + index * 0.1 }}
-                    className="text-center"
-                  >
-                    <div className={`w-16 h-16 bg-gradient-to-r ${profile.color} rounded-2xl flex items-center justify-center mx-auto mb-3`}>
-                      <profile.icon className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="text-2xl font-bold text-white mb-1">{profile.type}</div>
-                    <div className="text-sm font-medium text-gray-300 mb-1">{profile.name}</div>
-                    <div className="text-xs text-gray-400">{profile.description}</div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
             {/* Test Info */}
             <div className="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
               <div className="flex items-center justify-center space-x-8 text-center">
