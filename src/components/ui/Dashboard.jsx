@@ -119,7 +119,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   };
 
   // Protegendo acesso aos campos de DISC e progresso
-  const predominant = discProfile?.predominant ?? "Conforme";
+  const predominant = userData.discProfile?.predominant ?? "Conforme";
   const currentProgress = userData.progress?.currentProgress ?? 0;
 
   // Função para lidar com clique em curso
@@ -152,64 +152,95 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
           <div className="mb-8 overflow-x-auto">
-            <div className="flex justify-between items-center">
-              {/* Bloco de boas-vindas e perfil DISC */}
-              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''}/>
-              <div className={"flex flex-col"}>
+            <div className="flex flex-col lg:!flex-row lg:!items-center lg:!justify-between gap-6 min-w-fit">
+              <div className="flex-shrink-0">
                 <h1 className="text-3xl font-bold text-black mb-2">
                   Olá, {userData.name.split(" ")[0]}!
                 </h1>
-
-                <div className={"grid grid-cols-2 gap-3"}>
-                  <div className={"flex items-center justify-start"}>
-                    <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_disc)} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc.charAt(0)}</span>
-                    </div>
-                    <span className="text-gray-700 ml-3">{userData.userLegacy?.perfil_disc}</span>
-                  </div>
-                  <div className={"flex items-center justify-start"}>
-                    <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_lideranca)} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca.charAt(0)}</span>
-                    </div>
-                    <span className="text-gray-300 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
-                  </div>
-                </div>
-
-
-              </div>
-
-              <div className="flex-shrink-0 lg:w-2/3">
-
-                <div className="flex items-center m-3 space-x-4">
+                <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
-
-                    {/* Card Análise DISC ocupando 1/3 da tela */}
+                    <div
+                      className={`w-6 h-6 ${getDiscColor(
+                        userData.userLegacy?.perfil_disc || predominant
+                      )} rounded-full flex items-center justify-center`}
+                    >
+                      <span className="text-white text-xs font-bold">
+                        {(userData.userLegacy?.perfil_disc || predominant).charAt(0)}
+                      </span>
+                    </div>
+                    <span className="text-gray-700">Perfil: {userData.userLegacy?.perfil_disc || predominant}</span>
                   </div>
+                  {userData.userLegacy?.perfil_lideranca && (
+                    <div className="flex items-center space-x-2">
+                      <div
+                        className={`w-6 h-6 ${getDiscColor(
+                          userData.userLegacy?.perfil_lideranca
+                        )} rounded-full flex items-center justify-center`}
+                      >
+                        <span className="text-white text-xs font-bold">
+                          {userData.userLegacy?.perfil_lideranca.charAt(0)}
+                        </span>
+                      </div>
+                      <span className="text-gray-700">Liderança: {userData.userLegacy?.perfil_lideranca}</span>
+                    </div>
+                  )}
                 </div>
-                {discProfile && discProfile.overall_analysis && (
-                  <div className="lg:w-1/3 w-full">
-                    <Card className="bg-black/60 border border-gray-800 shadow-lg">
-                      <CardContent className="p-3">
-                        <h4 className="text-lg font-bold text-white mb-2">
-                          Análise DISC
-                        </h4>
-                        <p className="text-gray-300 text-sm whitespace-pre-line">
-                          {discProfile.overall_analysis}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
               </div>
 
+              {/* Card Gestão de Carreira - Acesso Gratuito */}
+              <div className="lg:!w-80 flex-shrink-0">
+                <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-90 cursor-pointer shadow-xl">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                          <svg
+                            className="w-6 h-6 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13 10V3L4 14h7v7l9-11h-7z"
+                            />
+                          </svg>
+                        </div>
+                        <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                          GRÁTIS
+                        </div>
+                      </div>
+                    </div>
 
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      Gestão de Carreira
+                    </h3>
+                    <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+                      Estratégias avançadas para acelerar sua carreira no agro
+                    </p>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-500 text-sm">17 módulos</span>
+                      <Button
+                        size="sm"
+                        onClick={() => navigate("/trilha/2")}
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold"
+                      >
+                        Iniciar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
 
           {/* Últimas Vagas - Nova Seção */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-black">
                 Últimas Vagas
               </h2>
               <Button
@@ -243,30 +274,30 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       <Card
                           key={vaga.id}
                           onClick={() => navigate(`/vagas/${vaga.id}`)}
-                          className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                          className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
                       >
                         <CardContent className="p-6">
                           <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
                             <Briefcase className="w-6 h-6 text-white" />
                           </div>
 
-                          <h3 className="text-lg font-semibold text-white mb-2 line-clamp-2">
+                          <h3 className="text-lg font-semibold text-black mb-2 line-clamp-2">
                             {vaga.title || vaga.nome}
                           </h3>
 
-                          <p className="text-gray-400 text-sm mb-3 line-clamp-2">
+                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                             {getEmpresaNome(vaga.empresa_id)}
                           </p>
 
                           <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-gray-600">
                               <MapPin className="w-3 h-3" />
                               <span className="truncate">
                             {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
                           </span>
                             </div>
 
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 text-xs text-gray-600">
                               <Building2 className="w-3 h-3" />
                               <span className="truncate">
                             {vaga.job_type || vaga.modalidade}
@@ -278,9 +309,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   ))}
                 </div>
             ) : (
-                <div className="text-center py-12 bg-gray-900 rounded-lg border border-gray-800">
-                  <Briefcase className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-400">
+                <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                  <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">
                     Nenhuma vaga disponível no momento
                   </p>
                   <Button
@@ -297,7 +328,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           {/* Biblioteca de Aplicativos - Movida para cima */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-black">
                 Biblioteca de Aplicativos
               </h2>
               {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
@@ -484,196 +515,142 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           {/* Trilhas para acelerar sua carreira */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-black">
                 Trilhas para acelerar sua carreira
               </h2>
               {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
-              {/*  Ver todas <ChevronRight className="w-4 h-4 ml-1" />*/}
+              {/*  Ver todos <ChevronRight className="w-4 h-4 ml-1" />*/}
               {/*</Button>*/}
             </div>
 
-            <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-4 gap-6">
-              {/* Trilha 1: Autoconhecimento para Aceleração de Carreiras */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+            <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 gap-6">
+              {/* Trilha 1 */}
+              <Card
+                className="bg-gradient-to-br from-purple-600 to-indigo-700 border-purple-700 hover:from-purple-700 hover:to-indigo-800 transition-all duration-300 transform hover:scale-90 cursor-pointer shadow-xl"
+                onClick={() => handleTrilhaClick("Trilha 1")}
+              >
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg mb-4">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-12 h-12 bg-purple-800 rounded-xl flex items-center justify-center">
+                      <svg
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-semibold">
+                      NOVO
+                    </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Autoconhecimento para Aceleração de Carreiras
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    Trilha de Desenvolvimento Pessoal
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">
-                    Descubra seus pontos fortes e acelere sua carreira no
-                    agronegócio
+                  <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+                    Desenvolva habilidades essenciais para o sucesso
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">7 módulos</span>
+                    <span className="text-gray-400 text-sm">10 módulos</span>
                     <Button
                       size="sm"
-                      onClick={() => navigate("/trilha/3")}
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className="bg-purple-700 hover:bg-purple-800 text-white px-6 py-2 rounded-lg font-semibold"
                     >
-                      Iniciar
+                      Explorar
                     </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Trilha 2: Introdução a Finanças Pessoais */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              {/* Trilha 2 */}
+              <Card
+                className="bg-gradient-to-br from-teal-600 to-cyan-700 border-teal-700 hover:from-teal-700 hover:to-cyan-800 transition-all duration-300 transform hover:scale-90 cursor-pointer shadow-xl"
+                onClick={() => handleTrilhaClick("Trilha 2")}
+              >
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg mb-4">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                      />
-                    </svg>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-12 h-12 bg-teal-800 rounded-xl flex items-center justify-center">
+                      <svg
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6.253v13m0-13C10.832 5.477 9.208 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.792 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.792 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.208 18 16.5 18s-3.332-.477-4.5-1.253"
+                        />
+                      </svg>
+                    </div>
+                    <div className="bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-semibold">
+                      POPULAR
+                    </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Introdução a Finanças Pessoais
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    Trilha de Liderança e Gestão
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">
-                    Fundamentos para gerenciar suas finanças no agronegócio
+                  <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+                    Desenvolva suas habilidades de liderança e gestão de equipes
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">5 módulos</span>
+                    <span className="text-gray-400 text-sm">15 módulos</span>
                     <Button
                       size="sm"
-                      onClick={() => navigate("/trilha/4")}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="bg-teal-700 hover:bg-teal-800 text-white px-6 py-2 rounded-lg font-semibold"
                     >
-                      Iniciar
+                      Explorar
                     </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Trilha 3: Auto análise e Foco em metas */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              {/* Trilha 3 */}
+              <Card
+                className="bg-gradient-to-br from-red-600 to-pink-700 border-red-700 hover:from-red-700 hover:to-pink-800 transition-all duration-300 transform hover:scale-90 cursor-pointer shadow-xl"
+                onClick={() => handleTrilhaClick("Trilha 3")}
+              >
                 <CardContent className="p-6">
-                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg mb-4">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                      />
-                    </svg>
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-12 h-12 bg-red-800 rounded-xl flex items-center justify-center">
+                      <svg
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H2v-2a3 3 0 015.356-1.857M17 20v-9a2 2 0 00-2-2H9a2 2 0 00-2 2v9M4 10V7a3 3 0 013-3h10a3 3 0 013 3v3"
+                        />
+                      </svg>
+                    </div>
+                    <div className="bg-yellow-400 text-black text-xs px-2 py-1 rounded-full font-semibold">
+                      EM BREVE
+                    </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Auto análise e Foco em metas
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    Trilha de Inovação e Tecnologia
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">
-                    Defina objetivos claros e alcance suas metas profissionais
+                  <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+                    Explore as últimas tendências em inovação e tecnologia
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">7 módulos</span>
+                    <span className="text-gray-400 text-sm">12 módulos</span>
                     <Button
                       size="sm"
-                      onClick={() => navigate("/trilha/5")}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-red-700 hover:bg-red-800 text-white px-6 py-2 rounded-lg font-semibold"
                     >
-                      Iniciar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Trilha 4: Gestão de Carreira */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Gestão de Carreira
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-4">
-                    Estratégias avançadas para acelerar sua carreira no agro
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">17 módulos</span>
-                    <Button
-                      size="sm"
-                      className="bg-orange-600 hover:bg-orange-700"
-                      onClick={() => navigate("/trilha/2")}
-                    >
-                      Iniciar
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Trilha 5: Mentoria de Empregabilidade */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-500 rounded-lg mb-4">
-                    <svg
-                      className="w-6 h-6 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 10V3L4 14h7v7l9-11h-7z"
-                      />
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    Mentoria de Empregabilidade
-                  </h3>
-                  <p className="text-gray-400 text-sm mb-4">
-                    Acelere sua carreira no agro com nossa mentoria
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">10 módulos</span>
-                    <Button
-                      size="sm"
-                      className="bg-yellow-600 hover:bg-yellow-700"
-                      onClick={() => navigate("/trilha/6")}
-                    >
-                      Iniciar
+                      Explorar
                     </Button>
                   </div>
                 </CardContent>
@@ -681,141 +658,128 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </div>
           </section>
 
-          {/* Última Aula - Nova Seção */}
+          {/* Cursos em Destaque */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Última Aula</h2>
+              <h2 className="text-2xl font-bold text-black">
+                Cursos em Destaque
+              </h2>
+              {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
+              {/*  Ver todos <ChevronRight className="w-4 h-4 ml-1" />*/}
+              {/*</Button>*/}
             </div>
 
-            <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300">
-              <div className="flex md:flex-row">
-                {/* Thumbnail estática */}
-                <div className="md:w-1/3 relative">
+            <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 gap-6">
+              {/* Curso 1 */}
+              <Card
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                onClick={() => handleCourseClick("Curso 1")}
+              >
+                <CardContent className="p-6">
                   <img
-                    src="https://img.youtube.com/vi/DogH89e7Ib0/hqdefault.jpg"
-                    alt="Thumbnail Aulão"
-                    className="w-full aspect-video rounded-l-lg object-cover"
+                    src="https://via.placeholder.com/400x200"
+                    alt="Capa do Curso"
+                    className="rounded-lg mb-4"
                   />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Play className="w-16 h-16 text-white opacity-75" />
-                  </div>
-                </div>
-
-                {/* Conteúdo da aula */}
-                <div className="md:w-2/3 p-6">
-                  <CardContent className="p-0">
-                    <h3 className="text-xl font-bold text-white mb-3">
-                      Aulão - Etapas de processo seletivo e sua carreira no Agro
-                    </h3>
-                    <p className="text-gray-300 mb-4 leading-relaxed">
-                      Neste aulão ao vivo, você vai descobrir todas as etapas do
-                      processo seletivo no agronegócio e como construir uma
-                      carreira sólida no setor. Aprenda estratégias para se
-                      destacar em entrevistas, desenvolver competências técnicas
-                      e comportamentais essenciais para o sucesso no agro.
-                    </p>
-
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-4 text-sm text-gray-400">
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-4 h-4" />
-                          <span>45 min</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                            />
-                          </svg>
-                          <span>Samantha Andrade</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                          <span>1.2k assistindo</span>
-                        </div>
-                      </div>
+                  <h3 className="text-lg font-semibold text-black mb-2">
+                    Introdução à Inteligência Artificial
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                    Aprenda os fundamentos da IA e como aplicá-los em projetos
+                    práticos.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-gray-500 text-sm">
+                      <Clock className="w-4 h-4 mr-1" /> 8 horas
                     </div>
-
                     <Button
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-semibold"
-                      onClick={() => setIsVideoOpen(true)}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
                     >
-                      <Play className="w-5 h-5 mr-2" />
-                      Assistir Aula
+                      Ver Curso
                     </Button>
-                  </CardContent>
-                </div>
-              </div>
-            </Card>
-          </section>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Modal */}
-          {isVideoOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-              <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
-                <button
-                  className="absolute top-2 right-2 text-white p-1 rounded-full hover:bg-white/20"
-                  onClick={() => setIsVideoOpen(false)}
-                >
-                  <X className="w-6 h-6" />
-                </button>
-                <div className="relative pb-[56.25%]">
-                  <iframe
-                    src="https://www.youtube.com/embed/DogH89e7Ib0"
-                    title="Aulão - Etapas de processo seletivo e sua carreira no Agro"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="absolute top-0 left-0 w-full h-full"
+              {/* Curso 2 */}
+              <Card
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                onClick={() => handleCourseClick("Curso 2")}
+              >
+                <CardContent className="p-6">
+                  <img
+                    src="https://via.placeholder.com/400x200"
+                    alt="Capa do Curso"
+                    className="rounded-lg mb-4"
                   />
-                </div>
-                <div className="p-4 flex justify-end">
-                  <Button
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-                    onClick={() => setIsVideoOpen(false)}
-                  >
-                    Sair da aula
-                  </Button>
-                </div>
-              </div>
+                  <h3 className="text-lg font-semibold text-black mb-2">
+                    Marketing Digital para Iniciantes
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                    Domine as estratégias essenciais de marketing digital para
+                    alavancar seu negócio.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-gray-500 text-sm">
+                      <Clock className="w-4 h-4 mr-1" /> 12 horas
+                    </div>
+                    <Button
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
+                    >
+                      Ver Curso
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Curso 3 */}
+              <Card
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                onClick={() => handleCourseClick("Curso 3")}
+              >
+                <CardContent className="p-6">
+                  <img
+                    src="https://via.placeholder.com/400x200"
+                    alt="Capa do Curso"
+                    className="rounded-lg mb-4"
+                  />
+                  <h3 className="text-lg font-semibold text-black mb-2">
+                    Finanças Pessoais: Guia Completo
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                    Aprenda a organizar suas finanças, investir e alcançar a
+                    liberdade financeira.
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-gray-500 text-sm">
+                      <Clock className="w-4 h-4 mr-1" /> 6 horas
+                    </div>
+                    <Button
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
+                    >
+                      Ver Curso
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          )}
+          </section>
         </div>
       </div>
 
-      {/* Modais */}
-      <TrilhaRequirementModal
-        isOpen={showTrilhaModal}
-        onClose={() => setShowTrilhaModal(false)}
-        trilhaName={selectedTrilha}
-      />
+      {showTrilhaModal && (
+        <TrilhaRequirementModal
+          trilhaName={selectedTrilha}
+          onClose={() => setShowTrilhaModal(false)}
+        />
+      )}
     </>
   );
 };
 
 export default Dashboard;
+
+
