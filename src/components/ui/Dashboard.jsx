@@ -471,7 +471,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </Card>
 
               {/* Trilha 2: Introdução a Finanças Pessoais */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg mb-4">
                     <svg
@@ -488,10 +488,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-black mb-2">
                     Introdução a Finanças Pessoais
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">
+                  <p className="text-gray-600 text-sm mb-4">
                     Fundamentos para gerenciar suas finanças no agronegócio
                   </p>
                   <div className="flex items-center justify-between">
@@ -508,7 +508,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </Card>
 
               {/* Trilha 3: Auto análise e Foco em metas */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg mb-4">
                     <svg
@@ -525,10 +525,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-black mb-2">
                     Auto análise e Foco em metas
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">
+                  <p className="text-gray-600 text-sm mb-4">
                     Defina objetivos claros e alcance suas metas profissionais
                   </p>
                   <div className="flex items-center justify-between">
@@ -545,7 +545,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </Card>
 
               {/* Trilha 4: Gestão de Carreira */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
                     <svg
@@ -562,10 +562,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-black mb-2">
                     Gestão de Carreira
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">
+                  <p className="text-gray-600 text-sm mb-4">
                     Estratégias avançadas para acelerar sua carreira no agro
                   </p>
                   <div className="flex items-center justify-between">
@@ -582,7 +582,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </Card>
 
               {/* Trilha 5: Mentoria de Empregabilidade */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-500 rounded-lg mb-4">
                     <svg
