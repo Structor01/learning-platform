@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import DISCIncentiveModal from "./DISCIncentiveModal";
 
 const LoginPage = () => {
-  const { login } = useAuth();
+  const { login, signup } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,8 +17,11 @@ const LoginPage = () => {
   const [showDISCModal, setShowDISCModal] = useState(false);
 
   // Novos estados para controlar o fluxo
-  const [step, setStep] = useState("email"); // "email" ou "password"
+  const [step, setStep] = useState("email"); // "email", "password" ou "signup"
   const [isExpanding, setIsExpanding] = useState(false);
+
+  // Estados para o cadastro
+  const [name, setName] = useState("");
 
   // Função para verificar se o email existe no banco
   const checkEmailExists = async (emailToCheck) => {
@@ -26,9 +29,6 @@ const LoginPage = () => {
       // URL da API
       const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
       const url = `${API_URL}/api/auth/check-email`;
-
-      console.log("🔍 Verificando email:", emailToCheck);
-      console.log("📡 URL da requisição:", url);
 
       const response = await fetch(url, {
         method: "POST",
@@ -38,23 +38,14 @@ const LoginPage = () => {
         body: JSON.stringify({ email: emailToCheck }),
       });
 
-      console.log("📊 Status da resposta:", response.status);
-      console.log("✅ Response OK?", response.ok);
-
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Erro na resposta:", errorText);
-        throw new Error(`Erro ${response.status}: ${errorText}`);
+        throw new Error("Erro ao verificar email");
       }
 
       const data = await response.json();
-      console.log("📦 Dados recebidos:", data);
-
       return data.exists;
     } catch (error) {
-      console.error("🚨 Erro completo ao verificar email:", error);
-      console.error("🚨 Tipo do erro:", typeof error);
-      console.error("🚨 Mensagem do erro:", error.message);
+      console.error("Erro ao verificar email:", error);
       throw error;
     }
   };
@@ -77,8 +68,12 @@ const LoginPage = () => {
           setIsExpanding(false);
         }, 300);
       } else {
-        // Email não existe, redirecionar para cadastro
-        navigate("/signup", { state: { email } });
+        // Email não existe, expandir para mostrar cadastro
+        setIsExpanding(true);
+        setTimeout(() => {
+          setStep("signup");
+          setIsExpanding(false);
+        }, 300);
       }
     } catch (error) {
       setErrorMsg("Erro ao verificar email. Tente novamente.");
@@ -130,9 +125,25 @@ const LoginPage = () => {
     navigate("/Dashboard");
   };
 
+  const handleSignUpSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMsg("");
+
+    try {
+      await signup({ name, email, password });
+      await checkDISCCompletion();
+    } catch (error) {
+      setErrorMsg(error.message || "Falha ao criar conta");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleBackToEmail = () => {
     setStep("email");
     setPassword("");
+    setName("");
     setErrorMsg("");
   };
 
@@ -172,7 +183,9 @@ const LoginPage = () => {
               <p className="text-white/70">
                 {step === "email"
                   ? "Aprendizado personalizado para sua carreira"
-                  : "Digite sua senha para continuar"}
+                  : step === "password"
+                  ? "Digite sua senha para continuar"
+                  : "Complete seu cadastro"}
               </p>
             </div>
 
@@ -275,6 +288,76 @@ const LoginPage = () => {
                   >
                     Esqueceu sua senha?
                   </a>
+                </div>
+              </div>
+            )}
+
+            {/* Formulário - Step SignUp */}
+            {step === "signup" && (
+              <div className="space-y-6">
+                {errorMsg && (
+                  <p className="text-red-400 text-center">{errorMsg}</p>
+                )}
+
+                {/* Mostrar email confirmado */}
+                <div className="bg-white/5 border border-white/10 rounded-md p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/70 text-sm">Email:</span>
+                    <span className="text-white text-sm">{email}</span>
+                    <button
+                      type="button"
+                      onClick={handleBackToEmail}
+                      className="text-white/50 hover:text-white text-xs underline"
+                    >
+                      alterar
+                    </button>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSignUpSubmit} className="space-y-6">
+                  <Input
+                    type="text"
+                    placeholder="Nome Completo"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    required
+                    disabled={isLoading}
+                    autoFocus
+                  />
+
+                  <Input
+                    type="password"
+                    placeholder="Senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    required
+                    disabled={isLoading}
+                    minLength={6}
+                  />
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading || !name || !password}
+                    className="w-full bg-white text-black hover:bg-white/90 font-medium py-3"
+                  >
+                    {isLoading ? "Criando..." : "Criar Conta"}
+                  </Button>
+                </form>
+
+                {/* Informação sobre já ter conta */}
+                <div className="text-center mt-4">
+                  <p className="text-white/70 text-sm">
+                    Já tem uma conta com outro email?{" "}
+                    <button
+                      type="button"
+                      onClick={handleBackToEmail}
+                      className="text-white hover:text-white underline"
+                    >
+                      Voltar
+                    </button>
+                  </p>
                 </div>
               </div>
             )}
