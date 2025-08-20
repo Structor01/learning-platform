@@ -206,7 +206,6 @@ Formato de resposta:
 
   async analyzeInterview(transcription, faceAnalysisData, jobData) {
     if (!this.apiKey) {
-      console.warn('API Key não configurada, usando análise básica');
       return this.getBasicAnalysis(transcription, faceAnalysisData);
     }
 
@@ -245,7 +244,6 @@ Formato de resposta:
       
       return this.parseAnalysis(analysis, faceAnalysisData);
     } catch (error) {
-      console.error('Erro na análise:', error);
       return this.getBasicAnalysis(transcription, faceAnalysisData);
     }
   }
@@ -442,7 +440,6 @@ Seja objetivo, construtivo e profissional.
       transcriptionResult : transcriptionResult.transcription;
 
     if (!this.apiKey) {
-      console.warn('API Key não configurada, usando análise básica');
       return {
         success: true,
         analysis: this.getBasicResponseAnalysis(transcription)
@@ -487,7 +484,6 @@ Seja objetivo, construtivo e profissional.
         analysis: this.parseResponseAnalysis(analysis, transcription)
       };
     } catch (error) {
-      console.error('Erro na análise da resposta:', error);
       return {
         success: true,
         analysis: this.getBasicResponseAnalysis(transcription)
@@ -502,7 +498,6 @@ Seja objetivo, construtivo e profissional.
       transcriptionResult : transcriptionResult.transcription;
 
     if (!this.apiKey) {
-      console.warn('API Key não configurada, usando análise básica');
       return {
         success: true,
         analysis: this.getBasicResponseAnalysisWithFace(transcription, faceAnalysisData)
@@ -547,7 +542,6 @@ Seja objetivo, construtivo e profissional.
         analysis: this.parseResponseAnalysisWithFace(analysis, transcription, faceAnalysisData)
       };
     } catch (error) {
-      console.error('Erro na análise da resposta:', error);
       return {
         success: true,
         analysis: this.getBasicResponseAnalysisWithFace(transcription, faceAnalysisData)

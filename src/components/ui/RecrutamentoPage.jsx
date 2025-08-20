@@ -887,10 +887,7 @@ const RecrutamentoPage = () => {
         const pdfResult = generateInterviewPDF(interviewData);
         
         if (pdfResult.success) {
-          console.log(`✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. PDF gerado: ${pdfResult.fileName}`);
         } else {
-          console.log(`✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. Análise completa salva localmente.`);
-          console.error(`⚠️ Erro ao gerar PDF: ${pdfResult.error}`);
         }
         
         // Preparar dados para tela de finalização
@@ -912,7 +909,6 @@ const RecrutamentoPage = () => {
         setShowInterviewModal(false);
         setShowCompletionPage(true);
       } else {
-        console.error(`❌ Erro ao gerar relatório: ${reportResult.error}`);
       }
       
     } catch (error) {

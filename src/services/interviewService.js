@@ -346,7 +346,6 @@ class InterviewService {
           
           if (contentType && contentType.includes('application/json')) {
             const report = await reportResponse.json();
-            console.log(`📊 Relatório gerado com sucesso!`);
 
             return {
               success: true,
@@ -357,7 +356,6 @@ class InterviewService {
           } else {
             // Se não for JSON, tente ler como texto
             const textResponse = await reportResponse.text();
-            console.warn('⚠️ Resposta do relatório não é JSON:', textResponse);
 
             return {
               success: true,
@@ -367,7 +365,6 @@ class InterviewService {
             };
           }
         } else {
-          console.warn('⚠️ Entrevista finalizada, mas relatório não pôde ser gerado');
 
           return {
             success: true,
@@ -377,7 +374,6 @@ class InterviewService {
           };
         }
       } catch (reportError) {
-        console.warn('⚠️ Erro ao gerar relatório:', reportError.message);
 
         return {
           success: true,
