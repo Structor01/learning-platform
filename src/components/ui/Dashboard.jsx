@@ -644,7 +644,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 <div className="md:w-2/3 p-6">
                   <CardContent className="p-0">
                     <h3 className="text-xl font-bold text-white mb-3">
-                      Aulão - Etapas de processo seletivo e sua carreira no Agro
+                      <a href="https://www.youtube.com/live/OwIvIsx4NYE" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                        Aulão - Etapas de processo seletivo e sua carreira no Agro
+                      </a>
                     </h3>
                     <p className="text-gray-300 mb-4 leading-relaxed">
                       Neste aulão ao vivo, você vai descobrir todas as etapas do
