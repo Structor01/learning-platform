@@ -107,13 +107,13 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         />
       )}
 
-      <div className="min-h-screen bg-black pt-20">
+      <div className="min-h-screen bg-white pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
           <div className="mb-8 overflow-x-auto">
             <div className="flex flex-col lg:!flex-row lg:!items-center lg:!justify-between gap-6 min-w-fit">
               <div className="flex-shrink-0">
-                <h1 className="text-3xl font-bold text-white mb-2">
+                <h1 className="text-3xl font-bold text-black mb-2">
                   Olá, {userData.name.split(" ")[0]}!
                 </h1>
                 <div className="flex items-center space-x-4">
@@ -127,7 +127,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                         {predominant.charAt(0)}
                       </span>
                     </div>
-                    <span className="text-gray-300">Perfil: {predominant}</span>
+                    <span className="text-gray-700">Perfil: {predominant}</span>
                   </div>
                 </div>
               </div>
@@ -185,7 +185,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           {/* Biblioteca de Aplicativos - Movida para cima */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-black">
                 Biblioteca de Aplicativos
               </h2>
               {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
@@ -197,7 +197,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               {/* Meu Cartão Virtual */}
               <Card
                 onClick={() => handleAppClick("Cartão Virtual")}
-                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -215,17 +215,17 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-white text-sm mb-1">
+                  <h3 className="font-semibold text-black text-sm mb-1">
                     Cartão Virtual
                   </h3>
-                  <p className="text-xs text-gray-400">Cartão digital</p>
+                  <p className="text-xs text-gray-600">Cartão digital</p>
                 </CardContent>
               </Card>
 
               {/* Agenda de Eventos */}
               <Card
                 onClick={() => handleAppClick("Agenda de Eventos")}
-                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -243,17 +243,17 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-white text-sm mb-1">
+                  <h3 className="font-semibold text-black text-sm mb-1">
                     Agenda
                   </h3>
-                  <p className="text-xs text-gray-400">Eventos</p>
+                  <p className="text-xs text-gray-600">Eventos</p>
                 </CardContent>
               </Card>
 
               {/* Meus Testes */}
               <Card
                 onClick={() => handleAppClick("Meus Testes")}
-                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -271,17 +271,17 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-white text-sm mb-1">
+                  <h3 className="font-semibold text-black text-sm mb-1">
                     Testes
                   </h3>
-                  <p className="text-xs text-gray-400">Avaliações</p>
+                  <p className="text-xs text-gray-600">Avaliações</p>
                 </CardContent>
               </Card>
 
               {/* Ver Vagas */}
               <Card
                 onClick={() => navigate('/vagas')}
-                className="bg-transparent border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">
                   <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -299,24 +299,24 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-white text-sm mb-1">
+                  <h3 className="font-semibold text-black text-sm mb-1">
                     Ver Vagas
                   </h3>
-                  <p className="text-xs text-gray-400">Avaliações</p>
+                  <p className="text-xs text-gray-600">Avaliações</p>
                 </CardContent>
               </Card>
             </div>
           </section>
 
           <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 gap-6 mb-8">
-            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
+            <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-400">
                       Progresso Geral
                     </p>
-                    <p className="text-3xl font-bold text-white">
+                    <p className="text-3xl font-bold text-black">
                       {currentProgress}%
                     </p>
                   </div>
@@ -328,14 +328,14 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
+            <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-400">
                       Próximo Conteúdo
                     </p>
-                    <p className="text-lg font-semibold text-white">
+                    <p className="text-lg font-semibold text-black">
                       Autoconhecimento para Aceleração de Carreiras
                     </p>
                     <p className="text-sm text-gray-500">45 min</p>
@@ -351,14 +351,14 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </CardContent>
             </Card>
 
-            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
+            <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-400">
                       Meta Semanal
                     </p>
-                    <p className="text-3xl font-bold text-white">4/5</p>
+                    <p className="text-3xl font-bold text-black">4/5</p>
                     <p className="text-sm text-gray-500">dias de estudo</p>
                   </div>
                   <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
@@ -372,7 +372,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           {/* Trilhas para acelerar sua carreira */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-black">
                 Trilhas para acelerar sua carreira
               </h2>
               {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
@@ -572,10 +572,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           {/* Última Aula - Nova Seção */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Última Aula</h2>
+              <h2 className="text-2xl font-bold text-black">Última Aula</h2>
             </div>
 
-            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
+            <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300">
               <div className="flex md:flex-row">
                 {/* Thumbnail estática */}
                 <div className="md:w-1/3 relative">
