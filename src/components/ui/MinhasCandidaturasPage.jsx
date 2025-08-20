@@ -124,6 +124,8 @@ const MinhasCandidaturasPage = () => {
             candidatura.entrevistaCompleta = entrevistasOrdenadas.some(e => e.status === 'completed');
 
             console.log(`📊 Candidatura ${candidatura.id}: ${entrevistasOrdenadas.length} entrevistas encontradas`);
+            console.log(`🔍 Status das entrevistas:`, entrevistasOrdenadas.map(e => ({ id: e.id, status: e.status })));
+            console.log(`✅ entrevistaCompleta: ${candidatura.entrevistaCompleta}`);
           } else {
             candidatura.entrevistas = [];
             candidatura.temEntrevista = false;
@@ -256,6 +258,12 @@ const MinhasCandidaturasPage = () => {
           console.log('🔄 Recarregando candidaturas após entrevista...');
           // Recarregar candidaturas para mostrar status atualizado
           await fetchCandidaturas();
+          
+          // Aguardar mais um pouco e recarregar novamente para garantir
+          setTimeout(async () => {
+            console.log('🔄 Segunda tentativa de recarregar candidaturas...');
+            await fetchCandidaturas();
+          }, 2000);
         }, 1000);
 
         // Mostrar card de sucesso
