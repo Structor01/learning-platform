@@ -156,7 +156,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               {/* Bloco de boas-vindas e perfil DISC */}
               <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''}/>
               <div className={"flex flex-col"}>
-                <h1 className="text-3xl font-bold text-white mb-2">
+                <h1 className="text-3xl text-black font-bold mb-2">
                   Olá, {userData.name.split(" ")[0]}!
                 </h1>
 
@@ -165,13 +165,13 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_disc)} rounded-full flex items-center justify-center`}>
                       <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc.charAt(0)}</span>
                     </div>
-                    <span className="text-gray-300 ml-3">{userData.userLegacy?.perfil_disc}</span>
+                    <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_disc}</span>
                   </div>
                   <div className={"flex items-center justify-start"}>
                     <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_lideranca)} rounded-full flex items-center justify-center`}>
                       <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca.charAt(0)}</span>
                     </div>
-                    <span className="text-gray-300 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
+                    <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
                   </div>
                 </div>
 
@@ -214,7 +214,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </h2>
               <Button
                   variant="ghost"
-                  className="text-gray-300 hover:text-white"
+                  className="text-gray-800 hover:text-white"
                   onClick={() => navigate("/vagas")}
               >
                 Ver todas as vagas
