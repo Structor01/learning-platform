@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageBubble } from '@/components/bot/MessageBubble';
+import MessageBubble from '@/components/bot/MessageBubble';
 import ChatInput from '@/components/bot/ChatInput';
 import botService from '@/services/botService';
 import { MessageCircle, X, Minimize2, Maximize2 } from 'lucide-react';
