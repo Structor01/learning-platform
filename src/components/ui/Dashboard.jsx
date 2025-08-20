@@ -152,88 +152,57 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
           <div className="mb-8 overflow-x-auto">
-            <div className="flex flex-col lg:!flex-row lg:!items-center lg:!justify-between gap-6 min-w-fit">
-              <div className="flex-shrink-0">
-                <h1 className="text-3xl font-bold text-black mb-2">
+            <div className="flex justify-between items-center">
+              {/* Bloco de boas-vindas e perfil DISC */}
+              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''}/>
+              <div className={"flex flex-col"}>
+                <h1 className="text-3xl font-bold text-white mb-2">
                   Olá, {userData.name.split(" ")[0]}!
                 </h1>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <div
-                      className={`w-6 h-6 ${getDiscColor(
-                        userData.userLegacy?.perfil_disc || predominant
-                      )} rounded-full flex items-center justify-center`}
-                    >
-                      <span className="text-white text-xs font-bold">
-                        {(userData.userLegacy?.perfil_disc || predominant).charAt(0)}
-                      </span>
+
+                <div className={"grid grid-cols-2 gap-3"}>
+                  <div className={"flex items-center justify-start"}>
+                    <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_disc)} rounded-full flex items-center justify-center`}>
+                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc.charAt(0)}</span>
                     </div>
-                    <span className="text-gray-700">Perfil: {userData.userLegacy?.perfil_disc || predominant}</span>
+                    <span className="text-gray-300 ml-3">{userData.userLegacy?.perfil_disc}</span>
                   </div>
-                  {userData.userLegacy?.perfil_lideranca && (
-                    <div className="flex items-center space-x-2">
-                      <div
-                        className={`w-6 h-6 ${getDiscColor(
-                          userData.userLegacy?.perfil_lideranca
-                        )} rounded-full flex items-center justify-center`}
-                      >
-                        <span className="text-white text-xs font-bold">
-                          {userData.userLegacy?.perfil_lideranca.charAt(0)}
-                        </span>
-                      </div>
-                      <span className="text-gray-700">Liderança: {userData.userLegacy?.perfil_lideranca}</span>
+                  <div className={"flex items-center justify-start"}>
+                    <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_lideranca)} rounded-full flex items-center justify-center`}>
+                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca.charAt(0)}</span>
                     </div>
-                  )}
+                    <span className="text-gray-300 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
+                  </div>
                 </div>
+
+
               </div>
 
-              {/* Card Gestão de Carreira - Acesso Gratuito */}
-              <div className="lg:!w-80 flex-shrink-0">
-                <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700 hover:from-slate-700 hover:to-slate-800 transition-all duration-300 transform hover:scale-90 cursor-pointer shadow-xl">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                          <svg
-                            className="w-6 h-6 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M13 10V3L4 14h7v7l9-11h-7z"
-                            />
-                          </svg>
-                        </div>
-                        <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                          GRÁTIS
-                        </div>
-                      </div>
-                    </div>
+              <div className="flex-shrink-0 lg:w-2/3">
 
-                    <h3 className="text-xl font-bold text-white mb-2">
-                      Gestão de Carreira
-                    </h3>
-                    <p className="text-gray-400 text-sm mb-4 leading-relaxed">
-                      Estratégias avançadas para acelerar sua carreira no agro
-                    </p>
+                <div className="flex items-center m-3 space-x-4">
+                  <div className="flex items-center space-x-2">
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-500 text-sm">17 módulos</span>
-                      <Button
-                        size="sm"
-                        onClick={() => navigate("/trilha/2")}
-                        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg font-semibold"
-                      >
-                        Iniciar
-                      </Button>
+                    {/* Card Análise DISC ocupando 1/3 da tela */}
+                  </div>
+                </div>
+                {discProfile && discProfile.overall_analysis && (
+                    <div className="lg:w-1/3 w-full">
+                      <Card className="bg-black/60 border border-gray-800 shadow-lg">
+                        <CardContent className="p-3">
+                          <h4 className="text-lg font-bold text-white mb-2">
+                            Análise DISC
+                          </h4>
+                          <p className="text-gray-300 text-sm whitespace-pre-line">
+                            {discProfile.overall_analysis}
+                          </p>
+                        </CardContent>
+                      </Card>
                     </div>
-                  </CardContent>
-                </Card>
+                )}
               </div>
+
+
             </div>
           </div>
 
