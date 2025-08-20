@@ -144,6 +144,8 @@ export const AuthProvider = ({ children }) => {
     }
 
     const data = await response.json();
+    data.user.userLegacy = token.data.data.usuario;
+
     setUser(data.user);
     setAccessToken(data.access_token);
     sessionStorage.setItem("user", JSON.stringify(data.user));

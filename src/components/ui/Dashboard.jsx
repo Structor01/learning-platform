@@ -25,42 +25,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [empresas, setEmpresas] = useState([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
 
-  // Buscar dados do DISC do usuário
-  useEffect(() => {
-    if (user?.id) {
-      testService
-        .makeRequest(`/psychological/user/${user.id}?status=completed&limit=1`)
-        .then((response) => {
-          // Resposta esperada: { tests: [ { disc_scores: {...}, ... } ], ... }
-          if (response && response.tests && response.tests.length > 0) {
-            const discScores = response.tests[0].disc_scores;
-            // Determinar perfil predominante
-            let predominant = "Conforme";
-            if (discScores) {
-              const maxKey = Object.keys(discScores).reduce((a, b) =>
-                discScores[a] > discScores[b] ? a : b
-              );
-              const discMap = {
-                D: "Dominante",
-                I: "Influente",
-                S: "Estável",
-                C: "Conforme",
-              };
-              predominant = discMap[maxKey] || "Conforme";
-            }
-            setDiscProfile({
-              ...discScores,
-              predominant,
-              overall_analysis: response.tests[0].overall_analysis,
-            });
-          } else {
-            setDiscProfile(null);
-          }
-        })
-        .catch(() => setDiscProfile(null));
-    }
-  }, [user]);
-
   // Verificar se é a primeira vez do usuário
   useEffect(() => {
     if (user?.email) {
@@ -188,24 +152,37 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Welcome Section */}
           <div className="mb-8 overflow-x-auto">
-            <div className="flex flex-col lg:!flex-row lg:!items-start lg:!justify-between gap-6 min-w-fit">
+            <div className="flex justify-between items-center">
               {/* Bloco de boas-vindas e perfil DISC */}
-              <div className="flex-shrink-0 lg:w-2/3">
+              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''}/>
+              <div className={"flex flex-col"}>
                 <h1 className="text-3xl font-bold text-white mb-2">
                   Olá, {userData.name.split(" ")[0]}!
                 </h1>
+
+                <div className={"grid grid-cols-2 gap-3"}>
+                  <div className={"flex items-center justify-start"}>
+                    <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_disc)} rounded-full flex items-center justify-center`}>
+                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc.charAt(0)}</span>
+                    </div>
+                    <span className="text-gray-300 ml-3">{userData.userLegacy?.perfil_disc}</span>
+                  </div>
+                  <div className={"flex items-center justify-start"}>
+                    <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_lideranca)} rounded-full flex items-center justify-center`}>
+                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca.charAt(0)}</span>
+                    </div>
+                    <span className="text-gray-300 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
+                  </div>
+                </div>
+
+
+              </div>
+
+              <div className="flex-shrink-0 lg:w-2/3">
+
                 <div className="flex items-center m-3 space-x-4">
                   <div className="flex items-center space-x-2">
-                    <div
-                      className={`w-6 h-6 ${getDiscColor(
-                        predominant
-                      )} rounded-full flex items-center justify-center`}
-                    >
-                      <span className="text-white text-xs font-bold">
-                        {predominant.charAt(0)}
-                      </span>
-                    </div>
-                    <span className="text-gray-300">Perfil: {predominant}</span>
+
                     {/* Card Análise DISC ocupando 1/3 da tela */}
                   </div>
                 </div>
