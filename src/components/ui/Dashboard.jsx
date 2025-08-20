@@ -433,7 +433,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
             <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-4 gap-6">
               {/* Trilha 1: Autoconhecimento para Aceleração de Carreiras */}
-              <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg mb-4">
                     <svg
@@ -450,7 +450,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-black mb-2">
                     Autoconhecimento para Aceleração de Carreiras
                   </h3>
                   <p className="text-gray-400 text-sm mb-4">
@@ -599,7 +599,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">
+                  <h3 className="text-lg font-semibold text-black mb-2">
                     Mentoria de Empregabilidade
                   </h3>
                   <p className="text-gray-400 text-sm mb-4">
