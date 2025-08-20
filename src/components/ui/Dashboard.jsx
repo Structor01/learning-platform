@@ -420,71 +420,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </div>
           </section>
 
-          <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-3 gap-6 mb-8">
-            <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">
-                      Progresso Geral
-                    </p>
-                    <p className="text-3xl font-bold text-black">
-                      {currentProgress}%
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-                <Progress value={currentProgress} className="mt-4" />
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">
-                      Próximo Conteúdo
-                    </p>
-                    <p className="text-lg font-semibold text-black">
-                      Autoconhecimento para Aceleração de Carreiras
-                    </p>
-                    <p className="text-sm text-gray-500">45 min</p>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={() => handleCourseClick()}
-                  >
-                    <Play className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">
-                      Meta Semanal
-                    </p>
-                    <p className="text-3xl font-bold text-black">4/5</p>
-                    <p className="text-sm text-gray-500">dias de estudo</p>
-                  </div>
-                  <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
-                    <Award className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
           {/* Trilhas para acelerar sua carreira */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-black">
                 Trilhas para acelerar sua carreira
               </h2>
               {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
