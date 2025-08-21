@@ -16,7 +16,6 @@ import {
   FileText,
   Loader,
   Video,
-  X
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { API_URL } from "../utils/api";
@@ -40,10 +39,6 @@ const MinhasCandidaturasPage = () => {
   const [currentInterviewId, setCurrentInterviewId] = useState(null);
   const [generatingQuestions, setGeneratingQuestions] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-
-  // Estado para card de confirmação
-  const [showSuccessCard, setShowSuccessCard] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
 
   // Verificar autenticação
   useEffect(() => {
@@ -84,60 +79,7 @@ const MinhasCandidaturasPage = () => {
       console.log("📋 Candidaturas recebidas:", response.data);
       console.log("📊 Primeira candidatura (exemplo):", response.data[0]);
 
-      let candidaturas = response.data;
-
-      // Buscar entrevistas para cada candidatura
-      for (const candidatura of candidaturas) {
-        try {
-          // Primeiro tentar buscar por candidatura_id
-          let interviewData = await interviewService.getCandidaturaInterviews(candidatura.id);
-
-          // Se não encontrar por candidatura_id, buscar por user_id + vaga_id
-          if (!interviewData.success || !interviewData.interviews || interviewData.interviews.length === 0) {
-            console.log(`🔍 Buscando entrevistas por user_id para candidatura ${candidatura.id}...`);
-            const userInterviews = await interviewService.getUserInterviews(user.id);
-
-            if (userInterviews.success && userInterviews.interviews) {
-              // Filtrar entrevistas pela vaga da candidatura
-              const filteredInterviews = userInterviews.interviews.filter(interview =>
-                interview.job_id && candidatura.vaga_id &&
-                parseInt(interview.job_id) === parseInt(candidatura.vaga_id)
-              );
-
-              interviewData = {
-                success: true,
-                interviews: filteredInterviews
-              };
-
-              console.log(`📊 Encontradas ${filteredInterviews.length} entrevistas por user_id para candidatura ${candidatura.id}`);
-            }
-          }
-
-          if (interviewData.success && interviewData.interviews && Array.isArray(interviewData.interviews)) {
-            // Ordenar por data (mais recente primeiro)
-            const entrevistasOrdenadas = interviewData.interviews.sort((a, b) =>
-              new Date(b.created_at || 0) - new Date(a.created_at || 0)
-            );
-
-            candidatura.entrevistas = entrevistasOrdenadas;
-            candidatura.temEntrevista = entrevistasOrdenadas.length > 0;
-            candidatura.entrevistaCompleta = entrevistasOrdenadas.some(e => e.status === 'completed');
-
-            console.log(`📊 Candidatura ${candidatura.id}: ${entrevistasOrdenadas.length} entrevistas encontradas`);
-          } else {
-            candidatura.entrevistas = [];
-            candidatura.temEntrevista = false;
-            candidatura.entrevistaCompleta = false;
-          }
-        } catch (error) {
-          console.warn(`⚠️ Erro ao buscar entrevistas para candidatura ${candidatura.id}:`, error);
-          candidatura.entrevistas = [];
-          candidatura.temEntrevista = false;
-          candidatura.entrevistaCompleta = false;
-        }
-      }
-
-      setCandidaturas(candidaturas);
+      setCandidaturas(response.data);
     } catch (err) {
       console.error("Erro ao buscar candidaturas:", err);
       console.error(
@@ -151,171 +93,177 @@ const MinhasCandidaturasPage = () => {
   };
 
   // Função para iniciar entrevista
-  const handleStartInterview = async (candidatura) => {
+  const handleStartInterview = async (job) => {
     try {
       setGeneratingQuestions(true);
-      setInterviewJob(candidatura.vaga || candidatura);
+      setInterviewJob(job);
       setShowInterviewModal(true);
 
-      // Verificar se backend está disponível
-      const backendHealth = await interviewService.checkBackendHealth();
-      if (!backendHealth) {
-        console.error('❌ Backend não está disponível');
-        alert('❌ Servidor não está disponível. Verifique se o backend está rodando.');
-        return;
-      }
-
-      console.log('✅ Backend disponível, criando entrevista...');
-
-      // Criar entrevista no backend COM candidatura_id
+      // Criar entrevista no backend
       const createResult = await interviewService.createInterview(
-        candidatura.vaga_id || candidatura.id,
-        user.name, // Nome do usuário
-        user.email, // Email do usuário
-        user.id, // user_id
-        candidatura.id // candidatura_id - IMPORTANTE!
+        job.id,
+        user.name, // Nome será coletado no modal
+        user.email, // Email será coletado no modal
+        user.id // user_id fictício - será substituído por sistema de login real
       );
 
       if (createResult.success) {
-        const interviewId = createResult.interview.id;
-        setCurrentInterviewId(interviewId);
+        setCurrentInterviewId(createResult.interview.id);
 
-        console.log(`✅ Entrevista criada com sucesso! ID: ${interviewId}`);
-        console.log(`📋 Dados da entrevista:`, createResult.interview);
+        // Usar perguntas padrão por enquanto
+        const defaultQuestions = [
+          {
+            id: 1,
+            question:
+              "Conte-me sobre sua trajetória profissional e o que o motivou a se candidatar para esta vaga.",
+            answered: false,
+          },
+          {
+            id: 2,
+            question: `Como você se vê contribuindo para o crescimento da ${
+              job.company || job.empresa
+            }?`,
+            answered: false,
+          },
+          {
+            id: 3,
+            question:
+              "Descreva uma situação desafiadora que você enfrentou profissionalmente e como a resolveu.",
+            answered: false,
+          },
+          {
+            id: 4,
+            question:
+              "Quais são seus principais objetivos de carreira para os próximos anos?",
+            answered: false,
+          },
+          {
+            id: 5,
+            question:
+              "Por que você acredita ser o candidato ideal para esta posição?",
+            answered: false,
+          },
+        ];
 
-        // Usar perguntas do backend da entrevista criada
-        const backendQuestions = createResult.interview.questions || [];
-
-        console.log(`📝 Perguntas do backend: ${backendQuestions.length}`);
-
-        // Converter perguntas do backend para formato do frontend
-        const formattedQuestions = backendQuestions.map((q, index) => ({
-          id: q.id,
-          question: q.title,
-          answered: false,
-          order: q.order || (index + 1)
-        }));
-
-        // Ordenar por order para garantir sequência correta
-        formattedQuestions.sort((a, b) => a.order - b.order);
-
-        console.log(`📝 Perguntas formatadas:`, formattedQuestions.map(q => `${q.order}: ${q.question.substring(0, 50)}...`));
-
-        setInterviewQuestions(formattedQuestions);
+        setInterviewQuestions(defaultQuestions);
         setCurrentQuestion(0);
 
-        console.log(`✅ Entrevista criada! ID: ${createResult.interview.id}. ${formattedQuestions.length} perguntas preparadas. Clique em "Iniciar Gravação" para começar.`);
+        console.log(
+          `✅ Entrevista criada! ID: ${createResult.interview.id}. ${defaultQuestions.length} perguntas preparadas. Clique em "Iniciar Gravação" para começar.`
+        );
       } else {
-        throw new Error(createResult.error || 'Erro ao criar entrevista');
+        throw new Error(createResult.error || "Erro ao criar entrevista");
       }
-
     } catch (error) {
-      console.error('Erro ao preparar entrevista:', error);
-      alert('❌ Erro ao preparar entrevista. Tente novamente.');
+      console.error("Erro ao preparar entrevista:", error);
+      alert("❌ Erro ao preparar entrevista. Tente novamente.");
       setShowInterviewModal(false);
     } finally {
       setGeneratingQuestions(false);
     }
   };
 
-
   // Função para finalizar entrevista
   const handleFinishInterview = async () => {
     try {
-      if (!currentInterviewId) {
-        console.error('❌ Nenhuma entrevista ativa para finalizar');
-        return;
-      }
-
-      const answeredQuestions = interviewQuestions.filter(q => q.answered);
+      const answeredQuestions = interviewQuestions.filter((q) => q.answered);
 
       if (answeredQuestions.length === 0) {
-        console.warn('⚠️ Nenhuma pergunta foi respondida. Responda pelo menos uma pergunta antes de finalizar.');
+        console.warn(
+          "⚠️ Nenhuma pergunta foi respondida. Responda pelo menos uma pergunta antes de finalizar."
+        );
         return;
       }
 
-      console.log(`🏁 Finalizando entrevista ${currentInterviewId}...`);
+      // Gerar relatório final com dados da Face API
+      const reportResult = await chatgptService.generateFinalReport(
+        interviewJob,
+        interviewQuestions,
+        { name: "Candidato", email: "candidato@email.com" }
+      );
 
-      // Finalizar entrevista no backend
-      const finishResult = await interviewService.finishInterview(currentInterviewId);
+      if (reportResult.success) {
+        // Calcular estatísticas dos dados faciais
+        const faceStats = calculateFaceStatistics(interviewQuestions);
 
-      if (finishResult.success) {
-        console.log(`✅ Entrevista ${currentInterviewId} finalizada com sucesso!`);
+        // Salvar entrevista completa
+        const interviewData = {
+          job: interviewJob,
+          questions: interviewQuestions,
+          report: reportResult.report,
+          faceStatistics: faceStats,
+          completedAt: new Date().toISOString(),
+          answeredCount: answeredQuestions.length,
+          totalFaceDataPoints: faceStats.totalDataPoints,
+        };
 
-        // Reset states
-        setCurrentInterviewId(null);
-        setInterviewJob(null);
-        setInterviewQuestions([]);
-        setCurrentQuestion(0);
+        const savedInterviews = JSON.parse(
+          localStorage.getItem("completedInterviews") || "[]"
+        );
+        savedInterviews.push(interviewData);
+        localStorage.setItem(
+          "completedInterviews",
+          JSON.stringify(savedInterviews)
+        );
 
-        // Fechar modal
+        // Gerar PDF com os resultados
+        const pdfResult = generateInterviewPDF(interviewData);
+
+        if (pdfResult.success) {
+          console.log(
+            `✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. PDF gerado: ${pdfResult.fileName}`
+          );
+        } else {
+          console.log(
+            `✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. Análise completa salva localmente.`
+          );
+          console.error(`⚠️ Erro ao gerar PDF: ${pdfResult.error}`);
+        }
+
+        // Preparar dados para tela de finalização
+        const completionData = {
+          candidateName: "Candidato",
+          jobTitle: interviewJob?.title || "Vaga de Emprego",
+          completedQuestions: answeredQuestions.length,
+          totalQuestions: interviewQuestions.length,
+          averageScore: calculateAverageScore(answeredQuestions),
+          duration: calculateInterviewDuration(interviewData),
+          status: "completed",
+          feedback: extractFeedbackFromReport(reportResult.report),
+          pdfData: pdfResult.success ? pdfResult : null,
+          interviewData: interviewData,
+        };
+
+        // Mostrar tela de finalização
+        setCompletedInterviewData(completionData);
         setShowInterviewModal(false);
-
-        // Recarregar mais rapidamente
-        setTimeout(async () => {
-          console.log('🔄 Recarregando candidaturas após entrevista...');
-          // Recarregar candidaturas para mostrar status atualizado
-          await fetchCandidaturas();
-        }, 1000);
-
-        // Mostrar card de sucesso
-        setSuccessMessage(`Entrevista finalizada com sucesso! ${answeredQuestions.length} perguntas respondidas.`);
-        setShowSuccessCard(true);
-
-        // Auto-fechar o card após 5 segundos
-        setTimeout(() => {
-          setShowSuccessCard(false);
-          setSuccessMessage("");
-        }, 5000);
-
+        setShowCompletionPage(true);
       } else {
-        console.error(`❌ Erro ao finalizar entrevista: ${finishResult.error}`);
-        setSuccessMessage(`Erro ao finalizar entrevista: ${finishResult.error}`);
-        setShowSuccessCard(true);
-
-        setTimeout(() => {
-          setShowSuccessCard(false);
-          setSuccessMessage("");
-        }, 5000);
+        console.error(`❌ Erro ao gerar relatório: ${reportResult.error}`);
       }
-
     } catch (error) {
-      console.error('Erro ao finalizar entrevista:', error);
-      console.error('❌ Erro ao finalizar entrevista.', error);
+      console.error("Erro ao finalizar entrevista:", error);
+      console.error("❌ Erro ao finalizar entrevista.", error);
     }
   };
 
   // Função para processar vídeo da resposta com dados da Face API
-  const handleVideoResponse = async (videoBlob, questionIndex, faceAnalysisData = []) => {
+  const handleVideoResponse = async (
+    videoBlob,
+    questionIndex,
+    faceAnalysisData = []
+  ) => {
     try {
       // Verificar se temos uma entrevista ativa
       if (!currentInterviewId) {
-        console.error('❌ Nenhuma entrevista ativa encontrada');
-        console.error('❌ currentInterviewId:', currentInterviewId);
-        throw new Error('Nenhuma entrevista ativa encontrada');
+        console.error("❌ Nenhuma entrevista ativa encontrada");
+        return;
       }
-
-      console.log(`🎬 Processando resposta da pergunta ${questionIndex + 1}`);
-      console.log(`📋 Entrevista ID: ${currentInterviewId}`);
-      console.log(`📦 Video blob - Tamanho: ${videoBlob?.size} bytes, Tipo: ${videoBlob?.type}`);
-      console.log(`🧠 Dados faciais: ${faceAnalysisData?.length} pontos`);
-
-      // Verificar se o blob é válido
-      if (!videoBlob || videoBlob.size === 0) {
-        console.error('❌ VideoBlob inválido:', videoBlob);
-        throw new Error('Vídeo gravado está vazio ou inválido');
-      }
-
-      // Obter order da pergunta atual (backend usa order, não index)
-      const currentQuestionData = interviewQuestions[questionIndex];
-      const questionOrder = currentQuestionData?.order || (questionIndex + 1);
-
-      console.log(`📊 Pergunta ${questionIndex + 1}: ID=${currentQuestionData?.id}, Order=${questionOrder}`);
 
       // Upload do vídeo para o backend com processamento IA
       const uploadResult = await interviewService.uploadVideoResponse(
         currentInterviewId,
-        questionOrder, // Usar order correto do backend
+        questionIndex + 1, // Backend usa 1-based indexing
         videoBlob,
         faceAnalysisData
       );
@@ -326,14 +274,17 @@ const MinhasCandidaturasPage = () => {
       }
 
       // Aguardar processamento IA no backend
-      console.log(`🔄 Aguardando processamento IA para resposta ${uploadResult.responseId}...`);
-
-      const processingResult = await interviewService.waitForProcessingCompletion(
-        currentInterviewId,
-        uploadResult.responseId,
-        30, // 30 tentativas
-        3000 // 3 segundos entre tentativas
+      console.log(
+        `🔄 Aguardando processamento IA para resposta ${uploadResult.responseId}...`
       );
+
+      const processingResult =
+        await interviewService.waitForProcessingCompletion(
+          currentInterviewId,
+          uploadResult.responseId,
+          30, // 30 tentativas
+          3000 // 3 segundos entre tentativas
+        );
 
       if (processingResult.success) {
         // Atualizar pergunta com dados processados
@@ -346,16 +297,22 @@ const MinhasCandidaturasPage = () => {
           faceData: faceAnalysisData,
           videoBlob: videoBlob,
           responseId: uploadResult.responseId,
-          videoUrl: uploadResult.videoUrl
+          videoUrl: uploadResult.videoUrl,
         };
 
         setInterviewQuestions(updatedQuestions);
 
-        const faceInfo = faceAnalysisData.length > 0 ?
-          `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados` :
-          '\n\nAnálise apenas textual (sem dados comportamentais)';
+        const faceInfo =
+          faceAnalysisData.length > 0
+            ? `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados`
+            : "\n\nAnálise apenas textual (sem dados comportamentais)";
 
-        console.log(`✅ Resposta processada com IA no backend! Transcrição: "${processingResult.transcription?.substring(0, 80)}..." Pontuação: ${processingResult.analysisScore}/10${faceInfo}`);
+        console.log(
+          `✅ Resposta processada com IA no backend! Transcrição: "${processingResult.transcription?.substring(
+            0,
+            80
+          )}..." Pontuação: ${processingResult.analysisScore}/10${faceInfo}`
+        );
       } else {
         console.error(`❌ Erro no processamento IA: ${processingResult.error}`);
 
@@ -364,20 +321,58 @@ const MinhasCandidaturasPage = () => {
         updatedQuestions[questionIndex] = {
           ...updatedQuestions[questionIndex],
           answered: true,
-          transcription: 'Processamento pendente',
-          analysis: { score: 7, recommendation: 'Análise em processamento' },
+          transcription: "Processamento pendente",
+          analysis: { score: 7, recommendation: "Análise em processamento" },
           faceData: faceAnalysisData,
           videoBlob: videoBlob,
           responseId: uploadResult.responseId,
-          videoUrl: uploadResult.videoUrl
+          videoUrl: uploadResult.videoUrl,
         };
 
         setInterviewQuestions(updatedQuestions);
       }
-
     } catch (error) {
-      console.error('Erro ao processar vídeo:', error);
-      console.error('❌ Erro ao processar resposta em vídeo.', error);
+      console.error("Erro ao processar vídeo:", error);
+      console.error("❌ Erro ao processar resposta em vídeo.", error);
+    }
+  };
+
+  // Função para cancelar candidatura
+  const handleCancelCandidatura = async (candidaturaId) => {
+    const confirmacao = window.confirm(
+      "Tem certeza que deseja cancelar esta candidatura? Esta ação não pode ser desfeita."
+    );
+
+    if (!confirmacao) return;
+
+    try {
+      console.log("🗑️ Cancelando candidatura ID:", candidaturaId);
+
+      const response = await axios.delete(
+        `${API_URL}/api/candidaturas/${candidaturaId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      console.log("✅ Candidatura cancelada:", response.data);
+
+      // Atualizar lista de candidaturas
+      await fetchCandidaturas();
+
+      alert("✅ Candidatura cancelada com sucesso!");
+    } catch (error) {
+      console.error("❌ Erro ao cancelar candidatura:", error);
+
+      if (error.response?.status === 404) {
+        alert("❌ Candidatura não encontrada.");
+      } else if (error.response?.status === 409) {
+        alert("❌ Não é possível cancelar uma candidatura aprovada.");
+      } else {
+        alert("❌ Erro ao cancelar candidatura. Tente novamente.");
+      }
     }
   };
 
@@ -392,7 +387,7 @@ const MinhasCandidaturasPage = () => {
     const addText = (text, x, y, maxWidth = pageWidth - 2 * margin) => {
       const lines = doc.splitTextToSize(text, maxWidth);
       doc.text(lines, x, y);
-      return y + (lines.length * 7);
+      return y + lines.length * 7;
     };
 
     // Função auxiliar para verificar se precisa de nova página
@@ -407,13 +402,21 @@ const MinhasCandidaturasPage = () => {
     try {
       // Cabeçalho
       doc.setFontSize(20);
-      doc.setFont(undefined, 'bold');
-      yPosition = addText('RELATÓRIO DE ENTREVISTA SIMULADA', margin, yPosition);
+      doc.setFont(undefined, "bold");
+      yPosition = addText(
+        "RELATÓRIO DE ENTREVISTA SIMULADA",
+        margin,
+        yPosition
+      );
 
       yPosition += 10;
       doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
-      yPosition = addText(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, yPosition);
+      doc.setFont(undefined, "normal");
+      yPosition = addText(
+        `Gerado em: ${new Date().toLocaleString("pt-BR")}`,
+        margin,
+        yPosition
+      );
 
       // Linha separadora
       yPosition += 10;
@@ -423,39 +426,83 @@ const MinhasCandidaturasPage = () => {
       // Informações da vaga
       yPosition = checkNewPage(yPosition);
       doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      yPosition = addText('INFORMAÇÕES DA VAGA', margin, yPosition);
+      doc.setFont(undefined, "bold");
+      yPosition = addText("INFORMAÇÕES DA VAGA", margin, yPosition);
 
       yPosition += 5;
       doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
-      yPosition = addText(`Cargo: ${interviewData.job?.nome || interviewData.job?.title || 'Não informado'}`, margin, yPosition);
-      yPosition = addText(`Empresa: ${interviewData.job?.empresa || interviewData.job?.company || 'Não informado'}`, margin, yPosition);
-      yPosition = addText(`Área: ${interviewData.job?.area || 'Não informado'}`, margin, yPosition);
-      yPosition = addText(`Localização: ${interviewData.job?.localizacao || interviewData.job?.location || 'Não informado'}`, margin, yPosition);
+      doc.setFont(undefined, "normal");
+      yPosition = addText(
+        `Cargo: ${
+          interviewData.job?.nome || interviewData.job?.title || "Não informado"
+        }`,
+        margin,
+        yPosition
+      );
+      yPosition = addText(
+        `Empresa: ${
+          interviewData.job?.empresa ||
+          interviewData.job?.company ||
+          "Não informado"
+        }`,
+        margin,
+        yPosition
+      );
+      yPosition = addText(
+        `Área: ${interviewData.job?.area || "Não informado"}`,
+        margin,
+        yPosition
+      );
+      yPosition = addText(
+        `Localização: ${
+          interviewData.job?.localizacao ||
+          interviewData.job?.location ||
+          "Não informado"
+        }`,
+        margin,
+        yPosition
+      );
 
       // Estatísticas gerais
       yPosition += 15;
       yPosition = checkNewPage(yPosition);
       doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      yPosition = addText('ESTATÍSTICAS GERAIS', margin, yPosition);
+      doc.setFont(undefined, "bold");
+      yPosition = addText("ESTATÍSTICAS GERAIS", margin, yPosition);
 
       yPosition += 5;
       doc.setFontSize(12);
-      doc.setFont(undefined, 'normal');
-      yPosition = addText(`Perguntas respondidas: ${interviewData.answeredCount} de ${interviewData.questions.length}`, margin, yPosition);
-      yPosition = addText(`Dados comportamentais coletados: ${interviewData.totalFaceDataPoints || 0} pontos`, margin, yPosition);
-      yPosition = addText(`Data da entrevista: ${new Date(interviewData.completedAt).toLocaleString('pt-BR')}`, margin, yPosition);
+      doc.setFont(undefined, "normal");
+      yPosition = addText(
+        `Perguntas respondidas: ${interviewData.answeredCount} de ${interviewData.questions.length}`,
+        margin,
+        yPosition
+      );
+      yPosition = addText(
+        `Dados comportamentais coletados: ${
+          interviewData.totalFaceDataPoints || 0
+        } pontos`,
+        margin,
+        yPosition
+      );
+      yPosition = addText(
+        `Data da entrevista: ${new Date(
+          interviewData.completedAt
+        ).toLocaleString("pt-BR")}`,
+        margin,
+        yPosition
+      );
 
       // Análise das respostas
       yPosition += 15;
       yPosition = checkNewPage(yPosition);
       doc.setFontSize(16);
-      doc.setFont(undefined, 'bold');
-      yPosition = addText('ANÁLISE DAS RESPOSTAS', margin, yPosition);
+      doc.setFont(undefined, "bold");
+      yPosition = addText("ANÁLISE DAS RESPOSTAS", margin, yPosition);
 
-      const answeredQuestions = interviewData.questions.filter(q => q.answered);
+      const answeredQuestions = interviewData.questions.filter(
+        (q) => q.answered
+      );
 
       answeredQuestions.forEach((question, index) => {
         yPosition += 10;
@@ -463,38 +510,70 @@ const MinhasCandidaturasPage = () => {
 
         // Pergunta
         doc.setFontSize(12);
-        doc.setFont(undefined, 'bold');
-        yPosition = addText(`${index + 1}. ${question.question}`, margin, yPosition);
+        doc.setFont(undefined, "bold");
+        yPosition = addText(
+          `${index + 1}. ${question.question}`,
+          margin,
+          yPosition
+        );
 
         yPosition += 5;
-        doc.setFont(undefined, 'normal');
+        doc.setFont(undefined, "normal");
 
         if (question.analysis) {
-          yPosition = addText(`Pontuação: ${question.analysis.score}/10`, margin + 10, yPosition);
+          yPosition = addText(
+            `Pontuação: ${question.analysis.score}/10`,
+            margin + 10,
+            yPosition
+          );
 
-          if (question.analysis.strengths && question.analysis.strengths.length > 0) {
-            yPosition = addText('Pontos Fortes:', margin + 10, yPosition);
-            question.analysis.strengths.forEach(strength => {
+          if (
+            question.analysis.strengths &&
+            question.analysis.strengths.length > 0
+          ) {
+            yPosition = addText("Pontos Fortes:", margin + 10, yPosition);
+            question.analysis.strengths.forEach((strength) => {
               yPosition = addText(`• ${strength}`, margin + 15, yPosition);
             });
           }
 
-          if (question.analysis.improvements && question.analysis.improvements.length > 0) {
-            yPosition = addText('Sugestões de Melhoria:', margin + 10, yPosition);
-            question.analysis.improvements.forEach(improvement => {
+          if (
+            question.analysis.improvements &&
+            question.analysis.improvements.length > 0
+          ) {
+            yPosition = addText(
+              "Sugestões de Melhoria:",
+              margin + 10,
+              yPosition
+            );
+            question.analysis.improvements.forEach((improvement) => {
               yPosition = addText(`• ${improvement}`, margin + 15, yPosition);
             });
           }
 
           if (question.analysis.adequacy) {
-            yPosition = addText(`Adequação à pergunta: ${question.analysis.adequacy}`, margin + 10, yPosition);
+            yPosition = addText(
+              `Adequação à pergunta: ${question.analysis.adequacy}`,
+              margin + 10,
+              yPosition
+            );
           }
         }
 
         if (question.transcription) {
           yPosition += 5;
-          yPosition = addText('Transcrição da resposta:', margin + 10, yPosition);
-          yPosition = addText(`"${question.transcription.substring(0, 200)}${question.transcription.length > 200 ? '...' : ''}"`, margin + 15, yPosition);
+          yPosition = addText(
+            "Transcrição da resposta:",
+            margin + 10,
+            yPosition
+          );
+          yPosition = addText(
+            `"${question.transcription.substring(0, 200)}${
+              question.transcription.length > 200 ? "..." : ""
+            }"`,
+            margin + 15,
+            yPosition
+          );
         }
       });
 
@@ -503,16 +582,16 @@ const MinhasCandidaturasPage = () => {
         yPosition += 15;
         yPosition = checkNewPage(yPosition);
         doc.setFontSize(16);
-        doc.setFont(undefined, 'bold');
-        yPosition = addText('RELATÓRIO FINAL', margin, yPosition);
+        doc.setFont(undefined, "bold");
+        yPosition = addText("RELATÓRIO FINAL", margin, yPosition);
 
         yPosition += 5;
         doc.setFontSize(12);
-        doc.setFont(undefined, 'normal');
+        doc.setFont(undefined, "normal");
 
         // Dividir o relatório em seções se possível
-        const reportSections = interviewData.report.split('\n\n');
-        reportSections.forEach(section => {
+        const reportSections = interviewData.report.split("\n\n");
+        reportSections.forEach((section) => {
           if (section.trim()) {
             yPosition = checkNewPage(yPosition, 20);
             yPosition = addText(section.trim(), margin, yPosition);
@@ -522,21 +601,36 @@ const MinhasCandidaturasPage = () => {
       }
 
       // Análise comportamental (se disponível)
-      if (interviewData.faceStatistics && interviewData.faceStatistics.totalDataPoints > 0) {
+      if (
+        interviewData.faceStatistics &&
+        interviewData.faceStatistics.totalDataPoints > 0
+      ) {
         yPosition += 15;
         yPosition = checkNewPage(yPosition);
         doc.setFontSize(16);
-        doc.setFont(undefined, 'bold');
-        yPosition = addText('ANÁLISE COMPORTAMENTAL', margin, yPosition);
+        doc.setFont(undefined, "bold");
+        yPosition = addText("ANÁLISE COMPORTAMENTAL", margin, yPosition);
 
         yPosition += 5;
         doc.setFontSize(12);
-        doc.setFont(undefined, 'normal');
+        doc.setFont(undefined, "normal");
 
         const stats = interviewData.faceStatistics;
-        yPosition = addText(`Confiança média: ${(stats.averageConfidence * 100).toFixed(1)}%`, margin, yPosition);
-        yPosition = addText(`Emoção predominante: ${stats.dominantEmotion || 'Não identificada'}`, margin, yPosition);
-        yPosition = addText(`Total de amostras coletadas: ${stats.totalDataPoints}`, margin, yPosition);
+        yPosition = addText(
+          `Confiança média: ${(stats.averageConfidence * 100).toFixed(1)}%`,
+          margin,
+          yPosition
+        );
+        yPosition = addText(
+          `Emoção predominante: ${stats.dominantEmotion || "Não identificada"}`,
+          margin,
+          yPosition
+        );
+        yPosition = addText(
+          `Total de amostras coletadas: ${stats.totalDataPoints}`,
+          margin,
+          yPosition
+        );
       }
 
       // Rodapé
@@ -544,20 +638,29 @@ const MinhasCandidaturasPage = () => {
       for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
         doc.setFontSize(10);
-        doc.setFont(undefined, 'normal');
-        doc.text(`Página ${i} de ${totalPages}`, pageWidth - margin - 30, doc.internal.pageSize.height - 10);
-        doc.text('Gerado pela Plataforma de Entrevistas com IA', margin, doc.internal.pageSize.height - 10);
+        doc.setFont(undefined, "normal");
+        doc.text(
+          `Página ${i} de ${totalPages}`,
+          pageWidth - margin - 30,
+          doc.internal.pageSize.height - 10
+        );
+        doc.text(
+          "Gerado pela Plataforma de Entrevistas com IA",
+          margin,
+          doc.internal.pageSize.height - 10
+        );
       }
 
       // Salvar o PDF
-      const fileName = `entrevista_${interviewData.job?.nome || 'vaga'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      const fileName = `entrevista_${interviewData.job?.nome || "vaga"}_${
+        new Date().toISOString().split("T")[0]
+      }.pdf`;
       doc.save(fileName);
 
       console.log(`✅ PDF gerado com sucesso: ${fileName}`);
       return { success: true, fileName };
-
     } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
+      console.error("Erro ao gerar PDF:", error);
       return { success: false, error: error.message };
     }
   };
@@ -814,29 +917,44 @@ const MinhasCandidaturasPage = () => {
                             </div>
                             <div className="flex-1">
                               <h3 className="text-xl font-bold text-white mb-1">
-                                {candidatura.vaga?.title}
+                                {candidatura.vaga?.nome ||
+                                  candidatura.vaga?.title ||
+                                  "Vaga não encontrada"}
                               </h3>
                               <p className="text-lg text-orange-400 font-semibold mb-2">
-                                {candidatura.vaga?.company}
+                                {candidatura.vaga?.empresa ||
+                                  candidatura.vaga?.company ||
+                                  "Empresa não informada"}
                               </p>
                               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
                                 <div className="flex items-center gap-2">
                                   <MapPin className="w-4 h-4 text-orange-500" />
                                   <span>
-                                    {candidatura.vaga?.location}-{candidatura.vaga?.state}
+                                    {candidatura.vaga?.cidade ||
+                                      candidatura.vaga?.location ||
+                                      "N/A"}
+                                    -
+                                    {candidatura.vaga?.uf ||
+                                      candidatura.vaga?.state ||
+                                      "N/A"}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <Clock className="w-4 h-4 text-blue-500" />
                                   <span>
-                                    {candidatura.vaga?.modalidade || "CLT"}
+                                    {candidatura.vaga?.modalidade ||
+                                      candidatura.vaga?.job_type ||
+                                      "CLT"}
                                   </span>
                                 </div>
                                 {/* Remuneração */}
-                                {candidatura.vaga?.salary_range && (
+                                {(candidatura.vaga?.remuneracao ||
+                                  candidatura.vaga?.salary_range) && (
                                   <div className="flex items-center gap-2">
                                     <div className="inline-block bg-green-900/30 border border-green-700/50 text-green-300 px-3 py-1 rounded-full text-sm font-medium">
-                                      💰 {candidatura.vaga.salary_range}
+                                      💰{" "}
+                                      {candidatura.vaga.remuneracao ||
+                                        candidatura.vaga.salary_range}
                                     </div>
                                   </div>
                                 )}
@@ -847,19 +965,23 @@ const MinhasCandidaturasPage = () => {
                       </div>
 
                       {/* Descrição da vaga */}
-                      {candidatura.vaga?.description && (
+                      {(candidatura.vaga?.descricao ||
+                        candidatura.vaga?.description) && (
                         <div className="m-3">
                           <p className="text-gray-300 text-sm leading-relaxed">
-                            {candidatura.vaga.description.length > 200
-                              ? `${candidatura.vaga.description.substring(
-                                0,
-                                200
-                              )}...`
-                              : candidatura.vaga.description}
+                            {(() => {
+                              const description =
+                                candidatura.vaga.descricao ||
+                                candidatura.vaga.description;
+                              return description.length > 200
+                                ? `${description.substring(0, 200)}...`
+                                : description;
+                            })()}
                           </p>
                         </div>
                       )}
 
+                      {/* Footer com ações - cole aqui o código do passo 3 */}
                       {/* Footer com ações */}
                       <div className="flex items-center justify-between pt-4 border-t border-gray-800">
                         <div className="flex items-center gap-4">
@@ -876,25 +998,45 @@ const MinhasCandidaturasPage = () => {
                           </button>
                         </div>
 
-                        {/* Botão Fazer Entrevista */}
-                        <div className="flex-shrink-0">
-                          {candidatura.entrevistaCompleta ? (
-                            <Button
-                              disabled
-                              size="sm"
-                              className="bg-green-600 text-white cursor-not-allowed"
-                            >
-                              ✅ Entrevista Realizada
-                            </Button>
-                          ) : (
-                            <Button
-                              onClick={() => handleStartInterview(candidatura)}
-                              size="sm"
-                              className="bg-purple-600 hover:bg-purple-700 text-white"
-                            >
-                              🎥 Fazer Entrevista
-                            </Button>
-                          )}
+                        {/* Ações da direita */}
+                        <div className="flex items-center gap-3">
+                          {/* Botão Cancelar Candidatura */}
+                          <button
+                            onClick={() =>
+                              handleCancelCandidatura(candidatura.id)
+                            }
+                            className="flex items-center gap-2 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all duration-200 border border-red-500/30 hover:border-red-500/50"
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Cancelar
+                          </button>
+
+                          {/* Botão Fazer Entrevista */}
+                          <InterviewButton
+                            job={candidatura.vaga}
+                            candidaturaId={candidatura.id}
+                            variant="default"
+                            size="sm"
+                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                            buttonText="Fazer Entrevista"
+                            onInterviewStart={(jobData) => {
+                              console.log(
+                                "🎬 Entrevista iniciada para candidatura:",
+                                candidatura.id,
+                                "vaga:",
+                                jobData.title
+                              );
+                            }}
+                            onInterviewComplete={(interviewId, jobData) => {
+                              console.log(
+                                "✅ Entrevista concluída:",
+                                interviewId,
+                                "para candidatura:",
+                                candidatura.id
+                              );
+                              fetchCandidaturas();
+                            }}
+                          />
                         </div>
                       </div>
                     </div>
@@ -912,92 +1054,10 @@ const MinhasCandidaturasPage = () => {
             onVideoResponse={handleVideoResponse}
             onFinishInterview={handleFinishInterview}
             generatingQuestions={generatingQuestions}
-            currentInterviewId={currentInterviewId}
           />
         </div>
       </div>
-
-      {/* Card de Confirmação de Entrevista Finalizada */}
-      {showSuccessCard && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl w-full max-w-md border border-white/10 shadow-2xl">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
-              <div className="flex items-center gap-3">
-                <div className={`p-3 rounded-lg ${successMessage.includes('Erro') ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
-                  {successMessage.includes('Erro') ? (
-                    <XCircle className="w-6 h-6 text-red-400" />
-                  ) : (
-                    <CheckCircle className="w-6 h-6 text-green-400" />
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">
-                    {successMessage.includes('Erro') ? 'Erro na Entrevista' : 'Entrevista Finalizada'}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {successMessage.includes('Erro') ? 'Ocorreu um problema' : 'Processo concluído com sucesso'}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setShowSuccessCard(false);
-                  setSuccessMessage("");
-                }}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Conteúdo */}
-            <div className="p-6">
-              <div className={`p-4 rounded-lg border ${successMessage.includes('Erro')
-                ? 'bg-red-500/10 border-red-500/20'
-                : 'bg-green-500/10 border-green-500/20'
-                }`}>
-                <p className={`text-sm ${successMessage.includes('Erro') ? 'text-red-300' : 'text-green-300'
-                  }`}>
-                  {successMessage}
-                </p>
-              </div>
-
-              {!successMessage.includes('Erro') && (
-                <div className="mt-4 text-center">
-                  <div className="text-gray-400 text-sm mb-3">
-                    Suas respostas estão sendo processadas e analisadas por IA.
-                    O status da sua candidatura será atualizado em breve.
-                  </div>
-                  <div className="flex items-center justify-center gap-2 text-blue-400 text-xs">
-                    <Loader className="w-3 h-3 animate-spin" />
-                    <span>Processando análise...</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Botão de fechamento */}
-              <div className="mt-6 text-center">
-                <button
-                  onClick={() => {
-                    setShowSuccessCard(false);
-                    setSuccessMessage("");
-                  }}
-                  className={`px-6 py-2 rounded-lg font-medium transition-colors ${successMessage.includes('Erro')
-                    ? 'bg-red-600 hover:bg-red-700 text-white'
-                    : 'bg-green-600 hover:bg-green-700 text-white'
-                    }`}
-                >
-                  {successMessage.includes('Erro') ? 'Entendi' : 'Perfeito!'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-
-
   );
 };
 
