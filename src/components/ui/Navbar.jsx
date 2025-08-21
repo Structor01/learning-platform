@@ -156,6 +156,12 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                         Candidaturas
                       </a>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a href="/empresas" className="flex items-center w-full">
+                        <span className="mr-2">🏢</span>
+                        Gestão de Empresas
+                      </a>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
