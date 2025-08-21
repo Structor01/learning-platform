@@ -578,21 +578,13 @@ const InterviewModal = ({
     const isLastQuestion = questionIndex >= questions.length - 1;
 
     console.log(`🎬 Processando pergunta ${questionIndex + 1}/${questions.length}`);
-    console.log(`- É última pergunta: ${isLastQuestion}`);
-
     setProcessingQuestions(prev => new Set([...prev, questionIndex]));
     setIsRecording(false);
 
     try {
-      // ✅ ENVIAR DADOS REAIS PARA O BACKEND
-      console.log(`📤 Enviando resposta real para backend - Pergunta ${questionIndex + 1}`);
-      console.log(`📊 Dados faciais coletados: ${faceAnalysisData.length} pontos`);
-
       await onVideoResponse(videoBlob, questionIndex, faceAnalysisData);
 
       console.log(`✅ Pergunta ${questionIndex + 1} processada com sucesso`);
-
-      // Marcar pergunta como respondida
       questions[questionIndex].answered = true;
 
       setProcessingQuestions(prev => {
@@ -601,37 +593,40 @@ const InterviewModal = ({
         return newSet;
       });
 
-      // Prosseguir para próxima pergunta ou finalizar
-      if (isLastQuestion) {
+      // 🔑 Libera o processamento
+      isProcessingRef.current = false;
+
+      if (!isLastQuestion) {
+        // Vai para a próxima pergunta
+        const nextQuestionIndex = questionIndex + 1;
+        setTimeout(() => {
+          startRecordingWithCounter(nextQuestionIndex);
+        }, 500);
+      } else {
         console.log(`🏁 Última pergunta finalizada!`);
         setInterviewStarted(false);
         setCurrentQuestion(questions.length - 1);
-        isProcessingRef.current = false;
-
-        // ✅ ADICIONAR:
-        console.log('🏁 Todas as perguntas finalizadas. Aguardando ação do usuário.');
       }
 
     } catch (error) {
       console.error(`❌ Erro ao processar pergunta ${questionIndex + 1}:`, error);
+
       setProcessingQuestions(prev => {
         const newSet = new Set(prev);
         newSet.delete(questionIndex);
         return newSet;
       });
 
-      // Em caso de erro, ainda permitir prosseguir
+      // 🔑 Mesmo em erro, liberar processamento
+      isProcessingRef.current = false;
+
       if (!isLastQuestion) {
         const nextQuestionIndex = questionIndex + 1;
         setTimeout(() => {
-          isProcessingRef.current = false;
-          if (nextQuestionIndex < questions.length) {
-            startRecordingWithCounter(nextQuestionIndex);
-          }
+          startRecordingWithCounter(nextQuestionIndex);
         }, 500);
       } else {
         setInterviewStarted(false);
-        isProcessingRef.current = false;
       }
     }
   };
