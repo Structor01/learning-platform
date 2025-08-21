@@ -6,7 +6,7 @@ class BotService {
     this.baseURL = `${API_URL}/api/bot`;
   }
 
-  async startChat(userId) {
+  async startChat(userId, sessionId) {
     try {
       console.log('🚀 Iniciando chat para usuário:', userId);
       
@@ -15,7 +15,7 @@ class BotService {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId })
+        body: JSON.stringify({ userId, sessionId })
       });
 
       const data = await response.json();

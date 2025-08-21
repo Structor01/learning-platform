@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import MessageBubble from '@/components/bot/MessageBubble';
 import ChatInput from '@/components/bot/ChatInput';
 import botService from '@/services/botService';
 import { MessageCircle, X, Minimize2, Maximize2 } from 'lucide-react';
+import {useAuth} from "@/contexts/AuthContext.jsx";
 
 const PublicChatPage = () => {
+  const { login } = useAuth();
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
+  const messagesEndRef = useRef(null);
 
   // Inicializar sessão do chat
   useEffect(() => {
@@ -19,16 +23,20 @@ const PublicChatPage = () => {
         // Gerar um sessionId único para usuários não logados
         const guestSessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         setSessionId(guestSessionId);
-        
+
         // Mensagem de boas-vindas
+        const startChat = await botService.startChat(null, guestSessionId);
+        setUserId(startChat.userId);
+        setSessionId(startChat.sessionId);
+
         const welcomeMessage = {
           id: Date.now(),
-          content: "Olá! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?",
+          content: startChat.message,
           isBot: true,
           timestamp: new Date()
         };
-        
         setMessages([welcomeMessage]);
+
       } catch (error) {
         console.error('Erro ao inicializar chat:', error);
       }
@@ -36,6 +44,19 @@ const PublicChatPage = () => {
 
     initializeChat();
   }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (!isMinimized) {
+      // Aguarda render para garantir que o elemento exista
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 0);
+    }
+  }, [isMinimized]);
 
   const handleSendMessage = async (content) => {
     if (!content.trim() || isLoading) return;
@@ -53,7 +74,12 @@ const PublicChatPage = () => {
 
     try {
       // Enviar mensagem para o bot (sem autenticação)
-      const response = await botService.sendMessage(sessionId, content, false); // false = não autenticado
+      const response = await botService.sendMessage(sessionId, content, userId); // false = não autenticado
+
+      console.log(response);
+      if (response.collectedData.email) {
+        await login(response.collectedData.email, '123456');
+      }
       
       // Adicionar resposta do bot
       const botMessage = {
@@ -86,11 +112,13 @@ const PublicChatPage = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Chat AgroSkills
-          </h1>
+          <img
+            src="/1.png"
+            alt="Logo AgroSkills"
+            className="mx-auto w-32 h-32 mb-4 object-contain"
+          />
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Converse com nosso assistente virtual e descubra como podemos ajudar 
+            Converse com a nossa Recrutadora IZA e descubra como podemos ajudar
             a acelerar sua carreira no agronegócio
           </p>
         </div>
@@ -102,11 +130,15 @@ const PublicChatPage = () => {
             <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 rounded-t-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                    <MessageCircle className="w-6 h-6" />
+                  <div className="w-10 h-10 bg-white/20 rounded-full overflow-hidden flex items-center justify-center">
+                    <img
+                      src="/iza.png"
+                      alt="Iza Recrutadora"
+                      className="w-200% h-full object-cover rounded-full"
+                    />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Assistente AgroSkills</h3>
+                    <h3 className="font-semibold">IZA</h3>
                     <p className="text-sm opacity-90">Online agora</p>
                   </div>
                 </div>
@@ -148,6 +180,7 @@ const PublicChatPage = () => {
                       </div>
                     </div>
                   )}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Chat Input */}
