@@ -1,5 +1,5 @@
 // src/components/ui/LoginPage.jsx
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import DISCIncentiveModal from "./DISCIncentiveModal";
 
 const LoginPage = () => {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,6 +19,13 @@ const LoginPage = () => {
   // Novos estados para controlar o fluxo
   const [step, setStep] = useState("email"); // "email" ou "password"
   const [isExpanding, setIsExpanding] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/Dashboard", { replace: true });
+    }
+  }, [user, navigate]);
+
 
   // Função para verificar se o email existe no banco
   const checkEmailExists = async (emailToCheck) => {

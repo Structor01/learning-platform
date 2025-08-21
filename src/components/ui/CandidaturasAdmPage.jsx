@@ -118,7 +118,7 @@ const CandidaturasAdmPage = () => {
             });
 
             // Verificar se temos token de acesso
-            const token = sessionStorage.getItem("accessToken") || accessToken;
+            const token = localStorage.getItem("accessToken") || accessToken;
             if (!token) {
                 throw new Error('❌ Token de acesso não encontrado. Faça login novamente.');
             }
@@ -286,7 +286,7 @@ const CandidaturasAdmPage = () => {
 
         try {
             // 1. VERIFICAR TOKEN
-            const token = sessionStorage.getItem("accessToken") || accessToken;
+            const token = localStorage.getItem("accessToken") || accessToken;
 
             if (!token) {
                 console.error("❌ ERRO: Token não encontrado");
