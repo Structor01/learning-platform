@@ -123,8 +123,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     console.log(">>> [DEBUG] Tentando conectar à API em:", API_URL);
+    let token = '';
     try {
-      const token = await api.post('auth', { email, password });
+      token = await api.post('auth', { email, password });
       localStorage.setItem('token', token.data.data.token);
     } catch (error) {
       console.log(error);
