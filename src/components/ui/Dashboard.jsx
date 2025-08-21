@@ -163,13 +163,13 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 <div className={"grid grid-cols-2 gap-3"}>
                   <div className={"flex items-center justify-start"}>
                     <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_disc)} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc.charAt(0)}</span>
+                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc?.charAt(0) || 'N/A'}</span>
                     </div>
-                    <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_disc}</span>
+                    <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_disc || ''}</span>
                   </div>
                   <div className={"flex items-center justify-start"}>
                     <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_lideranca)} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca.charAt(0)}</span>
+                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca?.charAt(0)}</span>
                     </div>
                     <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
                   </div>
