@@ -15,17 +15,17 @@ const api = axios.create({
 api.defaults.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('token');
 
 api.interceptors.response.use(
-    response => response,
-    async error => {
-      if (error.response?.status === 401) {
-        if (error.response?.data.error !== "Usuário ou senha incorretos"){
-          Storage.removeApiToken();
-          window.location.href = '/';
-        }
-
+  response => response,
+  async error => {
+    if (error.response?.status === 401) {
+      if (error.response?.data.error !== "Usuário ou senha incorretos") {
+        Storage.removeApiToken();
+        window.location.href = '/';
       }
-      return Promise.reject(error);
+
     }
+    return Promise.reject(error);
+  }
 );
 
 export const useAuth = () => {
@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const errData = await response.json();
         errMsg = errData.message || errMsg;
-      } catch {}
+      } catch { }
       throw new Error(errMsg);
     }
 
@@ -167,7 +167,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const errData = await response.json();
         errMsg = errData.message || errMsg;
-      } catch {}
+      } catch { }
       throw new Error(errMsg);
     }
 

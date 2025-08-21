@@ -156,6 +156,12 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                         Candidaturas
                       </a>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a href="/empresas" className="flex items-center w-full">
+                        <span className="mr-2">🏢</span>
+                        Gestão de Empresas
+                      </a>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -183,12 +189,12 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                       src="/placeholder-avatar.jpg"
                       alt={userData.name}
                     />
-                    <AvatarFallback className="bg-gray-600 text-white">
+                    {/* <AvatarFallback className="bg-gray-600 text-white">
                       {userData.name
                         .split(" ")
                         .map((n) => n[0])
                         .join("")}
-                    </AvatarFallback>
+                    </AvatarFallback> */}
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
