@@ -33,16 +33,30 @@ class BotService {
     }
   }
 
-  async sendMessage(sessionId, message) {
+  async sendMessage(sessionId, message, isAuthenticated = true) {
     try {
-      console.log('💬 Enviando mensagem:', { sessionId, message: message.substring(0, 50) });
+      console.log('💬 Enviando mensagem:', { sessionId, message: message.substring(0, 50), isAuthenticated });
+      
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+
+      // Adicionar token apenas se o usuário estiver autenticado
+      if (isAuthenticated) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      }
       
       const response = await fetch(`${this.baseURL}/send-message`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sessionId, message })
+        headers,
+        body: JSON.stringify({ 
+          sessionId, 
+          message,
+          isGuest: !isAuthenticated
+        })
       });
 
       const data = await response.json();
