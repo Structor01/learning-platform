@@ -154,7 +154,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           <div className="mb-8 overflow-x-auto">
             <div className="flex justify-between items-center">
               {/* Bloco de boas-vindas e perfil DISC */}
-              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''}/>
+              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : userData.profile_image}/>
               <div className={"flex flex-col"}>
                 <h1 className="text-3xl text-black font-bold mb-2">
                   Olá, {userData.name.split(" ")[0]}!
