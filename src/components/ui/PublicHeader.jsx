@@ -11,8 +11,8 @@ const PublicHeader = ({ title, subtitle }) => {
 
     // ✅ VERSÃO SIMPLES - SEM CHAMADAS DE API
     useEffect(() => {
-        const savedUser = sessionStorage.getItem('currentUser');
-        const savedLoginStatus = sessionStorage.getItem('isUserLoggedIn');
+        const savedUser = localStorage.getItem('currentUser');
+        const savedLoginStatus = localStorage.getItem('isUserLoggedIn');
 
         if (savedUser && savedLoginStatus === 'true') {
             try {
@@ -31,11 +31,11 @@ const PublicHeader = ({ title, subtitle }) => {
 
     // ✅ LOGOUT SIMPLES - SEM API
     const handleLogout = () => {
-        // Limpar todos os dados do sessionStorage
-        sessionStorage.removeItem('currentUser');
-        sessionStorage.removeItem('isUserLoggedIn');
-        sessionStorage.removeItem('accessToken');
-        sessionStorage.removeItem('refreshToken');
+        // Limpar todos os dados do localStorage
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('isUserLoggedIn');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
 
         // Atualizar estado
         setIsUserLoggedIn(false);

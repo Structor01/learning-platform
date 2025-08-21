@@ -137,7 +137,7 @@ const UserProfile = () => {
       if (!userId) return;
 
       try {
-        const token = sessionStorage.getItem("accessToken");
+        const token = localStorage.getItem("accessToken");
         if (!token) return;
 
         // Buscar dados atualizados do usuário
@@ -225,7 +225,7 @@ const UserProfile = () => {
       const base64Image = await convertToBase64(file);
       
       // Salvar no backend
-      const token = sessionStorage.getItem("accessToken");
+      const token = localStorage.getItem("accessToken");
       if (!token) {
         alert("Sessão expirada. Faça login novamente.");
         return;
@@ -266,7 +266,7 @@ const UserProfile = () => {
 
   const handleViewCurriculo = async () => {
     try {
-      const token = sessionStorage.getItem("accessToken");
+      const token = localStorage.getItem("accessToken");
       if (!token) {
         alert("Sessão expirada. Faça login novamente.");
         return;
@@ -310,7 +310,7 @@ const UserProfile = () => {
   // 2. Adicione uma função alternativa para forçar download
   const handleDownloadCurriculo = async () => {
     try {
-      const token = sessionStorage.getItem("accessToken");
+      const token = localStorage.getItem("accessToken");
       if (!token) {
         alert("Sessão expirada. Faça login novamente.");
         return;
@@ -358,20 +358,20 @@ const UserProfile = () => {
     console.log("API_BASE_URL:", API_BASE_URL);
     console.log("URL completa:", `${API_BASE_URL}/api/users/curriculo`);
 
-    const tokenFromStorage = sessionStorage.getItem("accessToken");
-    console.log("Token do sessionStorage:", tokenFromStorage?.substring(0, 20));
+    const tokenFromStorage = localStorage.getItem("accessToken");
+    console.log("Token do localStorage:", tokenFromStorage?.substring(0, 20));
     console.log("Token do contexto:", accessToken?.substring(0, 20));
     console.log("Tokens são iguais?", tokenFromStorage === accessToken);
 
     try {
       setIsSavingLinks(true);
 
-      const token = sessionStorage.getItem("accessToken");
-      console.log("SessionStorage:", Object.keys(sessionStorage));
+      const token = localStorage.getItem("accessToken");
+      console.log("localStorage:", Object.keys(localStorage));
       console.log("LocalStorage:", Object.keys(localStorage));
 
       if (!token) {
-        console.error("Token não encontrado no sessionStorage");
+        console.error("Token não encontrado no localStorage");
         alert("Sessão expirada. Faça login novamente.");
         return;
       }
@@ -481,7 +481,7 @@ const UserProfile = () => {
   // 4. Adicione uma função para verificar se há currículo
   const checkCurriculoExists = async () => {
     try {
-      const token = sessionStorage.getItem("accessToken");
+      const token = localStorage.getItem("accessToken");
       if (!token) return false;
 
       const response = await fetch(`${API_BASE_URL}/api/users/curriculo`, {

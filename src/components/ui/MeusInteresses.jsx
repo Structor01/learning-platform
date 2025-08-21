@@ -45,10 +45,10 @@ const MeusInteresses = () => {
     try {
       setLoading(true);
 
-      // Pegar o token do sessionStorage (mesmo padrão que está funcionando)
+      // Pegar o token do localStorage (mesmo padrão que está funcionando)
       const token =
-        sessionStorage.getItem("accessToken") ||
-        sessionStorage.getItem("token");
+        localStorage.getItem("accessToken") ||
+        localStorage.getItem("token");
 
       if (!token) {
         console.error("Token não encontrado");
@@ -122,7 +122,7 @@ const MeusInteresses = () => {
     setRemovingId(vagaId);
 
     const token =
-      sessionStorage.getItem("accessToken") || sessionStorage.getItem("token");
+      localStorage.getItem("accessToken") || localStorage.getItem("token");
 
     if (!token) {
       showNotification({
