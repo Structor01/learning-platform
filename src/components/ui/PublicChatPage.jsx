@@ -17,32 +17,29 @@ const PublicChatPage = () => {
   const messagesEndRef = useRef(null);
 
   // Inicializar sessão do chat
-  useEffect(() => {
-    const initializeChat = async () => {
-      try {
-        // Gerar um sessionId único para usuários não logados
-        const guestSessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        setSessionId(guestSessionId);
+  useEffect (() => {
+    try {
+      // Gerar um sessionId único para usuários não logados
+      const guestSessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      setSessionId(guestSessionId);
 
-        // Mensagem de boas-vindas
-        const startChat = await botService.startChat(null, guestSessionId);
-        setUserId(startChat.userId);
-        setSessionId(startChat.sessionId);
+      // Mensagem de boas-vindas
+      botService.startChat(null, guestSessionId)
+          .then(startChat => {
+            setUserId(startChat.userId);
+            setSessionId(startChat.sessionId);
 
-        const welcomeMessage = {
-          id: Date.now(),
-          content: startChat.message,
-          isBot: true,
-          timestamp: new Date()
-        };
-        setMessages([welcomeMessage]);
-
-      } catch (error) {
-        console.error('Erro ao inicializar chat:', error);
-      }
-    };
-
-    initializeChat();
+            const welcomeMessage = {
+              id: Date.now(),
+              content: startChat.message,
+              isBot: true,
+              timestamp: new Date()
+            };
+            setMessages([welcomeMessage]);
+          });
+    } catch (error) {
+      console.error('Erro ao inicializar chat:', error);
+    }
   }, []);
 
   useEffect(() => {

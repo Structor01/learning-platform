@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     console.log(">>> [DEBUG] Tentando conectar à API em:", API_URL);
-    let token = '';
+    let token = null;
     try {
       token = await api.post('auth', { email, password });
       localStorage.setItem('token', token.data.data.token);
@@ -147,7 +147,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     const data = await response.json();
-    data.user.userLegacy = token.data.data.usuario;
+    data.user.userLegacy = token?.data.data.usuario || {};
 
     setUser(data.user);
     setAccessToken(data.access_token);
