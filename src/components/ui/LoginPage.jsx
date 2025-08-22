@@ -256,7 +256,7 @@ const LoginPage = () => {
                     disabled={isLoading || !password}
                     className="w-full bg-white text-black hover:bg-white/90 font-medium py-3"
                   >
-                    {isLoading ? "Entrando..." : "Sign In"}
+                    {isLoading ? "Entrando..." : "Continuar"}
                   </Button>
                 </form>
 

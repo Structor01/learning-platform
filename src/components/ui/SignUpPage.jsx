@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,24 @@ const SignUpPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState(""); // Novo estado para mensagem de sucesso
   const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar senha
+  const [cpf, setCpf] = useState(""); // CPF com máscara
+
+  useEffect(() => {
+    const email = localStorage.getItem("email");
+    if (email) {
+      setEmail(email);
+    }
+  }, []);
+
+  // Máscara de CPF: 000.000.000-00
+  const formatCPF = (value) => {
+    return value
+      .replace(/\D/g, "")          // mantém apenas dígitos
+      .slice(0, 11)                // limita a 11 dígitos
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,15 +39,23 @@ const SignUpPage = () => {
     setErrorMsg("");
     setSuccessMsg(""); // Limpa mensagem de sucesso anterior
 
+    // Validação simples de CPF (somente tamanho de 11 dígitos)
+    const cpfDigits = cpf.replace(/\D/g, "");
+    if (cpfDigits.length !== 11) {
+      setIsLoading(false);
+      setErrorMsg("CPF inválido. Informe 11 dígitos.");
+      return;
+    }
+
     try {
-      await signup({ name, email, password });
+      await signup({ name, email, password, cpf: cpfDigits });
       // Exibe mensagem de sucesso
       setSuccessMsg("Conta criada com sucesso! Bem-vindo(a)!");
       
       // Opcional: limpar o formulário após sucesso
       setName("");
-      setEmail("");
       setPassword("");
+      setCpf("");
       
       // opcional: redirecionar para dashboard ou login após alguns segundos
       // setTimeout(() => {
@@ -65,6 +91,17 @@ const SignUpPage = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                required
+              />
+            </div>
+
+            <div>
+              <Input
                 type="text"
                 placeholder="Nome Completo"
                 value={name}
@@ -76,10 +113,12 @@ const SignUpPage = () => {
 
             <div>
               <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                inputMode="numeric"
+                placeholder="CPF"
+                value={cpf}
+                onChange={(e) => setCpf(formatCPF(e.target.value))}
+                maxLength={14} // 000.000.000-00
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                 required
               />
