@@ -26,10 +26,11 @@ export const AuthProvider = ({ children }) => {
   // Carrega usuário do localStorage ao iniciar
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
-    const accessToken = localStorage.getItem("accessToken");
+      const accessToken = localStorage.getItem("accessToken");
+      const token = localStorage.getItem("token");
 
     // Se não tiver token, forçamos user para null
-    if (savedUser && accessToken) {
+    if (savedUser && accessToken && token) {
       setUser(JSON.parse(savedUser));
       setAccessToken(accessToken);
     } else {
@@ -171,6 +172,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("token");
     setAuthToken(null);
   };
 

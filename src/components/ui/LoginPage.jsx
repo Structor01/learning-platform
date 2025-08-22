@@ -21,9 +21,10 @@ const LoginPage = () => {
   const [isExpanding, setIsExpanding] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      navigate("/Dashboard", { replace: true });
-    }
+      const token = localStorage.getItem("token");
+      if (user && token) {
+          navigate("/Dashboard", { replace: true });
+      }
   }, [user, navigate]);
 
 
