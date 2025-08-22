@@ -185,7 +185,7 @@ const LoginPage = () => {
               <h1 className="text-2xl font-bold text-white mb-2">AgroSkills</h1>
               <p className="text-white/70">
                 {step === "email"
-                  ? "Aprendizado personalizado para sua carreira"
+                  ? "Preencha seu email para logar ou criar uma conta"
                   : "Digite sua senha para continuar"}
               </p>
             </div>
