@@ -21,6 +21,11 @@ const LoginPage = () => {
   const [isExpanding, setIsExpanding] = useState(false);
 
   useEffect(() => {
+      const email = localStorage.getItem("email");
+      if (email) {
+          setEmail(email);
+          setStep("password");
+      }
       const token = localStorage.getItem("token");
       if (user && token) {
           navigate("/Dashboard", { replace: true });
@@ -78,6 +83,7 @@ const LoginPage = () => {
       const emailExists = await checkEmailExists(email);
 
       if (emailExists) {
+          localStorage.setItem('email', email);
         // Email existe, expandir para mostrar campo de senha
         setIsExpanding(true);
         setTimeout(() => {
