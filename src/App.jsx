@@ -29,6 +29,7 @@ import RecrutamentoPage from "./components/ui/RecrutamentoPage";
 import TrilhaDetalhes from "@/components/ui/TrilhaDetalhes";
 import VagasPage from './components/ui/VagasPage'; // Importando a nova página de
 import CompanyPage from "./components/ui/CompanyPage";
+import EmpresasPage from "./components/ui/EmpresasPage";
 import LoginModal from "./components/ui/LoginModal";
 import MinhasCandidaturasPage from "./components/ui/MinhasCandidaturasPage";
 import DetalhesVaga from "./components/ui/DetalhesVaga";
@@ -245,6 +246,9 @@ function App() {
 
           {/* Página de Vagas */}
           <Route path="/vagas" element={<VagasPage />} />
+
+          {/* Página de Gestão de Empresas */}
+          <Route path="/empresas" element={<PrivateRoute><EmpresasPage /></PrivateRoute>} />
 
           {/* Página de Meus Interesses */}
           <Route path="/meus-interesses" element={<MeusInteresses/>} />

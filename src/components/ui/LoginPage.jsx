@@ -1,5 +1,5 @@
 // src/components/ui/LoginPage.jsx
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,43 +28,43 @@ const LoginPage = () => {
 
 
   // Função para verificar se o email existe no banco
-  const checkEmailExists = async (emailToCheck) => {
-    try {
-      // URL da API
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-      const url = `${API_URL}/api/auth/check-email`;
+  // const checkEmailExists = async (emailToCheck) => {
+  //   try {
+  //     // URL da API
+  //     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+  //     const url = `${API_URL}/api/auth/check-email`;
 
-      console.log("🔍 Verificando email:", emailToCheck);
-      console.log("📡 URL da requisição:", url);
+  //     console.log("🔍 Verificando email:", emailToCheck);
+  //     console.log("📡 URL da requisição:", url);
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: emailToCheck }),
-      });
+  //     const response = await fetch(url, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({ email: emailToCheck }),
+  //     });
 
-      console.log("📊 Status da resposta:", response.status);
-      console.log("✅ Response OK?", response.ok);
+  //     console.log("📊 Status da resposta:", response.status);
+  //     console.log("✅ Response OK?", response.ok);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Erro na resposta:", errorText);
-        throw new Error(`Erro ${response.status}: ${errorText}`);
-      }
+  //     if (!response.ok) {
+  //       const errorText = await response.text();
+  //       console.error("❌ Erro na resposta:", errorText);
+  //       throw new Error(`Erro ${response.status}: ${errorText}`);
+  //     }
 
-      const data = await response.json();
-      console.log("📦 Dados recebidos:", data);
+  //     const data = await response.json();
+  //     console.log("📦 Dados recebidos:", data);
 
-      return data.exists;
-    } catch (error) {
-      console.error("🚨 Erro completo ao verificar email:", error);
-      console.error("🚨 Tipo do erro:", typeof error);
-      console.error("🚨 Mensagem do erro:", error.message);
-      throw error;
-    }
-  };
+  //     return data.exists;
+  //   } catch (error) {
+  //     console.error("🚨 Erro completo ao verificar email:", error);
+  //     console.error("🚨 Tipo do erro:", typeof error);
+  //     console.error("🚨 Mensagem do erro:", error.message);
+  //     throw error;
+  //   }
+  // };
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
@@ -161,9 +161,8 @@ const LoginPage = () => {
         </div>
 
         <Card
-          className={`w-full max-w-md bg-white/5 backdrop-blur-lg border-white/10 transition-all duration-300 ${
-            isExpanding ? "scale-105" : ""
-          }`}
+          className={`w-full max-w-md bg-white/5 backdrop-blur-lg border-white/10 transition-all duration-300 ${isExpanding ? "scale-105" : ""
+            }`}
         >
           <CardContent className="p-8">
             {/* Cabeçalho */}
