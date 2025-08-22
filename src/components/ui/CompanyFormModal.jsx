@@ -5,11 +5,9 @@ import { validateCompany, CompanyStatus, formatCNPJ, formatPhone } from '../../t
 const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => {
   const [formData, setFormData] = useState({
     name: '',
-    cpnj: '',
+    cnpj: '',
     corporate_name: '',
     address: '',
-    state_id: null,
-    city_id: null,
     obs: '',
     responsible: '',
     responsible_email: '',
@@ -24,24 +22,20 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
       if (isEditing && company) {
         setFormData({
           name: company.name || '',
-          cpnj: company.cpnj || '',
+          cnpj: company.cnpj || '',
           corporate_name: company.corporate_name || '',
           address: company.address || '',
-          state_id: company.state_id || null,
-          city_id: company.city_id || null,
           obs: company.obs || '',
           responsible: company.responsible || '',
           responsible_email: company.responsible_email || '',
-          is_active: company.is_active !== undefined ? company.is_active : CompanyStatus.ACTIVE
+          is_active: company.is_active !== undefined ? company.is_active : CompanyStatus.ACTIVE,
         });
       } else {
         setFormData({
           name: '',
-          cpnj: '',
+          cnpj: '',
           corporate_name: '',
           address: '',
-          state_id: null,
-          city_id: null,
           obs: '',
           responsible: '',
           responsible_email: '',
@@ -56,7 +50,7 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
     let formattedValue = value;
     
     // Formatação automática
-    if (field === 'cpnj') {
+    if (field === 'cnpj') {
       const cleanCNPJ = value.replace(/[^\d]/g, '');
       if (cleanCNPJ.length <= 14) {
         formattedValue = formatCNPJ(cleanCNPJ);
@@ -94,13 +88,20 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
     try {
       // Preparar dados para envio (remover formatação do CNPJ)
       const submitData = {
-        ...formData,
-        cpnj: formData.cpnj.replace(/[^\d]/g, '')
+        name: formData.name,
+        cnpj: formData.cnpj.replace(/[^\d]/g, ''),
+        corporate_name: formData.corporate_name,
+        address: formData.address,
+        obs: formData.obs,
+        responsible: formData.responsible,
+        responsible_email: formData.responsible_email,
+        is_active: formData.is_active
       };
+      
       
       await onSubmit(submitData);
     } catch (error) {
-      console.error('Erro ao submeter formulário:', error);
+      // Error handling is done by parent component
     } finally {
       setIsSubmitting(false);
     }
@@ -116,23 +117,23 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+      <div className="flex items-center justify-center min-h-screen px-2 sm:px-4 py-4 sm:py-8 text-center">
         {/* Backdrop */}
         <div className="fixed inset-0 transition-opacity bg-black bg-opacity-75" onClick={handleClose} />
 
         {/* Modal */}
-        <div className="inline-block w-full max-w-4xl my-8 overflow-hidden text-left align-middle transition-all transform bg-gray-900 border border-gray-800 shadow-xl rounded-2xl">
+        <div className="relative inline-block w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl overflow-hidden text-left align-middle transition-all transform bg-gray-900 border border-gray-800 shadow-xl rounded-xl sm:rounded-2xl">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-800">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 bg-orange-600/20 rounded-xl">
-                <Building2 className="w-5 h-5 text-orange-500" />
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-800">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-orange-600/20 rounded-lg sm:rounded-xl">
+                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="text-lg sm:text-xl font-bold text-white">
                   {isEditing ? 'Editar Empresa' : 'Nova Empresa'}
                 </h2>
-                <p className="text-sm text-gray-400">
+                <p className="text-xs sm:text-sm text-gray-400 hidden sm:block">
                   {isEditing ? 'Atualize as informações da empresa' : 'Cadastre uma nova empresa parceira'}
                 </p>
               </div>
@@ -143,15 +144,15 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
               disabled={isSubmitting}
               className="flex items-center justify-center w-8 h-8 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Nome */}
-              <div className="md:col-span-2">
+              <div className="lg:col-span-2">
                 <label className="block text-sm font-medium text-white mb-2">
                   Nome da Empresa *
                 </label>
@@ -159,7 +160,7 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={`w-full px-4 py-3 bg-gray-800 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors ${
+                  className={`w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-800 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors text-sm sm:text-base ${
                     errors.name ? 'border-red-500' : 'border-gray-700'
                   }`}
                   placeholder="Digite o nome da empresa"
@@ -179,17 +180,17 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
                 </label>
                 <input
                   type="text"
-                  value={formData.cpnj}
-                  onChange={(e) => handleInputChange('cpnj', e.target.value)}
-                  className={`w-full px-4 py-3 bg-gray-800 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors font-mono ${
-                    errors.cpnj ? 'border-red-500' : 'border-gray-700'
+                  value={formData.cnpj}
+                  onChange={(e) => handleInputChange('cnpj', e.target.value)}
+                  className={`w-full px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-800 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors font-mono text-sm sm:text-base ${
+                    errors.cnpj ? 'border-red-500' : 'border-gray-700'
                   }`}
                   placeholder="00.000.000/0000-00"
                 />
-                {errors.cpnj && (
+                {errors.cnpj && (
                   <div className="flex items-center gap-2 mt-2 text-sm text-red-400">
                     <AlertCircle className="w-4 h-4" />
-                    {errors.cpnj}
+                    {errors.cnpj}
                   </div>
                 )}
               </div>
@@ -289,12 +290,12 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end gap-4 pt-6 mt-6 border-t border-gray-800">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-4 pt-4 sm:pt-6 mt-4 sm:mt-6 border-t border-gray-800">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={isSubmitting}
-                className="px-6 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-colors disabled:opacity-50"
+                className="px-4 py-2.5 sm:px-6 sm:py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-colors disabled:opacity-50 text-sm sm:text-base font-medium"
               >
                 Cancelar
               </button>
@@ -302,17 +303,17 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:shadow-xl hover:shadow-orange-500/25 transition-all duration-300 disabled:opacity-50 disabled:hover:shadow-none font-semibold"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 sm:px-6 sm:py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:shadow-xl hover:shadow-orange-500/25 transition-all duration-300 disabled:opacity-50 disabled:hover:shadow-none font-semibold text-sm sm:text-base"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Salvando...
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Salvando...</span>
                   </>
                 ) : (
                   <>
-                    <Save className="w-5 h-5" />
-                    {isEditing ? 'Atualizar' : 'Salvar'}
+                    <Save className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span>{isEditing ? 'Atualizar' : 'Salvar'}</span>
                   </>
                 )}
               </button>

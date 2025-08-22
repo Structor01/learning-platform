@@ -1,13 +1,12 @@
+import { API_URL } from '../components/utils/api.js';
+
 class CompaniesService {
   constructor() {
-    this.API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
+    this.API_BASE_URL = API_URL;
   }
 
   async getCompaniesForSelect() {
     try {
-      console.log('🔍 Buscando empresas para select...');
-      console.log('🌐 URL:', `${this.API_BASE_URL}/api/companies/select`);
-      
       const response = await fetch(`${this.API_BASE_URL}/api/companies/select`, {
         method: 'GET',
         headers: {
@@ -15,14 +14,11 @@ class CompaniesService {
         }
       });
 
-      console.log('📡 Status da resposta:', response.status);
-
       if (!response.ok) {
         throw new Error(`Erro ao buscar empresas: ${response.status}`);
       }
 
       const companies = await response.json();
-      console.log('✅ Empresas carregadas:', companies);
       
       return {
         success: true,
@@ -31,8 +27,6 @@ class CompaniesService {
       };
 
     } catch (error) {
-      console.error('❌ Erro ao buscar empresas:', error);
-      
       // Retornar dados mock em caso de erro
       const mockCompanies = [
         { id: 1, name: 'Agroskills', corporate_name: 'AGSK' },
@@ -41,8 +35,6 @@ class CompaniesService {
         { id: 4, name: 'LinkAgroTech', corporate_name: 'LinkAgroTech Ltda' },
         { id: 5, name: 'Campo Nutrição Animal', corporate_name: 'Campo Nutrição' }
       ];
-      
-      console.log('🔄 Usando dados mock:', mockCompanies);
       
       return {
         success: false,
@@ -55,9 +47,6 @@ class CompaniesService {
 
   async getAllCompanies() {
     try {
-      console.log('🔍 Buscando todas as empresas...');
-      console.log('🌐 URL:', `${this.API_BASE_URL}/api/companies`);
-      
       const response = await fetch(`${this.API_BASE_URL}/api/companies`, {
         method: 'GET',
         headers: {
@@ -65,14 +54,11 @@ class CompaniesService {
         }
       });
 
-      console.log('📡 Status da resposta:', response.status);
-
       if (!response.ok) {
         throw new Error(`Erro ao buscar empresas: ${response.status}`);
       }
 
       const companies = await response.json();
-      console.log('✅ Todas as empresas carregadas:', companies);
       
       return {
         success: true,
@@ -81,12 +67,11 @@ class CompaniesService {
       };
 
     } catch (error) {
-      console.error('❌ Erro ao buscar todas as empresas:', error);
       
       return {
         success: false,
         companies: [],
-        message: 'Erro na conexão',
+        message: 'Erro na conexão com o servidor',
         error: error.message
       };
     }
@@ -94,9 +79,6 @@ class CompaniesService {
 
   async getCompanyById(id) {
     try {
-      console.log('🔍 Buscando empresa por ID:', id);
-      console.log('🌐 URL:', `${this.API_BASE_URL}/api/companies/${id}`);
-      
       const response = await fetch(`${this.API_BASE_URL}/api/companies/${id}`, {
         method: 'GET',
         headers: {
@@ -104,14 +86,11 @@ class CompaniesService {
         }
       });
 
-      console.log('📡 Status da resposta:', response.status);
-
       if (!response.ok) {
         throw new Error(`Erro ao buscar empresa: ${response.status}`);
       }
 
       const company = await response.json();
-      console.log('✅ Empresa encontrada:', company);
       
       return {
         success: true,
@@ -120,7 +99,6 @@ class CompaniesService {
       };
 
     } catch (error) {
-      console.error('❌ Erro ao buscar empresa por ID:', error);
       
       return {
         success: false,
@@ -133,9 +111,6 @@ class CompaniesService {
 
   async createCompany(companyData) {
     try {
-      console.log('🔍 Criando nova empresa:', companyData);
-      console.log('🌐 URL:', `${this.API_BASE_URL}/api/companies`);
-      
       const response = await fetch(`${this.API_BASE_URL}/api/companies`, {
         method: 'POST',
         headers: {
@@ -144,15 +119,12 @@ class CompaniesService {
         body: JSON.stringify(companyData)
       });
 
-      console.log('📡 Status da resposta:', response.status);
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(`Erro ao criar empresa: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
       }
 
       const company = await response.json();
-      console.log('✅ Empresa criada:', company);
       
       return {
         success: true,
@@ -161,7 +133,6 @@ class CompaniesService {
       };
 
     } catch (error) {
-      console.error('❌ Erro ao criar empresa:', error);
       
       return {
         success: false,
@@ -344,9 +315,6 @@ class CompaniesService {
 
   async getCompaniesCount() {
     try {
-      console.log('🔍 Buscando contagem de empresas...');
-      console.log('🌐 URL:', `${this.API_BASE_URL}/api/companies/count`);
-      
       const response = await fetch(`${this.API_BASE_URL}/api/companies/count`, {
         method: 'GET',
         headers: {
@@ -354,14 +322,11 @@ class CompaniesService {
         }
       });
 
-      console.log('📡 Status da resposta:', response.status);
-
       if (!response.ok) {
         throw new Error(`Erro ao buscar contagem: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('✅ Contagem obtida:', result);
       
       return {
         success: true,
@@ -370,12 +335,113 @@ class CompaniesService {
       };
 
     } catch (error) {
-      console.error('❌ Erro ao buscar contagem de empresas:', error);
       
       return {
         success: false,
         count: 0,
         message: 'Erro na conexão',
+        error: error.message
+      };
+    }
+  }
+
+  async checkDependencies(companyId) {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/api/companies/${companyId}/dependencies`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao verificar dependências: ${response.status}`);
+      }
+
+      const dependencies = await response.json();
+      
+      const hasDeps = dependencies.jobs > 0 || dependencies.users > 0;
+      
+      return {
+        success: true,
+        hasDependencies: hasDeps,
+        dependencies: dependencies || { jobs: 0, users: 0 },
+        message: 'Dependências verificadas'
+      };
+
+    } catch (error) {
+      
+      // Retornar sem dependências em caso de erro
+      return {
+        success: false,
+        hasDependencies: false,
+        dependencies: { jobs: 0, users: 0 },
+        message: 'Erro na verificação, permitindo exclusão',
+        error: error.message
+      };
+    }
+  }
+
+  async deleteCompany(companyId) {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/api/companies/${companyId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Erro ao excluir empresa: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
+      }
+
+      const result = await response.json();
+      
+      return {
+        success: true,
+        message: 'Empresa excluída com sucesso'
+      };
+
+    } catch (error) {
+      
+      return {
+        success: false,
+        message: 'Erro ao excluir empresa',
+        error: error.message
+      };
+    }
+  }
+
+  async updateCompany(companyId, companyData) {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/api/companies/${companyId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(companyData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Erro ao atualizar empresa: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
+      }
+
+      const company = await response.json();
+      
+      return {
+        success: true,
+        company: company,
+        message: 'Empresa atualizada com sucesso'
+      };
+
+    } catch (error) {
+      
+      return {
+        success: false,
+        company: null,
+        message: 'Erro ao atualizar empresa',
         error: error.message
       };
     }
