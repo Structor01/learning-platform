@@ -1,32 +1,8 @@
 // src/contexts/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import api, { setAuthToken } from "@/services/api";
 
 const AuthContext = createContext();
-
-const api = axios.create({
-  baseURL: "https://app.agroskills.com.br/api",
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-  }
-});
-
-api.defaults.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('token');
-
-api.interceptors.response.use(
-  response => response,
-  async error => {
-    if (error.response?.status === 401) {
-      if (error.response?.data.error !== "Usuário ou senha incorretos") {
-        Storage.removeApiToken();
-        window.location.href = '/';
-      }
-
-    }
-    return Promise.reject(error);
-  }
-);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -62,6 +38,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem("user");
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");
+      setAuthToken(null);
     }
 
     setIsLoading(false);
@@ -125,8 +102,12 @@ export const AuthProvider = ({ children }) => {
     console.log(">>> [DEBUG] Tentando conectar à API em:", API_URL);
     let token = null;
     try {
-      token = await api.post('auth', { email, password });
-      localStorage.setItem('token', token.data.data.token);
+      token = await api.post("auth", { email, password });
+      const legacyToken = token?.data?.data?.token;
+      localStorage.setItem("token", legacyToken);
+      if (legacyToken) {
+        setAuthToken(legacyToken);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -142,12 +123,12 @@ export const AuthProvider = ({ children }) => {
       try {
         const errData = await response.json();
         errMsg = errData.message || errMsg;
-      } catch { }
+      } catch {}
       throw new Error(errMsg);
     }
 
     const data = await response.json();
-    data.user.userLegacy = token?.data.data.usuario || {};
+    data.user.userLegacy = token?.data?.data?.usuario || {};
 
     setUser(data.user);
     setAccessToken(data.access_token);
@@ -170,7 +151,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const errData = await response.json();
         errMsg = errData.message || errMsg;
-      } catch { }
+      } catch {}
       throw new Error(errMsg);
     }
 
@@ -190,6 +171,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    setAuthToken(null);
   };
 
   const updateSubscription = (subscriptionData) => {

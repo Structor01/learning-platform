@@ -189,12 +189,12 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                       src="/placeholder-avatar.jpg"
                       alt={userData.name}
                     />
-                    {/* <AvatarFallback className="bg-gray-600 text-white">
-                      {userData.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback> */}
+                      <AvatarFallback className="bg-gray-600 text-white">
+                          {userData.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                      </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
