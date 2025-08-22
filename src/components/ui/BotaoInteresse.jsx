@@ -22,7 +22,7 @@ const BotaoInteresse = ({
 
     const verificarInteresse = async () => {
         try {
-            const token = sessionStorage.getItem('accessToken');
+            const token = localStorage.getItem('accessToken');
             const response = await axios.get(
                 `${API_URL}/api/interesses/vaga/${vaga.id}/status`,
                 {
@@ -44,7 +44,7 @@ const BotaoInteresse = ({
         if (isLoading) return;
 
         setIsLoading(true);
-        const token = sessionStorage.getItem('accessToken');
+        const token = localStorage.getItem('accessToken');
 
         try {
             if (temInteresse) {

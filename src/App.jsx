@@ -36,6 +36,7 @@ import DetalhesVaga from "./components/ui/DetalhesVaga";
 import InterviewPage from "./components/ui/InterviewPage";
 import CandidaturasAdmPage from "./components/ui/CandidaturasAdmPage";
 import MeusInteresses from './components/ui/MeusInteresses';
+import PublicChatPage from './components/ui/PublicChatPage';
 import "./App.css";
 
 const getApiUrl = () => {
@@ -227,6 +228,9 @@ function App() {
           <Routes>
           {/* Página inicial = Login */}
           <Route path="/" element={<LoginPage />} />
+          
+          {/* Página pública do chat */}
+          <Route path="/chat" element={<PublicChatPage />} />
           
           {/* Página de Perfil */}
           <Route path="/profile" element={<UserProfile />} />
