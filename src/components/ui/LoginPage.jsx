@@ -214,27 +214,6 @@ const LoginPage = () => {
                 >
                   {isLoading ? "Verificando..." : "Continuar"}
                 </Button>
-
-                {/* Opções extras */}
-                <div className="text-center mt-4 space-y-2">
-                  <button
-                    type="button"
-                    onClick={goToSignup}
-                    className="text-white/90 hover:text-white text-sm"
-                  >
-                    Não tem uma conta?{" "}
-                    <span className="underline">Cadastre-se</span>
-                  </button>
-
-                  <div>
-                    <a
-                      href="/forgot-password"
-                      className="text-white/70 hover:text-white text-sm"
-                    >
-                      Esqueceu a senha?
-                    </a>
-                  </div>
-                </div>
               </form>
             )}
 

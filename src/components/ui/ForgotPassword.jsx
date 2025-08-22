@@ -9,7 +9,9 @@ export default function ForgotPassword() {
 
   useEffect(() => {
       const emailSaved = localStorage.getItem('email');
-      setEmail(emailSaved);
+      if (emailSaved && emailSaved.trim() !== '') {
+          setEmail(emailSaved);
+      }
   }, []);
 
   const handleSubmit = async (e) => {
