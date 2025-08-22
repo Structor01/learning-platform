@@ -4,8 +4,6 @@ export const CompanyFields = {
   cnpj: 'cpnj', // Campo na tabela é 'cpnj'
   corporate_name: 'corporate_name',
   address: 'address', // Campo na tabela é 'address'
-  state_id: 'state_id',
-  city_id: 'city_id',
   obs: 'obs',
   responsible: 'responsible',
   responsible_email: 'responsible_email',
@@ -27,8 +25,10 @@ export const validateCompany = (company) => {
     errors.name = 'Nome é obrigatório';
   }
 
-  if (!company.cpnj?.trim()) {
-    errors.cpnj = 'CNPJ é obrigatório';
+  if (!company.cnpj?.trim()) {
+    errors.cnpj = 'CNPJ é obrigatório';
+  } else if (company.cnpj.replace(/[^\d]/g, '').length < 11) {
+    errors.cnpj = 'CNPJ deve ter pelo menos 11 dígitos';
   }
 
   if (!company.responsible_email?.trim()) {
@@ -72,8 +72,6 @@ export const createEmptyCompany = () => ({
   cpnj: '',
   corporate_name: '',
   address: '',
-  state_id: null,
-  city_id: null,
   obs: '',
   responsible: '',
   responsible_email: '',
