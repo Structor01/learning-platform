@@ -22,6 +22,21 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!user && !!accessToken;
 
+  // Helper para limpar dados grandes antes de salvar no sessionStorage
+  const cleanUserForStorage = (userData) => {
+    return {
+      ...userData,
+      // Converter Buffers/objetos grandes em booleans (mantém informação de existência)
+      curriculo_url: userData?.curriculo_url ? true : null,
+      curriculoUrl: userData?.curriculoUrl ? true : null,
+      // Manter campos string pequenos importantes
+      linkedin: userData?.linkedin || null,
+      // Remover outros campos grandes se existirem
+      password: undefined, // Nunca salvar senha
+      resetToken: undefined, // Nunca salvar tokens de reset
+    };
+  };
+
   // Carrega usuário do sessionStorage ao iniciar
   useEffect(() => {
     const savedUser = sessionStorage.getItem("user");
@@ -77,14 +92,26 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Resposta da API após atualização:", updatedUser);
 
+      // Criar novo objeto de usuário com dados limpos
       const newUser = {
         ...user,
         ...updatedUser,
         curriculo_url: updatedUser.curriculoUrl, // mapeia o campo do backend para o frontend
+        // Garantir que os campos sejam adequadamente mapeados
+        linkedin: updatedUser.linkedin || user.linkedin,
+        curriculoUrl: updatedUser.curriculoUrl,
       };
 
+      console.log("Dados do novo usuário (após merge):", {
+        linkedin: newUser.linkedin,
+        curriculoUrl: !!newUser.curriculoUrl,
+        curriculo_url: !!newUser.curriculo_url
+      });
+
       setUser(newUser);
-      sessionStorage.setItem("user", JSON.stringify(newUser));
+      
+      // Usar helper para limpar dados antes de salvar
+      sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(newUser)));
 
       return { success: true };
     } catch (error) {
@@ -116,7 +143,7 @@ export const AuthProvider = ({ children }) => {
     const data = await response.json();
     setUser(data.user);
     setAccessToken(data.access_token);
-    sessionStorage.setItem("user", JSON.stringify(data.user));
+    sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(data.user)));
     sessionStorage.setItem("accessToken", data.access_token);
     sessionStorage.setItem("refreshToken", data.refresh_token);
 
@@ -142,7 +169,7 @@ export const AuthProvider = ({ children }) => {
     const data = await response.json();
     setUser(data.user);
     setAccessToken(data.access_token);
-    sessionStorage.setItem("user", JSON.stringify(data.user));
+    sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(data.user)));
     sessionStorage.setItem("accessToken", data.access_token);
     sessionStorage.setItem("refreshToken", data.refresh_token);
 
@@ -167,7 +194,7 @@ export const AuthProvider = ({ children }) => {
         },
       };
       setUser(updatedUser);
-      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+      sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(updatedUser)));
     }
   };
 
