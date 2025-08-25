@@ -228,7 +228,7 @@ class CompaniesService {
       const queryParams = new URLSearchParams();
       
       if (filters.name) queryParams.append('name', filters.name);
-      if (filters.cnpj) queryParams.append('cpnj', filters.cnpj);
+      if (filters.cnpj) queryParams.append('cnpj', filters.cnpj);
       if (filters.status) queryParams.append('is_active', filters.status);
       if (filters.limit) queryParams.append('limit', filters.limit);
       if (filters.offset) queryParams.append('offset', filters.offset);

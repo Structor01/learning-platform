@@ -336,9 +336,9 @@ const EmpresasPage = () => {
                             </p>
                           )}
 
-                          {company.cpnj && (
+                          {company.cnpj && (
                             <p className="text-gray-500 text-sm font-mono">
-                              CNPJ: {formatCNPJ(company.cpnj)}
+                              CNPJ: {formatCNPJ(company.cnpj)}
                             </p>
                           )}
                         </div>
