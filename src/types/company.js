@@ -69,7 +69,7 @@ export const formatPhone = (phone) => {
 
 export const createEmptyCompany = () => ({
   name: '',
-  cpnj: '',
+  cnpj: '',
   corporate_name: '',
   address: '',
   obs: '',
