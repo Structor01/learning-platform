@@ -366,7 +366,7 @@ const EmpresasPage = () => {
                   Gerencie empresas parceiras da plataforma
                 </p>
               </div>
-              
+
               {/* Botão Nova Empresa */}
               <Button
                 onClick={handleCreateCompany}
@@ -496,7 +496,6 @@ const EmpresasPage = () => {
                     </Button>
                   </div>
 
-
                   {/* Botão Buscar */}
                   <Button
                     onClick={handleSearch}
@@ -556,12 +555,12 @@ const EmpresasPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
+              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+                <Table className="min-w-full">
                   <TableHeader>
                     <TableRow className="border-gray-700">
                       <TableHead
-                        className="text-gray-300 cursor-pointer hover:text-white"
+                        className="text-gray-300 cursor-pointer hover:text-white whitespace-nowrap min-w-[140px]"
                         onClick={() => handleSort('name')}
                       >
                         <div className="flex items-center gap-1">
@@ -574,7 +573,7 @@ const EmpresasPage = () => {
                         </div>
                       </TableHead>
                       <TableHead
-                        className="text-gray-300 cursor-pointer hover:text-white"
+                        className="text-gray-300 cursor-pointer hover:text-white whitespace-nowrap min-w-[130px]"
                         onClick={() => handleSort('cnpj')}
                       >
                         <div className="flex items-center gap-1">
@@ -586,12 +585,12 @@ const EmpresasPage = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead className="text-gray-300 hidden md:table-cell">Razão Social</TableHead>
-                      <TableHead className="text-gray-300 hidden lg:table-cell">Responsável</TableHead>
-                      <TableHead className="text-gray-300 hidden sm:table-cell">Email</TableHead>
-                      <TableHead className="text-gray-300 hidden xl:table-cell">Endereço</TableHead>
+                      <TableHead className="text-gray-300 hidden md:table-cell whitespace-nowrap min-w-[140px]">Razão Social</TableHead>
+                      <TableHead className="text-gray-300 hidden lg:table-cell whitespace-nowrap min-w-[120px]">Responsável</TableHead>
+                      <TableHead className="text-gray-300 hidden sm:table-cell whitespace-nowrap min-w-[180px]">Email</TableHead>
+                      <TableHead className="text-gray-300 hidden xl:table-cell whitespace-nowrap min-w-[150px]">Endereço</TableHead>
                       <TableHead
-                        className="text-gray-300 cursor-pointer hover:text-white"
+                        className="text-gray-300 cursor-pointer hover:text-white whitespace-nowrap min-w-[80px]"
                         onClick={() => handleSort('is_active')}
                       >
                         <div className="flex items-center gap-1">
@@ -603,7 +602,7 @@ const EmpresasPage = () => {
                           )}
                         </div>
                       </TableHead>
-                      <TableHead className="text-gray-300">Ações</TableHead>
+                      <TableHead className="text-gray-300 whitespace-nowrap min-w-[80px]">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -611,34 +610,34 @@ const EmpresasPage = () => {
                       <TableRow key={company.id} className="border-gray-700 hover:bg-gray-750">
                         <TableCell className="text-white font-medium">
                           <div className="flex items-center gap-2">
-                            <Building2 className="h-4 w-4 text-gray-400" />
-                            <span className="truncate max-w-[200px]">{company.name}</span>
+                            <Building2 className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <span className="truncate max-w-[120px]">{company.name}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-gray-300">
                           {company.cnpj ? (
-                            <span className="font-mono text-sm">{formatCNPJ(company.cnpj)}</span>
+                            <span className="font-mono text-sm whitespace-nowrap">{formatCNPJ(company.cnpj)}</span>
                           ) : (
                             <span className="text-gray-500">N/A</span>
                           )}
                         </TableCell>
                         <TableCell className="text-gray-300 hidden md:table-cell">
-                          <span className="truncate max-w-[200px]">
+                          <span className="truncate max-w-[120px] block">
                             {company.corporate_name || 'N/A'}
                           </span>
                         </TableCell>
                         <TableCell className="text-gray-300 hidden lg:table-cell">
                           <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-gray-400" />
-                            <span className="truncate max-w-[150px]">
+                            <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <span className="truncate max-w-[100px]">
                               {company.responsible || 'N/A'}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell className="text-gray-300 hidden sm:table-cell">
                           <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4 text-gray-400" />
-                            <span className="truncate max-w-[200px]">
+                            <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <span className="truncate max-w-[160px]">
                               {company.responsible_email}
                             </span>
                           </div>
@@ -646,8 +645,8 @@ const EmpresasPage = () => {
                         <TableCell className="text-gray-300 hidden xl:table-cell">
                           {company.address ? (
                             <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-gray-400" />
-                              <span className="truncate max-w-[200px]">
+                              <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                              <span className="truncate max-w-[130px]">
                                 {company.address}
                               </span>
                             </div>
@@ -656,7 +655,7 @@ const EmpresasPage = () => {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge className={`${getStatusColor(company.is_active)} text-white text-xs`}>
+                          <Badge className={`${getStatusColor(company.is_active)} text-white text-xs whitespace-nowrap`}>
                             {getStatusText(company.is_active)}
                           </Badge>
                         </TableCell>
@@ -665,7 +664,7 @@ const EmpresasPage = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-gray-600 text-gray-300 hover:bg-gray-700 p-1"
+                              className="border-gray-600 text-gray-300 hover:bg-gray-700 p-1 h-7 w-7"
                               onClick={() => handleEditCompany(company)}
                             >
                               <Edit className="h-3 w-3" />
@@ -673,7 +672,7 @@ const EmpresasPage = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-gray-600 text-gray-300 hover:bg-gray-700 p-1"
+                              className="border-gray-600 text-gray-300 hover:bg-gray-700 p-1 h-7 w-7"
                               onClick={() => handleDeleteCompany(company)}
                             >
                               <Trash2 className="h-3 w-3" />
@@ -737,7 +736,7 @@ const EmpresasPage = () => {
                             className={`text-xs sm:text-sm p-1 sm:p-2 ${currentPage === pageNum
                               ? "bg-blue-600 text-white"
                               : "border-gray-600 text-gray-300 hover:bg-gray-700"
-                            }`}
+                              }`}
                           >
                             {pageNum}
                           </Button>

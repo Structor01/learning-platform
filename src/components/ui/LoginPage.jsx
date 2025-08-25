@@ -1,5 +1,5 @@
 // src/components/ui/LoginPage.jsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import DISCIncentiveModal from "./DISCIncentiveModal";
 
 const LoginPage = () => {
-  const { login, user } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,92 +16,17 @@ const LoginPage = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [showDISCModal, setShowDISCModal] = useState(false);
 
-  // Novos estados para controlar o fluxo
-  const [step, setStep] = useState("email"); // "email" ou "password"
-  const [isExpanding, setIsExpanding] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      navigate("/Dashboard", { replace: true });
-    }
-  }, [user, navigate]);
-
-
-  // Função para verificar se o email existe no banco
-  // const checkEmailExists = async (emailToCheck) => {
-  //   try {
-  //     // URL da API
-  //     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-  //     const url = `${API_URL}/api/auth/check-email`;
-
-  //     console.log("🔍 Verificando email:", emailToCheck);
-  //     console.log("📡 URL da requisição:", url);
-
-  //     const response = await fetch(url, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ email: emailToCheck }),
-  //     });
-
-  //     console.log("📊 Status da resposta:", response.status);
-  //     console.log("✅ Response OK?", response.ok);
-
-  //     if (!response.ok) {
-  //       const errorText = await response.text();
-  //       console.error("❌ Erro na resposta:", errorText);
-  //       throw new Error(`Erro ${response.status}: ${errorText}`);
-  //     }
-
-  //     const data = await response.json();
-  //     console.log("📦 Dados recebidos:", data);
-
-  //     return data.exists;
-  //   } catch (error) {
-  //     console.error("🚨 Erro completo ao verificar email:", error);
-  //     console.error("🚨 Tipo do erro:", typeof error);
-  //     console.error("🚨 Mensagem do erro:", error.message);
-  //     throw error;
-  //   }
-  // };
-
-  const handleEmailSubmit = async (e) => {
-    e.preventDefault();
-    if (!email) return;
-
-    setIsLoading(true);
-    setErrorMsg("");
-
-    try {
-      const emailExists = await checkEmailExists(email);
-
-      if (emailExists) {
-        // Email existe, expandir para mostrar campo de senha
-        setIsExpanding(true);
-        setTimeout(() => {
-          setStep("password");
-          setIsExpanding(false);
-        }, 300);
-      } else {
-        // Email não existe, redirecionar para cadastro
-        navigate("/signup", { state: { email } });
-      }
-    } catch (error) {
-      setErrorMsg("Erro ao verificar email. Tente novamente.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePasswordSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg("");
 
     try {
       await login(email, password);
+
+      // Verificar se usuário completou teste DISC
       await checkDISCCompletion();
+
     } catch (error) {
       setErrorMsg(error.message || "Falha no login");
     } finally {
@@ -126,7 +51,7 @@ const LoginPage = () => {
         navigate("/Dashboard");
       }
     } catch (error) {
-      console.error("Erro ao verificar teste DISC:", error);
+      console.error('Erro ao verificar teste DISC:', error);
       // Em caso de erro, ir direto para dashboard
       navigate("/Dashboard");
     }
@@ -137,33 +62,22 @@ const LoginPage = () => {
     navigate("/Dashboard");
   };
 
-  const handleBackToEmail = () => {
-    setStep("email");
-    setPassword("");
-    setErrorMsg("");
-  };
-
   const goToSignup = () => {
     navigate("/signup");
   };
 
   return (
     <>
+
       <div className="min-h-screen bg-black flex items-center justify-center p-4 relative">
         {/* Ver Vagas no canto superior direito */}
         <div className="absolute top-8 right-8 text-1xl text-white font-bold z-10 whitespace-nowrap">
-          <a
-            className="text-white transition duration-200 cursor-pointer hover:bg-white hover:text-black px-2 py-1 rounded"
-            onClick={() => navigate("/vagas")}
-          >
+          <a className="text-white transition duration-200 cursor-pointer hover:bg-white hover:text-black px-2 py-1 rounded"
+            onClick={() => navigate("/vagas")}>
             Ver Vagas
           </a>
         </div>
-
-        <Card
-          className={`w-full max-w-md bg-white/5 backdrop-blur-lg border-white/10 transition-all duration-300 ${isExpanding ? "scale-105" : ""
-            }`}
-        >
+        <Card className="w-full max-w-md bg-white/5 backdrop-blur-lg border-white/10">
           <CardContent className="p-8">
             {/* Cabeçalho */}
             <div className="text-center mb-8">
@@ -176,114 +90,61 @@ const LoginPage = () => {
               </div>
               <h1 className="text-2xl font-bold text-white mb-2">AgroSkills</h1>
               <p className="text-white/70">
-                {step === "email"
-                  ? "Aprendizado personalizado para sua carreira"
-                  : "Digite sua senha para continuar"}
+                Aprendizado personalizado para sua carreira
               </p>
             </div>
 
-            {/* Formulário - Step Email */}
-            {step === "email" && (
-              <form onSubmit={handleEmailSubmit} className="space-y-6">
-                {errorMsg && (
-                  <p className="text-red-400 text-center">{errorMsg}</p>
-                )}
+            {/* Formulário */}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {errorMsg && <p className="text-red-400 text-center">{errorMsg}</p>}
 
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  required
-                  disabled={isLoading}
-                />
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                required
+              />
 
-                <Button
-                  type="submit"
-                  disabled={isLoading || !email}
-                  className="w-full bg-white text-black hover:bg-white/90 font-medium py-3"
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                required
+              />
+
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-white text-black hover:bg-white/90 font-medium py-3"
+              >
+                {isLoading ? "Entrando..." : "Sign In"}
+              </Button>
+
+              {/* Opções extras */}
+              <div className="text-center mt-4 space-y-2">
+                <button
+                  type="button"
+                  onClick={goToSignup}
+                  className="text-white/90 hover:text-white text-sm"
                 >
-                  {isLoading ? "Verificando..." : "Continuar"}
-                </Button>
+                  Não tem uma conta?{" "}
+                  <span className="underline">Cadastre-se</span>
+                </button>
 
-                {/* Opções extras */}
-                <div className="text-center mt-4 space-y-2">
-                  <button
-                    type="button"
-                    onClick={goToSignup}
-                    className="text-white/90 hover:text-white text-sm"
-                  >
-                    Não tem uma conta?{" "}
-                    <span className="underline">Cadastre-se</span>
-                  </button>
-
-                  <div>
-                    <a
-                      href="/forgot-password"
-                      className="text-white/70 hover:text-white text-sm"
-                    >
-                      Esqueceu a senha?
-                    </a>
-                  </div>
-                </div>
-              </form>
-            )}
-
-            {/* Formulário - Step Password */}
-            {step === "password" && (
-              <div className="space-y-6">
-                {errorMsg && (
-                  <p className="text-red-400 text-center">{errorMsg}</p>
-                )}
-
-                {/* Mostrar email confirmado */}
-                <div className="bg-white/5 border border-white/10 rounded-md p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/70 text-sm">Email:</span>
-                    <span className="text-white text-sm">{email}</span>
-                    <button
-                      type="button"
-                      onClick={handleBackToEmail}
-                      className="text-white/50 hover:text-white text-xs underline"
-                    >
-                      alterar
-                    </button>
-                  </div>
-                </div>
-
-                <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                  <Input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    required
-                    disabled={isLoading}
-                    autoFocus
-                  />
-
-                  <Button
-                    type="submit"
-                    disabled={isLoading || !password}
-                    className="w-full bg-white text-black hover:bg-white/90 font-medium py-3"
-                  >
-                    {isLoading ? "Entrando..." : "Sign In"}
-                  </Button>
-                </form>
-
-                {/* Opções extras */}
-                <div className="text-center mt-4">
+                <div>
                   <a
                     href="/forgot-password"
                     className="text-white/70 hover:text-white text-sm"
                   >
-                    Esqueceu sua senha?
+                    Forgot password?
                   </a>
                 </div>
               </div>
-            )}
+            </form>
           </CardContent>
         </Card>
 

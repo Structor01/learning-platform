@@ -1,32 +1,7 @@
 // src/contexts/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
 
 const AuthContext = createContext();
-
-const api = axios.create({
-  baseURL: "https://app.agroskills.com.br/api",
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-  }
-});
-
-api.defaults.headers.common['Authorization'] = 'Bearer ' + localStorage.getItem('token');
-
-api.interceptors.response.use(
-  response => response,
-  async error => {
-    if (error.response?.status === 401) {
-      if (error.response?.data.error !== "Usuário ou senha incorretos") {
-        Storage.removeApiToken();
-        window.location.href = '/';
-      }
-
-    }
-    return Promise.reject(error);
-  }
-);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -47,10 +22,10 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!user && !!accessToken;
 
-  // Carrega usuário do localStorage ao iniciar
+  // Carrega usuário do sessionStorage ao iniciar
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    const accessToken = localStorage.getItem("accessToken");
+    const savedUser = sessionStorage.getItem("user");
+    const accessToken = sessionStorage.getItem("accessToken");
 
     // Se não tiver token, forçamos user para null
     if (savedUser && accessToken) {
@@ -59,9 +34,9 @@ export const AuthProvider = ({ children }) => {
     } else {
       setUser(null);
       setAccessToken(null);
-      localStorage.removeItem("user");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("refreshToken");
     }
 
     setIsLoading(false);
@@ -109,7 +84,7 @@ export const AuthProvider = ({ children }) => {
       };
 
       setUser(newUser);
-      localStorage.setItem("user", JSON.stringify(newUser));
+      sessionStorage.setItem("user", JSON.stringify(newUser));
 
       return { success: true };
     } catch (error) {
@@ -123,11 +98,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     console.log(">>> [DEBUG] Tentando conectar à API em:", API_URL);
-
-    const token = await api.post('auth', { email, password });
-
-    localStorage.setItem('token', token.data.data.token);
-
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -144,13 +114,11 @@ export const AuthProvider = ({ children }) => {
     }
 
     const data = await response.json();
-    data.user.userLegacy = token.data.data.usuario;
-
     setUser(data.user);
     setAccessToken(data.access_token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    localStorage.setItem("accessToken", data.access_token);
-    localStorage.setItem("refreshToken", data.refresh_token);
+    sessionStorage.setItem("user", JSON.stringify(data.user));
+    sessionStorage.setItem("accessToken", data.access_token);
+    sessionStorage.setItem("refreshToken", data.refresh_token);
 
     return data.user;
   };
@@ -174,9 +142,9 @@ export const AuthProvider = ({ children }) => {
     const data = await response.json();
     setUser(data.user);
     setAccessToken(data.access_token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    localStorage.setItem("accessToken", data.access_token);
-    localStorage.setItem("refreshToken", data.refresh_token);
+    sessionStorage.setItem("user", JSON.stringify(data.user));
+    sessionStorage.setItem("accessToken", data.access_token);
+    sessionStorage.setItem("refreshToken", data.refresh_token);
 
     return data.user;
   };
@@ -184,9 +152,9 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setAccessToken(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
   };
 
   const updateSubscription = (subscriptionData) => {
@@ -199,7 +167,7 @@ export const AuthProvider = ({ children }) => {
         },
       };
       setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
 
