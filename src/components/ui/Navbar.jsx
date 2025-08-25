@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 // REMOVIDO: import MinhasCandidaturasPage - não estava sendo usado
 
 const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -115,49 +115,42 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                 Vagas
               </a>
 
-              <a
-                href="/meus-interesses"
-                className="text-gray-300 hover:text-white transition-colors text-sm"
-              >
-                Meus interesses
-              </a>
-
               {/* Menu Administrador */}
-              {userData.email === "artfbgyn@gmail.com" && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="text-gray-300 hover:text-black transition-colors text-sm px-3 py-2"
+              {isAdmin && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="text-gray-300 hover:text-black transition-colors text-sm px-3 py-2"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Administrador
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48" align="start">
+                  <DropdownMenuItem asChild>
+                    <a href="/crm" className="flex items-center w-full">
+                      <span className="mr-2">📊</span>
+                      CRM - Gestão de Leads
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a
+                      href="/recrutamento"
+                      className="flex items-center w-full"
                     >
-                      <Settings className="mr-2 h-4 w-4" />
-                      Administrador
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-48" align="start">
-                    <DropdownMenuItem asChild>
-                      <a href="/crm" className="flex items-center w-full">
-                        <span className="mr-2">📊</span>
-                        CRM - Gestão de Leads
-                      </a>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <a
-                        href="/recrutamento"
-                        className="flex items-center w-full"
-                      >
-                        <span className="mr-2">👥</span>
-                        Recrutamento LinkedIn
-                      </a>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <a href="/candidaturas" className="flex items-center w-full">
-                        <span className="mr-2">📚</span>
-                        Candidaturas
-                      </a>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <span className="mr-2">👥</span>
+                      Recrutamento LinkedIn
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="/candidaturas" className="flex items-center w-full">
+                      <span className="mr-2">📚</span>
+                      Candidaturas
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               )}
             </div>
 
