@@ -1,37 +1,69 @@
 import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import {
-  Building2,
-  Search,
-  Filter,
-  Plus,
-  Edit,
-  Trash2,
-  Eye,
-  MapPin,
-  Phone,
-  Mail,
-  Globe,
-  AlertCircle,
-  CheckCircle,
-  Clock
-} from 'lucide-react';
-import { useNotification } from './Notification';
-import companiesService from '../../services/companiesService';
-import { CompanyStatus, formatCNPJ } from '../../types/company';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import Navbar from './Navbar';
 import CompanyFormModal from './CompanyFormModal';
 import DeleteConfirmModal from './DeleteConfirmModal';
-import Navbar from './Navbar';
+import { useNotification } from './Notification';
+import companiesService from '@/services/companiesService';
+import { formatCNPJ } from '@/types/company';
+import {
+  Plus,
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Building2,
+  MapPin,
+  Mail,
+  User,
+  Phone,
+  CheckCircle,
+  AlertCircle,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Building,
+  Users,
+  TrendingUp,
+  Target
+} from 'lucide-react';
 
 const EmpresasPage = () => {
-  const { showNotification, NotificationComponent } = useNotification();
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [selectedCompany, setSelectedCompany] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
+
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Estados dos modais
   const [showFormModal, setShowFormModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  const { showNotification, NotificationComponent } = useNotification();
 
   useEffect(() => {
     loadCompanies();
@@ -74,7 +106,7 @@ const EmpresasPage = () => {
         filters.name = searchTerm;
       }
 
-      if (statusFilter) {
+      if (statusFilter !== 'all') {
         filters.status = statusFilter;
       }
 
@@ -110,20 +142,26 @@ const EmpresasPage = () => {
   };
 
   const handleDeleteCompany = async (company) => {
-    const dependenciesResponse = await companiesService.checkDependencies(company.id);
+    try {
+      const dependenciesResponse = await companiesService.checkDependencies(company.id);
 
-    if (dependenciesResponse.hasDependencies) {
-      showNotification({
-        type: 'warning',
-        title: 'Não é possível excluir',
-        message: `Esta empresa possui ${dependenciesResponse.dependencies.jobs} vagas vinculadas`,
-        duration: 5000
-      });
-      return;
+      if (dependenciesResponse.hasDependencies) {
+        showNotification({
+          type: 'warning',
+          title: 'Não é possível excluir',
+          message: `Esta empresa possui ${dependenciesResponse.dependencies.jobs} vagas vinculadas`,
+          duration: 5000
+        });
+        return;
+      }
+
+      setSelectedCompany(company);
+      setShowDeleteModal(true);
+    } catch (error) {
+      console.error('Erro ao verificar dependências:', error);
+      setSelectedCompany(company);
+      setShowDeleteModal(true);
     }
-
-    setSelectedCompany(company);
-    setShowDeleteModal(true);
   };
 
   const confirmDelete = async () => {
@@ -207,6 +245,86 @@ const EmpresasPage = () => {
     }
   };
 
+  // Filtros
+  const filteredCompanies = companies.filter(company => {
+    const matchesSearch = company.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.corporate_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      company.cnpj?.includes(searchTerm) ||
+      company.responsible_email?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = statusFilter === 'all' ||
+      (statusFilter === 'true' && company.is_active) ||
+      (statusFilter === 'false' && !company.is_active);
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // Ordenação
+  const sortedCompanies = [...filteredCompanies].sort((a, b) => {
+    let aValue = a[sortField] || '';
+    let bValue = b[sortField] || '';
+
+    // Tratamento para datas
+    if (sortField === 'created_at') {
+      aValue = new Date(aValue);
+      bValue = new Date(bValue);
+    }
+
+    if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue.toLowerCase();
+    }
+
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
+  // Paginação
+  const totalFilteredCompanies = sortedCompanies.length;
+  const totalPagesCalculated = Math.ceil(totalFilteredCompanies / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCompanies = sortedCompanies.slice(startIndex, endIndex);
+
+  // Atualizar total de páginas quando filtros mudarem
+  useEffect(() => {
+    setTotalPages(totalPagesCalculated);
+    if (currentPage > totalPagesCalculated && totalPagesCalculated > 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPagesCalculated, currentPage]);
+
+  // Função para ordenação
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Funções de paginação
+  const goToPage = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const goToFirstPage = () => goToPage(1);
+  const goToLastPage = () => goToPage(totalPages);
+  const goToPreviousPage = () => goToPage(currentPage - 1);
+  const goToNextPage = () => goToPage(currentPage + 1);
+
+  // Limpar filtros
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setCurrentPage(1);
+    loadCompanies();
+  };
+
   const getStatusIcon = (isActive) => {
     return isActive
       ? <CheckCircle className="w-4 h-4 text-green-500" />
@@ -217,217 +335,465 @@ const EmpresasPage = () => {
     return isActive ? 'Ativa' : 'Inativa';
   };
 
+  const getStatusColor = (isActive) => {
+    return isActive ? 'bg-green-500' : 'bg-red-500';
+  };
+
   if (loading && companies.length === 0) {
     return (
-      <div className="min-h-screen bg-black">
-        <Navbar currentView="empresas" />
-        <main className="pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <div className="text-center">
-              <div className="w-16 h-16 border-4 border-gray-700 border-t-orange-600 rounded-full animate-spin mx-auto mb-8"></div>
-              <h3 className="text-xl font-semibold text-white mb-2">Carregando empresas</h3>
-              <p className="text-gray-400">Buscando informações...</p>
-            </div>
-          </div>
-        </main>
-      </div>
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gray-900 p-4 pt-20 flex items-center justify-center">
+          <div className="text-white text-xl">Carregando empresas...</div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <Navbar currentView="empresas" />
-
-      <main className="pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gray-900 text-white p-2 sm:p-4 pt-16 sm:pt-20">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Gestão de Empresas</h1>
-              <p className="text-gray-400">Gerencie empresas parceiras da plataforma</p>
-            </div>
+          <div className="mb-4 sm:mb-6 lg:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+              <div>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-2">
+                  Gestão de Empresas
+                </h1>
+                <p className="text-sm sm:text-base text-gray-400">
+                  Gerencie empresas parceiras da plataforma
+                </p>
+              </div>
 
-            <button
-              onClick={handleCreateCompany}
-              className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-xl hover:shadow-orange-500/25 transition-all duration-300 flex items-center gap-2 hover:-translate-y-0.5"
-            >
-              <Plus className="w-5 h-5" />
-              Nova Empresa
-            </button>
+              {/* Botão Nova Empresa */}
+              <Button
+                onClick={handleCreateCompany}
+                size="default"
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold hover:shadow-xl hover:shadow-orange-500/30 hover:scale-105 transition-all duration-300 flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base border-2 border-orange-400 hover:border-orange-300 self-start sm:self-center"
+              >
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="font-bold">Nova Empresa</span>
+              </Button>
+            </div>
           </div>
 
-          {/* Filtros */}
-          <div className="bg-gray-900/80 backdrop-blur border border-gray-800 rounded-2xl p-6 mb-8">
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1">
+          {/* Analytics Cards */}
+          <div className="grid grid-cols-4 gap-2 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 p-3 sm:p-4 lg:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-400 leading-tight">
+                  <span className="hidden sm:inline">Total de</span> Empresas
+                </CardTitle>
+                <Building className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400 flex-shrink-0" />
+              </CardHeader>
+              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
+                  {companies.length}
+                </div>
+                <p className="text-xs text-green-400 leading-tight">
+                  <span className="hidden sm:inline">Empresas </span>cadastradas
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 p-3 sm:p-4 lg:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-400 leading-tight">
+                  <span className="hidden sm:inline">Empresas </span>Ativas
+                </CardTitle>
+                <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-400 flex-shrink-0" />
+              </CardHeader>
+              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
+                  {companies.filter(c => c.is_active).length}
+                </div>
+                <p className="text-xs text-green-400 leading-tight">
+                  <span className="hidden sm:inline">Empresas </span>operacionais
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 p-3 sm:p-4 lg:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-400 leading-tight">
+                  <span className="hidden sm:inline">Empresas </span>Inativas
+                </CardTitle>
+                <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-400 flex-shrink-0" />
+              </CardHeader>
+              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
+                  {companies.filter(c => !c.is_active).length}
+                </div>
+                <p className="text-xs text-red-400 leading-tight">
+                  <span className="hidden sm:inline">Empresas </span>suspensas
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 p-3 sm:p-4 lg:p-6">
+                <CardTitle className="text-xs sm:text-sm font-medium text-gray-400 leading-tight">
+                  Taxa <span className="hidden sm:inline">de Atividade</span>
+                </CardTitle>
+                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-orange-400 flex-shrink-0" />
+              </CardHeader>
+              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0">
+                <div className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
+                  {companies.length > 0 ? Math.round((companies.filter(c => c.is_active).length / companies.length) * 100) : 0}%
+                </div>
+                <p className="text-xs text-orange-400 leading-tight">
+                  <span className="hidden sm:inline">Empresas </span>ativas
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filtros e Busca */}
+          <Card className="bg-gray-800 border-gray-700 mb-4 sm:mb-6">
+            <CardContent className="p-3 sm:p-4 lg:p-6 pt-4 sm:pt-6">
+              <div className="space-y-3 sm:space-y-4">
+                {/* Busca */}
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="Buscar por nome ou CNPJ..."
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Buscar por nome, razão social, CNPJ ou email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-orange-500 transition-colors"
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    className="pl-10 bg-gray-700 border-gray-600 text-white placeholder-gray-400"
                   />
                 </div>
-              </div>
 
-              <div className="flex gap-4">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-orange-500 transition-colors"
-                >
-                  <option value="">Todos os status</option>
-                  <option value="true">Ativas</option>
-                  <option value="false">Inativas</option>
-                </select>
+                {/* Filtros */}
+                <div className="flex flex-wrap gap-2 sm:gap-3 lg:gap-4">
+                  {/* Filtro por Status */}
+                  <div className="flex gap-1 sm:gap-2 flex-wrap items-center">
+                    <span className="text-xs sm:text-sm text-gray-400">Status:</span>
+                    <Button
+                      variant={statusFilter === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setStatusFilter('all')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600"
+                    >
+                      Todas
+                    </Button>
+                    <Button
+                      variant={statusFilter === 'true' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setStatusFilter('true')}
+                      className="bg-green-600 hover:bg-green-700 text-white border-green-600"
+                    >
+                      Ativas
+                    </Button>
+                    <Button
+                      variant={statusFilter === 'false' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setStatusFilter('false')}
+                      className="bg-red-600 hover:bg-red-700 text-white border-red-600"
+                    >
+                      Inativas
+                    </Button>
+                  </div>
 
-                <button
-                  onClick={handleSearch}
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl transition-colors flex items-center gap-2"
-                >
-                  <Filter className="w-5 h-5" />
-                  Filtrar
-                </button>
 
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setStatusFilter('');
-                    loadCompanies();
-                  }}
-                  className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-xl transition-colors"
-                >
-                  Limpar
-                </button>
-              </div>
-            </div>
-          </div>
+                  {/* Botão Buscar */}
+                  <Button
+                    onClick={handleSearch}
+                    size="sm"
+                    className="bg-orange-600 hover:bg-orange-700 text-white flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
+                  >
+                    <Filter className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Filtrar</span>
+                    <span className="sm:hidden">▼</span>
+                  </Button>
 
-          {/* Lista de Empresas */}
-          {companies.length > 0 ? (
-            <div className="space-y-4">
-              {companies.map((company) => (
-                <div
-                  key={company.id}
-                  className="bg-gray-900/80 backdrop-blur border border-gray-800 rounded-2xl p-6 hover:bg-gray-800/80 transition-all duration-300 hover:border-gray-700"
-                >
-                  <div className="flex flex-col xl:flex-row xl:items-center gap-6">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-bold text-white">
-                              {company.name}
-                            </h3>
-                            <div className="flex items-center gap-2">
-                              {getStatusIcon(company.is_active)}
-                              <span className="text-sm text-gray-400">
-                                {getStatusText(company.is_active)}
-                              </span>
-                            </div>
-                          </div>
+                  {/* Botão Limpar Filtros */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700 text-xs sm:text-sm"
+                  >
+                    <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                    <span className="hidden sm:inline">Limpar</span>
+                    <span className="sm:hidden">✕</span>
+                  </Button>
+                </div>
 
-                          {company.corporate_name && (
-                            <p className="text-gray-400 mb-2">
-                              {company.corporate_name}
-                            </p>
-                          )}
+                {/* Controles de Paginação e Itens por Página */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm text-gray-400">Itens por página:</span>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="bg-gray-700 border-gray-600 text-white rounded px-2 py-1 text-sm"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
 
-                          {company.cnpj && (
-                            <p className="text-gray-500 text-sm font-mono">
-                              CNPJ: {formatCNPJ(company.cnpj)}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        {company.address && (
-                          <div className="flex items-center gap-2 text-sm text-gray-400">
-                            <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                            <span className="truncate">{company.address}</span>
-                          </div>
-                        )}
-
-                        {company.responsible_email && (
-                          <div className="flex items-center gap-2 text-sm text-gray-400">
-                            <Mail className="w-4 h-4 text-green-500 flex-shrink-0" />
-                            <span className="truncate">{company.responsible_email}</span>
-                          </div>
-                        )}
-
-                        {company.responsible && (
-                          <div className="flex items-center gap-2 text-sm text-gray-400">
-                            <Building2 className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                            <span className="truncate">{company.responsible}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {company.obs && (
-                        <p className="text-gray-300 text-sm line-clamp-2">
-                          {company.obs}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Ações */}
-                    <div className="flex xl:flex-col gap-2">
-                      <button
-                        onClick={() => handleEditCompany(company)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                      >
-                        <Edit className="w-4 h-4" />
-                        <span className="hidden sm:inline">Editar</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleDeleteCompany(company)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">Excluir</span>
-                      </button>
-                    </div>
+                  <div className="text-xs sm:text-sm text-gray-400 text-center sm:text-right">
+                    <span className="hidden sm:inline">Mostrando </span>{startIndex + 1}-{Math.min(endIndex, totalFilteredCompanies)} de {totalFilteredCompanies}<span className="hidden sm:inline"> empresas</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20">
-              <div className="w-24 h-24 bg-gray-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <Building2 className="w-12 h-12 text-gray-400" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">
-                Nenhuma empresa encontrada
-              </h3>
-              <p className="text-gray-400 max-w-md mx-auto mb-8">
-                {searchTerm || statusFilter
-                  ? 'Tente ajustar os filtros de busca ou cadastre uma nova empresa.'
-                  : 'Comece cadastrando sua primeira empresa parceira.'
-                }
-              </p>
-              <button
-                onClick={handleCreateCompany}
-                className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-6 py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-medium flex items-center gap-2 mx-auto"
-              >
-                <Plus className="w-5 h-5" />
-                Cadastrar Empresa
-              </button>
-            </div>
-          )}
-        </div>
-      </main>
+            </CardContent>
+          </Card>
 
-      {/* Modals */}
+          {/* Tabela de Empresas */}
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader className="p-3 sm:p-4 lg:p-6">
+              <CardTitle className="text-base sm:text-lg text-white">
+                Empresas ({totalFilteredCompanies})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-gray-700">
+                      <TableHead
+                        className="text-gray-300 cursor-pointer hover:text-white"
+                        onClick={() => handleSort('name')}
+                      >
+                        <div className="flex items-center gap-1">
+                          Nome
+                          {sortField === 'name' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead
+                        className="text-gray-300 cursor-pointer hover:text-white"
+                        onClick={() => handleSort('cnpj')}
+                      >
+                        <div className="flex items-center gap-1">
+                          CNPJ
+                          {sortField === 'cnpj' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-gray-300 hidden md:table-cell">Razão Social</TableHead>
+                      <TableHead className="text-gray-300 hidden lg:table-cell">Responsável</TableHead>
+                      <TableHead className="text-gray-300 hidden sm:table-cell">Email</TableHead>
+                      <TableHead className="text-gray-300 hidden xl:table-cell">Endereço</TableHead>
+                      <TableHead
+                        className="text-gray-300 cursor-pointer hover:text-white"
+                        onClick={() => handleSort('is_active')}
+                      >
+                        <div className="flex items-center gap-1">
+                          Status
+                          {sortField === 'is_active' ? (
+                            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                          ) : (
+                            <ArrowUpDown className="h-3 w-3" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-gray-300">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedCompanies.map((company) => (
+                      <TableRow key={company.id} className="border-gray-700 hover:bg-gray-750">
+                        <TableCell className="text-white font-medium">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-4 w-4 text-gray-400" />
+                            <span className="truncate max-w-[200px]">{company.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-300">
+                          {company.cnpj ? (
+                            <span className="font-mono text-sm">{formatCNPJ(company.cnpj)}</span>
+                          ) : (
+                            <span className="text-gray-500">N/A</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-gray-300 hidden md:table-cell">
+                          <span className="truncate max-w-[200px]">
+                            {company.corporate_name || 'N/A'}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-gray-300 hidden lg:table-cell">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-gray-400" />
+                            <span className="truncate max-w-[150px]">
+                              {company.responsible || 'N/A'}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-300 hidden sm:table-cell">
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-gray-400" />
+                            <span className="truncate max-w-[200px]">
+                              {company.responsible_email}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-300 hidden xl:table-cell">
+                          {company.address ? (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-gray-400" />
+                              <span className="truncate max-w-[200px]">
+                                {company.address}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-500">N/A</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`${getStatusColor(company.is_active)} text-white text-xs`}>
+                            {getStatusText(company.is_active)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-gray-600 text-gray-300 hover:bg-gray-700 p-1"
+                              onClick={() => handleEditCompany(company)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-gray-600 text-gray-300 hover:bg-gray-700 p-1"
+                              onClick={() => handleDeleteCompany(company)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Controles de Paginação */}
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 p-3 sm:p-4 border-t border-gray-700">
+                  <div className="text-xs sm:text-sm text-gray-400 text-center sm:text-left">
+                    Página {currentPage} de {totalPages}
+                  </div>
+
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToFirstPage}
+                      disabled={currentPage === 1}
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700 disabled:opacity-50 p-1 sm:p-2"
+                    >
+                      <ChevronsLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToPreviousPage}
+                      disabled={currentPage === 1}
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700 disabled:opacity-50 p-1 sm:p-2"
+                    >
+                      <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+
+                    {/* Números das páginas */}
+                    <div className="hidden sm:flex items-center gap-1">
+                      {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => goToPage(pageNum)}
+                            className={`text-xs sm:text-sm p-1 sm:p-2 ${currentPage === pageNum
+                              ? "bg-blue-600 text-white"
+                              : "border-gray-600 text-gray-300 hover:bg-gray-700"
+                              }`}
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToNextPage}
+                      disabled={currentPage === totalPages}
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700 disabled:opacity-50 p-1 sm:p-2"
+                    >
+                      <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={goToLastPage}
+                      disabled={currentPage === totalPages}
+                      className="border-gray-600 text-gray-300 hover:bg-gray-700 disabled:opacity-50 p-1 sm:p-2"
+                    >
+                      <ChevronsRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {paginatedCompanies.length === 0 && (
+                <div className="text-center py-12">
+                  <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-white mb-2">
+                    {companies.length === 0 ? 'Nenhuma empresa cadastrada' : 'Nenhuma empresa encontrada'}
+                  </h3>
+                  <p className="text-gray-400">
+                    {companies.length === 0
+                      ? 'Cadastre a primeira empresa clicando no botão "Nova Empresa"'
+                      : 'Tente ajustar os filtros ou termo de busca'
+                    }
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Modais */}
       <CompanyFormModal
         isOpen={showFormModal}
         onClose={() => {
           setShowFormModal(false);
           setSelectedCompany(null);
+          setIsEditing(false);
         }}
         onSubmit={handleFormSubmit}
         company={selectedCompany}
@@ -436,17 +802,14 @@ const EmpresasPage = () => {
 
       <DeleteConfirmModal
         isOpen={showDeleteModal}
-        onClose={() => {
-          setShowDeleteModal(false);
-          setSelectedCompany(null);
-        }}
+        onClose={() => setShowDeleteModal(false)}
         onConfirm={confirmDelete}
         title="Excluir Empresa"
         message={`Tem certeza que deseja excluir a empresa "${selectedCompany?.name}"? Esta ação não pode ser desfeita.`}
       />
 
       {NotificationComponent}
-    </div>
+    </>
   );
 };
 
