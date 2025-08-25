@@ -23,7 +23,22 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!user && !!accessToken;
 
-  // Carrega usuário do localStorage ao iniciar
+  // Helper para limpar dados grandes antes de salvar no sessionStorage
+  const cleanUserForStorage = (userData) => {
+    return {
+      ...userData,
+      // Converter Buffers/objetos grandes em booleans (mantém informação de existência)
+      curriculo_url: userData?.curriculo_url ? true : null,
+      curriculoUrl: userData?.curriculoUrl ? true : null,
+      // Manter campos string pequenos importantes
+      linkedin: userData?.linkedin || null,
+      // Remover outros campos grandes se existirem
+      password: undefined, // Nunca salvar senha
+      resetToken: undefined, // Nunca salvar tokens de reset
+    };
+  };
+
+  // Carrega usuário do sessionStorage ao iniciar
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
     const accessToken = localStorage.getItem("accessToken");
@@ -79,14 +94,26 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Resposta da API após atualização:", updatedUser);
 
+      // Criar novo objeto de usuário com dados limpos
       const newUser = {
         ...user,
         ...updatedUser,
         curriculo_url: updatedUser.curriculoUrl, // mapeia o campo do backend para o frontend
+        // Garantir que os campos sejam adequadamente mapeados
+        linkedin: updatedUser.linkedin || user.linkedin,
+        curriculoUrl: updatedUser.curriculoUrl,
       };
 
+      console.log("Dados do novo usuário (após merge):", {
+        linkedin: newUser.linkedin,
+        curriculoUrl: !!newUser.curriculoUrl,
+        curriculo_url: !!newUser.curriculo_url
+      });
+
       setUser(newUser);
-      localStorage.setItem("user", JSON.stringify(newUser));
+
+      // Usar helper para limpar dados antes de salvar
+      sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(newUser)));
 
       return { success: true };
     } catch (error) {
@@ -123,7 +150,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const errData = await response.json();
         errMsg = errData.message || errMsg;
-      } catch {}
+      } catch { }
       throw new Error(errMsg);
     }
 
@@ -132,9 +159,9 @@ export const AuthProvider = ({ children }) => {
 
     setUser(data.user);
     setAccessToken(data.access_token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    localStorage.setItem("accessToken", data.access_token);
-    localStorage.setItem("refreshToken", data.refresh_token);
+    sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(data.user)));
+    sessionStorage.setItem("accessToken", data.access_token);
+    sessionStorage.setItem("refreshToken", data.refresh_token);
 
     return data.user;
   };
@@ -151,16 +178,16 @@ export const AuthProvider = ({ children }) => {
       try {
         const errData = await response.json();
         errMsg = errData.message || errMsg;
-      } catch {}
+      } catch { }
       throw new Error(errMsg);
     }
 
     const data = await response.json();
     setUser(data.user);
     setAccessToken(data.access_token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-    localStorage.setItem("accessToken", data.access_token);
-    localStorage.setItem("refreshToken", data.refresh_token);
+    sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(data.user)));
+    sessionStorage.setItem("accessToken", data.access_token);
+    sessionStorage.setItem("refreshToken", data.refresh_token);
 
     return data.user;
   };
@@ -184,7 +211,7 @@ export const AuthProvider = ({ children }) => {
         },
       };
       setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(updatedUser)));
     }
   };
 
