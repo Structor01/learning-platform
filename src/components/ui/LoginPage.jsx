@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { USER_TYPES } from "@/types/userTypes";
 import DISCIncentiveModal from "./DISCIncentiveModal";
 
 const LoginPage = () => {
@@ -22,10 +23,24 @@ const LoginPage = () => {
     setErrorMsg("");
 
     try {
-      await login(email, password);
-
-      // Verificar se usuário completou teste DISC
-      await checkDISCCompletion();
+      const loggedUser = await login(email, password);
+      
+      console.log("🔍 DEBUG - Usuário logado:", loggedUser);
+      console.log("🔍 DEBUG - userType:", loggedUser?.userType);
+      
+      // Identificação automática do tipo de usuário e redirecionamento
+      const userType = loggedUser.userType || USER_TYPES.CANDIDATE;
+      
+      console.log("🔍 DEBUG - Tipo determinado:", userType);
+      console.log("🔍 DEBUG - É empresa?", userType === USER_TYPES.COMPANY);
+      
+      if (userType === USER_TYPES.COMPANY) {
+        console.log("🔍 DEBUG - Redirecionando para dashboard-empresa");
+        navigate("/dashboard-empresa");
+      } else {
+        console.log("🔍 DEBUG - Redirecionando para fluxo candidato");
+        await checkDISCCompletion();
+      }
 
     } catch (error) {
       setErrorMsg(error.message || "Falha no login");

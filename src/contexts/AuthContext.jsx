@@ -1,5 +1,6 @@
 // src/contexts/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
+import { USER_TYPES, validateUserType } from "../types/userTypes";
 
 const AuthContext = createContext();
 
@@ -21,6 +22,14 @@ export const AuthProvider = ({ children }) => {
     "https://learning-platform-backend-2x39.onrender.com";
 
   const isAuthenticated = !!user && !!accessToken;
+
+  const getUserType = () => {
+    if (!user) return null;
+    return validateUserType(user.userType) ? user.userType : USER_TYPES.CANDIDATE;
+  };
+
+  const isCompany = () => getUserType() === USER_TYPES.COMPANY;
+  const isCandidate = () => getUserType() === USER_TYPES.CANDIDATE;
 
   // Helper para limpar dados grandes antes de salvar no sessionStorage
   const cleanUserForStorage = (userData) => {
@@ -150,11 +159,18 @@ export const AuthProvider = ({ children }) => {
     return data.user;
   };
 
-  const signup = async ({ name, email, password }) => {
+  const signup = async ({ name, email, password, userType, companyName, cnpj }) => {
+    const requestBody = { name, email, password, userType };
+    
+    if (userType === USER_TYPES.COMPANY) {
+      if (companyName) requestBody.companyName = companyName;
+      if (cnpj) requestBody.cnpj = cnpj;
+    }
+    
     const response = await fetch(`${API_URL}/api/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -214,6 +230,10 @@ export const AuthProvider = ({ children }) => {
     canAccessContent,
     isAuthenticated,
     updateUser,
+    getUserType,
+    isCompany,
+    isCandidate,
+    USER_TYPES,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

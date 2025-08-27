@@ -3,13 +3,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff } from "lucide-react";
+import { USER_TYPES } from "@/types/userTypes";
+import { formatCNPJ, isValidEmail } from "@/types/company";
+import { Eye, EyeOff, User, Building2 } from "lucide-react";
 
 const SignUpPage = () => {
   const { signup } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userType, setUserType] = useState(USER_TYPES.CANDIDATE);
+  const [companyName, setCompanyName] = useState("");
+  const [cnpj, setCnpj] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState(""); // Novo estado para mensagem de sucesso
@@ -22,7 +27,36 @@ const SignUpPage = () => {
     setSuccessMsg(""); // Limpa mensagem de sucesso anterior
 
     try {
-      await signup({ name, email, password });
+      // Validações específicas para empresa
+      if (userType === USER_TYPES.COMPANY) {
+        if (!companyName.trim()) {
+          setErrorMsg("Nome da empresa é obrigatório");
+          return;
+        }
+        if (!cnpj.trim()) {
+          setErrorMsg("CNPJ é obrigatório");
+          return;
+        }
+        const cleanCNPJ = cnpj.replace(/[^\d]/g, '');
+        if (cleanCNPJ.length < 11) {
+          setErrorMsg("CNPJ deve ter pelo menos 11 dígitos");
+          return;
+        }
+      }
+
+      const signupData = { 
+        name, 
+        email, 
+        password, 
+        userType 
+      };
+      
+      if (userType === USER_TYPES.COMPANY) {
+        signupData.companyName = companyName;
+        signupData.cnpj = cnpj.replace(/[^\d]/g, ''); // Remove formatação
+      }
+      
+      await signup(signupData);
       // Exibe mensagem de sucesso
       setSuccessMsg("Conta criada com sucesso! Bem-vindo(a)!");
       
@@ -30,6 +64,8 @@ const SignUpPage = () => {
       setName("");
       setEmail("");
       setPassword("");
+      setCompanyName("");
+      setCnpj("");
       
       // opcional: redirecionar para dashboard ou login após alguns segundos
       // setTimeout(() => {
@@ -63,16 +99,80 @@ const SignUpPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Seleção de Tipo de Usuário */}
+            <div className="space-y-3">
+              <p className="text-white/80 text-sm">Tipo de Conta</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setUserType(USER_TYPES.CANDIDATE)}
+                  className={`flex items-center justify-center p-3 rounded-lg border transition-all ${
+                    userType === USER_TYPES.CANDIDATE
+                      ? 'bg-white/20 border-white/40 text-white'
+                      : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10'
+                  }`}
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  Candidato
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserType(USER_TYPES.COMPANY)}
+                  className={`flex items-center justify-center p-3 rounded-lg border transition-all ${
+                    userType === USER_TYPES.COMPANY
+                      ? 'bg-white/20 border-white/40 text-white'
+                      : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10'
+                  }`}
+                >
+                  <Building2 className="mr-2 h-4 w-4" />
+                  Empresa
+                </button>
+              </div>
+            </div>
+
             <div>
               <Input
                 type="text"
-                placeholder="Nome Completo"
+                placeholder={userType === USER_TYPES.COMPANY ? "Nome do Responsável" : "Nome Completo"}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                 required
               />
             </div>
+
+            {/* Campos específicos para empresa */}
+            {userType === USER_TYPES.COMPANY && (
+              <>
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="Nome da Empresa"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="CNPJ (somente números ou com formatação)"
+                    value={cnpj}
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      // Permite apenas números e formatação básica
+                      value = value.replace(/[^\d./-]/g, '');
+                      setCnpj(value);
+                    }}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    required
+                    maxLength={18} // XX.XXX.XXX/XXXX-XX
+                  />
+                </div>
+              </>
+            )}
 
             <div>
               <Input
