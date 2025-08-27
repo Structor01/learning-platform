@@ -172,9 +172,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             <div className="flex justify-between items-center">
               {/* Bloco de boas-vindas e perfil DISC */}
               <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''}/>
-              <div className={"flex flex-col"}>
+              <div className={"flex flex-col flex-shrink-0 lg:w-2/5"}>
                 <h1 className="text-3xl text-black font-bold mb-2">
-                  Olá, {userData.name.split(" ")[0]}!
+                  Olá, {userData?.name?.split(" ")[0]}!
                 </h1>
 
                 <div className={"grid grid-cols-2 gap-3"}>
@@ -182,20 +182,27 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_disc)} rounded-full flex items-center justify-center`}>
                       <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc?.charAt(0)}</span>
                     </div>
-                    <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_disc}</span>
+                      <div className={"flex flex-col items-start justify-start"}>
+                          <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_disc}</span>
+                          <span className="text-gray-900 ml-3 font-bold text-xs">Perfil Comportamental</span>
+                      </div>
                   </div>
                   <div className={"flex items-center justify-start"}>
                     <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_lideranca)} rounded-full flex items-center justify-center`}>
                       <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca?.charAt(0)}</span>
                     </div>
-                    <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
+                      <div className={"flex flex-col items-start justify-start"}>
+                          <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
+                          <span className="text-gray-900 ml-3 font-bold text-xs">Estilo de liderança</span>
+                      </div>
+
                   </div>
                 </div>
 
 
               </div>
 
-              <div className="flex-shrink-0 lg:w-2/4">
+              <div className="flex-shrink-0 lg:w-2/5">
 
                 <div className="flex items-center m-3 space-x-4">
                   <div className="flex items-center space-x-2">
@@ -257,8 +264,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       )
                   }
               </div>
-
-
             </div>
           </div>
 
