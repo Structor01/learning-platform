@@ -11,24 +11,92 @@ const PublicChatPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
+  const expirationHours = 24;
 
   // Inicializar sessão do chat
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        // Gerar um sessionId único para usuários não logados
-        const guestSessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Verificar se existe uma sessão armazenada e se ainda é válida
+        let sessionData;
+        try {
+          sessionData = JSON.parse(localStorage.getItem('agroskills:guestSession'));
+        } catch {
+          // Se houver erro ao fazer parse do JSON, sessionData será null
+          sessionData = null;
+        }
+        
+        let guestSessionId;
+        
+        if (sessionData && new Date(sessionData.expiresAt) > new Date()) {
+          // Sessão ainda é válida
+          guestSessionId = sessionData.id;
+          console.log('🔄 Usando sessão existente:', guestSessionId);
+        } else {
+          // Criar nova sessão com timestamp
+          guestSessionId = `guest_${Date.now()}`;
+          console.log('🆕 Criando nova sessão:', guestSessionId);
+          
+          // Calcular data de expiração
+          const expiresAt = new Date();
+          expiresAt.setHours(expiresAt.getHours() + expirationHours);
+          
+          // Salvar no localStorage com data de expiração
+          localStorage.setItem('agroskills:guestSession', JSON.stringify({
+            id: guestSessionId,
+            createdAt: new Date().toISOString(),
+            expiresAt: expiresAt.toISOString()
+          }));
+        }
+
         setSessionId(guestSessionId);
         
-        // Mensagem de boas-vindas
-        const welcomeMessage = {
-          id: Date.now(),
-          content: "Olá! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?",
-          isBot: true,
-          timestamp: new Date()
-        };
+        // Determinar se é uma sessão existente (para mensagem de boas-vindas)
+        let isReturningUser = sessionData && sessionData.id === guestSessionId;
         
-        setMessages([welcomeMessage]);
+        // Enviar uma mensagem inicial "silenciosa" para o bot
+        // Isso faz com que o bot inicialize a conversa sem mostrar a mensagem no chat
+        try {
+          await botService.sendMessage(guestSessionId, "oi");
+        } catch (error) {
+          console.error("Erro ao inicializar bot:", error);
+        }
+        
+        // Aguardar resposta do bot para mostrar como primeira mensagem
+        try {
+          setIsLoading(true);
+          const initialResponse = await botService.sendMessage(guestSessionId, 
+            "Preciso que você se apresente como assistente da AgroSkills");
+          
+          // Adicionar resposta do bot como primeira mensagem
+          const botMessage = {
+            id: Date.now(),
+            content: initialResponse,
+            isBot: true,
+            timestamp: new Date()
+          };
+          
+          setMessages([botMessage]);
+        } catch (error) {
+          console.error("Erro ao obter saudação inicial:", error);
+          
+          // Se falhar, usar mensagem padrão
+          let content = isReturningUser
+            ? "Olá, prazer em vê-lo novamente! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?"
+            : "Olá! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?"
+          
+          const welcomeMessage = {
+            id: Date.now(),
+            content: content,
+            isBot: true,
+            timestamp: new Date()
+          };
+          
+          setMessages([welcomeMessage]);
+        } finally {
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error('Erro ao inicializar chat:', error);
       }
@@ -53,12 +121,12 @@ const PublicChatPage = () => {
 
     try {
       // Enviar mensagem para o bot (sem autenticação)
-      const response = await botService.sendMessage(sessionId, content, false); // false = não autenticado
+      const response = await botService.sendMessage(sessionId, content);
       
       // Adicionar resposta do bot
       const botMessage = {
         id: Date.now() + 1,
-        content: response.message,
+        content: response,
         isBot: true,
         timestamp: new Date()
       };

@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }) => {
   // Carrega usuário do sessionStorage ao iniciar
   useEffect(() => {
     const savedUser = sessionStorage.getItem("user");
+    console.log("user storage:", user);
     const accessToken = sessionStorage.getItem("accessToken");
 
     // Se não tiver token, forçamos user para null
