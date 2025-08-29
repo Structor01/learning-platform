@@ -22,7 +22,7 @@ class BotService {
           message,
           prompt: isSilent 
             ? 'Responda normalmente sem saudações, pois é parte da conversa já iniciada'
-            : 'Nao precisa fazer a saldação inicial o sistema da agroskills ja faz isso automaticamente, ela ja te aprensentoua o usuario'
+            : ''
         })
       });
 
@@ -33,7 +33,7 @@ class BotService {
       }
 
       console.log('✅ Resposta recebida:', data.message);
-      return data.message;
+      return data;
 
     } catch (error) {
       console.error('❌ Erro ao enviar mensagem:', error);

@@ -5,13 +5,18 @@ import MessageBubble from '@/components/bot/MessageBubble';
 import ChatInput from '@/components/bot/ChatInput';
 import botService from '@/services/botService';
 import { MessageCircle, X, Minimize2, Maximize2 } from 'lucide-react';
+import { tr } from 'zod/v4/locales';
 
 const PublicChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [actionCommand, setActionCommand] = useState(null);
   const expirationHours = 24;
+
+
+  console.log('Comando de ação atual:', actionCommand);
 
   // Inicializar sessão do chat
   useEffect(() => {
@@ -67,12 +72,12 @@ const PublicChatPage = () => {
         try {
           setIsLoading(true);
           const initialResponse = await botService.sendMessage(guestSessionId, 
-            "Preciso que você se apresente como assistente da AgroSkills");
+            "Se apresente como assistente da AgroSkills");
           
           // Adicionar resposta do bot como primeira mensagem
           const botMessage = {
             id: Date.now(),
-            content: initialResponse,
+            content: initialResponse.message,
             isBot: true,
             timestamp: new Date()
           };
@@ -122,16 +127,28 @@ const PublicChatPage = () => {
     try {
       // Enviar mensagem para o bot (sem autenticação)
       const response = await botService.sendMessage(sessionId, content);
+
+      console.log('Resposta do bot:', response);
       
       // Adicionar resposta do bot
       const botMessage = {
         id: Date.now() + 1,
-        content: response,
+        content: response.message,
         isBot: true,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, botMessage]);
+
+      if(response.actionCommands){
+        const sendNameCommand =  response.actionCommands.find(cmd => cmd.name === 'send-name');
+
+        if(sendNameCommand){
+        setActionCommand('send-name');
+        }
+
+      }
+
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       
