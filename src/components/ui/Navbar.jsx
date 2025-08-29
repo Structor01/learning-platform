@@ -190,8 +190,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                       alt={userData.name}
                     />
                       <AvatarFallback className="bg-gray-600 text-white">
-                          {userData.name
-                              .split(" ")
+                          {userData?.name?.split(" ")
                               .map((n) => n[0])
                               .join("")}
                       </AvatarFallback>

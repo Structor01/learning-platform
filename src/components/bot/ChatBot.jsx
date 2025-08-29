@@ -128,7 +128,11 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
       <div className="flex items-center justify-between p-4 border-b bg-blue-600 text-white rounded-t-lg">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-            <Bot className="w-4 h-4" />
+              <img
+                  src="/iza.png"
+                  alt="Iza Recrutadora"
+                  className="w-200% h-full object-cover rounded-full"
+              />
           </div>
           <div>
             <h3 className="font-semibold text-sm">IZA</h3>
