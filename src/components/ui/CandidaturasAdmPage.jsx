@@ -34,9 +34,9 @@ import { API_URL } from "../utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "./Navbar";
 import testService from "../../services/testService";
-import interviewService from "../../services/interviewService";
 import CandidaturasPorVaga from './CandidaturasPorVaga';
 import InterviewDetailsModal from "./InterviewDetailsModal";
+import CandidateDetailsModal from "./CandidateDetailsModal";
 
 const discConfig = {
     D: { name: "Dominância", color: "from-red-500 to-red-600" },
@@ -56,8 +56,7 @@ const CandidaturasAdmPage = () => {
     const [modalDisc, setModalDisc] = useState({ isOpen: false, resultado: "", nome: "" });
     const [modalInterview, setModalInterview] = useState({ isOpen: false, entrevistas: [], nome: "", candidaturaId: null });
     const [selectedVideo, setSelectedVideo] = useState(null);
-    const [selectedInterviewDetails, setSelectedInterviewDetails] = useState(null);
-    const [showInterviewDetails, setShowInterviewDetails] = useState(false);
+    const [candidateDetailsModal, setCandidateDetailsModal] = useState({ isOpen: false, candidatura: null });
 
     // Carregar dados da API
     useEffect(() => {
@@ -81,18 +80,6 @@ const CandidaturasAdmPage = () => {
     };
 
     // FUNÇÕES AUXILIARES PARA ENTREVISTAS
-    const getInterviewStatusColor = (status) => {
-        switch (status?.toLowerCase()) {
-            case 'completed':
-                return 'from-green-500 to-green-600';
-            case 'in_progress':
-                return 'from-yellow-500 to-orange-500';
-            case 'pending':
-                return 'from-blue-500 to-blue-600';
-            default:
-                return 'from-gray-500 to-gray-600';
-        }
-    };
 
     const getInterviewStatusText = (status) => {
         switch (status?.toLowerCase()) {
@@ -157,8 +144,8 @@ const CandidaturasAdmPage = () => {
                 status: result.status
             });
 
-            setSelectedInterviewDetails(result);
-            setShowInterviewDetails(true);
+            // Resultado processado - aqui poderia abrir modal específico de detalhes da entrevista
+            console.log('Detalhes da entrevista carregados:', result);
 
         } catch (error) {
             console.error('❌ Erro completo ao buscar detalhes da entrevista:', {
@@ -241,8 +228,8 @@ const CandidaturasAdmPage = () => {
                 userName: detailedInterview.user?.name
             });
 
-            setSelectedInterviewDetails(detailedInterview);
-            setShowInterviewDetails(true);
+            // Dados estruturados processados - aqui poderia abrir modal específico
+            console.log('Dados da entrevista processados:', detailedInterview);
 
         } catch (error) {
             console.error('❌ Erro no método alternativo:', error);
@@ -380,55 +367,61 @@ const CandidaturasAdmPage = () => {
             setLoading(true);
             setError("");
 
-            // OTIMIZAÇÃO: Usar endpoint com LEFT JOIN na coluna interview_id
-            // Backend agora retorna candidaturas com entrevistas já incluídas via JOIN
-            // Isso elimina a necessidade de múltiplas requisições por candidatura
-            const response = await axios.get(`${API_URL}/api/candidaturas?include_interviews=true`, {
+            // OTIMIZAÇÃO: Usar endpoint com LEFT JOIN completo
+            // Backend retorna candidaturas com entrevistas, dados de usuário e DISC incluídos via JOIN
+            // Isso elimina múltiplas requisições HTTP por candidatura
+            const response = await axios.get(`${API_URL}/api/candidaturas?include_interviews=true&include_users=true&include_disc=true`, {
                 headers: { Authorization: `Bearer ${accessToken}` },
             });
 
             let candidaturas = response.data || [];
 
             if (candidaturas.length > 0) {
-                if (process.env.NODE_ENV === 'development') {
-                    console.log('🚀 Processando candidaturas com dados otimizados do LEFT JOIN...');
-                }
+                console.log('🚀 Processando candidaturas com dados completos do LEFT JOIN otimizado...');
 
-                const usuarioIdsUnicos = [...new Set(candidaturas.map(c => c.usuario_id))];
-                const usuariosData = {};
+                // VERIFICAR SE O BACKEND JÁ RETORNOU DADOS DISC
+                const precisaBuscarDisc = candidaturas.some(c => !c.usuario?.perfil_disc && !c.usuario?.disc_data);
+                let usuariosData = {};
 
-                // BUSCAR DADOS DISC EM PARALELO (entrevistas já vêm do LEFT JOIN)
-                const discPromises = usuarioIdsUnicos.map(async (usuarioId) => {
-                    try {
-                        const discData = await testService.getUserPsychologicalTests(usuarioId, 'completed', 1);
+                if (precisaBuscarDisc) {
+                    console.log('⚠️ Dados DISC não vieram do backend, fazendo busca em paralelo...');
+                    const usuarioIdsUnicos = [...new Set(candidaturas.map(c => c.usuario_id))];
 
-                        if (discData.tests && discData.tests.length > 0) {
-                            const teste = discData.tests[0];
-                            return {
-                                usuarioId,
-                                perfil_disc: {
-                                    principal: getPrincipalDisc(teste.disc_scores),
-                                    pontuacoes: teste.disc_scores,
-                                    analise: teste.overall_analysis,
-                                    recomendacoes: teste.recommendations
-                                }
+                    // BUSCAR DADOS DISC EM PARALELO apenas se necessário
+                    const discPromises = usuarioIdsUnicos.map(async (usuarioId) => {
+                        try {
+                            const discData = await testService.getUserPsychologicalTests(usuarioId, 'completed', 1);
+
+                            if (discData.tests && discData.tests.length > 0) {
+                                const teste = discData.tests[0];
+                                return {
+                                    usuarioId,
+                                    perfil_disc: {
+                                        principal: getPrincipalDisc(teste.disc_scores),
+                                        pontuacoes: teste.disc_scores,
+                                        analise: teste.overall_analysis,
+                                        recomendacoes: teste.recommendations
+                                    }
+                                };
+                            }
+                        } catch (discError) {
+                            console.warn(`Erro ao buscar DISC para usuário ${usuarioId}:`, discError);
+                        }
+                        return { usuarioId, perfil_disc: null };
+                    });
+
+                    // Aguardar todos os perfis DISC em paralelo
+                    const discResults = await Promise.allSettled(discPromises);
+                    discResults.forEach((result) => {
+                        if (result.status === 'fulfilled' && result.value) {
+                            usuariosData[result.value.usuarioId] = {
+                                perfil_disc: result.value.perfil_disc
                             };
                         }
-                    } catch (discError) {
-                        console.warn(`Erro ao buscar DISC para usuário ${usuarioId}:`, discError);
-                    }
-                    return { usuarioId, perfil_disc: null };
-                });
-
-                // Aguardar todos os perfis DISC em paralelo
-                const discResults = await Promise.allSettled(discPromises);
-                discResults.forEach((result) => {
-                    if (result.status === 'fulfilled' && result.value) {
-                        usuariosData[result.value.usuarioId] = {
-                            perfil_disc: result.value.perfil_disc
-                        };
-                    }
-                });
+                    });
+                } else {
+                    console.log('✅ Dados DISC já vieram do backend via LEFT JOIN!');
+                }
 
                 // MAPEAR DADOS OTIMIZADOS (entrevistas já incluídas via LEFT JOIN)
                 candidaturas = candidaturas.map(candidatura => {
@@ -461,7 +454,7 @@ const CandidaturasAdmPage = () => {
                         });
 
                     // Log de debug
-                    if (process.env.NODE_ENV === 'development' && (entrevistasOrdenadas.length > 0 || candidatura.interview_id)) {
+                    if (entrevistasOrdenadas.length > 0 || candidatura.interview_id) {
                         console.log(`📋 Candidatura ${candidatura.id}:`, {
                             interview_id: candidatura.interview_id,
                             entrevistas_encontradas: entrevistasOrdenadas.length,
@@ -474,28 +467,27 @@ const CandidaturasAdmPage = () => {
                         ...candidatura,
                         usuario: {
                             ...candidatura.usuario,
-                            perfil_disc: usuariosData[candidatura.usuario_id]?.perfil_disc || null,
+                            // Usar dados DISC do backend primeiro, depois fallback para busca manual
+                            perfil_disc: candidatura.usuario?.perfil_disc || 
+                                        candidatura.usuario?.disc_data || 
+                                        usuariosData[candidatura.usuario_id]?.perfil_disc || null,
                             entrevistas: entrevistasOrdenadas
                         }
                     };
                 });
 
-                if (process.env.NODE_ENV === 'development') {
-                    console.log(`✅ Processamento concluído: ${candidaturas.length} candidaturas com dados otimizados`);
-                }
+                console.log(`✅ Processamento concluído: ${candidaturas.length} candidaturas com dados otimizados`);
             }
 
-            // Log de debug final das candidaturas processadas (apenas em desenvolvimento)
-            if (process.env.NODE_ENV === 'development') {
-                console.log('📊 Resumo final das candidaturas processadas:', candidaturas.map(c => ({
-                    candidaturaId: c.id,
-                    usuarioNome: c.usuario?.nome || c.usuario?.name,
-                    totalEntrevistas: c.usuario?.entrevistas?.length || 0,
-                    entrevistasIDs: c.usuario?.entrevistas?.map(e => `ID: ${e.id} (${e.status})`) || [],
-                    temInterviewId: !!c.interview_id,
-                    interviewId: c.interview_id
-                })));
-            }
+            // Log de debug final das candidaturas processadas
+            console.log('📊 Resumo final das candidaturas processadas:', candidaturas.map(c => ({
+                candidaturaId: c.id,
+                usuarioNome: c.usuario?.nome || c.usuario?.name,
+                totalEntrevistas: c.usuario?.entrevistas?.length || 0,
+                entrevistasIDs: c.usuario?.entrevistas?.map(e => `ID: ${e.id} (${e.status})`) || [],
+                temInterviewId: !!c.interview_id,
+                interviewId: c.interview_id
+            })));
 
             setCandidaturas(candidaturas);
 
@@ -855,38 +847,6 @@ const CandidaturasAdmPage = () => {
         )
     );
 
-    // Funções de estilo e formatação
-    const getStatusColor = (status) => {
-        switch (status?.toLowerCase()) {
-            case "aprovado":
-            case "aprovada":
-                return "bg-green-100 text-green-800 border-green-200";
-            case "reprovado":
-            case "reprovada":
-                return "bg-red-100 text-red-800 border-red-200";
-            case "em_analise":
-            case "pendente":
-                return "bg-yellow-100 text-yellow-800 border-yellow-200";
-            default:
-                return "bg-blue-100 text-blue-800 border-blue-200";
-        }
-    };
-
-    const getStatusIcon = (status) => {
-        switch (status?.toLowerCase()) {
-            case "aprovado":
-            case "aprovada":
-                return <CheckCircle className="w-3 h-3" />;
-            case "reprovado":
-            case "reprovada":
-                return <XCircle className="w-3 h-3" />;
-            case "em_analise":
-            case "pendente":
-                return <Hourglass className="w-3 h-3" />;
-            default:
-                return <FileText className="w-3 h-3" />;
-        }
-    };
 
     // Estatísticas calculadas com memoization
     const stats = useMemo(() => ({
@@ -914,6 +874,11 @@ const CandidaturasAdmPage = () => {
             <CurriculoModal />
             <DiscModal />
             <InterviewHistoryModal />
+            <CandidateDetailsModal
+                isOpen={candidateDetailsModal.isOpen}
+                candidatura={candidateDetailsModal.candidatura}
+                onClose={() => setCandidateDetailsModal({ isOpen: false, candidatura: null })}
+            />
 
             {/* Navbar */}
             <Navbar />
@@ -1028,6 +993,7 @@ const CandidaturasAdmPage = () => {
                     onViewDisc={setModalDisc}
                     onViewLinkedin={(url) => window.open(url, '_blank')}
                     onViewInterviewDetails={handleViewInterviewDetails}
+                    onViewCandidateDetails={(candidatura) => setCandidateDetailsModal({ isOpen: true, candidatura })}
                 />
             </div>
         </div>

@@ -137,7 +137,7 @@ const UserProfile = () => {
       if (!userId) return;
 
       try {
-        const token = localStorage.getItem("accessToken");
+        const token = accessToken || sessionStorage.getItem("accessToken");
         if (!token) return;
 
         // Buscar dados atualizados do usuário
@@ -157,10 +157,20 @@ const UserProfile = () => {
           setName(userData.name || "");
           setRole(userData.role || "Executivo de Vendas");
           setLinkedin(userData.linkedin || "");
+          // curriculoUrl pode ser Buffer, mantemos como está para verificações
           setCurriculoUrl(userData.curriculo_url || "");
 
-          // Atualizar o contexto também
-          await updateUser(userData);
+          // Preparar dados sanitizados para o contexto (só campos necessários)
+          const cleanedData = {
+            name: userData.name,
+            role: userData.role,
+            linkedin: userData.linkedin,
+            // curriculoUrl é um Buffer no backend, não enviamos para o contexto
+            // O contexto não precisa dos dados do arquivo, apenas saber se existe
+          };
+
+          // Atualizar o contexto com dados limpos
+          await updateUser(cleanedData);
         }
       } catch (error) {
         console.error("Erro ao carregar dados do usuário:", error);
@@ -225,7 +235,7 @@ const UserProfile = () => {
       const base64Image = await convertToBase64(file);
       
       // Salvar no backend
-      const token = localStorage.getItem("accessToken");
+      const token = accessToken || sessionStorage.getItem("accessToken");
       if (!token) {
         alert("Sessão expirada. Faça login novamente.");
         return;
@@ -266,7 +276,7 @@ const UserProfile = () => {
 
   const handleViewCurriculo = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = accessToken || sessionStorage.getItem("accessToken");
       if (!token) {
         alert("Sessão expirada. Faça login novamente.");
         return;
@@ -310,7 +320,7 @@ const UserProfile = () => {
   // 2. Adicione uma função alternativa para forçar download
   const handleDownloadCurriculo = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = accessToken || sessionStorage.getItem("accessToken");
       if (!token) {
         alert("Sessão expirada. Faça login novamente.");
         return;
@@ -358,20 +368,20 @@ const UserProfile = () => {
     console.log("API_BASE_URL:", API_BASE_URL);
     console.log("URL completa:", `${API_BASE_URL}/api/users/curriculo`);
 
-    const tokenFromStorage = localStorage.getItem("accessToken");
-    console.log("Token do localStorage:", tokenFromStorage?.substring(0, 20));
+    const tokenFromSession = sessionStorage.getItem("accessToken");
+    console.log("Token do sessionStorage:", tokenFromSession?.substring(0, 20));
     console.log("Token do contexto:", accessToken?.substring(0, 20));
-    console.log("Tokens são iguais?", tokenFromStorage === accessToken);
+    console.log("Tokens são iguais?", tokenFromSession === accessToken);
 
     try {
       setIsSavingLinks(true);
 
-      const token = localStorage.getItem("accessToken");
+      const token = accessToken || sessionStorage.getItem("accessToken");
+      console.log("sessionStorage:", Object.keys(sessionStorage));
       console.log("localStorage:", Object.keys(localStorage));
-      console.log("LocalStorage:", Object.keys(localStorage));
 
       if (!token) {
-        console.error("Token não encontrado no localStorage");
+        console.error("Token não encontrado no sessionStorage");
         alert("Sessão expirada. Faça login novamente.");
         return;
       }
@@ -410,37 +420,18 @@ const UserProfile = () => {
         console.log("Dados da resposta:", responseData);
       }
 
-      // Sempre atualizar LinkedIn (seja com arquivo ou não)
+      // Sempre atualizar LinkedIn (seja com arquivo ou não)  
+      let updateData = {};
+      
       if (linkedin && linkedin.trim()) {
-        console.log("Atualizando LinkedIn:", linkedin);
-        await updateUser({ linkedin: linkedin.trim() });
+        console.log("LinkedIn será atualizado:", linkedin);
+        updateData.linkedin = linkedin.trim();
       }
 
-      // ADICIONE ESTA PARTE: Recarregar dados do usuário após salvar
-      try {
-        const userResponse = await fetch(`${API_BASE_URL}/api/users/me`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          console.log("Dados atualizados do usuário:", userData);
-
-          // Atualizar estados locais
-          setName(userData.name || "");
-          setRole(userData.role || "Executivo de Vendas");
-          setLinkedin(userData.linkedin || "");
-          setCurriculoUrl(userData.curriculo_url || "");
-
-          // Forçar atualização do contexto
-          await updateUser(userData);
-        }
-      } catch (reloadError) {
-        console.error("Erro ao recarregar dados do usuário:", reloadError);
+      // Se tiver dados para atualizar, faça uma única chamada
+      if (Object.keys(updateData).length > 0) {
+        console.log("Atualizando dados do usuário:", updateData);
+        await updateUser(updateData);
       }
 
       setIsEditingLinks(false);
@@ -481,7 +472,7 @@ const UserProfile = () => {
   // 4. Adicione uma função para verificar se há currículo
   const checkCurriculoExists = async () => {
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = accessToken || sessionStorage.getItem("accessToken");
       if (!token) return false;
 
       const response = await fetch(`${API_BASE_URL}/api/users/curriculo`, {
@@ -498,8 +489,12 @@ const UserProfile = () => {
     }
   };
 
+  // curriculoUrl é um Buffer no backend, então verificamos se existe (objeto ou string)
   const hasCurriculo = Boolean(
-    user?.curriculo_url || curriculoUrl || curriculoUrl === "exists"
+    user?.curriculo_url || 
+    curriculoUrl || 
+    curriculoUrl === "exists" ||
+    (typeof curriculoUrl === 'object' && curriculoUrl !== null)
   );
 
   // Usar dados reais do teste ou dados mockados como fallback

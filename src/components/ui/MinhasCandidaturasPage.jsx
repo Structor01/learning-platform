@@ -24,7 +24,8 @@ import Navbar from "./Navbar";
 import { Button } from "@/components/ui/button.jsx";
 import interviewService from "@/services/interviewService.js";
 import InterviewModal from "@/components/ui/InterviewModal";
-import InterviewButton from "@/components/ui/InterviewButton";
+import InterviewRequirementsModal from "@/components/ui/InterviewRequirementsModal";
+import { useInterviewValidation } from "@/hooks/useInterviewValidation";
 
 const MinhasCandidaturasPage = () => {
   const [candidaturas, setCandidaturas] = useState([]);
@@ -44,6 +45,18 @@ const MinhasCandidaturasPage = () => {
   // Estado para card de confirmação
   const [showSuccessCard, setShowSuccessCard] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+
+  // Estados para validação de requisitos
+  const [showRequirementsModal, setShowRequirementsModal] = useState(false);
+  const [pendingCandidatura, setPendingCandidatura] = useState(null);
+  
+  // Hook de validação dos requisitos
+  const { 
+    validateInterviewRequirements, 
+    isValidating, 
+    validationResult,
+    setValidationResult 
+  } = useInterviewValidation();
 
   // Verificar autenticação
   useEffect(() => {
@@ -150,7 +163,50 @@ const MinhasCandidaturasPage = () => {
     }
   };
 
-  // Função para iniciar entrevista
+  // Função para validar requisitos antes de iniciar entrevista
+  const handleInterviewValidation = async (candidatura) => {
+    console.log('🔍 MinhasCandidaturasPage - Validando requisitos para entrevista...');
+    
+    try {
+      const validation = await validateInterviewRequirements();
+      
+      if (!validation.isValid) {
+        console.log('❌ Requisitos não atendidos:', validation.missingRequirements);
+        setPendingCandidatura(candidatura);
+        setShowRequirementsModal(true);
+        return false;
+      }
+      
+      console.log('✅ Todos os requisitos atendidos, iniciando entrevista...');
+      return true;
+    } catch (error) {
+      console.error('❌ Erro na validação dos requisitos:', error);
+      return false;
+    }
+  };
+
+  // Função para revalidar requisitos
+  const handleRetryValidation = async () => {
+    try {
+      console.log('🔄 Revalidando requisitos...');
+      const validation = await validateInterviewRequirements();
+      
+      if (validation.isValid) {
+        console.log('✅ Requisitos agora estão completos!');
+        setShowRequirementsModal(false);
+        
+        // Iniciar entrevista com a candidatura pendente
+        if (pendingCandidatura) {
+          handleStartInterview(pendingCandidatura);
+          setPendingCandidatura(null);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erro na revalidação:', error);
+    }
+  };
+
+  // Função para iniciar entrevista (chamada após validação bem-sucedida)
   const handleStartInterview = async (candidatura) => {
     try {
       setGeneratingQuestions(true);
@@ -888,11 +944,24 @@ const MinhasCandidaturasPage = () => {
                             </Button>
                           ) : (
                             <Button
-                              onClick={() => handleStartInterview(candidatura)}
+                              onClick={async () => {
+                                const isValid = await handleInterviewValidation(candidatura);
+                                if (isValid) {
+                                  handleStartInterview(candidatura);
+                                }
+                              }}
                               size="sm"
+                              disabled={isValidating}
                               className="bg-purple-600 hover:bg-purple-700 text-white"
                             >
-                              🎥 Fazer Entrevista
+                              {isValidating ? (
+                                <>
+                                  <Loader className="h-4 w-4 mr-1 animate-spin" />
+                                  Validando...
+                                </>
+                              ) : (
+                                "🎥 Fazer Entrevista"
+                              )}
                             </Button>
                           )}
                         </div>
@@ -913,6 +982,18 @@ const MinhasCandidaturasPage = () => {
             onFinishInterview={handleFinishInterview}
             generatingQuestions={generatingQuestions}
             currentInterviewId={currentInterviewId}
+          />
+
+          {/* Modal de Requisitos para Entrevista */}
+          <InterviewRequirementsModal
+            isOpen={showRequirementsModal}
+            onClose={() => {
+              setShowRequirementsModal(false);
+              setValidationResult(null);
+              setPendingCandidatura(null);
+            }}
+            validationResult={validationResult}
+            onRetry={handleRetryValidation}
           />
         </div>
       </div>

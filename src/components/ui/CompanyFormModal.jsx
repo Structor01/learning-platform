@@ -28,7 +28,7 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
           obs: company.obs || '',
           responsible: company.responsible || '',
           responsible_email: company.responsible_email || '',
-          is_active: company.is_active !== undefined ? company.is_active : CompanyStatus.ACTIVE,
+          is_active: company.is_active !== undefined ? company.is_active : CompanyStatus.ACTIVE
         });
       } else {
         setFormData({
@@ -98,10 +98,9 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
         is_active: formData.is_active
       };
       
-      
       await onSubmit(submitData);
     } catch (error) {
-      // Error handling is done by parent component
+      console.error('Erro ao submeter formulário:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -211,7 +210,7 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
               </div>
 
               {/* Razão Social */}
-              <div className="md:col-span-2">
+              <div className="lg:col-span-2">
                 <label className="block text-sm font-medium text-white mb-2">
                   Razão Social
                 </label>
@@ -225,7 +224,7 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
               </div>
 
               {/* Endereço */}
-              <div className="md:col-span-2">
+              <div className="lg:col-span-2">
                 <label className="block text-sm font-medium text-white mb-2">
                   Endereço
                 </label>
@@ -239,7 +238,7 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
               </div>
 
               {/* E-mail do Responsável */}
-              <div className="md:col-span-2">
+              <div className="lg:col-span-2">
                 <label className="block text-sm font-medium text-white mb-2">
                   E-mail do Responsável *
                 </label>
@@ -261,7 +260,7 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
               </div>
 
               {/* Responsável */}
-              <div className="md:col-span-2">
+              <div className="lg:col-span-2">
                 <label className="block text-sm font-medium text-white mb-2">
                   Responsável
                 </label>
@@ -275,7 +274,7 @@ const CompanyFormModal = ({ isOpen, onClose, onSubmit, company, isEditing }) => 
               </div>
 
               {/* Observações */}
-              <div className="md:col-span-2">
+              <div className="lg:col-span-2">
                 <label className="block text-sm font-medium text-white mb-2">
                   Observações
                 </label>

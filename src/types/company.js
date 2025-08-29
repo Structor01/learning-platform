@@ -1,13 +1,13 @@
 export const CompanyFields = {
   id: 'id',
   name: 'name',
-  cnpj: 'cpnj', // Campo na tabela é 'cpnj'
+  cnpj: 'cnpj',
   corporate_name: 'corporate_name',
-  address: 'address', // Campo na tabela é 'address'
+  address: 'address',
   obs: 'obs',
   responsible: 'responsible',
   responsible_email: 'responsible_email',
-  is_active: 'is_active', // Campo na tabela é 'is_active'
+  is_active: 'is_active',
   slug: 'slug',
   created_at: 'created_at',
   updated_at: 'updated_at'
@@ -69,7 +69,7 @@ export const formatPhone = (phone) => {
 
 export const createEmptyCompany = () => ({
   name: '',
-  cpnj: '',
+  cnpj: '',
   corporate_name: '',
   address: '',
   obs: '',

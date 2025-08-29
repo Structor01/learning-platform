@@ -27,7 +27,7 @@ const CandidaturasPorVaga = ({
     onViewCurriculo,
     onViewDisc,
     onViewLinkedin,
-    onViewInterviewDetails
+    onViewCandidateDetails
 }) => {
     // Agrupar candidaturas por vaga
     const vagasComCandidaturas = useMemo(() => {
@@ -96,29 +96,6 @@ const CandidaturasPorVaga = ({
         return Object.values(grupos);
     }, [candidaturasFiltradas]);
 
-    const getStatusColor = (status) => {
-        switch (status?.toLowerCase()) {
-            case "aprovado":
-            case "aprovada":
-                return "bg-green-100 text-green-800 border-green-200";
-            case "reprovado":
-            case "reprovada":
-                return "bg-red-100 text-red-800 border-red-200";
-            case "em_analise":
-            case "pendente":
-                return "bg-yellow-100 text-yellow-800 border-yellow-200";
-            case "entrevista_realizada":
-                return "bg-blue-100 text-blue-800 border-blue-200";
-            default:
-                return "bg-gray-100 text-gray-800 border-gray-200";
-        }
-    };
-
-    const getInterviewStatusColor = (status) => {
-        return status === 'completed'
-            ? 'from-green-500 to-green-600'
-            : 'from-blue-500 to-blue-600';
-    };
 
     if (loading) {
         return (
@@ -203,8 +180,8 @@ const CandidaturasPorVaga = ({
                         </div>
                     </div>
                     {/* Seção de Todos os Candidatos - Otimizada para 2 colunas */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                        <h3 className="text-base font-semibold text-white mb-3 flex items-center gap-2">
+                    <div>
+                        <h3 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
                             <Users className="w-4 h-4 text-blue-500" />
                             Todos os Candidatos ({vagaData.candidaturas.length})
                         </h3>
@@ -290,21 +267,28 @@ const CandidaturasPorVaga = ({
                                         )}
 
                                         {/* Botões de Ação */}
-                                        <div className="flex items-center justify-center gap-2">
-                                            {/* Currículo */}
+                                        <div className="flex items-center justify-center gap-1">
+                                            {/* Ver Perfil Completo */}
                                             <div
-                                                className={`w-6 h-6 rounded-md flex items-center justify-center text-xs ${candidatura.usuario?.curriculo_url
-                                                    ? 'bg-blue-600 text-white cursor-pointer hover:bg-blue-700'
-                                                    : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                                                    }`}
+                                                className="w-6 h-6 rounded-md flex items-center justify-center text-xs bg-green-600 text-white cursor-pointer hover:bg-green-700 transition-colors"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    if (candidatura.usuario?.curriculo_url) {
-                                                        onViewCurriculo(
-                                                            candidatura.usuario_id,
-                                                            candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário'
-                                                        );
-                                                    }
+                                                    onViewCandidateDetails(candidatura);
+                                                }}
+                                                title="Ver perfil completo"
+                                            >
+                                                <Eye className="w-3 h-3" />
+                                            </div>
+
+                                            {/* Currículo */}
+                                            <div
+                                                className="w-6 h-6 rounded-md flex items-center justify-center text-xs bg-blue-600 text-white cursor-pointer hover:bg-blue-700 transition-colors"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onViewCurriculo(
+                                                        candidatura.usuario_id,
+                                                        candidatura.usuario?.nome || candidatura.usuario?.name || 'Usuário'
+                                                    );
                                                 }}
                                                 title="Ver currículo"
                                             >
