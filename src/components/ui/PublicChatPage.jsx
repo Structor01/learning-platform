@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import MessageBubble from '@/components/bot/MessageBubble';
 import ChatInput from '@/components/bot/ChatInput';
 import botService from '@/services/botService';
 import { MessageCircle, X, Minimize2, Maximize2 } from 'lucide-react';
-import { tr } from 'zod/v4/locales';
 
 const PublicChatPage = () => {
   const [messages, setMessages] = useState([]);
@@ -14,9 +13,31 @@ const PublicChatPage = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [actionCommand, setActionCommand] = useState(null);
   const expirationHours = 24;
+  const messagesEndRef = useRef(null);
+  const chatInputRef = useRef(null);
 
 
   console.log('Comando de ação atual:', actionCommand);
+
+  // Função para rolar para o final da conversa
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Rolar para o final sempre que as mensagens mudarem
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+  
+  // Focar no input quando o carregamento terminar
+  useEffect(() => {
+    if (!isLoading && chatInputRef.current?.focus) {
+      // Pequeno timeout para garantir que o DOM esteja atualizado
+      setTimeout(() => {
+        chatInputRef.current.focus();
+      }, 100);
+    }
+  }, [isLoading]);
 
   // Inicializar sessão do chat
   useEffect(() => {
@@ -127,8 +148,6 @@ const PublicChatPage = () => {
     try {
       // Enviar mensagem para o bot (sem autenticação)
       const response = await botService.sendMessage(sessionId, content);
-
-      console.log('Resposta do bot:', response);
       
       // Adicionar resposta do bot
       const botMessage = {
@@ -141,12 +160,11 @@ const PublicChatPage = () => {
       setMessages(prev => [...prev, botMessage]);
 
       if(response.actionCommands){
-        const sendNameCommand =  response.actionCommands.find(cmd => cmd.name === 'send-name');
+        const sendCvCommand = response.actionCommands.find(cmd => cmd.name === 'send-cv');
 
-        if(sendNameCommand){
-        setActionCommand('send-name');
+        if(sendCvCommand){
+          setActionCommand('send-cv');
         }
-
       }
 
     } catch (error) {
@@ -156,6 +174,83 @@ const PublicChatPage = () => {
       const errorMessage = {
         id: Date.now() + 1,
         content: "Desculpe, ocorreu um erro. Tente novamente em alguns instantes.",
+        isBot: true,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (file) => {
+    if (!file) return;
+
+    setIsLoading(true);
+
+    try {
+      // Adicionar mensagem do usuário indicando que um arquivo foi enviado
+      const userMessage = {
+        id: Date.now(),
+        content: `Enviado CV: ${file.name}`,
+        isBot: false,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, userMessage]);
+      
+      // Criar um objeto FormData para enviar o arquivo
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('sessionId', sessionId);
+      formData.append('type', 'cv');
+
+     
+      
+      // Simular um atraso
+      // vou add o currriculo aki onde o arthur quiser
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Adicionar resposta do bot confirmando recebimento do CV
+      const confirmationMessage = {
+        id: Date.now() + 1,
+        content: "Recebi seu currículo! Estou analisando as informações...",
+        isBot: true,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, confirmationMessage]);
+      
+      // Enviar mensagem por baixo dos panos 
+      const hiddenResponse = await botService.sendMessage(
+        sessionId, 
+        "SISTEMA: Currículo enviado pelo usuário. Continue a conversa analisando o perfil e oferecendo opções relevantes."
+      );
+      
+      // Adicionar a resposta real do bot após a análise
+      const analysisMessage = {
+        id: Date.now() + 2,
+        content: hiddenResponse.message ,
+        isBot: true,
+        timestamp: new Date(Date.now() + 1000) // Timestamp ligeiramente posterior para garantir ordem
+      };
+      
+      // Adicionar uma pequena pausa entre as mensagens para simular análise
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setMessages(prev => [...prev, analysisMessage]);
+      
+      // Limpar o comando após o upload ser concluído
+      setActionCommand(null);
+
+    } catch (error) {
+      console.error('Erro ao enviar arquivo:', error);
+      
+      // Mensagem de erro
+      const errorMessage = {
+        id: Date.now() + 1,
+        content: "Desculpe, ocorreu um erro ao processar seu arquivo. Tente novamente em alguns instantes.",
         isBot: true,
         timestamp: new Date()
       };
@@ -212,7 +307,7 @@ const PublicChatPage = () => {
             {/* Chat Messages */}
             {!isMinimized && (
               <>
-                <div className="h-96 overflow-y-auto p-4 space-y-4 bg-gray-50">
+                <div className="h-96 overflow-y-auto p-4 space-y-4 bg-gray-50" id="chat-messages">
                   {messages.map((message) => (
                     <MessageBubble
                       key={message.id}
@@ -233,14 +328,18 @@ const PublicChatPage = () => {
                       </div>
                     </div>
                   )}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Chat Input */}
                 <div className="p-4 border-t bg-white rounded-b-lg">
                   <ChatInput
+                    ref={chatInputRef}
                     onSendMessage={handleSendMessage}
                     disabled={isLoading}
                     placeholder="Digite sua mensagem..."
+                    actionCommand={actionCommand}
+                    onFileUpload={handleFileUpload}
                   />
                 </div>
               </>
