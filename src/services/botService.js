@@ -3,7 +3,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 class BotService {
   constructor() {
-    this.baseURL = `http://190.115.85.73:3334/agroskills`;
+    this.baseURL = `https://aurora.foxgraos.com.br/agroskills`;
   }
 
   async sendMessage(sessionId, message, isSilent = false) {
