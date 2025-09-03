@@ -135,9 +135,76 @@ const TrilhaPage = () => {
   // No TrilhaPage.jsx - handleSaveNewLesson atualizado:
 
   const handleSaveNewLesson = async (data) => {
+    console.log("🚀 FUNÇÃO INICIADA - data recebida:", data);
     try {
       const API_URL = "http://localhost:3001";
       let response;
+
+      // Função para detectar se é iframe
+      const isYouTubeIframe = (text) => {
+        return text.trim().startsWith('<iframe') && text.includes('youtube.com/embed');
+      };
+
+      // Função para extrair dados do iframe
+      const extractFromYouTubeIframe = (iframeText) => {
+        const srcMatch = iframeText.match(/src="([^"]*)/);
+        if (!srcMatch) return null;
+
+        const embedUrl = srcMatch[1];
+        const cleanUrl = embedUrl.replace(/&amp;/g, '&');
+
+        const videoIdMatch = cleanUrl.match(/\/embed\/([^?&]+)/);
+        if (!videoIdMatch) return null;
+
+        const videoId = videoIdMatch[1];
+        const startMatch = cleanUrl.match(/[?&]start=(\d+)/);
+        const startTime = startMatch ? parseInt(startMatch[1]) : 0;
+
+        return { videoId, startTime };
+      };
+
+      // Função para detectar URL do YouTube
+      const isYouTubeURL = (url) => {
+        return url.includes('youtube.com/watch') || url.includes('youtu.be/');
+      };
+
+      // Função para extrair dados completos do YouTube
+      const extractYouTubeData = (url) => {
+        const regexPatterns = [
+          /(?:youtube\.com\/watch\?v=)([^&\n?#]+)/,  // youtube.com/watch?v=
+          /(?:youtu\.be\/)([^&\n?#]+)/               // youtu.be/
+        ];
+
+        let videoId = null;
+        for (const pattern of regexPatterns) {
+          const match = url.match(pattern);
+          if (match) {
+            videoId = match[1];
+            break;
+          }
+        }
+
+        if (!videoId) return null;
+
+        // Extrair tempo de início se existir
+        const timeMatch = url.match(/[?&]t=(\d+)s?/) || url.match(/[?&]start=(\d+)/);
+        const startTime = timeMatch ? parseInt(timeMatch[1]) : 0;
+
+        return {
+          videoId,
+          startTime
+        };
+      };
+
+      console.log("🔍 Testando detecções:");
+      console.log("É FormData?", data instanceof FormData);
+      console.log("Tem videoUrl?", !!data.videoUrl);
+
+      if (data.videoUrl) {
+        console.log("Texto começa com <iframe?", data.videoUrl.trim().startsWith('<iframe'));
+        console.log("Contém youtube.com/embed?", data.videoUrl.includes('youtube.com/embed'));
+        console.log("isYouTubeIframe resultado:", isYouTubeIframe(data.videoUrl));
+      }
 
       // Se recebeu FormData (upload de arquivo)
       if (data instanceof FormData) {
@@ -148,9 +215,57 @@ const TrilhaPage = () => {
           }
         });
       }
-      // Se recebeu objeto JSON (só URL)
+      // Se recebeu iframe do YouTube
+      else if (data.videoUrl && isYouTubeIframe(data.videoUrl)) {
+        console.log('>>> PROCESSANDO IFRAME DO YOUTUBE');
+
+        const youtubeData = extractFromYouTubeIframe(data.videoUrl);
+        console.log('>>> Dados extraídos:', youtubeData);
+
+        if (youtubeData) {
+          const finalData = {
+            ...data,
+            videoType: 'youtube',
+            youtubeId: youtubeData.videoId,
+            startTime: youtubeData.startTime,
+            videoUrl: `https://www.youtube.com/embed/${youtubeData.videoId}${youtubeData.startTime ? `?start=${youtubeData.startTime}` : ''}`,
+            thumbnailUrl: `https://img.youtube.com/vi/${youtubeData.videoId}/maxresdefault.jpg`
+          };
+
+          console.log('>>> Enviando para API:', finalData);
+
+          response = await axios.post(`${API_URL}/api/videos`, finalData, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+        } else {
+          throw new Error('Não foi possível processar o iframe do YouTube');
+        }
+      }
+      // Se recebeu URL do YouTube
+      else if (data.videoUrl && isYouTubeURL(data.videoUrl)) {
+        console.log('>>> ENVIANDO VÍDEO DO YOUTUBE');
+
+        const youtubeData = extractYouTubeData(data.videoUrl);
+
+        const finalData = {
+          ...data,
+          videoType: 'youtube',
+          youtubeId: youtubeData.videoId,
+          startTime: youtubeData.startTime,
+          thumbnailUrl: `https://img.youtube.com/vi/${youtubeData.videoId}/maxresdefault.jpg`
+        };
+
+        response = await axios.post(`${API_URL}/api/videos`, finalData, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+      // Se recebeu objeto JSON (URL comum)
       else {
-        console.log('>>> ENVIANDO JSON (SÓ URL)');
+        console.log('>>> ENVIANDO JSON (URL COMUM)');
         response = await axios.post(`${API_URL}/api/videos`, data, {
           headers: {
             'Content-Type': 'application/json'
@@ -179,10 +294,14 @@ const TrilhaPage = () => {
       console.log("Aula salva com sucesso!");
 
     } catch (error) {
-      console.error("Erro ao salvar a nova aula:", error.response?.data || error.message);
+      console.error("=== ERRO DETALHADO ===");
+      console.error("Status:", error.response?.status);
+      console.error("Data completa:", error.response?.data);
+      console.error("Message:", error.message);
+      console.error("Error completo:", error);
+      console.error("======================");
     }
   };
-
   // Função para editar nome do módulo
   const handleEdit = async (id, title) => {
     try {
@@ -234,7 +353,7 @@ const TrilhaPage = () => {
                   <div className="relative aspect-video bg-black group">
                     {selectedLesson?.videoUrl ? (
                       selectedLesson.videoUrl.includes('iframe.mediadelivery.net') ? (
-                        // Player Bunny.net (iframe) - CSS corrigido
+                        // Player Bunny.net (iframe)
                         <iframe
                           key={selectedLesson.id}
                           className="w-full h-full border-0"
@@ -248,9 +367,34 @@ const TrilhaPage = () => {
                             display: 'block'
                           }}
                         />
+                      ) : selectedLesson.videoType === 'youtube' && selectedLesson.youtubeId ? (
+                        // Player YouTube (iframe)
+                        <>
+                          {console.log('>>> USANDO YOUTUBE PLAYER')}
+                          {console.log('🎬 selectedLesson completo:', selectedLesson)}
+                          <iframe
+                            key={selectedLesson.id}
+                            className="w-full h-full border-0"
+                            src={`https://www.youtube.com/embed/${selectedLesson.youtubeId}${selectedLesson.startTime ? `?start=${selectedLesson.startTime}` : ''}`}
+                            title={selectedLesson.title}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            referrerPolicy="strict-origin-when-cross-origin"
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              border: 'none',
+                              display: 'block'
+                            }}
+                          />
+                        </>
                       ) : (
                         // Player tradicional
                         <>
+                          {console.log('🎬 selectedLesson completo:', selectedLesson)}
+                          {console.log('🔍 videoType:', selectedLesson?.videoType)}
+                          {console.log('🔍 youtubeId:', selectedLesson?.youtubeId)}
+                          {console.log('🔍 startTime:', selectedLesson?.startTime)}
                           {console.log('>>> USANDO VIDEO')}
                           <video
                             key={selectedLesson.id}

@@ -26,12 +26,12 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [vagasRecentes, setVagasRecentes] = useState([]);
   const [empresas, setEmpresas] = useState([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
-    const bgCollor = {
-        0: "#4285F4",
-        1: "#EA4335",
-        2: "#FBBC04",
-        3: "#34A853",
-    };
+  const bgCollor = {
+    0: "#4285F4",
+    1: "#EA4335",
+    2: "#FBBC04",
+    3: "#34A853",
+  };
   // Verificar se é a primeira vez do usuário
   useEffect(() => {
     if (user?.email) {
@@ -73,15 +73,15 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     fetchVagasRecentes();
   }, []);
 
-    useEffect(() => {
-        api.get('/user/disc')
-            .then(res => {
-                setDiscProfile(res.data);
-            })
-            .catch(err => {
-                console.log(err);
-            });
-    }, []);
+  useEffect(() => {
+    api.get('/user/disc')
+      .then(res => {
+        setDiscProfile(res.data);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }, []);
 
   const getEmpresaNome = (empresaId) => {
     const empresa = empresas.find((e) => e.id === empresaId);
@@ -171,7 +171,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           <div className="mb-8 overflow-x-auto">
             <div className="flex justify-between items-center">
               {/* Bloco de boas-vindas e perfil DISC */}
-              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''}/>
+              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''} />
               <div className={"flex flex-col flex-shrink-0 lg:w-2/5"}>
                 <h1 className="text-3xl text-black font-bold mb-2">
                   Olá, {userData?.name?.split(" ")[0]}!
@@ -182,19 +182,19 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_disc)} rounded-full flex items-center justify-center`}>
                       <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc?.charAt(0)}</span>
                     </div>
-                      <div className={"flex flex-col items-start justify-start"}>
-                          <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_disc}</span>
-                          <span className="text-gray-900 ml-3 font-bold text-xs">Perfil Comportamental</span>
-                      </div>
+                    <div className={"flex flex-col items-start justify-start"}>
+                      <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_disc}</span>
+                      <span className="text-gray-900 ml-3 font-bold text-xs">Perfil Comportamental</span>
+                    </div>
                   </div>
                   <div className={"flex items-center justify-start"}>
                     <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_lideranca)} rounded-full flex items-center justify-center`}>
                       <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca?.charAt(0)}</span>
                     </div>
-                      <div className={"flex flex-col items-start justify-start"}>
-                          <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
-                          <span className="text-gray-900 ml-3 font-bold text-xs">Estilo de liderança</span>
-                      </div>
+                    <div className={"flex flex-col items-start justify-start"}>
+                      <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
+                      <span className="text-gray-900 ml-3 font-bold text-xs">Estilo de liderança</span>
+                    </div>
 
                   </div>
                 </div>
@@ -210,59 +210,56 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     {/* Card Análise DISC ocupando 1/3 da tela */}
                   </div>
                 </div>
-                  {
-                      disc && (
-                          <div className={"flex w-full mt-3 text-[#263465]"}>
-                              <div className={"flex flex-col  w-full gap-3"}>
-                                  <div className={`flex h-[40px] w-full bg-[#EDEFF8]  rounded-lg`}>
-                                      {disc?.disc ? (
-                                          disc?.disc?.testes?.map((teste, key) => {
-                                              return (
-                                                  <div
-                                                      className={`h-[50px] flex flex-col justify-center items-center text-[12px] text-[#fff] font-bold ${
-                                                          key === 0 ? "rounded-l-lg" : ""
-                                                      }${
-                                                          disc?.disc.testes.length === key + 1
-                                                              ? "rounded-r-lg"
-                                                              : ""
-                                                      }`}
-                                                      style={{
-                                                          width: `${teste.normalized_match_percent * 100}%`,
-                                                          backgroundColor: bgCollor[key],
-                                                      }}
-                                                  >
-                                                      <div>{teste.name}</div>
-                                                      <div>
-                                                          {Math.round(teste.normalized_match_percent * 100)}%
-                                                      </div>
-                                                  </div>
-                                              );
-                                          })
-                                      ) : (
-                                          <div
-                                              className={
-                                                  "flex w-full items-center content-center p-3 gap-2"
-                                              }
-                                          >
-                                              Não foram encontrado resultados de testes.
-                                              <Link
-                                                  to={`${
-                                                      process.env.REACT_APP_API + "/relatorios/" + userToken
-                                                  }`}
-                                                  target={"_blank"}
-                                                  className={"text-blue-500"}
-                                              >
-                                                  cliquei aqui para fazer o teste.
-                                              </Link>
-                                          </div>
-                                      )}
+                {
+                  disc && (
+                    <div className={"flex w-full mt-3 text-[#263465]"}>
+                      <div className={"flex flex-col  w-full gap-3"}>
+                        <div className={`flex h-[40px] w-full bg-[#EDEFF8]  rounded-lg`}>
+                          {disc?.disc ? (
+                            disc?.disc?.testes?.map((teste, key) => {
+                              return (
+                                <div
+                                  className={`h-[50px] flex flex-col justify-center items-center text-[12px] text-[#fff] font-bold ${key === 0 ? "rounded-l-lg" : ""
+                                    }${disc?.disc.testes.length === key + 1
+                                      ? "rounded-r-lg"
+                                      : ""
+                                    }`}
+                                  style={{
+                                    width: `${teste.normalized_match_percent * 100}%`,
+                                    backgroundColor: bgCollor[key],
+                                  }}
+                                >
+                                  <div>{teste.name}</div>
+                                  <div>
+                                    {Math.round(teste.normalized_match_percent * 100)}%
                                   </div>
-                                  <DiscDetailsModal disc={disc} triggerLabel="Ver detalhes do DISC" />
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div
+                              className={
+                                "flex w-full items-center content-center p-3 gap-2"
+                              }
+                            >
+                              Não foram encontrado resultados de testes.
+                              <Link
+                                to={`${process.env.REACT_APP_API + "/relatorios/" + userToken
+                                  }`}
+                                target={"_blank"}
+                                className={"text-blue-500"}
+                              >
+                                cliquei aqui para fazer o teste.
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                        <DiscDetailsModal disc={disc} triggerLabel="Ver detalhes do DISC" />
 
-                              </div>
-                          </div>
-                      )
-                  }
+                      </div>
+                    </div>
+                  )
+                }
               </div>
             </div>
           </div>
@@ -274,84 +271,84 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 Últimas Vagas
               </h2>
               <Button
-                  variant="ghost"
-                  className="text-gray-800 hover:text-white"
-                  onClick={() => navigate("/vagas")}
+                variant="ghost"
+                className="text-gray-800 hover:text-white"
+                onClick={() => navigate("/vagas")}
               >
                 Ver todas as vagas
               </Button>
             </div>
 
             {loadingVagas ? (
-                <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
-                  {[...Array(5)].map((_, index) => (
-                      <Card
-                          key={index}
-                          className="bg-white border-gray-200 animate-pulse"
-                      >
-                        <CardContent className="p-6">
-                          <div className="w-12 h-12 bg-gray-200 rounded-lg mb-4"></div>
-                          <div className="h-5 bg-gray-200 rounded mb-2"></div>
-                          <div className="h-4 bg-gray-200 rounded mb-3"></div>
-                          <div className="h-3 bg-gray-200 rounded"></div>
-                        </CardContent>
-                      </Card>
-                  ))}
-                </div>
+              <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
+                {[...Array(5)].map((_, index) => (
+                  <Card
+                    key={index}
+                    className="bg-white border-gray-200 animate-pulse"
+                  >
+                    <CardContent className="p-6">
+                      <div className="w-12 h-12 bg-gray-200 rounded-lg mb-4"></div>
+                      <div className="h-5 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             ) : vagasRecentes.length > 0 ? (
-                <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
-                  {vagasRecentes.map((vaga) => (
-                      <Card
-                          key={vaga.id}
-                          onClick={() => navigate(`/vagas/${vaga.id}`)}
-                          className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
-                      >
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
-                            <Briefcase className="w-6 h-6 text-white" />
-                          </div>
+              <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
+                {vagasRecentes.map((vaga) => (
+                  <Card
+                    key={vaga.id}
+                    onClick={() => navigate(`/vagas/${vaga.id}`)}
+                    className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
+                        <Briefcase className="w-6 h-6 text-white" />
+                      </div>
 
-                          <h3 className="text-lg font-semibold text-black mb-2 line-clamp-2">
-                            {vaga.title || vaga.nome}
-                          </h3>
+                      <h3 className="text-lg font-semibold text-black mb-2 line-clamp-2">
+                        {vaga.title || vaga.nome}
+                      </h3>
 
-                          <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                            {getEmpresaNome(vaga.empresa_id)}
-                          </p>
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                        {getEmpresaNome(vaga.empresa_id)}
+                      </p>
 
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-xs text-gray-600">
-                              <MapPin className="w-3 h-3" />
-                              <span className="truncate">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <MapPin className="w-3 h-3" />
+                          <span className="truncate">
                             {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
                           </span>
-                            </div>
+                        </div>
 
-                            <div className="flex items-center gap-2 text-xs text-gray-600">
-                              <Building2 className="w-3 h-3" />
-                              <span className="truncate">
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <Building2 className="w-3 h-3" />
+                          <span className="truncate">
                             {vaga.job_type || vaga.modalidade}
                           </span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                  ))}
-                </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             ) : (
-                <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-                  <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">
-                    Nenhuma vaga disponível no momento
-                  </p>
-                  <Button
-                      size="sm"
-                      className="mt-4 bg-blue-600 hover:bg-blue-700"
-                      onClick={() => navigate("/vagas")}
-                  >
-                    Explorar Vagas
-                  </Button>
-                </div>
+              <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">
+                  Nenhuma vaga disponível no momento
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-4 bg-blue-600 hover:bg-blue-700"
+                  onClick={() => navigate("/vagas")}
+                >
+                  Explorar Vagas
+                </Button>
+              </div>
             )}
           </section>
 
@@ -498,16 +495,16 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg mb-4">
                     <svg
-                        className="w-6 h-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
                       <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       />
                     </svg>
                   </div>
@@ -521,9 +518,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">7 módulos</span>
                     <Button
-                        size="sm"
-                        onClick={() => navigate("/trilha/3")}
-                        className="bg-purple-600 hover:bg-purple-700"
+                      size="sm"
+                      onClick={() => navigate("/trilha/3")}
+                      className="bg-purple-600 hover:bg-purple-700"
                     >
                       Iniciar
                     </Button>
@@ -536,16 +533,16 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg mb-4">
                     <svg
-                        className="w-6 h-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
                       <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
                       />
                     </svg>
                   </div>
@@ -558,9 +555,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">5 módulos</span>
                     <Button
-                        size="sm"
-                        onClick={() => navigate("/trilha/4")}
-                        className="bg-green-600 hover:bg-green-700"
+                      size="sm"
+                      onClick={() => navigate("/trilha/4")}
+                      className="bg-green-600 hover:bg-green-700"
                     >
                       Iniciar
                     </Button>
@@ -573,16 +570,16 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg mb-4">
                     <svg
-                        className="w-6 h-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
                       <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                       />
                     </svg>
                   </div>
@@ -595,9 +592,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">7 módulos</span>
                     <Button
-                        size="sm"
-                        onClick={() => navigate("/trilha/5")}
-                        className="bg-blue-600 hover:bg-blue-700"
+                      size="sm"
+                      onClick={() => navigate("/trilha/5")}
+                      className="bg-blue-600 hover:bg-blue-700"
                     >
                       Iniciar
                     </Button>
@@ -610,16 +607,16 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg mb-4">
                     <svg
-                        className="w-6 h-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
                       <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
                       />
                     </svg>
                   </div>
@@ -632,9 +629,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">17 módulos</span>
                     <Button
-                        size="sm"
-                        className="bg-orange-600 hover:bg-orange-700"
-                        onClick={() => navigate("/trilha/2")}
+                      size="sm"
+                      className="bg-orange-600 hover:bg-orange-700"
+                      onClick={() => navigate("/trilha/2")}
                     >
                       Iniciar
                     </Button>
@@ -647,16 +644,16 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-500 rounded-lg mb-4">
                     <svg
-                        className="w-6 h-6 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
                       <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
                       />
                     </svg>
                   </div>
@@ -669,9 +666,46 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">10 módulos</span>
                     <Button
-                        size="sm"
-                        className="bg-yellow-600 hover:bg-yellow-700"
-                        onClick={() => navigate("/trilha/6")}
+                      size="sm"
+                      className="bg-yellow-600 hover:bg-yellow-700"
+                      onClick={() => navigate("/trilha/6")}
+                    >
+                      Iniciar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Trilha 6: Podcast */}
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-red-500 to-red-500 rounded-lg mb-4">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-black mb-2">
+                    PODCAST
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Podcast da empresa Agroskills
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">11 módulos</span>
+                    <Button
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700"
+                      onClick={() => navigate("/trilha/7")}
                     >
                       Iniciar
                     </Button>
@@ -692,9 +726,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 {/* Thumbnail estática */}
                 <div className="md:w-1/3 relative">
                   <img
-                      src="https://img.youtube.com/vi/DogH89e7Ib0/hqdefault.jpg"
-                      alt="Thumbnail Aulão"
-                      className="w-full aspect-video rounded-l-lg object-cover"
+                    src="https://img.youtube.com/vi/DogH89e7Ib0/hqdefault.jpg"
+                    alt="Thumbnail Aulão"
+                    className="w-full aspect-video rounded-l-lg object-cover"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Play className="w-16 h-16 text-white opacity-75" />
@@ -725,38 +759,38 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                         </div>
                         <div className="flex items-center space-x-1">
                           <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                           >
                             <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                             />
                           </svg>
                           <span>Samantha Andrade</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                           >
                             <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                             />
                             <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                             />
                           </svg>
                           <span>1.2k assistindo</span>
@@ -765,8 +799,8 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     </div>
 
                     <Button
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-semibold"
-                        onClick={() => setIsVideoOpen(true)}
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-semibold"
+                      onClick={() => setIsVideoOpen(true)}
                     >
                       <Play className="w-5 h-5 mr-2" />
                       Assistir Aula
@@ -779,33 +813,33 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
           {/* Modal */}
           {isVideoOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-                <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
-                  <button
-                      className="absolute top-2 right-2 text-white p-1 rounded-full hover:bg-white/20"
-                      onClick={() => setIsVideoOpen(false)}
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+              <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
+                <button
+                  className="absolute top-2 right-2 text-white p-1 rounded-full hover:bg-white/20"
+                  onClick={() => setIsVideoOpen(false)}
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                <div className="relative pb-[56.25%]">
+                  <iframe
+                    src="https://www.youtube.com/embed/DogH89e7Ib0"
+                    title="Aulão - Etapas de processo seletivo e sua carreira no Agro"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="absolute top-0 left-0 w-full h-full"
+                  />
+                </div>
+                <div className="p-4 flex justify-end">
+                  <Button
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+                    onClick={() => setIsVideoOpen(false)}
                   >
-                    <X className="w-6 h-6" />
-                  </button>
-                  <div className="relative pb-[56.25%]">
-                    <iframe
-                        src="https://www.youtube.com/embed/DogH89e7Ib0"
-                        title="Aulão - Etapas de processo seletivo e sua carreira no Agro"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="absolute top-0 left-0 w-full h-full"
-                    />
-                  </div>
-                  <div className="p-4 flex justify-end">
-                    <Button
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-                        onClick={() => setIsVideoOpen(false)}
-                    >
-                      Sair da aula
-                    </Button>
-                  </div>
+                    Sair da aula
+                  </Button>
                 </div>
               </div>
+            </div>
           )}
         </div>
       </div>
