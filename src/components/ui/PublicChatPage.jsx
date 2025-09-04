@@ -93,7 +93,7 @@ const PublicChatPage = () => {
         try {
           setIsLoading(true);
           const initialResponse = await botService.sendMessage(guestSessionId, 
-            "Se apresente como assistente da AgroSkills");
+            "Ola!");
           
           // Adicionar resposta do bot como primeira mensagem
           const botMessage = {
@@ -145,6 +145,11 @@ const PublicChatPage = () => {
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
+    // Limpar actionCommand se for uma resposta booleana
+    if (actionCommand === 'send-boolean') {
+      setActionCommand(null);
+    }
+
     try {
       // Enviar mensagem para o bot (sem autenticação)
       const response = await botService.sendMessage(sessionId, content);
@@ -161,9 +166,14 @@ const PublicChatPage = () => {
 
       if(response.actionCommands){
         const sendCvCommand = response.actionCommands.find(cmd => cmd.name === 'send-cv');
+        const sendBooleanCommand = response.actionCommands.find(cmd => cmd.name === 'send-boolean');
 
         if(sendCvCommand){
           setActionCommand('send-cv');
+        }
+
+        if(sendBooleanCommand){
+          setActionCommand('send-boolean');
         }
       }
 
