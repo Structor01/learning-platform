@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, forwardRef, useCallback } from 'react';
-import { Send, Loader2, Upload, FileText } from 'lucide-react';
+import { Send, Loader2, Upload, FileText, Check, X } from 'lucide-react';
 
 const ChatInput = forwardRef(({ 
   onSendMessage, 
@@ -59,6 +59,17 @@ const ChatInput = forwardRef(({
     }
   };
 
+  const handleBooleanResponse = async (response) => {
+    setIsLoading(true);
+    try {
+      await onSendMessage(response);
+    } catch (error) {
+      console.error('Erro ao enviar resposta:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -96,6 +107,8 @@ const ChatInput = forwardRef(({
             onKeyPress={handleKeyPress}
             placeholder={actionCommand === 'send-cv' 
               ? "Digite seu nome completo..." 
+              : actionCommand === 'send-boolean'
+              ? "Use os botões Sim/Não ou digite sua resposta..."
               : placeholder}
             disabled={disabled || isLoading}
             className="w-full resize-none border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
@@ -138,6 +151,40 @@ const ChatInput = forwardRef(({
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <Send className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+        ) : actionCommand === 'send-boolean' ? (
+          // Botões Sim/Não quando actionCommand é 'send-boolean'
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleBooleanResponse('Sim')}
+              disabled={disabled || isLoading}
+              className="flex-shrink-0 bg-green-600 text-white rounded-lg px-4 py-3 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <Check className="w-5 h-5" />
+                  <span>Sim</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleBooleanResponse('Não')}
+              disabled={disabled || isLoading}
+              className="flex-shrink-0 bg-red-600 text-white rounded-lg px-4 py-3 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  <X className="w-5 h-5" />
+                  <span>Não</span>
+                </>
               )}
             </button>
           </div>
