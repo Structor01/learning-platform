@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, User, LogOut, Settings, Briefcase } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import EntrevistaSimuladaPage from "./EntrevistaSimuladaPage";
 // REMOVIDO: import MinhasCandidaturasPage - não estava sendo usado
 
 const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
@@ -120,6 +121,12 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                 className="text-gray-300 hover:text-white transition-colors text-sm"
               >
                 Meus interesses
+              </a>
+              <a
+                href="/entrevista-simulada"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                Treinamento de Entrevista
               </a>
 
               {/* Menu Administrador */}
