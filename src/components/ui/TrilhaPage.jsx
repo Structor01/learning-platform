@@ -65,7 +65,7 @@ const TrilhaPage = () => {
 
   // Funções de CRUD (já estão corretas)
   const handleAdd = async (title) => {
-    const res = await axios.post("http://localhost:3001/api/modules", {
+    const res = await axios.post(`${API_URL}/api/modules`, {
       title,
       trilhaId: Number(trilhaId),
     });
@@ -101,7 +101,7 @@ const TrilhaPage = () => {
   };
   // Função para deletar um módulo
   const handleDelete = async (id) => {
-    await axios.delete(`http://localhost:3001/api/modules/${id}`);
+    await axios.delete(`${API_URL}/api/modules/${id}`);
     setModules((old) => old.filter((m) => m.id !== id));
   };
   // Função para reordenar módulos
@@ -137,7 +137,6 @@ const TrilhaPage = () => {
   const handleSaveNewLesson = async (data) => {
     console.log("🚀 FUNÇÃO INICIADA - data recebida:", data);
     try {
-      const API_URL = "http://localhost:3001";
       let response;
 
       // Função para detectar se é iframe
