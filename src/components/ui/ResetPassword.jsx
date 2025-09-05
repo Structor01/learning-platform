@@ -144,12 +144,6 @@ export default function ResetPassword() {
             <p className="text-gray-400 text-sm mt-2">Digite sua nova senha</p>
           </div>
 
-          {/* ✅ INFO DE DEBUG (remover em produção) */}
-          <div className="mb-4 text-xs text-gray-400 bg-gray-800/50 p-2 rounded">
-            <div>✅ Token encontrado: {token.substring(0, 10)}...</div>
-            <div>🔗 Endpoint: {API_URL}/api/auth/reset-password</div>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Nova Senha */}
             <div>

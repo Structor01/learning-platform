@@ -34,7 +34,7 @@ const MessageBubble = ({ message, isBot, timestamp, isTyping = false }) => {
         isBot ? 'bg-blue-600' : 'bg-green-600'
       }`}>
         {isBot ? (
-          <Bot className="w-4 h-4 text-white" />
+          <User className="w-4 h-4 text-white" />
         ) : (
           <User className="w-4 h-4 text-white" />
         )}

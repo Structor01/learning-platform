@@ -11,11 +11,13 @@ import { Progress } from "@radix-ui/react-progress";
 import axios from "axios";
 import { API_URL } from "@/components/utils/api"; // certifique-se de que este caminho está correto
 import { MapPin, Briefcase, Building2 } from "lucide-react";
+import api from "@/services/api.js";
+import DiscDetailsModal from "@/components/ui/DiscDetailsModal.jsx";
 
 const Dashboard = ({ onCourseSelect = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, isLoading } = useAuth();
-  const [discProfile, setDiscProfile] = useState(null);
+  const [disc, setDiscProfile] = useState(null);
   const navigate = useNavigate();
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
@@ -24,7 +26,12 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [vagasRecentes, setVagasRecentes] = useState([]);
   const [empresas, setEmpresas] = useState([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
-
+  const bgCollor = {
+    0: "#4285F4",
+    1: "#EA4335",
+    2: "#FBBC04",
+    3: "#34A853",
+  };
   // Verificar se é a primeira vez do usuário
   useEffect(() => {
     if (user?.email) {
@@ -64,6 +71,16 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     };
 
     fetchVagasRecentes();
+  }, []);
+
+  useEffect(() => {
+    api.get('/user/disc')
+      .then(res => {
+        setDiscProfile(res.data);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   }, []);
 
   const getEmpresaNome = (empresaId) => {
@@ -155,30 +172,37 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             <div className="flex justify-between items-center">
               {/* Bloco de boas-vindas e perfil DISC */}
               <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''} />
-              <div className={"flex flex-col"}>
-                {/* <h1 className="text-3xl text-black font-bold mb-2">
-                  Olá, {userData.name.split(" ")[0]}!
-                </h1> */}
+              <div className={"flex flex-col flex-shrink-0 lg:w-2/5"}>
+                <h1 className="text-3xl text-black font-bold mb-2">
+                  Olá, {userData?.name?.split(" ")[0]}!
+                </h1>
 
                 <div className={"grid grid-cols-2 gap-3"}>
                   <div className={"flex items-center justify-start"}>
                     <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_disc)} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc.charAt(0)}</span>
+                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_disc?.charAt(0)}</span>
                     </div>
-                    <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_disc}</span>
+                    <div className={"flex flex-col items-start justify-start"}>
+                      <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_disc}</span>
+                      <span className="text-gray-900 ml-3 font-bold text-xs">Perfil Comportamental</span>
+                    </div>
                   </div>
                   <div className={"flex items-center justify-start"}>
                     <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_lideranca)} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca.charAt(0)}</span>
+                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca?.charAt(0)}</span>
                     </div>
-                    <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
+                    <div className={"flex flex-col items-start justify-start"}>
+                      <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_lideranca}</span>
+                      <span className="text-gray-900 ml-3 font-bold text-xs">Estilo de liderança</span>
+                    </div>
+
                   </div>
                 </div>
 
 
               </div>
 
-              <div className="flex-shrink-0 lg:w-2/3">
+              <div className="flex-shrink-0 lg:w-2/5">
 
                 <div className="flex items-center m-3 space-x-4">
                   <div className="flex items-center space-x-2">
@@ -186,23 +210,57 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     {/* Card Análise DISC ocupando 1/3 da tela */}
                   </div>
                 </div>
-                {discProfile && discProfile.overall_analysis && (
-                  <div className="lg:w-1/3 w-full">
-                    <Card className="bg-black/60 border border-gray-800 shadow-lg">
-                      <CardContent className="p-3">
-                        <h4 className="text-lg font-bold text-white mb-2">
-                          Análise DISC
-                        </h4>
-                        <p className="text-gray-300 text-sm whitespace-pre-line">
-                          {discProfile.overall_analysis}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
+                {
+                  disc && (
+                    <div className={"flex w-full mt-3 text-[#263465]"}>
+                      <div className={"flex flex-col  w-full gap-3"}>
+                        <div className={`flex h-[40px] w-full bg-[#EDEFF8]  rounded-lg`}>
+                          {disc?.disc ? (
+                            disc?.disc?.testes?.map((teste, key) => {
+                              return (
+                                <div
+                                  className={`h-[50px] flex flex-col justify-center items-center text-[12px] text-[#fff] font-bold ${key === 0 ? "rounded-l-lg" : ""
+                                    }${disc?.disc.testes.length === key + 1
+                                      ? "rounded-r-lg"
+                                      : ""
+                                    }`}
+                                  style={{
+                                    width: `${teste.normalized_match_percent * 100}%`,
+                                    backgroundColor: bgCollor[key],
+                                  }}
+                                >
+                                  <div>{teste.name}</div>
+                                  <div>
+                                    {Math.round(teste.normalized_match_percent * 100)}%
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div
+                              className={
+                                "flex w-full items-center content-center p-3 gap-2"
+                              }
+                            >
+                              Não foram encontrado resultados de testes.
+                              <Link
+                                to={`${process.env.REACT_APP_API + "/relatorios/" + userToken
+                                  }`}
+                                target={"_blank"}
+                                className={"text-blue-500"}
+                              >
+                                cliquei aqui para fazer o teste.
+                              </Link>
+                            </div>
+                          )}
+                        </div>
+                        <DiscDetailsModal disc={disc} triggerLabel="Ver detalhes do DISC" />
+
+                      </div>
+                    </div>
+                  )
+                }
               </div>
-
-
             </div>
           </div>
 
@@ -611,6 +669,43 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       size="sm"
                       className="bg-yellow-600 hover:bg-yellow-700"
                       onClick={() => navigate("/trilha/6")}
+                    >
+                      Iniciar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Trilha 6: Podcast */}
+              <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-red-500 to-red-500 rounded-lg mb-4">
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-black mb-2">
+                    PODCAST
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Podcast da empresa Agroskills
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">11 módulos</span>
+                    <Button
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700"
+                      onClick={() => navigate("/trilha/7")}
                     >
                       Iniciar
                     </Button>

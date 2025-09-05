@@ -1,11 +1,18 @@
 // src/components/ui/ForgotPassword.jsx - VERSÃO SIMPLES QUE DEVE FUNCIONAR
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { API_URL } from "../utils/api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+      const emailSaved = localStorage.getItem('email');
+      if (emailSaved && emailSaved.trim() !== '') {
+          setEmail(emailSaved);
+      }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,13 +67,6 @@ export default function ForgotPassword() {
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             Recuperar senha
           </h2>
-
-          {/* ✅ INFO PARA DEBUG */}
-          <div className="mb-4 text-xs text-gray-400 bg-gray-800/50 p-2 rounded">
-            <div>✅ Backend respondeu com status JSON</div>
-            <div>✅ Endpoint existe (só aceita POST, não GET)</div>
-            <div>✅ URL: {API_URL}/api/auth/forgot-password</div>
-          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <input

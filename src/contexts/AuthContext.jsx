@@ -1,6 +1,6 @@
 // src/contexts/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
-import { USER_TYPES, validateUserType } from "../types/userTypes";
+import api, { setAuthToken } from "@/services/api";
 
 const AuthContext = createContext();
 
@@ -23,44 +23,23 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!user && !!accessToken;
 
-  const getUserType = () => {
-    if (!user) return null;
-    return validateUserType(user.userType) ? user.userType : USER_TYPES.CANDIDATE;
-  };
-
-  const isCompany = () => getUserType() === USER_TYPES.COMPANY;
-  const isCandidate = () => getUserType() === USER_TYPES.CANDIDATE;
-
-  // Helper para limpar dados grandes antes de salvar no sessionStorage
-  const cleanUserForStorage = (userData) => {
-    return {
-      ...userData,
-      // Converter Buffers/objetos grandes em booleans (mantém informação de existência)
-      curriculo_url: userData?.curriculo_url ? true : null,
-      curriculoUrl: userData?.curriculoUrl ? true : null,
-      // Manter campos string pequenos importantes
-      linkedin: userData?.linkedin || null,
-      // Remover outros campos grandes se existirem
-      password: undefined, // Nunca salvar senha
-      resetToken: undefined, // Nunca salvar tokens de reset
-    };
-  };
-
-  // Carrega usuário do sessionStorage ao iniciar
+  // Carrega usuário do localStorage ao iniciar
   useEffect(() => {
-    const savedUser = sessionStorage.getItem("user");
-    const accessToken = sessionStorage.getItem("accessToken");
+    const savedUser = localStorage.getItem("user");
+    const accessToken = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("token");
 
     // Se não tiver token, forçamos user para null
-    if (savedUser && accessToken) {
+    if (savedUser && accessToken && token) {
       setUser(JSON.parse(savedUser));
       setAccessToken(accessToken);
     } else {
       setUser(null);
       setAccessToken(null);
-      sessionStorage.removeItem("user");
-      sessionStorage.removeItem("accessToken");
-      sessionStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      setAuthToken(null);
     }
 
     setIsLoading(false);
@@ -101,26 +80,14 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Resposta da API após atualização:", updatedUser);
 
-      // Criar novo objeto de usuário com dados limpos
       const newUser = {
         ...user,
         ...updatedUser,
         curriculo_url: updatedUser.curriculoUrl, // mapeia o campo do backend para o frontend
-        // Garantir que os campos sejam adequadamente mapeados
-        linkedin: updatedUser.linkedin || user.linkedin,
-        curriculoUrl: updatedUser.curriculoUrl,
       };
 
-      console.log("Dados do novo usuário (após merge):", {
-        linkedin: newUser.linkedin,
-        curriculoUrl: !!newUser.curriculoUrl,
-        curriculo_url: !!newUser.curriculo_url
-      });
-
       setUser(newUser);
-      
-      // Usar helper para limpar dados antes de salvar
-      sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(newUser)));
+      localStorage.setItem("user", JSON.stringify(newUser));
 
       return { success: true };
     } catch (error) {
@@ -134,6 +101,18 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     console.log(">>> [DEBUG] Tentando conectar à API em:", API_URL);
+    let token = null;
+    try {
+      token = await api.post("auth", { email, password });
+      const legacyToken = token?.data?.data?.token;
+      localStorage.setItem("token", legacyToken);
+      if (legacyToken) {
+        setAuthToken(legacyToken);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -150,27 +129,22 @@ export const AuthProvider = ({ children }) => {
     }
 
     const data = await response.json();
+    data.user.userLegacy = token?.data?.data?.usuario || {};
+
     setUser(data.user);
     setAccessToken(data.access_token);
-    sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(data.user)));
-    sessionStorage.setItem("accessToken", data.access_token);
-    sessionStorage.setItem("refreshToken", data.refresh_token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("accessToken", data.access_token);
+    localStorage.setItem("refreshToken", data.refresh_token);
 
     return data.user;
   };
 
-  const signup = async ({ name, email, password, userType, companyName, cnpj }) => {
-    const requestBody = { name, email, password, userType };
-    
-    if (userType === USER_TYPES.COMPANY) {
-      if (companyName) requestBody.companyName = companyName;
-      if (cnpj) requestBody.cnpj = cnpj;
-    }
-    
+  const signup = async ({ name, email, password, cpf }) => {
     const response = await fetch(`${API_URL}/api/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({ name, email, password, cpf }),
     });
 
     if (!response.ok) {
@@ -185,9 +159,9 @@ export const AuthProvider = ({ children }) => {
     const data = await response.json();
     setUser(data.user);
     setAccessToken(data.access_token);
-    sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(data.user)));
-    sessionStorage.setItem("accessToken", data.access_token);
-    sessionStorage.setItem("refreshToken", data.refresh_token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("accessToken", data.access_token);
+    localStorage.setItem("refreshToken", data.refresh_token);
 
     return data.user;
   };
@@ -195,9 +169,11 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setAccessToken(null);
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("accessToken");
-    sessionStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("token");
+    setAuthToken(null);
   };
 
   const updateSubscription = (subscriptionData) => {
@@ -210,7 +186,7 @@ export const AuthProvider = ({ children }) => {
         },
       };
       setUser(updatedUser);
-      sessionStorage.setItem("user", JSON.stringify(cleanUserForStorage(updatedUser)));
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
 
