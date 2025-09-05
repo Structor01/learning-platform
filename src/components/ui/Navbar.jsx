@@ -213,6 +213,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                     </p>
                   </div>
                 </div>
+
                 <DropdownMenuItem onClick={handleProfileClick}>
                   <User className="mr-2 h-4 w-4" />
                   <span>Perfil</span>
@@ -232,6 +233,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
             </DropdownMenu>
           </div>
         </div>
+      </div>
     </nav>
   );
 };
