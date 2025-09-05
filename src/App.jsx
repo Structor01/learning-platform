@@ -229,132 +229,72 @@ function App() {
       <AuthProvider>
         <ChatBotProvider>
           <Routes>
-          {/* Página inicial = Login */}
-          <Route path="/" element={<LoginPage />} />
-          
-          {/* Página pública do chat */}
-          <Route path="/chat" element={<PublicChatPage />} />
-          
-          {/* Página de Perfil */}
-          <Route path="/profile" element={<UserProfile />} />
+            {/* Página inicial = Login */}
+            <Route path="/" element={<LoginPage />} />
 
-          {/* Página de detatlhes das vagas */}
-          <Route path="/vagas/:vagaId" element={<DetalhesVaga />} />
+            {/* Página de testes de entrevista */}
+            <Route path="/entrevista-simulada" element={<EntrevistaSimuladaPage />} />
 
-          {/* Página de Perfil */}
-          <Route path="/profile" element={<UserProfile />} />
+            {/* Página pública do chat */}
+            <Route path="/chat" element={<PublicChatPage />} />
 
-          {/* Página de Empresas */}
-          <Route path="/empresa/:id" element={<CompanyPage />} />
+            {/* Página de Perfil */}
+            <Route path="/profile" element={<UserProfile />} />
 
-          {/* Página de Vagas */}
-          <Route path="/vagas" element={<VagasPage />} />
+            {/* Página de detatlhes das vagas */}
+            <Route path="/vagas/:vagaId" element={<DetalhesVaga />} />
 
-          {/* Página de Gestão de Empresas */}
-          <Route path="/empresas" element={<PrivateRoute><EmpresasPage /></PrivateRoute>} />
+            {/* Página de Perfil */}
+            <Route path="/profile" element={<UserProfile />} />
 
-          {/* Página de Meus Interesses - Apenas candidatos */}
-          <Route path="/meus-interesses" element={
-            <RoleGuard allowedRoles={[USER_TYPES.CANDIDATE]}>
-              <MeusInteresses/>
-            </RoleGuard>
-          } />
+            {/* Página de Empresas */}
+            <Route path="/empresa/:id" element={<CompanyPage />} />
 
-          {/* Página de Candidaturas - Apenas candidatos */}
-          <Route path="/minhas-candidaturas" element={
-            <RoleGuard allowedRoles={[USER_TYPES.CANDIDATE]}>
-              <MinhasCandidaturasPage />
-            </RoleGuard>
-          } />
+            {/* Página de Vagas */}
+            <Route path="/vagas" element={<VagasPage />} />
 
-          {/* Página de Entrevista - Apenas candidatos */}
-          <Route path="/entrevista" element={
-            <RoleGuard allowedRoles={[USER_TYPES.CANDIDATE]}>
-              <PrivateRoute><InterviewPage /></PrivateRoute>
-            </RoleGuard>
-          } />
+            {/* Página de Gestão de Empresas */}
+            <Route path="/empresas" element={<PrivateRoute><EmpresasPage /></PrivateRoute>} />
 
-          {/* Página de Candidatura */}
-          <Route path="/LoginModal" element={<LoginModal />} />
+            {/* Página de Meus Interesses */}
+            <Route path="/meus-interesses" element={<MeusInteresses />} />
 
-          {/* Página de cadastro */}
-          <Route path="/signup" element={<SignUpPage />} />
+            {/* Página de Candidaturas */}
+            <Route path="/minhas-candidaturas" element={<MinhasCandidaturasPage />} />
 
-          {/* Dashboard para candidatos */}
-          <Route path="/dashboard" element={
-            <RoleGuard allowedRoles={[USER_TYPES.CANDIDATE]}>
-              <PrivateRoute><AppContent /></PrivateRoute>
-            </RoleGuard>
-          } />
+            {/* Página de Entrevista */}
+            <Route path="/entrevista" element={<PrivateRoute><InterviewPage /></PrivateRoute>} />
 
-          {/* Dashboard para empresas */}
-          <Route path="/dashboard-empresa" element={
-            <RoleGuard allowedRoles={[USER_TYPES.COMPANY]}>
-              <PrivateRoute><CompanyDashboard /></PrivateRoute>
-            </RoleGuard>
-          } />
+            {/* Página de Candidatura */}
+            <Route path="/LoginModal" element={<LoginModal />} />
 
-          {/* Página da trilha */}
-          <Route path="/trilha/:id" element={<PrivateRoute><TrilhaPage /></PrivateRoute>} />
+            {/* Página de cadastro */}
+            <Route path="/signup" element={<SignUpPage />} />
 
-          {/* Páginas dos Aplicativos */}
-          <Route path="/cartao-virtual" element={<PrivateRoute><CartaoVirtualPage /> </PrivateRoute>} />
-          <Route path="/agenda-eventos" element={<PrivateRoute> <AgendaEventosPage /> </PrivateRoute>} />
-          <Route path="/entrevista-simulada" element={<PrivateRoute><EntrevistaSimuladaPage /></PrivateRoute>} />
-          <Route path="/video-pitch" element={<PrivateRoute><VideoPitchPage /></PrivateRoute>} />
-          <Route path="/meus-testes" element={<PrivateRoute><MeusTestesPage /></PrivateRoute>} />
-          <Route path="/teste-disc" element={<PrivateRoute><TesteDISCPage /></PrivateRoute>} />
+            {/* Página de dashboard, protegida por autenticação */}
+            <Route path="/dashboard" element={<PrivateRoute><AppContent /></PrivateRoute>} />
 
-          {/* Rotas específicas para empresas */}
-          <Route path="/empresa/vagas" element={
-            <RoleGuard allowedRoles={[USER_TYPES.COMPANY]}>
-              <div>Página de Vagas da Empresa - Em desenvolvimento</div>
-            </RoleGuard>
-          } />
-          
-          <Route path="/empresa/candidaturas" element={
-            <RoleGuard allowedRoles={[USER_TYPES.COMPANY]}>
-              <CandidaturasAdmPage />
-            </RoleGuard>
-          } />
-          
-          <Route path="/empresa/relatorios" element={
-            <RoleGuard allowedRoles={[USER_TYPES.COMPANY]}>
-              <div>Página de Relatórios da Empresa - Em desenvolvimento</div>
-            </RoleGuard>
-          } />
-          
-          <Route path="/empresa/perfil" element={
-            <RoleGuard allowedRoles={[USER_TYPES.COMPANY]}>
-              <div>Perfil da Empresa - Em desenvolvimento</div>
-            </RoleGuard>
-          } />
+            {/* Página da trilha */}
+            <Route path="/trilha/:id" element={<PrivateRoute><TrilhaPage /></PrivateRoute>} />
 
-          {/* Páginas CRM, Recrutamento e Candidaturas - Apenas empresas */}
-          <Route path="/crm" element={
-            <RoleGuard allowedRoles={[USER_TYPES.COMPANY]}>
-              <PrivateRoute><CRMPage /></PrivateRoute>
-            </RoleGuard>
-          } />
-          
-          <Route path="/recrutamento" element={
-            <RoleGuard allowedRoles={[USER_TYPES.COMPANY]}>
-              <PrivateRoute><RecrutamentoPage /></PrivateRoute>
-            </RoleGuard>
-          } />
-          
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          
-          <Route path="/candidaturas" element={
-            <RoleGuard allowedRoles={[USER_TYPES.COMPANY]}>
-              <CandidaturasAdmPage />
-            </RoleGuard>
-          } />
+            {/* Páginas dos Aplicativos */}
+            <Route path="/cartao-virtual" element={<PrivateRoute><CartaoVirtualPage /> </PrivateRoute>} />
+            <Route path="/agenda-eventos" element={<PrivateRoute> <AgendaEventosPage /> </PrivateRoute>} />
+            <Route path="/entrevista-simulada" element={<PrivateRoute><EntrevistaSimuladaPage /></PrivateRoute>} />
+            <Route path="/video-pitch" element={<PrivateRoute><VideoPitchPage /></PrivateRoute>} />
+            <Route path="/meus-testes" element={<PrivateRoute><MeusTestesPage /></PrivateRoute>} />
+            <Route path="/teste-disc" element={<PrivateRoute><TesteDISCPage /></PrivateRoute>} />
 
-          {/* Catch-all: redireciona para "/" */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>{" "}
+            {/* Páginas CRM, Recrutamento e Candidaturas */}
+            <Route path="/crm" element={<PrivateRoute><CRMPage /></PrivateRoute>} />
+            <Route path="/recrutamento" element={<PrivateRoute><RecrutamentoPage /></PrivateRoute>} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/candidaturas" element={<CandidaturasAdmPage />} />
+
+            {/* Catch-all: redireciona para "/" */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>{" "}
         </ChatBotProvider>
       </AuthProvider>
     </BrowserRouter>
