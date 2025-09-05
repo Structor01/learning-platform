@@ -5,17 +5,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EditModulesModal } from "@/components/ui/EditModulesModal";
 import { AddLessonModal } from "./AddLessonModal";
 import { motion } from "framer-motion";
-import { ChevronRight, Settings, ChevronDown, Play, Pause, Edit2 } from "lucide-react";
+import { ChevronRight, Settings, ChevronDown, Play, Pause, Edit2, Trash } from "lucide-react";
 import Navbar from "./Navbar";
-
-const getApiUrl = () => {
-  if (window.location.hostname !== 'localhost') {
-    return 'https://learning-platform-backend-2x39.onrender.com';
-  }
-  return import.meta.env.VITE_API_URL || 'http://localhost:3001';
-};
-
-const API_URL = getApiUrl();
+import { API_URL } from "../utils/api";
 
 
 const TrilhaPage = () => {
@@ -34,29 +26,75 @@ const TrilhaPage = () => {
   const [currentModuleForAddingLesson, setCurrentModuleForAddingLesson] =
     useState(null);
 
+  // Funções para processar URLs do YouTube
+  const isYouTubeURL = (url) => {
+    return url.includes('youtube.com/watch') || url.includes('youtu.be/');
+  };
+
+  const extractYouTubeData = (url) => {
+    const regexPatterns = [
+      /(?:youtube\.com\/watch\?v=)([^&\n?#]+)/,  // youtube.com/watch?v=
+      /(?:youtu\.be\/)([^&\n?#]+)/               // youtu.be/
+    ];
+
+    let videoId = null;
+    for (const pattern of regexPatterns) {
+      const match = url.match(pattern);
+      if (match) {
+        videoId = match[1];
+        break;
+      }
+    }
+
+    if (!videoId) return null;
+
+    // Extrair tempo de início se existir
+    const timeMatch = url.match(/[?&]t=(\d+)s?/) || url.match(/[?&]start=(\d+)/);
+    const startTime = timeMatch ? parseInt(timeMatch[1]) : 0;
+
+    return {
+      videoId,
+      startTime
+    };
+  };
+
   useEffect(() => {
     axios
       .get(`${API_URL}/api/modules/trilha/${trilhaId}`) // ✅ Nova URL específica
       .then((res) => {
         const fetchedModules = res.data; // ✅ Já vem filtrado e ordenado!
 
-        // ✅ LOG ESPECÍFICO DAS URLs
-        fetchedModules.forEach(module => {
-          module.lessons?.forEach(lesson => {
-          });
-        });
+        // ✅ Processar URLs do YouTube existentes
+        const processedModules = fetchedModules.map(module => ({
+          ...module,
+          lessons: module.lessons?.map(lesson => {
+            // Se é URL do YouTube mas não tem videoType definido
+            if (lesson.videoUrl && isYouTubeURL(lesson.videoUrl) && !lesson.videoType) {
+              const youtubeData = extractYouTubeData(lesson.videoUrl);
+              if (youtubeData) {
+                return {
+                  ...lesson,
+                  videoType: 'youtube',
+                  youtubeId: youtubeData.videoId,
+                  startTime: youtubeData.startTime
+                };
+              }
+            }
+            return lesson;
+          }) || []
+        }));
 
-        setModules(fetchedModules); // ✅ Remove o filter, usa direto
+        setModules(processedModules);
 
-        if (fetchedModules.length > 0) {
-          const firstModuleWithLessons = fetchedModules.find(
+        if (processedModules.length > 0) {
+          const firstModuleWithLessons = processedModules.find(
             (m) => m.lessons && m.lessons.length > 0
           );
           if (firstModuleWithLessons) {
             selectLesson(firstModuleWithLessons.lessons[0]);
             setExpandedModules([firstModuleWithLessons.id]);
           } else {
-            setExpandedModules([fetchedModules[0].id]);
+            setExpandedModules([processedModules[0].id]);
           }
         }
       })
@@ -99,6 +137,34 @@ const TrilhaPage = () => {
       }
     }
   };
+
+  // Função para deletar uma aula
+  const handleDeleteLesson = async (lesson) => {
+    if (confirm(`Tem certeza que deseja deletar a aula "${lesson.title}"?`)) {
+      try {
+        await axios.delete(`${API_URL}/api/videos/${lesson.id}`);
+
+        // Atualizar estado local
+        setModules(prevModules =>
+          prevModules.map(module => ({
+            ...module,
+            lessons: module.lessons?.filter(l => l.id !== lesson.id) || []
+          }))
+        );
+
+        // Se a aula deletada estava selecionada, limpar seleção
+        if (selectedLesson?.id === lesson.id) {
+          setSelectedLesson(null);
+        }
+
+        console.log('Aula deletada com sucesso!');
+      } catch (error) {
+        console.error('Erro ao deletar aula:', error);
+        alert('Erro ao deletar aula');
+      }
+    }
+  };
+
   // Função para deletar um módulo
   const handleDelete = async (id) => {
     await axios.delete(`${API_URL}/api/modules/${id}`);
@@ -137,7 +203,6 @@ const TrilhaPage = () => {
   const handleSaveNewLesson = async (data) => {
     console.log("🚀 FUNÇÃO INICIADA - data recebida:", data);
     try {
-
       let response;
 
       // Função para detectar se é iframe
@@ -163,38 +228,6 @@ const TrilhaPage = () => {
         return { videoId, startTime };
       };
 
-      // Função para detectar URL do YouTube
-      const isYouTubeURL = (url) => {
-        return url.includes('youtube.com/watch') || url.includes('youtu.be/');
-      };
-
-      // Função para extrair dados completos do YouTube
-      const extractYouTubeData = (url) => {
-        const regexPatterns = [
-          /(?:youtube\.com\/watch\?v=)([^&\n?#]+)/,  // youtube.com/watch?v=
-          /(?:youtu\.be\/)([^&\n?#]+)/               // youtu.be/
-        ];
-
-        let videoId = null;
-        for (const pattern of regexPatterns) {
-          const match = url.match(pattern);
-          if (match) {
-            videoId = match[1];
-            break;
-          }
-        }
-
-        if (!videoId) return null;
-
-        // Extrair tempo de início se existir
-        const timeMatch = url.match(/[?&]t=(\d+)s?/) || url.match(/[?&]start=(\d+)/);
-        const startTime = timeMatch ? parseInt(timeMatch[1]) : 0;
-
-        return {
-          videoId,
-          startTime
-        };
-      };
 
       console.log("🔍 Testando detecções:");
       console.log("É FormData?", data instanceof FormData);
@@ -356,7 +389,7 @@ const TrilhaPage = () => {
                         // Player Bunny.net (iframe)
                         <iframe
                           key={selectedLesson.id}
-                          className="w-full h-full border-0"
+                          className="w-full-screen h-full border-0"
                           src={selectedLesson.videoUrl}
                           allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
                           allowFullScreen
@@ -507,10 +540,19 @@ const TrilhaPage = () => {
                                   {/* Botão de editar */}
                                   <button
                                     onClick={() => handleEditLesson(lesson)}
-                                    className="p-2 mr-2 text-gray-400 hover:text-blue-400 transition-colors"
+                                    className="p-2 mr-1 text-gray-400 hover:text-blue-400 transition-colors"
                                     title="Editar aula"
                                   >
                                     <Edit2 className="w-4 h-4" />
+                                  </button>
+
+                                  {/* Botão de deletar */}
+                                  <button
+                                    onClick={() => handleDeleteLesson(lesson)}
+                                    className="p-2 mr-2 text-gray-400 hover:text-red-400 transition-colors"
+                                    title="Deletar aula"
+                                  >
+                                    <Trash className="w-4 h-4" />
                                   </button>
                                 </div>
                               ))
