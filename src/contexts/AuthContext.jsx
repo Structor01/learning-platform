@@ -4,6 +4,11 @@ import api, { setAuthToken } from "@/services/api";
 
 const AuthContext = createContext();
 
+export const USER_TYPES = {
+  CANDIDATE: 'candidate',
+  COMPANY: 'company'
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -193,6 +198,12 @@ export const AuthProvider = ({ children }) => {
   const hasActiveSubscription = () => user?.subscription?.status === "active";
 
   const canAccessContent = () => hasActiveSubscription();
+
+  const getUserType = () => user?.userType || null;
+  
+  const isCompany = () => user?.userType === USER_TYPES.COMPANY;
+  
+  const isCandidate = () => user?.userType === USER_TYPES.CANDIDATE;
 
   const value = {
     user,
