@@ -68,16 +68,23 @@ const TrilhaPage = () => {
         const processedModules = fetchedModules.map(module => ({
           ...module,
           lessons: module.lessons?.map(lesson => {
+            console.log('🔍 Processando lesson:', lesson.title, 'URL:', lesson.videoUrl);
+            
             // Se é URL do YouTube mas não tem videoType definido
             if (lesson.videoUrl && isYouTubeURL(lesson.videoUrl) && !lesson.videoType) {
+              console.log('✅ É URL do YouTube, processando...');
               const youtubeData = extractYouTubeData(lesson.videoUrl);
+              console.log('📊 Dados extraídos:', youtubeData);
+              
               if (youtubeData) {
-                return {
+                const processedLesson = {
                   ...lesson,
                   videoType: 'youtube',
                   youtubeId: youtubeData.videoId,
                   startTime: youtubeData.startTime
                 };
+                console.log('✨ Lesson processada:', processedLesson);
+                return processedLesson;
               }
             }
             return lesson;
