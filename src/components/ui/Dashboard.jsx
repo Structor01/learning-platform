@@ -717,130 +717,62 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
           {/* Última Aula - Nova Seção */}
           <section className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Última Aula</h2>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold text-white">Última Aula</h2>
             </div>
 
-            <Card className="bg-gray-900 border-gray-800 hover:bg-gray-800 transition-all duration-300">
-              <div className="flex md:flex-row">
-                {/* Thumbnail estática */}
-                <div className="md:w-1/3 relative">
-                  <img
-                    src="https://img.youtube.com/vi/DogH89e7Ib0/hqdefault.jpg"
-                    alt="Thumbnail Aulão"
-                    className="w-full aspect-video rounded-l-lg object-cover"
+            <Card className="bg-white transition-all duration-300 hover:shadow-xl">
+              <div className="flex flex-col lg:flex-row min-h-[800px]">
+                <div className="w-full lg:w-1/2 relative">
+                  <iframe
+                    src="https://www.youtube.com/embed/JIEDBoWU5fE"
+                    title="Aulão"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-96 sm:h-[400px] md:h-[500px] lg:h-[600px] lg:rounded-l-lg object-cover"
+                    style={{ aspectRatio: '16/9' }}
                   />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Play className="w-16 h-16 text-white opacity-75" />
-                  </div>
                 </div>
 
                 {/* Conteúdo da aula */}
-                <div className="md:w-2/3 p-6">
-                  <CardContent className="p-0">
-                    <h3 className="text-xl font-bold text-white mb-3">
-                      <a href="https://www.youtube.com/live/OwIvIsx4NYE" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                        Aulão - Etapas de processo seletivo e sua carreira no Agro
-                      </a>
+                <div className="w-full lg:w-1/2 p-6 sm:p-8 flex flex-col justify-center">
+                  <CardContent className="p-0 space-y-6">
+                    <h3 className="text-2xl lg:text-3xl font-bold text-black leading-tight">
+                      Aulão - O que o mercado busca nos profissionais do Agro
                     </h3>
-                    <p className="text-gray-300 mb-4 leading-relaxed">
-                      Neste aulão ao vivo, você vai descobrir todas as etapas do
-                      processo seletivo no agronegócio e como construir uma
-                      carreira sólida no setor. Aprenda estratégias para se
-                      destacar em entrevistas, desenvolver competências técnicas
-                      e comportamentais essenciais para o sucesso no agro.
+
+                    <p className="text-gray-600 leading-relaxed text-base lg:text-lg">
+                      Descubra quais são as competências mais valorizadas pelo mercado do agronegócio atual. Neste aulão exclusivo, você vai aprender sobre as habilidades técnicas e comportamentais essenciais para se destacar no setor, conhecer as principais tendências que estão moldando o futuro do agro e entender como posicionar seu perfil profissional para aproveitar as melhores oportunidades de carreira no agronegócio brasileiro.
                     </p>
 
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-4 text-sm text-gray-400">
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-4 h-4" />
-                          <span>45 min</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                            />
-                          </svg>
-                          <span>Samantha Andrade</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                          <span>1.2k assistindo</span>
-                        </div>
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-5 h-5" />
+                        <span className="font-medium">45 min</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span className="font-medium">Samantha Andrade</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span className="font-medium">1.2k assistindo</span>
                       </div>
                     </div>
 
-                    <Button
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 font-semibold"
-                      onClick={() => setIsVideoOpen(true)}
-                    >
-                      <Play className="w-5 h-5 mr-2" />
-                      Assistir Aula
-                    </Button>
+                    <div className="space-y-3">
+                      {/* seus botões aqui */}
+                    </div>
                   </CardContent>
                 </div>
               </div>
             </Card>
           </section>
-
-          {/* Modal */}
-          {isVideoOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-              <div className="relative w-full max-w-3xl bg-black rounded-lg overflow-hidden">
-                <button
-                  className="absolute top-2 right-2 text-white p-1 rounded-full hover:bg-white/20"
-                  onClick={() => setIsVideoOpen(false)}
-                >
-                  <X className="w-6 h-6" />
-                </button>
-                <div className="relative pb-[56.25%]">
-                  <iframe
-                    src="https://www.youtube.com/embed/DogH89e7Ib0"
-                    title="Aulão - Etapas de processo seletivo e sua carreira no Agro"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="absolute top-0 left-0 w-full h-full"
-                  />
-                </div>
-                <div className="p-4 flex justify-end">
-                  <Button
-                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
-                    onClick={() => setIsVideoOpen(false)}
-                  >
-                    Sair da aula
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

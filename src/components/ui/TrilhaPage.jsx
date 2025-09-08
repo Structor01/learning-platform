@@ -68,23 +68,16 @@ const TrilhaPage = () => {
         const processedModules = fetchedModules.map(module => ({
           ...module,
           lessons: module.lessons?.map(lesson => {
-            console.log('🔍 Processando lesson:', lesson.title, 'URL:', lesson.videoUrl);
-            
             // Se é URL do YouTube mas não tem videoType definido
             if (lesson.videoUrl && isYouTubeURL(lesson.videoUrl) && !lesson.videoType) {
-              console.log('✅ É URL do YouTube, processando...');
               const youtubeData = extractYouTubeData(lesson.videoUrl);
-              console.log('📊 Dados extraídos:', youtubeData);
-              
               if (youtubeData) {
-                const processedLesson = {
+                return {
                   ...lesson,
                   videoType: 'youtube',
                   youtubeId: youtubeData.videoId,
                   startTime: youtubeData.startTime
                 };
-                console.log('✨ Lesson processada:', processedLesson);
-                return processedLesson;
               }
             }
             return lesson;
@@ -180,23 +173,29 @@ const TrilhaPage = () => {
   // Função para reordenar módulos
   const handleReorder = async (reorderedModules) => {
     try {
-      // Mapear módulos com nova ordem
+      // Mapear módulos com nova ordem (começando do 1 ao invés de 0)
       const modulesWithOrder = reorderedModules.map((module, index) => ({
         id: module.id,
-        order: index // Nova ordem baseada na posição
+        order: index + 1 // Nova ordem baseada na posição (1, 2, 3, ...)
       }));
 
       // Chamar API para salvar nova ordem
-      await axios.put(`${API_URL}/api/modules/reorder`, {
+      const response = await axios.put(`${API_URL}/api/modules/reorder`, {
         modules: modulesWithOrder
       });
 
-      // Atualizar estado local
-      setModules(reorderedModules);
-
-      console.log('Ordem atualizada com sucesso!');
+      // Verificar se a resposta foi bem-sucedida
+      if (response.status === 200) {
+        // Atualizar estado local com a nova ordem
+        setModules(reorderedModules);
+        console.log('Ordem atualizada com sucesso!');
+      } else {
+        throw new Error('Falha na resposta da API');
+      }
     } catch (error) {
       console.error('Erro ao reordenar módulos:', error);
+      // Reverter para a ordem original se houver erro
+      alert('Erro ao salvar nova ordem. Tente novamente.');
     }
   };
 
@@ -410,8 +409,6 @@ const TrilhaPage = () => {
                       ) : selectedLesson.videoType === 'youtube' && selectedLesson.youtubeId ? (
                         // Player YouTube (iframe)
                         <>
-                          {console.log('>>> USANDO YOUTUBE PLAYER')}
-                          {console.log('🎬 selectedLesson completo:', selectedLesson)}
                           <iframe
                             key={selectedLesson.id}
                             className="w-full h-full border-0"
@@ -431,11 +428,6 @@ const TrilhaPage = () => {
                       ) : (
                         // Player tradicional
                         <>
-                          {console.log('🎬 selectedLesson completo:', selectedLesson)}
-                          {console.log('🔍 videoType:', selectedLesson?.videoType)}
-                          {console.log('🔍 youtubeId:', selectedLesson?.youtubeId)}
-                          {console.log('🔍 startTime:', selectedLesson?.startTime)}
-                          {console.log('>>> USANDO VIDEO')}
                           <video
                             key={selectedLesson.id}
                             ref={videoRef}

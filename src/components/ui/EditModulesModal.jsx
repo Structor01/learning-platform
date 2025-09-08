@@ -43,9 +43,16 @@ export function EditModulesModal({
 
   const onDragEnd = (result) => {
     if (!result.destination) return;
+    
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+    
+    if (sourceIndex === destinationIndex) return;
+    
     const items = Array.from(draft);
-    const [moved] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, moved);
+    const [moved] = items.splice(sourceIndex, 1);
+    items.splice(destinationIndex, 0, moved);
+    
     setDraft(items);
     onReorder(items);
   };
@@ -73,58 +80,63 @@ export function EditModulesModal({
           </button>
         </div>
 
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="modules" isDropDisabled={false}>
-            {(provided) => (
-              <ul
-                {...provided.droppableProps}
-                ref={provided.innerRef}
-                className="space-y-2 max-h-60 overflow-auto"
-              >
-                {draft.map((mod, idx) => (
-                  <Draggable
-                    key={mod.id}
-                    draggableId={mod.id.toString()}
-                    index={idx}
-                  >
-                    {(prov) => (
-                      <li
-                        ref={prov.innerRef}
-                        {...prov.draggableProps}
-                        className="flex items-center justify-between bg-gray-100 p-2 rounded"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <span
-                            {...prov.dragHandleProps}
-                            className="cursor-move"
-                          >
-                            <GripVertical className="w-5 h-5 text-gray-500" />
-                          </span>
-                          <span>{mod.title}</span>
-                        </div>
-                        <div className="space-x-4 text-sm">
-                          <button
-                            onClick={() => handleEdit(mod.id)}
-                            className="text-blue-600 hover:underline"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleDelete(mod.id)}
-                            className="text-red-600 hover:underline"
-                          >
-                            Excluir
-                          </button>
-                        </div>
-                      </li>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </ul>
-            )}
-          </Droppable>
-        </DragDropContext>
+        {draft.length > 0 && (
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="modules" isDropDisabled={false}>
+              {(provided, snapshot) => (
+                <ul
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  className="space-y-2 max-h-60 overflow-auto"
+                >
+                  {draft.map((mod, idx) => (
+                    <Draggable
+                      key={String(mod.id)}
+                      draggableId={String(mod.id)}
+                      index={idx}
+                      isDragDisabled={false}
+                    >
+                      {(prov, dragSnapshot) => (
+                        <li
+                          ref={prov.innerRef}
+                          {...prov.draggableProps}
+                          className={`flex items-center justify-between p-2 rounded ${
+                            dragSnapshot.isDragging ? 'bg-blue-100' : 'bg-gray-100'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <span
+                              {...prov.dragHandleProps}
+                              className="cursor-move"
+                            >
+                              <GripVertical className="w-5 h-5 text-gray-500" />
+                            </span>
+                            <span>{mod.title}</span>
+                          </div>
+                          <div className="space-x-4 text-sm">
+                            <button
+                              onClick={() => handleEdit(mod.id)}
+                              className="text-blue-600 hover:underline"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleDelete(mod.id)}
+                              className="text-red-600 hover:underline"
+                            >
+                              Excluir
+                            </button>
+                          </div>
+                        </li>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </ul>
+              )}
+            </Droppable>
+          </DragDropContext>
+        )}
 
         <div className="mt-6 flex justify-end">
           <button
