@@ -406,13 +406,19 @@ const TrilhaPage = () => {
                             display: 'block'
                           }}
                         />
-                      ) : selectedLesson.videoType === 'youtube' && selectedLesson.youtubeId ? (
+                      ) : (selectedLesson.videoType === 'youtube' && selectedLesson.youtubeId) || 
+                           (selectedLesson.content && selectedLesson.content.includes('youtube.com')) ? (
                         // Player YouTube (iframe)
                         <>
+                          {console.log('🔍 selectedLesson completo:', selectedLesson)}
                           <iframe
                             key={selectedLesson.id}
                             className="w-full h-full border-0"
-                            src={`https://www.youtube.com/embed/${selectedLesson.youtubeId}${selectedLesson.startTime ? `?start=${selectedLesson.startTime}` : ''}`}
+                            src={`https://www.youtube.com/embed/${
+                              selectedLesson.youtubeId || 
+                              (selectedLesson.content && selectedLesson.content.match(/(?:youtube\.com\/embed\/|youtu\.be\/)([^?&\n]+)/)?.[1]) ||
+                              'dQw4w9WgXcQ'
+                            }${selectedLesson.startTime ? `?start=${selectedLesson.startTime}` : ''}`}
                             title={selectedLesson.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
