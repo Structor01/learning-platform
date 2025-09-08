@@ -742,7 +742,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     </h3>
 
                     <p className="text-gray-600 leading-relaxed text-base lg:text-lg">
-                      Descubra quais são as competências mais valorizadas pelo mercado do agronegócio atual. Neste aulão exclusivo, você vai aprender sobre as habilidades técnicas e comportamentais essenciais para se destacar no setor, conhecer as principais tendências que estão moldando o futuro do agro e entender como posicionar seu perfil profissional para aproveitar as melhores oportunidades de carreira no agronegócio brasileiro.
+                      Nesse episódio do Podcast AgroSkills, recebemos Danilo Macarini e Jaqueline Dias, Diretor de Processos e RH e Coordenadora de RH na Seedcorp HO, para falar sobre como construir times de alta performance, a importância da cultura organizacional e o que o mercado busca nos profissionais do agro!
                     </p>
 
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
