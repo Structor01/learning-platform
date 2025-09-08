@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, User, LogOut, Settings, Briefcase } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import EntrevistaSimuladaPage from "./EntrevistaSimuladaPage";
 // REMOVIDO: import MinhasCandidaturasPage - não estava sendo usado
 
 const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
@@ -121,9 +122,15 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
               >
                 Meus interesses
               </a>
+              <a
+                href="/entrevista-simulada"
+                className="text-gray-300 hover:text-white transition-colors text-sm"
+              >
+                Treinamento de Entrevista
+              </a>
 
               {/* Menu Administrador */}
-              {(userData.email === "kauanytorres19@gmail.com" || userData.email === "artfbgyn@gmail.com") && (
+              {(userData.email === "matheuslucasdesouza22@gmail.com" || userData.email === "artfbgyn@gmail.com") && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -189,11 +196,11 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                       src="/placeholder-avatar.jpg"
                       alt={userData.name}
                     />
-                      <AvatarFallback className="bg-gray-600 text-white">
-                          {userData?.name?.split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                      </AvatarFallback>
+                    <AvatarFallback className="bg-gray-600 text-white">
+                      {userData?.name?.split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>

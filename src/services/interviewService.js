@@ -132,7 +132,7 @@ class InterviewService {
 
       // Verificar e limpar tipo do blob
       console.log(`🔍 Tipo original do blob: "${videoBlob.type}"`);
-      
+
       if (!videoBlob.type || !videoBlob.type.includes('video/')) {
         console.warn('⚠️ Tipo do blob não é reconhecido como vídeo, corrigindo...');
         // Criar novo blob com tipo simples
@@ -143,12 +143,12 @@ class InterviewService {
         const baseType = videoBlob.type.includes('mp4') ? 'video/mp4' : 'video/webm';
         videoBlob = new Blob([videoBlob], { type: baseType });
       }
-      
+
       console.log(`✅ Tipo final do blob: "${videoBlob.type}"`);
 
 
       const formData = new FormData();
-      
+
       // Determinar extensão baseada no tipo do blob
       let extension = '.webm'; // padrão
       if (videoBlob.type.includes('mp4')) {
@@ -158,11 +158,11 @@ class InterviewService {
       } else if (videoBlob.type.includes('ogg')) {
         extension = '.ogg';
       }
-      
+
       const fileName = `interview_${interviewId}_q${questionNumber}${extension}`;
       console.log(`📝 Nome do arquivo final: ${fileName}`);
       console.log(`🎬 Tipo MIME final: ${videoBlob.type}`);
-      
+
       formData.append('video', videoBlob, fileName);
       formData.append('questionNumber', questionNumber.toString());
       formData.append('faceAnalysisData', JSON.stringify(faceAnalysisData));
@@ -339,11 +339,11 @@ class InterviewService {
 
       // ✅ Opcional: Também gerar relatório se o backend suportar
       try {
-        const reportResponse = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/report`);
+        const reportResponse = await fetch(`${this.baseUrl}/api/mock-interviews/${interviewId}/report`);
 
         if (reportResponse.ok) {
           const contentType = reportResponse.headers.get('content-type');
-          
+
           if (contentType && contentType.includes('application/json')) {
             const report = await reportResponse.json();
             console.log(`📊 Relatório gerado com sucesso!`);
