@@ -414,15 +414,9 @@ const TrilhaPage = () => {
                             className="w-full h-full border-0"
                             src={`https://www.youtube.com/embed/${selectedLesson.youtubeId}${selectedLesson.startTime ? `?start=${selectedLesson.startTime}` : ''}`}
                             title={selectedLesson.title}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
-                            referrerPolicy="strict-origin-when-cross-origin"
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              border: 'none',
-                              display: 'block'
-                            }}
+                            style={{ aspectRatio: '16/9' }}
                           />
                         </>
                       ) : (
