@@ -407,18 +407,32 @@ const TrilhaPage = () => {
                           }}
                         />
                       ) : (selectedLesson.videoType === 'youtube' && selectedLesson.youtubeId) || 
+                           (selectedLesson.videoUrl && selectedLesson.videoUrl.includes('youtube.com')) ||
                            (selectedLesson.content && selectedLesson.content.includes('youtube.com')) ? (
                         // Player YouTube (iframe)
                         <>
-                          {console.log('🔍 selectedLesson completo:', selectedLesson)}
                           <iframe
                             key={selectedLesson.id}
                             className="w-full h-full border-0"
-                            src={`https://www.youtube.com/embed/${
-                              selectedLesson.youtubeId || 
-                              (selectedLesson.content && selectedLesson.content.match(/(?:youtube\.com\/embed\/|youtu\.be\/)([^?&\n]+)/)?.[1]) ||
-                              'dQw4w9WgXcQ'
-                            }${selectedLesson.startTime ? `?start=${selectedLesson.startTime}` : ''}`}
+                            src={`https://www.youtube.com/embed/${(() => {
+                              // Prioridade 1: youtubeId direto
+                              if (selectedLesson.youtubeId) return selectedLesson.youtubeId;
+                              
+                              // Prioridade 2: extrair do videoUrl (campo mais comum)
+                              if (selectedLesson.videoUrl) {
+                                const urlMatch = selectedLesson.videoUrl.match(/(?:youtube\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                                if (urlMatch) return urlMatch[1];
+                              }
+                              
+                              // Prioridade 3: extrair do content (fallback)
+                              if (selectedLesson.content) {
+                                const contentMatch = selectedLesson.content.match(/(?:youtube\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                                if (contentMatch) return contentMatch[1];
+                              }
+                              
+                              // Fallback final
+                              return 'dQw4w9WgXcQ';
+                            })()}${selectedLesson.startTime ? `?start=${selectedLesson.startTime}` : ''}`}
                             title={selectedLesson.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
