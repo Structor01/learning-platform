@@ -1,5 +1,5 @@
 // src/components/ui/LoginPage.jsx
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,85 +17,113 @@ const LoginPage = () => {
   const [showDISCModal, setShowDISCModal] = useState(false);
 
   // Novos estados para controlar o fluxo
-  const [step, setStep] = useState("email"); // "email" ou "password"
+  const [step, setStep] = useState("email"); // "email", "password" ou "signup"
   const [isExpanding, setIsExpanding] = useState(false);
 
   useEffect(() => {
-      const email = localStorage.getItem("email");
-      if (email) {
-          setEmail(email);
-          setStep("password");
-      }
-      const token = localStorage.getItem("token");
-      if (user && token) {
-          navigate("/Dashboard", { replace: true });
-      }
+    const email = localStorage.getItem("email");
+    if (email) {
+      setEmail(email);
+      setStep("password");
+    }
+    const token = localStorage.getItem("token");
+    if (user && token) {
+      navigate("/Dashboard", { replace: true });
+    }
   }, [user, navigate]);
 
 
   // Função para verificar se o email existe no banco
   const checkEmailExists = async (emailToCheck) => {
+    if (!emailToCheck || typeof emailToCheck !== 'string') {
+      throw new Error('Email inválido fornecido');
+    }
+
+    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    const url = `${API_URL}/api/auth/check-email`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
     try {
-      // URL da API
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-      const url = `${API_URL}/api/auth/check-email`;
-
-      console.log("🔍 Verificando email:", emailToCheck);
-      console.log("📡 URL da requisição:", url);
-
       const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email: emailToCheck }),
+        body: JSON.stringify({ email: emailToCheck.toLowerCase() }),
+        signal: controller.signal
       });
 
-      console.log("📊 Status da resposta:", response.status);
-      console.log("✅ Response OK?", response.ok);
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("❌ Erro na resposta:", errorText);
-        throw new Error(`Erro ${response.status}: ${errorText}`);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("📦 Dados recebidos:", data);
+
+      if (typeof data.exists !== 'boolean') {
+        throw new Error('Resposta inválida do servidor');
+      }
 
       return data.exists;
     } catch (error) {
-      console.error("🚨 Erro completo ao verificar email:", error);
-      console.error("🚨 Tipo do erro:", typeof error);
-      console.error("🚨 Mensagem do erro:", error.message);
+      clearTimeout(timeoutId);
+
+      if (error.name === 'AbortError') {
+        throw new Error('Tempo limite de conexão excedido');
+      }
+
+      console.error("Erro ao verificar email:", error);
       throw error;
     }
   };
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
-    if (!email) return;
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setErrorMsg("Por favor, insira um email válido.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setErrorMsg("Formato de email inválido.");
+      return;
+    }
 
     setIsLoading(true);
     setErrorMsg("");
 
     try {
-      const emailExists = await checkEmailExists(email);
+      const emailExists = await checkEmailExists(trimmedEmail);
 
       if (emailExists) {
-          localStorage.setItem('email', email);
-        // Email existe, expandir para mostrar campo de senha
+        localStorage.setItem('email', trimmedEmail);
         setIsExpanding(true);
         setTimeout(() => {
           setStep("password");
           setIsExpanding(false);
         }, 300);
       } else {
-        // Email não existe, redirecionar para cadastro
-        navigate("/signup", { state: { email } });
+        setStep("signup");
       }
     } catch (error) {
-      setErrorMsg("Erro ao verificar email. Tente novamente.");
+      console.error("Erro ao verificar email:", error);
+
+      if (error.name === 'TypeError' || error.message.includes('fetch')) {
+        setErrorMsg("Erro de conexão. Verifique sua internet e tente novamente.");
+      } else if (error.message.includes('500')) {
+        setErrorMsg("Erro interno do servidor. Tente novamente em alguns minutos.");
+      } else if (error.message.includes('404')) {
+        setErrorMsg("Serviço não encontrado. Entre em contato com o suporte.");
+      } else {
+        setErrorMsg("Erro ao verificar email. Tente novamente.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -103,14 +131,36 @@ const LoginPage = () => {
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
+
+    const trimmedPassword = password.trim();
+    if (!trimmedPassword) {
+      setErrorMsg("Por favor, insira sua senha.");
+      return;
+    }
+
+    if (trimmedPassword.length < 6) {
+      setErrorMsg("Senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+
     setIsLoading(true);
     setErrorMsg("");
 
     try {
-      await login(email, password);
+      await login(email, trimmedPassword);
       await checkDISCCompletion();
     } catch (error) {
-      setErrorMsg(error.message || "Falha no login");
+      console.error("Erro no login:", error);
+
+      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+        setErrorMsg("Email ou senha incorretos.");
+      } else if (error.message.includes('429')) {
+        setErrorMsg("Muitas tentativas. Aguarde alguns minutos e tente novamente.");
+      } else if (error.message.includes('fetch') || error.name === 'TypeError') {
+        setErrorMsg("Erro de conexão. Verifique sua internet e tente novamente.");
+      } else {
+        setErrorMsg(error.message || "Falha no login. Tente novamente.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -168,9 +218,8 @@ const LoginPage = () => {
         </div>
 
         <Card
-          className={`w-full max-w-md bg-white/5 backdrop-blur-lg border-white/10 transition-all duration-300 ${
-            isExpanding ? "scale-105" : ""
-          }`}
+          className={`w-full max-w-md bg-white/5 backdrop-blur-lg border-white/10 transition-all duration-300 ${isExpanding ? "scale-105" : ""
+            }`}
         >
           <CardContent className="p-8">
             {/* Cabeçalho */}
@@ -186,7 +235,9 @@ const LoginPage = () => {
               <p className="text-white/70">
                 {step === "email"
                   ? "Preencha seu email para logar ou criar uma conta"
-                  : "Digite sua senha para continuar"}
+                  : step === "password"
+                    ? "Digite sua senha para continuar"
+                    : "Crie uma nova conta"}
               </p>
             </div>
 
@@ -268,6 +319,41 @@ const LoginPage = () => {
                   >
                     Esqueceu sua senha?
                   </a>
+                </div>
+              </div>
+            )}
+
+            {/* Formulário - Step Signup */}
+            {step === "signup" && (
+              <div className="space-y-6">
+                <div className="text-center space-y-4">
+                  <div className="bg-blue-500/10 border border-blue-400/20 rounded-md p-4">
+                    <h3 className="text-blue-300 font-medium mb-2">Email não encontrado!</h3>
+                    <p className="text-white/70 text-sm">
+                      O email <span className="text-white font-medium">{email}</span> não está cadastrado em nossa plataforma.
+                    </p>
+                  </div>
+
+                  <p className="text-white/70 text-sm">
+                    Que tal criar uma nova conta? É rápido e gratuito!
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => navigate("/signup", { state: { email } })}
+                    className="w-full bg-green-600 text-white hover:bg-green-700 font-medium py-3"
+                  >
+                    Criar Nova Conta
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    onClick={handleBackToEmail}
+                    className="w-full border-white/20 text-white bg-white/5 font-medium py-3"
+                  >
+                    Tentar Outro Email
+                  </Button>
                 </div>
               </div>
             )}
