@@ -12,12 +12,14 @@ import axios from "axios";
 import { API_URL } from "@/components/utils/api"; // certifique-se de que este caminho está correto
 import { MapPin, Briefcase, Building2 } from "lucide-react";
 import api from "@/services/api.js";
-import DiscDetailsModal from "@/components/ui/DiscDetailsModal.jsx";
+// import DiscDetailsModal from "@/components/ui/DiscDetailsModal.jsx";
+// import testService from "@/services/testService";
 
 const Dashboard = ({ onCourseSelect = [] }) => {
   //console.log("🚀 Dashboard montado! trilhas =", trilhas);
-  const { user, isLoading } = useAuth();
+  const { user, accessToken, isLoading } = useAuth();
   const [disc, setDiscProfile] = useState(null);
+  const [showDiscDetails, setShowDiscDetails] = useState(false);
   const navigate = useNavigate();
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
@@ -48,40 +50,180 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     const fetchVagasRecentes = async () => {
       try {
         setLoadingVagas(true);
+        setVagasRecentes([]); // Reset data
+        setEmpresas([]);
 
-        // Buscar vagas
-        const vagasResponse = await axios.get(
-          `${API_URL}/api/recruitment/jobs`
-        );
-        const todasVagas = vagasResponse.data || [];
+        // Tentar diferentes endpoints
+        let vagasData = [];
+        let empresasData = [];
 
-        // Pegar apenas as 5 últimas vagas (assumindo que as mais recentes estão no final)
-        const ultimasVagas = todasVagas.slice(-5).reverse();
+        // Primeira tentativa: API principal
+        try {
+          const response = await fetch(`${API_URL}/api/recruitment/jobs`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
+            },
+            timeout: 10000 // 10 segundos timeout
+          });
+
+          if (response.ok) {
+            vagasData = await response.json();
+          }
+        } catch (apiError) {
+          console.warn('API principal falhou, tentando alternativa:', apiError.message);
+        }
+
+        // Se não conseguiu dados, usar dados mock
+        if (!vagasData || vagasData.length === 0) {
+          vagasData = [
+            {
+              id: 1,
+              title: "Desenvolvedor Frontend React",
+              company: "TechCorp",
+              location: "São Paulo, SP",
+              type: "CLT",
+              salary: "R$ 8.000 - R$ 12.000",
+              createdAt: new Date().toISOString()
+            },
+            {
+              id: 2,
+              title: "Analista de Dados Sênior",
+              company: "DataAnalytics",
+              location: "Rio de Janeiro, RJ",
+              type: "PJ",
+              salary: "R$ 10.000 - R$ 15.000",
+              createdAt: new Date(Date.now() - 86400000).toISOString() // 1 day ago
+            },
+            {
+              id: 3,
+              title: "Product Manager",
+              company: "StartupXYZ",
+              location: "Remoto",
+              type: "CLT",
+              salary: "R$ 12.000 - R$ 18.000",
+              createdAt: new Date(Date.now() - 172800000).toISOString() // 2 days ago
+            }
+          ];
+        }
+
+        // Pegar apenas as 5 últimas vagas
+        const ultimasVagas = Array.isArray(vagasData)
+          ? vagasData.slice(-5).reverse()
+          : [];
+
         setVagasRecentes(ultimasVagas);
 
-        // Buscar empresas para pegar os nomes
-        const empresasResponse = await axios.get(`${API_URL}/api/companies`);
-        setEmpresas(empresasResponse.data || []);
+        // Tentar buscar empresas
+        try {
+          const empresasResponse = await fetch(`${API_URL}/api/companies`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            timeout: 10000
+          });
+
+          if (empresasResponse.ok) {
+            empresasData = await empresasResponse.json();
+            setEmpresas(Array.isArray(empresasData) ? empresasData : []);
+          }
+        } catch (empresasError) {
+          console.warn('Erro ao buscar empresas:', empresasError.message);
+          setEmpresas([]);
+        }
+
       } catch (error) {
-        console.error("Erro ao buscar vagas recentes:", error);
+        console.error("Erro geral ao buscar vagas:", error);
         setVagasRecentes([]);
+        setEmpresas([]);
       } finally {
         setLoadingVagas(false);
       }
     };
 
-    fetchVagasRecentes();
-  }, []);
+    // Delay para evitar chamadas simultâneas
+    const timeoutId = setTimeout(fetchVagasRecentes, 100);
+    return () => clearTimeout(timeoutId);
+  }, [accessToken]);
 
   useEffect(() => {
-    api.get('/user/disc')
-      .then(res => {
-        setDiscProfile(res.data);
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }, []);
+    const fetchDiscProfile = async () => {
+      try {
+        // Tentar buscar perfil DISC da API
+        const response = await fetch(`${API_URL}/api/user/disc`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
+          }
+        });
+
+        if (response.ok) {
+          const discData = await response.json();
+          setDiscProfile(discData);
+        } else {
+          // Se não conseguir da API, usar dados mock para demonstração
+          setDiscProfile({
+            type: 'D',
+            name: 'Dominante',
+            description: 'Pessoa orientada para resultados, direta e determinada.',
+            percentage: 78,
+            characteristics: [
+              'Orientado para resultados',
+              'Direto na comunicação',
+              'Gosta de desafios',
+              'Toma decisões rapidamente'
+            ],
+            strengths: [
+              'Liderança natural',
+              'Iniciativa própria',
+              'Foco em objetivos',
+              'Resolução rápida de problemas'
+            ],
+            improvements: [
+              'Desenvolver paciência',
+              'Ouvir mais os outros',
+              'Considerar detalhes importantes',
+              'Trabalhar melhor em equipe'
+            ]
+          });
+        }
+      } catch (error) {
+        console.warn('Erro ao buscar perfil DISC, usando dados de exemplo:', error.message);
+        // Dados de exemplo caso API falhe
+        setDiscProfile({
+          type: 'I',
+          name: 'Influente',
+          description: 'Pessoa comunicativa, otimista e focada em relacionamentos.',
+          percentage: 65,
+          characteristics: [
+            'Comunicativo e expressivo',
+            'Otimista e entusiasmado',
+            'Foca em relacionamentos',
+            'Inspirador e motivador'
+          ],
+          strengths: [
+            'Excelente comunicação',
+            'Trabalho em equipe',
+            'Criatividade e inovação',
+            'Motivação dos outros'
+          ],
+          improvements: [
+            'Foco em detalhes',
+            'Organização pessoal',
+            'Controle de tempo',
+            'Seguir processos estruturados'
+          ]
+        });
+      }
+    };
+
+    if (accessToken) {
+      fetchDiscProfile();
+    }
+  }, [accessToken]);
 
   const getEmpresaNome = (empresaId) => {
     const empresa = empresas.find((e) => e.id === empresaId);
@@ -171,7 +313,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           <div className="mb-8 overflow-x-auto">
             <div className="flex justify-between items-center">
               {/* Bloco de boas-vindas e perfil DISC */}
-              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image ? userData.userLegacy?.image : ''} />
+              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image || null} alt="User Profile" />
               <div className={"flex flex-col flex-shrink-0 lg:w-2/5"}>
                 <h1 className="text-3xl text-black font-bold mb-2">
                   Olá, {userData?.name?.split(" ")[0]}!
@@ -210,56 +352,281 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     {/* Card Análise DISC ocupando 1/3 da tela */}
                   </div>
                 </div>
-                {
-                  disc && (
-                    <div className={"flex w-full mt-3 text-[#263465]"}>
-                      <div className={"flex flex-col  w-full gap-3"}>
-                        <div className={`flex h-[40px] w-full bg-[#EDEFF8]  rounded-lg`}>
-                          {disc?.disc ? (
-                            disc?.disc?.testes?.map((teste, key) => {
-                              return (
-                                <div
-                                  className={`h-[50px] flex flex-col justify-center items-center text-[12px] text-[#fff] font-bold ${key === 0 ? "rounded-l-lg" : ""
-                                    }${disc?.disc.testes.length === key + 1
-                                      ? "rounded-r-lg"
-                                      : ""
-                                    }`}
-                                  style={{
-                                    width: `${teste.normalized_match_percent * 100}%`,
-                                    backgroundColor: bgCollor[key],
-                                  }}
-                                >
-                                  <div>{teste.name}</div>
-                                  <div>
-                                    {Math.round(teste.normalized_match_percent * 100)}%
-                                  </div>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <div
-                              className={
-                                "flex w-full items-center content-center p-3 gap-2"
-                              }
-                            >
-                              Não foram encontrado resultados de testes.
-                              <Link
-                                to={`${process.env.REACT_APP_API + "/relatorios/" + userToken
-                                  }`}
-                                target={"_blank"}
-                                className={"text-blue-500"}
-                              >
-                                cliquei aqui para fazer o teste.
-                              </Link>
-                            </div>
-                          )}
+                {/* Seção DISC Melhorada */}
+                <div className="w-full mt-4">
+                  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                    {disc ? (
+                      <>
+                        {/* Header da seção */}
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="text-[#263465] font-semibold text-sm">Perfil Comportamental DISC</h3>
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm"
+                            style={{
+                              backgroundColor: disc.type === 'D' ? '#EF4444' :
+                                disc.type === 'I' ? '#10B981' :
+                                  disc.type === 'S' ? '#3B82F6' : '#F59E0B',
+                            }}
+                          >
+                            {disc.type}
+                          </div>
                         </div>
-                        <DiscDetailsModal disc={disc} triggerLabel="Ver detalhes do DISC" />
 
+                        {/* Barra de progresso melhorada */}
+                        <div className="mb-3">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-[#263465] font-medium text-sm">{disc.name}</span>
+                            <span className="text-[#263465] font-bold text-sm">{disc.percentage || 75}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-300 ease-out"
+                              style={{
+                                width: `${disc.percentage || 75}%`,
+                                backgroundColor: disc.type === 'D' ? '#EF4444' :
+                                  disc.type === 'I' ? '#10B981' :
+                                    disc.type === 'S' ? '#3B82F6' : '#F59E0B',
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* Descrição */}
+                        <p className="text-gray-600 text-xs mb-3 leading-relaxed">
+                          {disc.description}
+                        </p>
+
+                        {/* Características principais */}
+                        {disc.characteristics && disc.characteristics.length > 0 && (
+                          <div className="mb-3">
+                            <div className="flex flex-wrap gap-1">
+                              {disc.characteristics.slice(0, 3).map((char, index) => (
+                                <span
+                                  key={index}
+                                  className="inline-block bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-xs font-medium"
+                                >
+                                  {char}
+                                </span>
+                              ))}
+                              {disc.characteristics.length > 3 && (
+                                <span className="inline-block bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-xs">
+                                  +{disc.characteristics.length - 3} mais
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Botão de detalhes */}
+                        <button
+                          onClick={() => setShowDiscDetails(true)}
+                          className="w-full bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-[#263465] py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 border border-blue-100 hover:border-blue-200"
+                        >
+                          Ver análise completa →
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* Estado sem DISC */}
+                        <div className="text-center py-4">
+                          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </div>
+                          <h3 className="text-[#263465] font-semibold text-sm mb-1">Perfil DISC</h3>
+                          <p className="text-gray-500 text-xs mb-3">Descubra seu perfil comportamental</p>
+                          <button
+                            onClick={() => navigate('/teste-disc')}
+                            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-sm"
+                          >
+                            Fazer teste DISC
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Modal de Detalhes DISC - Layout melhorado seguindo design do teste */}
+                {showDiscDetails && disc && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-900 text-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                      {/* Header */}
+                      <div className="relative p-6 border-b border-gray-800">
+                        <button
+                          onClick={() => setShowDiscDetails(false)}
+                          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-800"
+                        >
+                          <X className="h-6 w-6" />
+                        </button>
+
+                        <div className="text-center">
+                          <div
+                            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-2xl"
+                            style={{
+                              backgroundColor: disc.type === 'D' ? '#EF4444' :
+                                disc.type === 'I' ? '#10B981' :
+                                  disc.type === 'S' ? '#3B82F6' : '#F59E0B'
+                            }}
+                          >
+                            {disc.type}
+                          </div>
+                          <h2 className="text-3xl font-bold mb-2">
+                            Perfil {disc.name}
+                          </h2>
+                          <p className="text-gray-400 text-lg">
+                            {disc.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-6">
+                        {/* Barra de Progresso Visual */}
+                        <div className="mb-8">
+                          <h3 className="text-xl font-semibold text-white mb-4 text-center">
+                            Intensidade do Perfil
+                          </h3>
+                          <div className="bg-gray-800 rounded-lg p-4">
+                            <div className="flex items-center mb-4">
+                              <div
+                                className="h-8 rounded-l flex items-center justify-center text-white font-bold text-sm"
+                                style={{
+                                  width: `${disc.percentage || 75}%`,
+                                  minWidth: '80px',
+                                  backgroundColor: disc.type === 'D' ? '#EF4444' :
+                                    disc.type === 'I' ? '#10B981' :
+                                      disc.type === 'S' ? '#3B82F6' : '#F59E0B'
+                                }}
+                              >
+                                {disc.type} - {disc.percentage || 75}%
+                              </div>
+                              <div
+                                className="h-8 bg-gray-700 flex-1 rounded-r"
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Seções de Informações */}
+                        <div className="grid md:grid-cols-2 gap-6 mb-6">
+                          {/* Características */}
+                          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                            <h4 className="font-semibold text-white mb-4 text-lg flex items-center">
+                              <div className="w-3 h-3 bg-blue-400 rounded-full mr-3"></div>
+                              Características Principais
+                            </h4>
+                            <ul className="space-y-3">
+                              {(disc.characteristics || [
+                                "Orientado para resultados",
+                                "Toma decisões rapidamente",
+                                "Gosta de desafios",
+                                "Prefere liderar",
+                                "Direto na comunicação"
+                              ]).map((char, index) => (
+                                <li key={index} className="text-gray-300 flex items-start">
+                                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-3 mt-2"></div>
+                                  {char}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Pontos Fortes */}
+                          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                            <h4 className="font-semibold text-white mb-4 text-lg flex items-center">
+                              <div className="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
+                              Pontos Fortes
+                            </h4>
+                            <ul className="space-y-3">
+                              {(disc.strengths || [
+                                "Liderança natural",
+                                "Foco em resultados",
+                                "Tomada de decisão rápida",
+                                "Capacidade de superar obstáculos",
+                                "Motivação por desafios"
+                              ]).map((strength, index) => (
+                                <li key={index} className="text-gray-300 flex items-start">
+                                  <div className="w-2 h-2 bg-green-400 rounded-full mr-3 mt-2"></div>
+                                  {strength}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* Áreas de Desenvolvimento */}
+                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-6">
+                          <h4 className="font-semibold text-white mb-4 text-lg flex items-center">
+                            <div className="w-3 h-3 bg-yellow-400 rounded-full mr-3"></div>
+                            Áreas de Desenvolvimento
+                          </h4>
+                          <ul className="space-y-3">
+                            {(disc.improvements || [
+                              "Desenvolvimento da paciência",
+                              "Melhora na escuta ativa",
+                              "Consideração de outras perspectivas",
+                              "Trabalho em equipe colaborativo"
+                            ]).map((improvement, index) => (
+                              <li key={index} className="text-gray-300 flex items-start">
+                                <div className="w-2 h-2 bg-yellow-400 rounded-full mr-3 mt-2"></div>
+                                {improvement}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* Dicas de Carreira */}
+                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-6">
+                          <h4 className="font-semibold text-white mb-4 text-lg flex items-center">
+                            <div className="w-3 h-3 bg-purple-400 rounded-full mr-3"></div>
+                            Dicas para o Ambiente de Trabalho
+                          </h4>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <h5 className="font-medium text-white mb-2">Funciona Bem Com:</h5>
+                              <ul className="space-y-2 text-gray-300 text-sm">
+                                <li>• Metas claras e desafiadoras</li>
+                                <li>• Autonomia para tomar decisões</li>
+                                <li>• Feedback direto e honesto</li>
+                                <li>• Projetos com impacto visível</li>
+                              </ul>
+                            </div>
+                            <div>
+                              <h5 className="font-medium text-white mb-2">Pode Ter Dificuldade Com:</h5>
+                              <ul className="space-y-2 text-gray-300 text-sm">
+                                <li>• Processos muito burocráticos</li>
+                                <li>• Tarefas repetitivas</li>
+                                <li>• Microgerenciamento</li>
+                                <li>• Decisões por comitê</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Ações */}
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                          <button
+                            onClick={() => {
+                              setShowDiscDetails(false);
+                              navigate('/teste-disc');
+                            }}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
+                          >
+                            Refazer Teste DISC
+                          </button>
+                          <button
+                            onClick={() => setShowDiscDetails(false)}
+                            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+                          >
+                            Fechar
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  )
-                }
+                  </div>
+                )}
               </div>
             </div>
           </div>

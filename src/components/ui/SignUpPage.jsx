@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { Eye, EyeOff } from "lucide-react";
 
 const SignUpPage = () => {
   const { signup } = useAuth();
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,10 +59,10 @@ const SignUpPage = () => {
       setPassword("");
       setCpf("");
       
-      // opcional: redirecionar para dashboard ou login após alguns segundos
-      // setTimeout(() => {
-      //   window.location.href = "/login";
-      // }, 2000);
+      // Redirecionar para login após 2 segundos
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
       
     } catch (error) {
       console.error("Erro no signup:", error);

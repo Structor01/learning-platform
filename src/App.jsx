@@ -65,19 +65,19 @@ function AppContent() {
   console.log("🔐 Auth user no AppContent:", user);
 
 
-  useEffect(() => {
-    if (!accessToken) return;
-    axios
-    axios.get(`${API_URL}/api/videos`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
-      .then((res) => {
-        setTrilhas(res.data);
-      })
-      .catch((err) => {
-        console.error("Erro ao buscar trilhas:", err.response || err);
-      });
-  }, [accessToken]);
+  // useEffect(() => {
+  //   if (!accessToken) return;
+    
+  //   axios.get(`${API_URL}/api/videos`, {
+  //     headers: { Authorization: `Bearer ${accessToken}` },
+  //   })
+  //     .then((res) => {
+  //       setTrilhas(res.data);
+  //     })
+  //     .catch((err) => {
+  //       console.error("Erro ao buscar trilhas:", err.response || err);
+  //     });
+  // }, [accessToken]);
 
   if (isLoading) {
     return (

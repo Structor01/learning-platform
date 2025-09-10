@@ -18,8 +18,13 @@ const DISCIncentiveModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const handleStartTest = () => {
+    console.log("🔍 DISCIncentiveModal - handleStartTest chamado");
+    console.log("🔍 Fechando modal e navegando para /teste-disc");
     onClose();
-    navigate('/teste-disc');
+    setTimeout(() => {
+      console.log("🔍 Navegando para /teste-disc");
+      navigate('/teste-disc');
+    }, 100);
   };
 
   const benefits = [

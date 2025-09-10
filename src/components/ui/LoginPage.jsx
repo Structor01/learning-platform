@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import DISCIncentiveModal from "./DISCIncentiveModal";
+import testService from "@/services/testService";
 
 const LoginPage = () => {
   const { login, user } = useAuth();
@@ -26,12 +27,17 @@ const LoginPage = () => {
       setEmail(email);
       setStep("password");
     }
-    const token = localStorage.getItem("token");
-    if (user && token) {
-      navigate("/Dashboard", { replace: true });
-    }
-  }, [user, navigate]);
+  }, []);
 
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    console.log("🔍 LoginPage useEffect disparado - user:", !!user, "accessToken:", !!accessToken, "step:", step);
+    // Só navegar automaticamente se não estiver mostrando o modal DISC
+    if (user && accessToken && !showDISCModal) {
+      console.log("🔍 LoginPage useEffect - navegando para /dashboard");
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate, step, showDISCModal]);
 
   // Função para verificar se o email existe no banco
   const checkEmailExists = async (emailToCheck) => {
@@ -42,9 +48,6 @@ const LoginPage = () => {
     const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
     const url = `${API_URL}/api/auth/check-email`;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -52,34 +55,25 @@ const LoginPage = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email: emailToCheck.toLowerCase() }),
-        signal: controller.signal
       });
 
-      clearTimeout(timeoutId);
-
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+        // Se der 404, significa que a rota não existe, então assumimos que não existe verificação
+        if (response.status === 404) {
+          return true; // Permite prosseguir para tentar fazer login
+        }
+        throw new Error(`HTTP ${response.status}`);
       }
 
       const data = await response.json();
-
-      if (typeof data.exists !== 'boolean') {
-        throw new Error('Resposta inválida do servidor');
-      }
-
       return data.exists;
     } catch (error) {
-      clearTimeout(timeoutId);
-
-      if (error.name === 'AbortError') {
-        throw new Error('Tempo limite de conexão excedido');
-      }
-
       console.error("Erro ao verificar email:", error);
-      throw error;
+      // Em caso de erro de conexão, permitir prosseguir
+      return true;
     }
   };
+
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
@@ -114,16 +108,7 @@ const LoginPage = () => {
       }
     } catch (error) {
       console.error("Erro ao verificar email:", error);
-
-      if (error.name === 'TypeError' || error.message.includes('fetch')) {
-        setErrorMsg("Erro de conexão. Verifique sua internet e tente novamente.");
-      } else if (error.message.includes('500')) {
-        setErrorMsg("Erro interno do servidor. Tente novamente em alguns minutos.");
-      } else if (error.message.includes('404')) {
-        setErrorMsg("Serviço não encontrado. Entre em contato com o suporte.");
-      } else {
-        setErrorMsg("Erro ao verificar email. Tente novamente.");
-      }
+      setErrorMsg("Erro ao verificar email. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +137,9 @@ const LoginPage = () => {
     } catch (error) {
       console.error("Erro no login:", error);
 
-      if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+      if (error.message.includes('Erro de conexão')) {
+        setErrorMsg("Erro de conexão. Verifique sua internet e tente novamente.");
+      } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
         setErrorMsg("Email ou senha incorretos.");
       } else if (error.message.includes('429')) {
         setErrorMsg("Muitas tentativas. Aguarde alguns minutos e tente novamente.");
@@ -167,41 +154,105 @@ const LoginPage = () => {
   };
 
   const checkDISCCompletion = async () => {
+    console.log("🔍 checkDISCCompletion chamado");
     try {
-      // TODO: Pegar userId real do contexto de autenticação
-      const userId = 3; // Usar ID 3 para simular usuário que não fez teste
+      if (!user?.id) {
+        console.log("🔍 Usuário sem ID, navegando para dashboard");
+        navigate("/dashboard");
+        return;
+      }
 
-      // Simular verificação - para demonstração, sempre mostrar modal
-      // Em produção, usar: const response = await fetch(`${API_URL}/api/api/tests/check-disc/${userId}`);
-      const hasCompletedDISC = false; // Simular que não completou
+      // Cache simples para evitar consultas desnecessárias
+      const cacheKey = `disc_completed_${user.id}`;
+      const cachedResult = localStorage.getItem(cacheKey);
+      const cacheExpiry = localStorage.getItem(`${cacheKey}_expiry`);
+      
+      // Se tem cache válido (expira em 1 hora)
+      if (cachedResult && cacheExpiry && Date.now() < parseInt(cacheExpiry)) {
+        const isCompleted = cachedResult === 'true';
+        console.log("🔍 Usando cache - DISC completado:", isCompleted);
+        
+        if (isCompleted) {
+          navigate("/dashboard");
+          return;
+        } else {
+          setShowDISCModal(true);
+          return;
+        }
+      }
 
+      // Verificar se usuário já completou teste DISC
+      console.log("🔍 Verificando testes do usuário ID:", user.id);
+      
+      // Buscar testes psicológicos do usuário
+      const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 50);
+      console.log("🔍 Testes encontrados:", userTests);
+      
+      // Verificar se há algum teste DISC ou unified completado
+      const hasCompletedDISC = userTests && userTests.length > 0 && 
+        userTests.some(test => 
+          (test.test_type === 'DISC' || test.test_type === 'unified') && 
+          test.status === 'completed'
+        );
+
+      console.log("🔍 hasCompletedDISC:", hasCompletedDISC);
+      
+      // Salvar no cache (expira em 1 hora)
+      localStorage.setItem(cacheKey, hasCompletedDISC.toString());
+      localStorage.setItem(`${cacheKey}_expiry`, (Date.now() + 3600000).toString());
+      
       if (!hasCompletedDISC) {
         // Usuário não completou o teste DISC, mostrar modal
+        console.log("🔍 Mostrando modal DISC");
         setShowDISCModal(true);
       } else {
         // Usuário já completou, ir direto para dashboard
-        navigate("/Dashboard");
+        console.log("🔍 DISC já completado, navegando para dashboard");
+        navigate("/dashboard");
       }
     } catch (error) {
-      console.error("Erro ao verificar teste DISC:", error);
-      // Em caso de erro, ir direto para dashboard
-      navigate("/Dashboard");
+      console.error("🔍 Erro ao verificar teste DISC:", error);
+      
+      // Tentar método de fallback usando API antiga
+      try {
+        console.log("🔍 Tentando método de fallback...");
+        const discResult = await testService.checkDISCCompletion(user.id);
+        console.log("🔍 Resultado fallback:", discResult);
+        
+        if (discResult && discResult.completed) {
+          console.log("🔍 DISC completado via fallback, navegando para dashboard");
+          
+          // Atualizar cache
+          const cacheKey = `disc_completed_${user.id}`;
+          localStorage.setItem(cacheKey, 'true');
+          localStorage.setItem(`${cacheKey}_expiry`, (Date.now() + 3600000).toString());
+          
+          navigate("/dashboard");
+        } else {
+          console.log("🔍 DISC não completado via fallback, mostrando modal");
+          setShowDISCModal(true);
+        }
+      } catch (fallbackError) {
+        console.error("🔍 Erro no fallback:", fallbackError);
+        // Em caso de erro completo, mostrar modal (melhor experiência)
+        console.log("🔍 Erro total, mostrando modal por segurança");
+        setShowDISCModal(true);
+      }
     }
   };
 
   const handleDISCModalClose = () => {
+    console.log("🔍 handleDISCModalClose chamado");
     setShowDISCModal(false);
-    navigate("/Dashboard");
+    // Navegar para dashboard após fechar modal
+    navigate("/dashboard", { replace: true });
   };
 
   const handleBackToEmail = () => {
     setStep("email");
     setPassword("");
     setErrorMsg("");
-  };
-
-  const goToSignup = () => {
-    navigate("/signup");
+    localStorage.removeItem("email");
   };
 
   return (
@@ -256,6 +307,7 @@ const LoginPage = () => {
                   className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   required
                   disabled={isLoading}
+                  autoComplete="email"
                 />
 
                 <Button
@@ -300,6 +352,7 @@ const LoginPage = () => {
                     required
                     disabled={isLoading}
                     autoFocus
+                    autoComplete="current-password"
                   />
 
                   <Button

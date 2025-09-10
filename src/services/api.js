@@ -29,7 +29,10 @@ export const setAuthToken = (token) => {
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        if (error.response?.status === 401) {
+        if (!error.response) {
+            console.error('Network error - possibly offline:', error.message);
+            error.message = 'Erro de conexão. Verifique sua internet e tente novamente.';
+        } else if (error.response?.status === 401) {
             const isWrongCredentials =
                 error.response?.data?.error === "Usuário ou senha incorretos";
             if (!isWrongCredentials) {
