@@ -32,11 +32,8 @@ const LoginPage = () => {
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     console.log("🔍 LoginPage useEffect disparado - user:", !!user, "accessToken:", !!accessToken, "step:", step);
-    // Só navegar automaticamente se não estiver mostrando o modal DISC
-    if (user && accessToken && !showDISCModal) {
-      console.log("🔍 LoginPage useEffect - navegando para /dashboard");
-      navigate("/dashboard", { replace: true });
-    }
+    // REMOVIDO: navegação automática para dashboard, pois deve ser controlada pela função checkDISCCompletion
+    // Deixar que a lógica de login e checkDISCCompletion controle a navegação
   }, [user, navigate, step, showDISCModal]);
 
   // Função para verificar se o email existe no banco
@@ -133,7 +130,10 @@ const LoginPage = () => {
 
     try {
       await login(email, trimmedPassword);
-      await checkDISCCompletion();
+      // Aguardar um pouco para garantir que o user foi definido no contexto
+      setTimeout(async () => {
+        await checkDISCCompletion();
+      }, 500);
     } catch (error) {
       console.error("Erro no login:", error);
 
@@ -155,15 +155,36 @@ const LoginPage = () => {
 
   const checkDISCCompletion = async () => {
     console.log("🔍 checkDISCCompletion chamado");
+    
+    // Aguardar o user estar disponível
+    let currentUser = user;
+    if (!currentUser?.id) {
+      const savedUser = localStorage.getItem("user");
+      if (savedUser) {
+        try {
+          currentUser = JSON.parse(savedUser);
+          console.log("🔍 Usuário carregado do localStorage:", currentUser);
+        } catch (e) {
+          console.error("🔍 Erro ao parsear usuário do localStorage:", e);
+        }
+      }
+    }
+    
+    console.log("🔍 user final:", currentUser);
+    console.log("🔍 user.id final:", currentUser?.id);
+    
     try {
-      if (!user?.id) {
+      if (!currentUser?.id) {
         console.log("🔍 Usuário sem ID, navegando para dashboard");
         navigate("/dashboard");
         return;
       }
 
+      // Para testes: descomentar a linha abaixo para limpar o cache
+      // localStorage.removeItem(`disc_completed_${currentUser.id}`); localStorage.removeItem(`disc_completed_${currentUser.id}_expiry`);
+
       // Cache simples para evitar consultas desnecessárias
-      const cacheKey = `disc_completed_${user.id}`;
+      const cacheKey = `disc_completed_${currentUser.id}`;
       const cachedResult = localStorage.getItem(cacheKey);
       const cacheExpiry = localStorage.getItem(`${cacheKey}_expiry`);
       
@@ -182,10 +203,10 @@ const LoginPage = () => {
       }
 
       // Verificar se usuário já completou teste DISC
-      console.log("🔍 Verificando testes do usuário ID:", user.id);
+      console.log("🔍 Verificando testes do usuário ID:", currentUser.id);
       
       // Buscar testes psicológicos do usuário
-      const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 50);
+      const userTests = await testService.getUserPsychologicalTests(currentUser.id, 'completed', 50);
       console.log("🔍 Testes encontrados:", userTests);
       
       // Verificar se há algum teste DISC ou unified completado
@@ -216,14 +237,14 @@ const LoginPage = () => {
       // Tentar método de fallback usando API antiga
       try {
         console.log("🔍 Tentando método de fallback...");
-        const discResult = await testService.checkDISCCompletion(user.id);
+        const discResult = await testService.checkDISCCompletion(currentUser.id);
         console.log("🔍 Resultado fallback:", discResult);
         
         if (discResult && discResult.completed) {
           console.log("🔍 DISC completado via fallback, navegando para dashboard");
           
           // Atualizar cache
-          const cacheKey = `disc_completed_${user.id}`;
+          const cacheKey = `disc_completed_${currentUser.id}`;
           localStorage.setItem(cacheKey, 'true');
           localStorage.setItem(`${cacheKey}_expiry`, (Date.now() + 3600000).toString());
           

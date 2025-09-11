@@ -421,32 +421,65 @@ const TesteDISCPage = () => {
         }
       };
 
-      // Salvar resultado usando o testService
+      // Salvar resultado usando a API de testes psicológicos
+      console.log("🔍 TesteDISC - Criando teste psicológico para usuário:", user.id);
+      
       try {
-        await testService.saveTestResult({
-          user_id: user.id,
-          test_type: 'unified',
+        // 1. Criar teste psicológico
+        const newTest = await testService.createPsychologicalTest(user.id, 'unified');
+        console.log("🔍 TesteDISC - Teste criado:", newTest);
+        
+        const testId = newTest.id;
+        
+        // 2. Submeter respostas
+        const responseData = {
+          responses: responses,
           disc_scores: result.disc,
           big_five_scores: result.bigFive,
-          leadership_scores: result.leadership,
-          responses: responses
-        });
+          leadership_scores: result.leadership
+        };
+        
+        await testService.submitPsychologicalTestResponse(testId, responseData);
+        console.log("🔍 TesteDISC - Respostas submetidas");
+        
+        // 3. Completar teste
+        const completedTest = await testService.completePsychologicalTest(testId);
+        console.log("✅ TesteDISC - Teste completado:", completedTest);
         
         // Atualizar cache para não mostrar modal DISC novamente
         const cacheKey = `disc_completed_${user.id}`;
+        const profileCacheKey = `disc_profile_${user.id}`;
+        
         localStorage.setItem(cacheKey, 'true');
         localStorage.setItem(`${cacheKey}_expiry`, (Date.now() + 3600000).toString());
+        
+        // Salvar o perfil DISC no localStorage para acesso rápido
+        localStorage.setItem(profileCacheKey, JSON.stringify(result.disc));
+        
         console.log("✅ Cache atualizado - DISC marcado como completado");
+        console.log("✅ Perfil DISC salvo no localStorage:", result.disc);
+        
+        // Disparar evento personalizado para notificar outros componentes
+        window.dispatchEvent(new CustomEvent('discTestCompleted', { 
+          detail: { userId: user.id, discData: result.disc }
+        }));
         
       } catch (error) {
-        console.warn("Erro ao salvar resultado:", error);
+        console.error("❌ TesteDISC - Erro ao salvar resultado:", error);
         
         // Mesmo com erro na API, marcar como completado no cache
         // para evitar que o usuário tenha que refazer o teste
         const cacheKey = `disc_completed_${user.id}`;
+        const profileCacheKey = `disc_profile_${user.id}`;
+        
         localStorage.setItem(cacheKey, 'true');
         localStorage.setItem(`${cacheKey}_expiry`, (Date.now() + 3600000).toString());
+        
+        // Salvar o perfil DISC no localStorage mesmo com erro na API
+        localStorage.setItem(profileCacheKey, JSON.stringify(result.disc));
+        
         console.log("✅ Cache atualizado mesmo com erro de salvamento");
+        console.log("✅ Perfil DISC salvo no localStorage:", result.disc);
       }
 
       setTestResult(result);
