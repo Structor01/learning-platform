@@ -170,7 +170,7 @@ class InterviewService {
       console.log(`📁 Arquivo: ${fileName}`);
       console.log(`🔢 Número da pergunta: ${questionNumber}`);
 
-      const url = `${this.baseUrl}/api/interviews/${interviewId}/responses/upload-video`;
+      const url = `${this.baseUrl}/api/mock-interviews/${interviewId}/responses/upload-video`;
       console.log(`🌐 URL: ${url}`);
 
       const response = await fetch(url, {
@@ -321,7 +321,7 @@ class InterviewService {
       console.log(`🏁 Finalizando entrevista ${interviewId}...`);
 
       // ✅ CORREÇÃO: Usar o endpoint correto do backend
-      const completeResponse = await fetch(`${this.baseUrl}/api/interviews/${interviewId}/complete`, {
+      const completeResponse = await fetch(`${this.baseUrl}/api/mock-interviews/${interviewId}/complete`, {
         method: 'POST', // ✅ POST em vez de PATCH
         headers: {
           'Content-Type': 'application/json'

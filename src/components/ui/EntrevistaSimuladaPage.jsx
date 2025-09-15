@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Navbar from './Navbar';
 import FaceAnalysis from './FaceAnalysis';
+import mockInterviewService from '../../services/mockInterviewService';
 import { API_URL } from '../utils/api';
 
 // Componente de Notificação Toast
@@ -330,6 +331,11 @@ const EntrevistaSimuladaPage = () => {
   const [carregandoRelatorio, setCarregandoRelatorio] = useState(false);
   const [modalRelatorioOpen, setModalRelatorioOpen] = useState(false);
 
+  // Estados para captura de dados da análise facial
+  const [currentFaceData, setCurrentFaceData] = useState(null);
+  const [recordedChunks, setRecordedChunks] = useState([]);
+  const [isUploadingResponse, setIsUploadingResponse] = useState(false);
+
   // Estados para Toast
   const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
 
@@ -644,25 +650,45 @@ const EntrevistaSimuladaPage = () => {
   const startRecording = () => {
     if (!stream) return;
 
-    const recorder = new MediaRecorder(stream, {
-      mimeType: 'video/webm;codecs=vp9'
-    });
+    // Limpar gravação anterior
+    setVideoUrl(null);
+    setRecordedChunks([]);
 
+    let mimeType = 'video/webm';
+    if (!MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+      if (MediaRecorder.isTypeSupported('video/webm')) {
+        mimeType = 'video/webm';
+      } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+        mimeType = 'video/mp4';
+      }
+    } else {
+      mimeType = 'video/webm;codecs=vp9';
+    }
+
+    const recorder = new MediaRecorder(stream, { mimeType });
     const chunks = [];
+
     recorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
+      if (event.data && event.data.size > 0) {
         chunks.push(event.data);
       }
     };
 
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/webm' });
-      const url = URL.createObjectURL(blob);
-      setVideoUrl(url);
-      setRecordedChunks(chunks);
+    recorder.onstop = async () => {
+      if (chunks.length > 0) {
+        const blob = new Blob(chunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        setVideoUrl(url);
+        setRecordedChunks([blob]);
+
+        // Enviar automaticamente para o backend
+        if (interviewId) {
+          await uploadResponseNow(blob);
+        }
+      }
     };
 
-    recorder.start();
+    recorder.start(1000); // Capturar dados a cada 1 segundo
     setMediaRecorder(recorder);
     setIsRecording(true);
     setRecordingTime(0);
@@ -680,7 +706,7 @@ const EntrevistaSimuladaPage = () => {
   };
 
   // Função para parar gravação
-  const stopRecording = () => {
+  const stopRecording = async () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop();
     }
@@ -751,14 +777,34 @@ const EntrevistaSimuladaPage = () => {
     };
   }, [stream]);
 
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
+    // Se está gravando, parar a gravação e aguardar upload
+    if (isRecording) {
+      await stopRecording();
+      // Aguardar um pouco para o upload processar
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    // Verificar se o usuário gravou alguma resposta
+    if (!answers[currentQuestion] || !answers[currentQuestion].videoUploaded) {
+      const skipAnyway = window.confirm(
+        'Você não gravou uma resposta para esta pergunta.\n\n' +
+        'Deseja pular mesmo assim?'
+      );
+      if (!skipAnyway) {
+        return; // Não avançar
+      }
+    }
+
     const currentQuestions = getQuestionsForVaga(selectedVaga);
     if (currentQuestion < currentQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setVideoUrl(null);
       setRecordingTime(0);
+      setRecordedChunks([]);
+      setCurrentFaceData(null);
     } else {
-      // Última pergunta - vai para tela de feedback sem finalizar ainda
+      // Última pergunta - vai para tela de feedback
       setCurrentStep('feedback');
     }
   };
@@ -767,6 +813,124 @@ const EntrevistaSimuladaPage = () => {
     const newAnswers = [...answers];
     newAnswers[currentQuestion] = answer;
     setAnswers(newAnswers);
+  };
+
+  // Função para enviar resposta imediatamente após gravação
+  const uploadResponseNow = async (videoBlob) => {
+    if (!videoBlob || !interviewId) {
+      showToast('Erro: dados da gravação inválidos.', 'error');
+      return false;
+    }
+
+    try {
+      setIsUploadingResponse(true);
+
+      const questionText = getQuestionsForVaga(selectedVaga)[currentQuestion];
+
+      // Preparar dados da análise facial
+      const faceAnalysisData = currentFaceData ? {
+        gender: currentFaceData.gender,
+        genderProbability: currentFaceData.genderProbability,
+        age: currentFaceData.age,
+        expression: currentFaceData.expression,
+        confidence: currentFaceData.confidence,
+        expressions: currentFaceData.expressions
+      } : null;
+
+      const result = await mockInterviewService.uploadVideoResponse(
+        interviewId,
+        currentQuestion + 1,
+        videoBlob,
+        faceAnalysisData ? [faceAnalysisData] : []
+      );
+
+      if (result.success) {
+        showToast('Resposta enviada com sucesso! ✅', 'success');
+
+        // Salvar informação da resposta enviada
+        const newAnswers = [...answers];
+        newAnswers[currentQuestion] = {
+          questionText,
+          videoUploaded: true,
+          responseId: result.responseId,
+          faceAnalysis: faceAnalysisData
+        };
+        setAnswers(newAnswers);
+
+        return true;
+      } else {
+        throw new Error(result.error || 'Erro desconhecido no upload');
+      }
+    } catch (error) {
+      showToast(`Erro ao enviar resposta: ${error.message}`, 'error');
+      return false;
+    } finally {
+      setIsUploadingResponse(false);
+    }
+  };
+
+  // Função para enviar resposta de vídeo para o backend
+  const uploadCurrentResponse = async () => {
+    if (!recordedChunks || recordedChunks.length === 0 || !interviewId) {
+      showToast('Nenhuma gravação encontrada para enviar.', 'warning');
+      return false;
+    }
+
+    try {
+      setIsUploadingResponse(true);
+
+      const videoBlob = recordedChunks[0];
+      const questionText = getQuestionsForVaga(selectedVaga)[currentQuestion];
+
+      // Preparar dados da análise facial
+      const faceAnalysisData = currentFaceData ? {
+        gender: currentFaceData.gender,
+        genderProbability: currentFaceData.genderProbability,
+        age: currentFaceData.age,
+        expression: currentFaceData.expression,
+        confidence: currentFaceData.confidence,
+        expressions: currentFaceData.expressions
+      } : null;
+
+      console.log('📤 Enviando resposta:', {
+        interviewId,
+        questionNumber: currentQuestion + 1,
+        questionText,
+        videoSize: videoBlob.size,
+        faceData: faceAnalysisData
+      });
+
+      const result = await mockInterviewService.uploadVideoResponse(
+        interviewId,
+        currentQuestion + 1,
+        videoBlob,
+        faceAnalysisData ? [faceAnalysisData] : []
+      );
+
+      if (result.success) {
+        showToast('Resposta enviada com sucesso! ✅', 'success');
+
+        // Salvar informação da resposta enviada
+        const newAnswers = [...answers];
+        newAnswers[currentQuestion] = {
+          questionText,
+          videoUploaded: true,
+          responseId: result.responseId,
+          faceAnalysis: faceAnalysisData
+        };
+        setAnswers(newAnswers);
+
+        return true;
+      } else {
+        throw new Error(result.error || 'Erro desconhecido no upload');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao enviar resposta:', error);
+      showToast(`Erro ao enviar resposta: ${error.message}`, 'error');
+      return false;
+    } finally {
+      setIsUploadingResponse(false);
+    }
   };
 
   const restartInterview = () => {
@@ -1288,6 +1452,7 @@ const EntrevistaSimuladaPage = () => {
                   <FaceAnalysis
                     videoRef={videoRef}
                     isActive={cameraEnabled && !isRecording}
+                    onFaceDataChange={setCurrentFaceData}
                   />
                 </div>
               )}
@@ -1337,10 +1502,15 @@ const EntrevistaSimuladaPage = () => {
 
                 <button
                   onClick={nextQuestion}
-                  disabled={carregandoRelatorio}
+                  disabled={carregandoRelatorio || isUploadingResponse}
                   className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg transition-colors flex items-center"
                 >
-                  {carregandoRelatorio ? (
+                  {isUploadingResponse ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Enviando Resposta...
+                    </>
+                  ) : carregandoRelatorio ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Gerando Relatório...

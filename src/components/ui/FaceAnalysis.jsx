@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import * as faceapi from 'face-api.js';
 import { User, Smile, Calendar, Eye, Brain, Heart } from 'lucide-react';
 
-const FaceAnalysis = ({ videoRef, isActive }) => {
+const FaceAnalysis = ({ videoRef, isActive, onFaceDataChange }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [faceData, setFaceData] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -63,16 +63,26 @@ const FaceAnalysis = ({ videoRef, isActive }) => {
           female: 'Feminino'
         };
 
-        setFaceData({
+        const faceDataResult = {
           gender: genderMap[detection.gender] || detection.gender,
           age: Math.round(detection.age),
           expression: expressionMap[dominantExpression] || dominantExpression,
           confidence: Math.round(expressions[dominantExpression] * 100),
           expressions: expressions,
           genderProbability: Math.round(detection.genderProbability * 100)
-        });
+        };
+
+        setFaceData(faceDataResult);
+
+        // Passar dados para o componente pai
+        if (onFaceDataChange) {
+          onFaceDataChange(faceDataResult);
+        }
       } else {
         setFaceData(null);
+        if (onFaceDataChange) {
+          onFaceDataChange(null);
+        }
       }
     } catch (error) {
       console.error('Erro na análise facial:', error);
