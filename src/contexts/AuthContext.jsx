@@ -133,6 +133,7 @@ export const AuthProvider = ({ children }) => {
           role: updateData.role,
           linkedin: updateData.linkedin,
           curriculoUrl: updateData.curriculoUrl,
+          profile_image: updateData.profile_image,
         }).filter(([_, value]) => value !== undefined)
       );
 
