@@ -46,9 +46,8 @@ const MessageBubble = ({ message, isBot, timestamp, isTyping = false }) => {
             ? 'bg-gray-100 text-gray-800' 
             : 'bg-blue-600 text-white'
         }`}>
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {message}
-          </p>
+          <p dangerouslySetInnerHTML={{__html: message}} className="text-sm leading-relaxed whitespace-pre-wrap"/>
+
         </div>
         
         {timestamp && (
