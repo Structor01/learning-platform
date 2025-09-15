@@ -17,6 +17,60 @@ import Navbar from './Navbar';
 import FaceAnalysis from './FaceAnalysis';
 import { API_URL } from '../utils/api';
 
+// Componente de Notificação Toast
+const Toast = ({ message, type, isVisible, onClose }) => {
+  if (!isVisible) return null;
+
+  const getToastStyles = () => {
+    switch (type) {
+      case 'success':
+        return 'bg-green-900 border-green-700 text-green-100';
+      case 'error':
+        return 'bg-red-900 border-red-700 text-red-100';
+      case 'warning':
+        return 'bg-yellow-900 border-yellow-700 text-yellow-100';
+      case 'info':
+        return 'bg-blue-900 border-blue-700 text-blue-100';
+      default:
+        return 'bg-gray-900 border-gray-700 text-gray-100';
+    }
+  };
+
+  const getIcon = () => {
+    switch (type) {
+      case 'success':
+        return '✅';
+      case 'error':
+        return '❌';
+      case 'warning':
+        return '⚠️';
+      case 'info':
+        return 'ℹ️';
+      default:
+        return '📢';
+    }
+  };
+
+  return (
+    <div className="fixed top-4 right-4 z-50 transition-all duration-500 ease-out transform translate-x-0 opacity-100">
+      <div className={`max-w-md p-4 rounded-lg border shadow-2xl backdrop-blur-sm ${getToastStyles()} transform transition-all duration-300 hover:scale-105`}>
+        <div className="flex items-start space-x-3">
+          <span className="text-xl flex-shrink-0 animate-pulse">{getIcon()}</span>
+          <div className="flex-1">
+            <p className="text-sm font-medium whitespace-pre-line leading-relaxed">{message}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-200 flex-shrink-0 text-lg font-bold transition-colors hover:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Componente Modal do Relatório
 const RelatorioModal = ({ isOpen, onClose, relatorioData, carregando }) => {
   if (!isOpen) return null;
@@ -210,15 +264,11 @@ const CandidaturaCard = ({ candidatura, onIniciarEntrevista, loading }) => {
         </div>
 
         <div className="flex flex-col space-y-2">
-          <button
-            onClick={checkStatus}
-            disabled={loadingStatus}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 text-white text-sm rounded-lg transition-colors"
-          >
-            {loadingStatus ? 'Verificando...' : 'Verificar Status'}
-          </button>
-
-          {statusCheck?.canStartInterview && !statusCheck?.hasInterview && (
+          {loadingStatus ? (
+            <div className="px-4 py-2 bg-gray-800 text-gray-400 text-sm rounded-lg text-center">
+              Verificando status...
+            </div>
+          ) : statusCheck?.canStartInterview && !statusCheck?.hasInterview ? (
             <button
               onClick={() => onIniciarEntrevista(candidatura.id)}
               disabled={loading}
@@ -226,13 +276,15 @@ const CandidaturaCard = ({ candidatura, onIniciarEntrevista, loading }) => {
             >
               {loading ? 'Criando...' : 'Fazer Entrevista'}
             </button>
-          )}
-
-          {statusCheck?.hasInterview && (
+          ) : statusCheck?.hasInterview ? (
             <div className="px-4 py-2 bg-green-600/20 text-green-400 text-sm rounded-lg text-center">
               Entrevista Concluída
             </div>
-          )}
+          ) : statusCheck ? (
+            <div className="px-4 py-2 bg-yellow-600/20 text-yellow-400 text-sm rounded-lg text-center">
+              Aguardando Aprovação
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -278,6 +330,22 @@ const EntrevistaSimuladaPage = () => {
   const [carregandoRelatorio, setCarregandoRelatorio] = useState(false);
   const [modalRelatorioOpen, setModalRelatorioOpen] = useState(false);
 
+  // Estados para Toast
+  const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
+
+  // Função para mostrar toast
+  const showToast = (message, type = 'info', duration = 5000) => {
+    setToast({ message, type, isVisible: true });
+    // Auto-fechar após tempo especificado
+    setTimeout(() => {
+      setToast(prev => ({ ...prev, isVisible: false }));
+    }, duration);
+  };
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }));
+  };
+
   // Estados para gravação de vídeo
   const [stream, setStream] = useState(null);
   const [mediaRecorder, setMediaRecorder] = useState(null);
@@ -301,7 +369,7 @@ const EntrevistaSimuladaPage = () => {
       }
     } catch (error) {
       console.error('Erro ao buscar vagas:', error);
-      alert('Erro ao carregar vagas de teste');
+      showToast('Erro ao carregar vagas de teste. Tente novamente.', 'error');
     } finally {
       setLoading(false);
     }
@@ -317,7 +385,7 @@ const EntrevistaSimuladaPage = () => {
       }
     } catch (error) {
       console.error('Erro ao buscar candidaturas:', error);
-      alert('Erro ao carregar suas candidaturas');
+      showToast('Erro ao carregar suas candidaturas. Tente novamente.', 'error');
     } finally {
       setLoading(false);
     }
@@ -342,14 +410,14 @@ const EntrevistaSimuladaPage = () => {
         throw new Error(data.message || 'Erro ao se candidatar');
       }
 
-      alert('Candidatura realizada com sucesso!');
+      showToast('Candidatura realizada com sucesso!\n\nAgora você pode acessar "Minhas Candidaturas" para iniciar sua entrevista simulada.', 'success', 7000);
       await fetchMinhasCandidaturas();
       await fetchVagasTeste(); // Recarregar vagas para atualizar botões
       setCurrentStep('candidaturas');
       return data.data;
     } catch (error) {
       console.error('Erro ao candidatar:', error);
-      alert(error.message);
+      showToast(error.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -403,7 +471,7 @@ const EntrevistaSimuladaPage = () => {
         throw new Error(data.message || 'Erro ao cancelar candidatura');
       }
 
-      alert('Candidatura cancelada com sucesso!');
+      showToast('Candidatura cancelada com sucesso!', 'success');
       await fetchMinhasCandidaturas();
       await fetchVagasTeste(); // Recarregar vagas para atualizar botões
     } catch (error) {
@@ -415,7 +483,7 @@ const EntrevistaSimuladaPage = () => {
       } else if (mensagem.includes('entrevista associada')) {
         mensagem = 'Não é possível cancelar candidatura que já possui entrevista.';
       }
-      alert(mensagem);
+      showToast(mensagem, 'error');
     } finally {
       setLoading(false);
     }
@@ -446,7 +514,7 @@ const EntrevistaSimuladaPage = () => {
       return data.data;
     } catch (error) {
       console.error('Erro ao criar entrevista:', error);
-      alert(error.message);
+      showToast(error.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -465,10 +533,18 @@ const EntrevistaSimuladaPage = () => {
     if (!interviewId) return;
     try {
       await fetch(`${API_URL}/api/mock-interviews/${interviewId}/complete`, { method: 'POST' });
+
+      showToast('Entrevista finalizada com sucesso!\n\nGerando seu relatório personalizado...', 'success', 6000);
+
       // Gerar relatório automaticamente após finalizar
       await gerarRelatorio(interviewId);
+
+      // Após gerar o relatório, mostrar toast de conclusão
+      showToast('🎉 Entrevista concluída!\n\nSeu relatório está disponível na seção "Suas Entrevistas".', 'success', 8000);
+
     } catch (error) {
       console.error('Erro ao finalizar entrevista:', error);
+      showToast('Erro ao finalizar entrevista. Tente novamente.', 'error');
     }
   };
 
@@ -489,7 +565,7 @@ const EntrevistaSimuladaPage = () => {
 
     } catch (error) {
       console.error('Erro ao gerar relatório:', error);
-      alert('Erro ao gerar relatório: ' + error.message);
+      showToast('Erro ao gerar relatório: ' + error.message, 'error');
     } finally {
       setCarregandoRelatorio(false);
     }
@@ -535,7 +611,7 @@ const EntrevistaSimuladaPage = () => {
 
     } catch (error) {
       console.error('Erro ao acessar câmera:', error);
-      alert('Erro ao acessar câmera. Verifique as permissões.');
+      showToast('Erro ao acessar câmera. Verifique as permissões do navegador.', 'error');
     } finally {
       setIsPreparingCamera(false);
     }
@@ -634,7 +710,7 @@ const EntrevistaSimuladaPage = () => {
   // Função para iniciar entrevista
   const startInterview = async () => {
     if (!selectedVaga || !candidaturaId) {
-      alert('Dados da vaga não encontrados.');
+      showToast('Dados da vaga não encontrados.', 'error');
       return;
     }
     setCurrentQuestion(0);
@@ -675,14 +751,14 @@ const EntrevistaSimuladaPage = () => {
     };
   }, [stream]);
 
-  const nextQuestion = async () => {
+  const nextQuestion = () => {
     const currentQuestions = getQuestionsForVaga(selectedVaga);
     if (currentQuestion < currentQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setVideoUrl(null);
       setRecordingTime(0);
     } else {
-      await finalizarEntrevista();
+      // Última pergunta - vai para tela de feedback sem finalizar ainda
       setCurrentStep('feedback');
     }
   };
@@ -694,12 +770,25 @@ const EntrevistaSimuladaPage = () => {
   };
 
   const restartInterview = () => {
+    // Apenas reinicia a entrevista atual, mantendo a vaga e candidatura
+    setCurrentStep('interview');
+    setCurrentQuestion(0);
+    setAnswers([]);
+    setVideoUrl(null);
+    setRecordingTime(0);
+    stopCamera();
+  };
+
+  const voltarParaInicio = () => {
+    // Volta para a tela principal e limpa tudo
     setCurrentStep('vagas');
     setSelectedVaga(null);
     setCandidaturaId(null);
     setInterviewId(null);
     setCurrentQuestion(0);
     setAnswers([]);
+    setVideoUrl(null);
+    setRecordingTime(0);
     stopCamera();
   };
 
@@ -708,6 +797,14 @@ const EntrevistaSimuladaPage = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       <Navbar />
+
+      {/* Toast de Notificação */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
 
       {/* Modal do Relatório - Global */}
       <RelatorioModal
@@ -728,9 +825,10 @@ const EntrevistaSimuladaPage = () => {
             <Video className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Entrevista Simulada</h1>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto px-4">
+          <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto px-4 mb-4">
             Pratique suas habilidades de entrevista com gravação de vídeo e feedback personalizado
           </p>
+
         </div>
 
         {/* Vagas de Teste */}
@@ -741,7 +839,7 @@ const EntrevistaSimuladaPage = () => {
             className="max-w-6xl mx-auto"
           >
             {/* Entrevistas Realizadas */}
-            {minhasCandidaturas.filter(c => c.vaga_teste).length > 0 && (
+            {minhasCandidaturas.filter(c => c.vaga_teste).length > 0 ? (
               <div className="mb-12">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                   <div>
@@ -749,7 +847,7 @@ const EntrevistaSimuladaPage = () => {
                     <p className="text-gray-400 text-sm sm:text-base">Acesse os relatórios das suas entrevistas concluídas</p>
                   </div>
                   <div className="text-left sm:text-right">
-                    <div className="text-xl sm:text-2xl font-bold text-purple-400">{minhasCandidaturas.length}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-purple-400">{minhasCandidaturas.filter(c => c.vaga_teste).length}</div>
                     <div className="text-xs sm:text-sm text-gray-400">Total</div>
                   </div>
                 </div>
@@ -767,32 +865,22 @@ const EntrevistaSimuladaPage = () => {
 
                       <button
                         onClick={() => {
-                          console.log('🟡 Botão clicado, candidatura.id:', candidatura.id);
                           setCarregandoRelatorio(true);
 
                           fetch(`${API_URL}/api/mock-interviews/candidatura/${candidatura.id}/check`)
-                            .then(res => {
-                              console.log('🟢 Resposta recebida, status:', res.status);
-                              console.log('🟢 URL chamada:', res.url);
-                              return res.json();
-                            })
+                            .then(res => res.json())
                             .then(data => {
-                              console.log('🟢 Dados recebidos:', data);
                               if (data.hasInterview) {
-                                console.log('🟢 Tem entrevista, chamando gerarRelatorio com ID:', data.interviewId);
                                 gerarRelatorio(data.interviewId);
                               } else {
-                                console.log('🟠 Não tem entrevista');
                                 setCarregandoRelatorio(false);
-                                alert('Esta candidatura ainda não possui entrevista concluída.');
+                                showToast('Esta candidatura ainda não possui entrevista concluída.', 'warning');
                               }
                             })
                             .catch(error => {
-                              console.error('❌ Erro na requisição:', error);
-                              console.error('❌ URL tentada:',
-                                `${API_URL}/api/mock-interviews/candidatura/${candidatura.id}/check`);
+                              console.error('Erro na requisição:', error);
                               setCarregandoRelatorio(false);
-                              alert('Erro ao verificar entrevista');
+                              showToast('Erro ao verificar entrevista. Tente novamente.', 'error');
                             });
                         }}
                         disabled={carregandoRelatorio}
@@ -805,19 +893,50 @@ const EntrevistaSimuladaPage = () => {
                   ))}
                 </div>
               </div>
+            ) : (
+              <div className="mb-12 bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-2xl">📝</span>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">Nenhuma candidatura encontrada</h3>
+                  <p className="text-gray-400 mb-4">
+                    Para realizar entrevistas simuladas, você precisa primeiro se candidatar a uma das vagas disponíveis abaixo.
+                  </p>
+                  <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 text-yellow-200 text-sm">
+                    <strong>Próximo passo:</strong> Escolha uma vaga abaixo e clique em "Candidatar-se"
+                  </div>
+                </div>
+              </div>
             )}
 
-            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-semibold mb-2">Vagas de Teste Disponíveis</h2>
-                <p className="text-gray-400 text-sm sm:text-base">Selecione uma vaga para se candidatar e fazer entrevista simulada</p>
+            <div className="mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-semibold mb-2">Vagas de Teste Disponíveis</h2>
+                  <p className="text-gray-400 text-sm sm:text-base">Candidate-se a uma vaga para começar sua jornada de entrevistas simuladas</p>
+                </div>
+                <button
+                  onClick={() => setCurrentStep('candidaturas')}
+                  className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700 text-sm sm:text-base whitespace-nowrap"
+                >
+                  Minhas Candidaturas
+                </button>
               </div>
-              <button
-                onClick={() => setCurrentStep('candidaturas')}
-                className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700 text-sm sm:text-base whitespace-nowrap"
-              >
-                Minhas Candidaturas
-              </button>
+
+              {minhasCandidaturas.length === 0 && (
+                <div className="bg-purple-900/20 border border-purple-700/50 rounded-lg p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="text-purple-400 text-xl">🎯</div>
+                    <div>
+                      <h4 className="text-purple-300 font-medium mb-1">Primeiro acesso?</h4>
+                      <p className="text-purple-200 text-sm">
+                        Clique em "Candidatar-se" em qualquer vaga abaixo para começar. Após a candidatura, você terá acesso às entrevistas simuladas.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {loading ? (
@@ -921,17 +1040,33 @@ const EntrevistaSimuladaPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-6xl mx-auto"
           >
-            <div className="mb-8 flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-semibold mb-2">Minhas Candidaturas</h2>
-                <p className="text-gray-400">Acompanhe o status das suas candidaturas e inicie entrevistas</p>
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h2 className="text-2xl font-semibold mb-2">Minhas Candidaturas</h2>
+                  <p className="text-gray-400">Acompanhe o status das suas candidaturas e inicie entrevistas quando disponíveis</p>
+                </div>
+                <button
+                  onClick={() => setCurrentStep('vagas')}
+                  className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
+                >
+                  ← Voltar para Vagas
+                </button>
               </div>
-              <button
-                onClick={() => setCurrentStep('vagas')}
-                className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-colors"
-              >
-                ← Voltar para Vagas
-              </button>
+
+              <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <div className="text-blue-400 text-lg">ℹ️</div>
+                  <div>
+                    <h4 className="text-blue-300 font-medium mb-1">Como iniciar uma entrevista:</h4>
+                    <ul className="text-blue-200 text-sm space-y-1 list-disc list-inside">
+                      <li>Suas candidaturas precisam ser aprovadas primeiro</li>
+                      <li>Quando aprovadas, o botão "Fazer Entrevista" ficará disponível</li>
+                      <li>Clique no botão para iniciar a entrevista simulada</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {loading ? (
@@ -941,7 +1076,7 @@ const EntrevistaSimuladaPage = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {minhasCandidaturas.map((candidatura) => (
+                {minhasCandidaturas.filter(candidatura => candidatura.vaga_teste).map((candidatura) => (
                   <CandidaturaCard
                     key={candidatura.id}
                     candidatura={candidatura}
@@ -952,9 +1087,9 @@ const EntrevistaSimuladaPage = () => {
               </div>
             )}
 
-            {!loading && minhasCandidaturas.length === 0 && (
+            {!loading && minhasCandidaturas.filter(candidatura => candidatura.vaga_teste).length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-400 mb-4">Você ainda não possui candidaturas.</p>
+                <p className="text-gray-400 mb-4">Você ainda não possui candidaturas válidas.</p>
                 <button
                   onClick={() => setCurrentStep('vagas')}
                   className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-colors"
@@ -1212,7 +1347,7 @@ const EntrevistaSimuladaPage = () => {
                     </>
                   ) : (
                     <>
-                      {currentQuestion < currentQuestions.length - 1 ? 'Próxima Pergunta' : 'Finalizar'} →
+                      {currentQuestion < currentQuestions.length - 1 ? 'Próxima Pergunta' : 'Concluir Perguntas'} →
                     </>
                   )}
                 </button>
@@ -1233,9 +1368,9 @@ const EntrevistaSimuladaPage = () => {
           >
             <div className="bg-gray-900 rounded-2xl p-8 text-center">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
-              <h2 className="text-3xl font-bold mb-4">Entrevista Concluída!</h2>
+              <h2 className="text-3xl font-bold mb-4">Todas as Perguntas Respondidas!</h2>
               <p className="text-gray-400 mb-8">
-                Parabéns! Você completou sua entrevista simulada.
+                Você respondeu todas as perguntas da entrevista simulada. Agora você pode finalizar para gerar seu relatório ou recomeçar se quiser refazer.
               </p>
 
               <div className="grid md:grid-cols-2 gap-8 mb-8">
@@ -1258,22 +1393,41 @@ const EntrevistaSimuladaPage = () => {
                 </div>
 
                 <div className="bg-gray-800 rounded-xl p-6">
-                  <h3 className="text-xl font-semibold mb-4">Próximos Passos</h3>
-                  <ul className="text-left space-y-2 text-gray-300">
-                    <li>• Revise suas gravações</li>
-                    <li>• Pratique pontos de melhoria</li>
-                    <li>• Tente outros níveis</li>
-                    <li>• Explore outras áreas</li>
+                  <h3 className="text-xl font-semibold mb-4">O que acontece agora?</h3>
+                  <ul className="text-left space-y-2 text-gray-300 text-sm">
+                    <li>• <strong>Finalizar:</strong> Gera relatório com feedback de IA</li>
+                    <li>• <strong>Recomeçar:</strong> Refaz a entrevista do início</li>
+                    <li>• O relatório ficará disponível em "Suas Entrevistas"</li>
+                    <li>• Você pode fazer outras entrevistas depois</li>
                   </ul>
                 </div>
               </div>
 
-              <button
-                onClick={restartInterview}
-                className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors"
-              >
-                Nova Entrevista
-              </button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={restartInterview}
+                  className="px-8 py-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-xl transition-colors"
+                >
+                  🔄 Recomeçar Entrevista
+                </button>
+                <button
+                  onClick={async () => {
+                    await finalizarEntrevista();
+                    voltarParaInicio(); // Volta para a tela principal após finalizar
+                  }}
+                  disabled={carregandoRelatorio}
+                  className="px-8 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center"
+                >
+                  {carregandoRelatorio ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Finalizando...
+                    </>
+                  ) : (
+                    '✅ Finalizar e Gerar Relatório'
+                  )}
+                </button>
+              </div>
             </div>
           </motion.div>
         )}

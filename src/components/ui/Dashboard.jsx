@@ -3,7 +3,7 @@ import testService from "@/services/testService";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, Play, Clock, Award, X } from "lucide-react";
+import { TrendingUp, Play, Clock, Award, X, Sun, Moon } from "lucide-react";
 import WelcomeAnimation from "./WelcomeAnimation";
 import TrilhaRequirementModal from "./TrilhaRequirementModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +13,7 @@ import { API_URL } from "@/components/utils/api"; // certifique-se de que este c
 import { MapPin, Briefcase, Building2 } from "lucide-react";
 import api from "@/services/api.js";
 import DiscDetailsModal from "@/components/ui/DiscDetailsModal.jsx";
+import InterviewPromptModal from "@/components/ui/InterviewPromptModal.jsx";
 // testService já está sendo importado na linha 2
 
 const Dashboard = ({ onCourseSelect = [] }) => {
@@ -29,6 +30,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [vagasRecentes, setVagasRecentes] = useState([]);
   const [empresas, setEmpresas] = useState([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [showInterviewPrompt, setShowInterviewPrompt] = useState(false);
+  const [hasCompletedInterview, setHasCompletedInterview] = useState(false);
   const bgCollor = {
     0: "#4285F4",
     1: "#EA4335",
@@ -155,32 +159,32 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
       try {
         console.log("🔍 Dashboard - Buscando perfil DISC para usuário:", user.id);
-        
+
         // Tentar buscar testes psicológicos do usuário
         const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 50);
         console.log("🔍 Dashboard - Testes encontrados:", userTests);
-        
+
         if (userTests && userTests.length > 0) {
           // Encontrar o teste DISC/unified mais recente
           const discTest = userTests
             .filter(test => (test.test_type === 'DISC' || test.test_type === 'unified') && test.status === 'completed')
             .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))[0];
-          
+
           console.log("🔍 Dashboard - Teste DISC filtrado:", discTest);
-          
+
           if (discTest && discTest.disc_scores) {
             let discScores;
             try {
-              discScores = typeof discTest.disc_scores === 'string' 
-                ? JSON.parse(discTest.disc_scores) 
+              discScores = typeof discTest.disc_scores === 'string'
+                ? JSON.parse(discTest.disc_scores)
                 : discTest.disc_scores;
             } catch (parseError) {
               console.warn("🔍 Dashboard - Erro ao parsear disc_scores:", parseError);
               discScores = discTest.disc_scores;
             }
-            
+
             console.log("🔍 Dashboard - discScores parseados:", discScores);
-            
+
             if (discScores && discScores.type) {
               const discProfile = {
                 type: discScores.type,
@@ -191,23 +195,23 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 strengths: getDiscStrengths(discScores.type),
                 improvements: getDiscImprovements(discScores.type)
               };
-              
+
               console.log("🔍 Dashboard - Perfil DISC montado:", discProfile);
               setDiscProfile(discProfile);
               return;
             }
           }
         }
-        
+
         // Se não encontrou nos dados da API, verificar cache local
         const cacheKey = `disc_completed_${user.id}`;
         const profileCacheKey = `disc_profile_${user.id}`;
         const hasCompletedCache = localStorage.getItem(cacheKey) === 'true';
-        
+
         if (hasCompletedCache) {
           // Tentar recuperar perfil salvo no localStorage
           const savedProfile = localStorage.getItem(profileCacheKey);
-          
+
           if (savedProfile) {
             try {
               const discProfile = JSON.parse(savedProfile);
@@ -218,21 +222,21 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               console.warn("🔍 Dashboard - Erro ao parsear perfil do cache:", parseError);
             }
           }
-          
+
           // Se não tem perfil salvo, usar perfil consistente baseado no usuário
           console.log("🔍 Dashboard - Cache indica teste completado, gerando perfil consistente");
-          
+
           // Usar hash do ID do usuário para garantir consistência
           const userId = user.id;
           const userHash = userId.toString().split('').reduce((a, b) => {
             a = ((a << 5) - a) + b.charCodeAt(0);
             return a & a;
           }, 0);
-          
+
           const exampleTypes = ['D', 'I', 'S', 'C'];
           const consistentType = exampleTypes[Math.abs(userHash) % exampleTypes.length];
           const consistentPercentage = 70 + (Math.abs(userHash) % 20);
-          
+
           const generatedProfile = {
             type: consistentType,
             name: getDiscName(consistentType),
@@ -242,7 +246,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             strengths: getDiscStrengths(consistentType),
             improvements: getDiscImprovements(consistentType)
           };
-          
+
           // Salvar o perfil gerado no cache para próximas sessões
           localStorage.setItem(profileCacheKey, JSON.stringify(generatedProfile));
           setDiscProfile(generatedProfile);
@@ -251,7 +255,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           console.log("🔍 Dashboard - Nenhum teste DISC completado encontrado");
           setDiscProfile(null);
         }
-        
+
       } catch (error) {
         console.error('🔍 Dashboard - Erro ao buscar perfil DISC:', error);
         setDiscProfile(null);
@@ -287,7 +291,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             strengths: getDiscStrengths(discData.type),
             improvements: getDiscImprovements(discData.type)
           };
-          
+
           console.log("🔍 Dashboard - Perfil DISC atualizado via evento:", discProfile);
           setDiscProfile(discProfile);
         } else {
@@ -304,12 +308,12 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             try {
               const discResult = await testService.getUserDISCResult(user.id);
               console.log("🔍 Dashboard - Recarregamento: Resultado DISC direto:", discResult);
-              
+
               if (discResult && discResult.disc_scores) {
-                const discScores = typeof discResult.disc_scores === 'string' 
-                  ? JSON.parse(discResult.disc_scores) 
+                const discScores = typeof discResult.disc_scores === 'string'
+                  ? JSON.parse(discResult.disc_scores)
                   : discResult.disc_scores;
-                
+
                 if (discScores && discScores.type) {
                   const discProfile = {
                     type: discScores.type,
@@ -320,7 +324,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     strengths: getDiscStrengths(discScores.type),
                     improvements: getDiscImprovements(discScores.type)
                   };
-                  
+
                   console.log("🔍 Dashboard - Perfil DISC recarregado:", discProfile);
                   setDiscProfile(discProfile);
                 }
@@ -336,19 +340,91 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('discTestCompleted', handleDiscTestCompleted);
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('discTestCompleted', handleDiscTestCompleted);
     };
   }, [user, accessToken]);
 
+  // Verificar se deve mostrar o modal da entrevista simulada
+  useEffect(() => {
+    const checkInterviewStatus = async () => {
+      if (!user?.id || !accessToken) return;
+
+      try {
+        // Verificar no localStorage se o usuário já dispensou o modal
+        const dismissedPrompt = localStorage.getItem(`interview_prompt_dismissed_${user.id}`);
+        if (dismissedPrompt === 'true') {
+          return;
+        }
+
+        // Verificar se já completou entrevista simulada via API
+        try {
+          const response = await fetch(`${API_URL}/api/interviews/user/${user.id}/status`, {
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            // Se tem entrevistas completadas, não mostrar o modal
+            if (data.hasCompletedInterviews || data.totalInterviews > 0) {
+              setHasCompletedInterview(true);
+              localStorage.setItem(`interview_completed_${user.id}`, 'true');
+              return;
+            }
+          }
+        } catch (apiError) {
+          // Se a API falhar, verificar localStorage como fallback
+          const completedInterview = localStorage.getItem(`interview_completed_${user.id}`);
+          if (completedInterview === 'true') {
+            setHasCompletedInterview(true);
+            return;
+          }
+        }
+
+        // Se passou por todas as verificações, mostrar o modal após um delay
+        const timer = setTimeout(() => {
+          setShowInterviewPrompt(true);
+        }, 5000); // Aguarda 5 segundos após carregar o dashboard
+
+        return () => clearTimeout(timer);
+      } catch (error) {
+        console.error('Erro ao verificar status da entrevista:', error);
+      }
+    };
+
+    checkInterviewStatus();
+  }, [user, accessToken]);
 
   const getEmpresaNome = (empresaId) => {
     const empresa = empresas.find((e) => e.id === empresaId);
     return empresa?.name || "Empresa";
   };
 
+  // Funções de controle do modal da entrevista simulada
+  const handleStartInterview = () => {
+    // Marcar que completou a entrevista para não mostrar o modal novamente
+    localStorage.setItem(`interview_completed_${user.id}`, 'true');
+    setHasCompletedInterview(true);
+    setShowInterviewPrompt(false);
+    
+    // Redirecionar para a página da entrevista simulada
+    navigate('/entrevista-simulada');
+  };
+
+  const handleDismissInterviewPrompt = () => {
+    setShowInterviewPrompt(false);
+  };
+
+  const handleDismissInterviewPermanently = () => {
+    // Salvar no localStorage que o usuário não quer ver mais
+    localStorage.setItem(`interview_prompt_dismissed_${user.id}`, 'true');
+    setShowInterviewPrompt(false);
+  };
 
   // Função para completar a animação de boas-vindas
   const handleWelcomeComplete = () => {
@@ -410,7 +486,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const getDiscName = (type) => {
     const names = {
       D: "Dominância",
-      I: "Influência", 
+      I: "Influência",
       S: "Estabilidade",
       C: "Conformidade"
     };
@@ -421,7 +497,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     const descriptions = {
       D: "Focado em resultados, direto e decidido",
       I: "Comunicativo, otimista e persuasivo",
-      S: "Leal, paciente e cooperativo", 
+      S: "Leal, paciente e cooperativo",
       C: "Analítico, preciso e organizado"
     };
     return descriptions[type] || "Focado em resultados, direto e decidido";
@@ -462,7 +538,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     if (!discProfile) return null;
 
     const type = discProfile.type;
-    
+
     return {
       overview: {
         title: `Relatório Completo - Perfil ${discProfile.name}`,
@@ -470,7 +546,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         dominantType: type,
         percentage: discProfile.percentage || 75
       },
-      
+
       behaviorAnalysis: {
         strengths: getDiscStrengths(type),
         challenges: getDiscImprovements(type),
@@ -478,21 +554,21 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         communicationStyle: getCommunicationAnalysis(type),
         leadershipPotential: getLeadershipAnalysis(type)
       },
-      
+
       careerInsights: {
         idealRoles: getIdealRoles(type),
         workEnvironment: getIdealWorkEnvironment(type),
         teamDynamics: getTeamDynamics(type),
         stressFactors: getStressFactors(type)
       },
-      
+
       developmentPlan: {
         immediateActions: getImmediateActions(type),
         longTermGoals: getLongTermGoals(type),
         skillsToImprove: getSkillsToImprove(type),
         recommendedTraining: getRecommendedTraining(type)
       },
-      
+
       agribusinessSpecific: {
         sectorFit: getAgribusinessFit(type),
         networkingAdvice: getNetworkingAdvice(type),
@@ -535,7 +611,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         tips: ["Seja conciso e objetivo", "Foque nos resultados", "Use dados para sustentar argumentos", "Evite detalhes desnecessários"]
       },
       I: {
-        style: "Entusiástico e persuasivo", 
+        style: "Entusiástico e persuasivo",
         tips: ["Use histórias e exemplos", "Mantenha o tom positivo", "Permita interações sociais", "Reconheça contribuições"]
       },
       S: {
@@ -778,7 +854,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         teamNeeds: "Beneficia-se de membros que complementem com atenção aos detalhes e processo"
       },
       I: {
-        role: "Motivador da Equipe", 
+        role: "Motivador da Equipe",
         contribution: "Mantém o moral alto e facilita a comunicação entre membros",
         teamNeeds: "Funciona bem com pessoas que ajudem no foco e no acompanhamento de tarefas"
       },
@@ -821,7 +897,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   // Função para renderizar conteúdo das abas
   const getTabContent = (activeTab, report, disc) => {
     if (!report) return null;
-    
+
     switch (activeTab) {
       case 'overview':
         return (
@@ -830,7 +906,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               <h3 className="text-xl font-bold text-gray-900 mb-3">Resumo do Seu Perfil</h3>
               <p className="text-gray-700 leading-relaxed">{report.overview.summary}</p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
@@ -846,7 +922,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   ))}
                 </ul>
               </div>
-              
+
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                   <span className="text-blue-600 mr-2">🎯</span>
@@ -864,7 +940,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </div>
           </div>
         );
-        
+
       case 'behavior':
         return (
           <div className="space-y-6">
@@ -880,7 +956,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   <p className="text-gray-600">{report.behaviorAnalysis.workStyle.approach}</p>
                 </div>
               </div>
-              
+
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                   <span className="text-indigo-600 mr-2">💬</span>
@@ -899,7 +975,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   </ul>
                 </div>
               </div>
-              
+
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                   <span className="text-amber-600 mr-2">👑</span>
@@ -913,7 +989,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                   <span className="text-red-600 mr-2">⚠️</span>
@@ -940,7 +1016,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </div>
           </div>
         );
-        
+
       case 'career':
         return (
           <div className="space-y-6">
@@ -966,7 +1042,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 </div>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
@@ -981,7 +1057,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   ))}
                 </ul>
               </div>
-              
+
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                   <span className="text-purple-600 mr-2">🏢</span>
@@ -998,7 +1074,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 </ul>
               </div>
             </div>
-            
+
             <div className="bg-white border border-gray-200 rounded-xl p-6">
               <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                 <span className="text-orange-600 mr-2">🤝</span>
@@ -1008,7 +1084,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </div>
           </div>
         );
-        
+
       case 'development':
         return (
           <div className="space-y-6">
@@ -1027,7 +1103,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   ))}
                 </ul>
               </div>
-              
+
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                   <span className="text-blue-600 mr-2">🎯</span>
@@ -1042,7 +1118,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   ))}
                 </ul>
               </div>
-              
+
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                   <span className="text-green-600 mr-2">📚</span>
@@ -1056,7 +1132,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   ))}
                 </div>
               </div>
-              
+
               <div className="bg-white border border-gray-200 rounded-xl p-6">
                 <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                   <span className="text-purple-600 mr-2">🎓</span>
@@ -1071,7 +1147,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 </ul>
               </div>
             </div>
-            
+
             <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-xl text-white">
               <h4 className="font-semibold mb-3 flex items-center">
                 <span className="mr-2">🌱</span>
@@ -1081,7 +1157,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </div>
           </div>
         );
-        
+
       default:
         return <div>Conteúdo não encontrado</div>;
     }
@@ -1122,7 +1198,15 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           <div className="mb-8 overflow-x-auto">
             <div className="flex justify-between items-center">
               {/* Bloco de boas-vindas e perfil DISC */}
-              <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.userLegacy?.image || null} alt="User Profile" />
+              {(userData.profile_image || userData.userLegacy?.image) ? (
+                <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.profile_image || userData.userLegacy?.image} alt="User Profile" />
+              ) : (
+                <div className="w-[110px] h-[110px] rounded-full border bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-500 text-2xl font-semibold">
+                    {userData?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
+                </div>
+              )}
               <div className={"flex flex-col flex-shrink-0 lg:w-2/5"}>
                 <h1 className="text-3xl text-black font-bold mb-2">
                   Olá, {userData?.name?.split(" ")[0]}!
@@ -1230,7 +1314,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                                   key={index}
                                   className="flex items-center space-x-2 bg-white p-2 rounded-lg border border-gray-100"
                                 >
-                                  <div 
+                                  <div
                                     className="w-2 h-2 rounded-full"
                                     style={{
                                       backgroundColor: disc.type === 'D' ? '#EF4444' :
@@ -1946,7 +2030,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 <div className="w-full lg:w-1/2 p-6 sm:p-8 flex flex-col justify-center">
                   <CardContent className="p-0 space-y-6">
                     <h3 className="text-2xl lg:text-3xl font-bold text-black leading-tight">
-                      Aulão - O que o mercado busca nos profissionais do Agro
+                      O que o mercado busca nos profissionais do Agro ?
                     </h3>
 
                     <p className="text-gray-600 leading-relaxed text-base lg:text-lg">
@@ -1986,6 +2070,14 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           onClose={() => setShowTrilhaModal(false)}
         />
       )}
+
+      {/* Modal de Promoção da Entrevista Simulada */}
+      <InterviewPromptModal
+        isOpen={showInterviewPrompt}
+        onClose={handleDismissInterviewPrompt}
+        onStartInterview={handleStartInterview}
+        onDismissPermanently={handleDismissInterviewPermanently}
+      />
     </>
   );
 };
