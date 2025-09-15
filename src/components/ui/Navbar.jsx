@@ -193,7 +193,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage
-                      src="/placeholder-avatar.jpg"
+                      src={userData.profile_image || userData.userLegacy?.image || "/placeholder-avatar.jpg"}
                       alt={userData.name}
                     />
                     <AvatarFallback className="bg-gray-600 text-white">

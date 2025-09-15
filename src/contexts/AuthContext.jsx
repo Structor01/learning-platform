@@ -127,6 +127,16 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
+      // Atualizar imediatamente o estado local se profile_image estiver presente
+      if (updateData.profile_image) {
+        const immediateUpdate = {
+          ...user,
+          profile_image: updateData.profile_image,
+        };
+        setUser(immediateUpdate);
+        localStorage.setItem("user", JSON.stringify(immediateUpdate));
+      }
+
       const cleanData = Object.fromEntries(
         Object.entries({
           name: updateData.name,
