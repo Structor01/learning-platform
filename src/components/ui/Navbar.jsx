@@ -10,15 +10,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, User, LogOut, Settings, Briefcase } from "lucide-react";
+import { Search, User, LogOut, Settings, Briefcase, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import EntrevistaSimuladaPage from "./EntrevistaSimuladaPage";
-// REMOVIDO: import MinhasCandidaturasPage - não estava sendo usado
 
 const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Dados padrão para quando user for undefined
   const userData = user || {
@@ -38,17 +37,21 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
   const handleLogoClick = () => (window.location.href = "/Dashboard");
 
   const handleCandidaturasClick = () => {
-    console.log("Clicou em Candidaturas"); // DEBUG
-    console.log("isAuthenticated:", isAuthenticated); // DEBUG
-    console.log("user:", user); // DEBUG
+    console.log("Clicou em Candidaturas");
+    console.log("isAuthenticated:", isAuthenticated);
+    console.log("user:", user);
 
     if (isAuthenticated && user) {
-      console.log("Navegando para /minhas-candidaturas"); // DEBUG
+      console.log("Navegando para /minhas-candidaturas");
       navigate("/minhas-candidaturas");
     } else {
-      console.log("Usuário não autenticado, redirecionando para login"); // DEBUG
+      console.log("Usuário não autenticado, redirecionando para login");
       navigate("/");
     }
+  };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
   };
 
   const handleProfileClick = () => {
@@ -57,7 +60,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
 
   const handleLogout = () => {
     logout();
-    navigate("/"); // Explicitamente navegar para login após logout
+    navigate("/");
   };
 
   // Protege o acesso ao campo predominant usando optional chaining
@@ -84,8 +87,8 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
             </span>
           </button>
 
-          {/* Search Bar */}
-          <div className="flex-1 max-w-md mx-8">
+          {/* Search Bar - Esconde em mobile muito pequeno */}
+          <div className="flex-1 max-w-md mx-8 hidden sm:block">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
@@ -100,19 +103,27 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
 
           {/* User Menu & Ações */}
           <div className="flex items-center space-x-4">
-            {/* Links de Navegação */}
-            <div className="md:flex items-center space-x-4">
-              <a
-                href="/dashboard"
-                className="text-gray-300 hover:text-white transition-colors text-sm"
-              >
+            {/* Botão Hambúrguer - Só em Mobile */}
+            <Button
+              onClick={toggleMobileMenu}
+              variant="ghost"
+              className="!flex md:!hidden p-2"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </Button>
+
+            {/* Links de Navegação - Desktop */}
+            <div className="items-center space-x-4" style={{ display: window.innerWidth >= 768 ? 'flex' : 'none' }}>
+
+              <a href="/dashboard" className="text-gray-300 hover:text-white transition-colors text-sm">
                 Dashboard
               </a>
 
-              <a
-                href="/Vagas"
-                className="text-gray-300 hover:text-white transition-colors text-sm"
-              >
+              <a href="/Vagas" className="text-gray-300 hover:text-white transition-colors text-sm">
                 Vagas
               </a>
 
@@ -174,7 +185,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
               )}
             </div>
 
-            {/* DISC Profile Badge */}
+            {/* DISC Profile Badge - Desktop */}
             <div className="hidden md:flex items-center space-x-2">
               <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">
@@ -229,6 +240,108 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
             </DropdownMenu>
           </div>
         </div>
+
+        {/* Menu Mobile - Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-700 bg-black">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {/* Barra de Pesquisa em Mobile */}
+              {/* <div className="sm:hidden px-3 pb-3">
+                <form onSubmit={handleSearch} className="relative">
+                  <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-gray-800 border-gray-700 text-white placeholder-gray-400 rounded-lg focus:border-white focus:ring-white"
+                  />
+                </form>
+              </div> */}
+
+              {/* Links do Menu Mobile */}
+              <a
+                href="/dashboard"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Dashboard
+              </a>
+              <a
+                href="/Vagas"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Vagas
+              </a>
+              <a
+                href="/meus-interesses"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Meus interesses
+              </a>
+              <a
+                href="/entrevista-simulada"
+                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Treinamento de Entrevista
+              </a>
+
+              {/* Menu Admin em Mobile */}
+              {(userData.email === "matheuslucasdesouza22@gmail.com" || userData.email === "artfbgyn@gmail.com") && (
+                <div className="border-t border-gray-700 pt-2 mt-2">
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    Administrador
+                  </div>
+                  <a
+                    href="/crm"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    📊 CRM - Gestão de Leads
+                  </a>
+                  <a
+                    href="/recrutamento"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    👥 Recrutamento LinkedIn
+                  </a>
+                  <a
+                    href="/candidaturas"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    📚 Candidaturas
+                  </a>
+                  <a
+                    href="/empresas"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    🏢 Gestão de Empresas
+                  </a>
+                </div>
+              )}
+
+              {/* Profile DISC em Mobile */}
+              {/* <div className="border-t border-gray-700 pt-2 mt-2">
+                <div className="px-3 py-2 flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">
+                      {predominant.charAt(0)}
+                    </span>
+                  </div>
+                  <span className="text-sm text-gray-300">
+                    Perfil DISC: {predominant}
+                  </span>
+                </div>
+              </div> */}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
