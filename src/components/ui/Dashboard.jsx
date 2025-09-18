@@ -367,7 +367,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               'Content-Type': 'application/json'
             }
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             // Se tem entrevistas completadas, não mostrar o modal
@@ -411,7 +411,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     localStorage.setItem(`interview_completed_${user.id}`, 'true');
     setHasCompletedInterview(true);
     setShowInterviewPrompt(false);
-    
+
     // Redirecionar para a página da entrevista simulada
     navigate('/entrevista-simulada');
   };
@@ -1194,365 +1194,277 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
       <div className="min-h-screen bg-white pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+
           {/* Welcome Section */}
-          <div className="mb-8 overflow-x-auto">
-            <div className="flex justify-between items-center">
-              {/* Bloco de boas-vindas e perfil DISC */}
-              {(userData.profile_image || userData.userLegacy?.image) ? (
-                <img className={"w-[110px] h-[110px] rounded-full border"} src={userData.profile_image || userData.userLegacy?.image} alt="User Profile" />
-              ) : (
-                <div className="w-[110px] h-[110px] rounded-full border bg-gray-200 flex items-center justify-center">
-                  <span className="text-gray-500 text-2xl font-semibold">
-                    {userData?.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </span>
-                </div>
-              )}
-              <div className={"flex flex-col flex-shrink-0 lg:w-2/5"}>
-                <h1 className="text-3xl text-black font-bold mb-2">
+          <div className="mb-8">
+
+            <div className="lg:flex flex-row px-6 pt-5 items-center gap-6  lg:items-start lg:justify-between">
+
+              {/* Imagem e nome lado a lado em mobile */}
+              <div className="flex flex- items-center gap-4 lg:flex-row lg:items-center lg:gap-6">
+                {(userData.profile_image || userData.userLegacy?.image) ? (
+                  <img className=
+                    {"w-[80px] h-[80px] sm:w-[90px] sm:h-[90px] lg:w-[110px] lg:h-[110px] rounded-full border bg-gray-200 flex items-center justify-center"}
+                    src={userData.profile_image || userData.userLegacy?.image}
+                    alt="User Profile" />
+                ) : (
+                  <div className="w-[80px] h-[80px] sm:w-[90px] sm:h-[90px] lg:w-[110px] lg:h-[110px] rounded-full border bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-500 text-lg sm:text-xl lg:text-2xl font-semibold">
+                      {userData?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                )}
+                <h1 className="text-xl lg:text-2xl lg:p-4 p xl:text-3xl text-black font-bold">
                   Olá, {userData?.name?.split(" ")[0]}!
                 </h1>
-
-                <div className={"grid grid-cols-2 gap-3"}>
-                  <div className={"flex items-center justify-start"}>
-                    <div className={`w-6 h-6 ${getDiscColor(disc?.type || disc?.name)} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-xs font-bold">{disc?.type?.charAt(0) || 'D'}</span>
-                    </div>
-                    <div className={"flex flex-col items-start justify-start"}>
-                      <span className="text-gray-900 ml-3">{disc?.name || 'Não definido'}</span>
-                      <span className="text-gray-900 ml-3 font-bold text-xs">Perfil Comportamental</span>
-                    </div>
-                  </div>
-                  <div className={"flex items-center justify-start"}>
-                    <div className={`w-6 h-6 ${getDiscColor(userData.userLegacy?.perfil_lideranca)} rounded-full flex items-center justify-center`}>
-                      <span className="text-white text-xs font-bold">{userData.userLegacy?.perfil_lideranca?.charAt(0) || 'T'}</span>
-                    </div>
-                    <div className={"flex flex-col items-start justify-start"}>
-                      <span className="text-gray-900 ml-3">{userData.userLegacy?.perfil_lideranca || 'Não definido'}</span>
-                      <span className="text-gray-900 ml-3 font-bold text-xs">Estilo de liderança</span>
-                    </div>
-
-                  </div>
-                </div>
-
-
               </div>
 
-              <div className="flex-shrink-0 lg:w-2/5">
 
-                <div className="flex items-center m-3 space-x-4">
-                  <div className="flex items-center space-x-2">
 
-                    {/* Card Análise DISC ocupando 1/3 da tela */}
-                  </div>
-                </div>
-                {/* Seção DISC Melhorada - Interface Premium */}
-                <div className="w-full mt-4">
-                  <div className="bg-gradient-to-br from-white via-gray-50 to-white rounded-2xl p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
-                    {disc ? (
-                      <>
-                        {/* Header Premium da seção */}
-                        <div className="flex items-center justify-between mb-6">
-                          <div className="flex items-center space-x-3">
+              {/* Card do Perfil DISC */}
+              <div className="lg:w-96 pt-5">
+                <div className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl shadow-sm p-3 sm:p-4 lg:p-6">
+                  {/* Informações do Perfil */}
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 ${getDiscColor(disc?.type || disc?.name)} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg`}>
+                      <span className="text-white text-sm sm:text-lg lg:text-xl font-bold">{disc?.type?.charAt(0) || 'D'}</span>
+                    </div>
+                    <div className="min-w-0 flex-1 pt-5">
+                      <h3 className="text-gray-900 text-sm sm:text-base lg:text-lg font-semibold truncate">
+                        {disc?.name || 'Perfil não definido'}
+                      </h3>
+                      <p className="text-gray-600 text-xs sm:text-sm font-medium">Perfil Comportamental DISC</p>
+                      {disc?.percentage && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="w-12 sm:w-16 bg-gray-200 rounded-full h-2">
                             <div
-                              className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg"
+                              className="h-2 rounded-full transition-all duration-500"
                               style={{
-                                background: disc.type === 'D' ? 'linear-gradient(135deg, #EF4444, #DC2626)' :
-                                  disc.type === 'I' ? 'linear-gradient(135deg, #10B981, #059669)' :
-                                    disc.type === 'S' ? 'linear-gradient(135deg, #3B82F6, #2563EB)' : 'linear-gradient(135deg, #F59E0B, #D97706)',
+                                width: `${disc.percentage}%`,
+                                background: disc.type === 'D' ? 'linear-gradient(90deg, #EF4444, #DC2626)' :
+                                  disc.type === 'I' ? 'linear-gradient(90deg, #10B981, #059669)' :
+                                    disc.type === 'S' ? 'linear-gradient(90deg, #3B82F6, #2563EB)' : 'linear-gradient(90deg, #F59E0B, #D97706)',
                               }}
-                            >
-                              {disc.type}
-                            </div>
-                            <div>
-                              <h3 className="text-[#1F2937] font-bold text-lg leading-tight">Perfil {disc.name}</h3>
-                              <p className="text-gray-500 text-xs">Análise Comportamental DISC</p>
-                            </div>
+                            ></div>
                           </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-[#1F2937] mb-1">{disc.percentage || 75}%</div>
-                            <div className="text-xs text-gray-500">Dominância</div>
-                          </div>
+                          <span className="text-xs text-gray-500 font-medium">{disc.percentage}%</span>
                         </div>
+                      )}
+                    </div>
+                  </div>
 
-                        {/* Barra de progresso premium */}
-                        <div className="mb-6">
-                          <div className="relative">
-                            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
-                              <div
-                                className="h-full rounded-full transition-all duration-500 ease-out relative"
-                                style={{
-                                  width: `${disc.percentage || 75}%`,
-                                  background: disc.type === 'D' ? 'linear-gradient(90deg, #EF4444, #DC2626)' :
-                                    disc.type === 'I' ? 'linear-gradient(90deg, #10B981, #059669)' :
-                                      disc.type === 'S' ? 'linear-gradient(90deg, #3B82F6, #2563EB)' : 'linear-gradient(90deg, #F59E0B, #D97706)',
-                                }}
-                              >
-                                <div className="absolute inset-0 bg-white opacity-20 rounded-full"></div>
-                              </div>
-                            </div>
-                            <div className="flex justify-between text-xs text-gray-400 mt-2">
-                              <span>Baixa</span>
-                              <span>Alta</span>
-                            </div>
-                          </div>
-                        </div>
+                  {/* Botões de Ação */}
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-shrink-0 pt-5">
+                    <button
+                      onClick={() => navigate("/disc-profile")}
+                      className={`w-full md:w-auto px-6 py-2 bg-green-500 text-white font-semibold rounded-md hover:bg-green-600 transition ${disc
+                        ? "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white"
+                        : "bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white"
+                        }`}
+                    >
+                      {disc ? "Ver Relatório" : "Fazer Teste DISC"}
+                    </button>
 
-                        {/* Descrição premium */}
-                        <div className="mb-6 p-4 bg-white rounded-xl border border-gray-100">
-                          <p className="text-gray-700 text-sm leading-relaxed">
-                            {disc.description}
-                          </p>
-                        </div>
-
-                        {/* Características principais premium */}
-                        {disc.characteristics && disc.characteristics.length > 0 && (
-                          <div className="mb-6">
-                            <h4 className="text-sm font-semibold text-gray-800 mb-3">Características Principais</h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              {disc.characteristics.slice(0, 4).map((char, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-center space-x-2 bg-white p-2 rounded-lg border border-gray-100"
-                                >
-                                  <div
-                                    className="w-2 h-2 rounded-full"
-                                    style={{
-                                      backgroundColor: disc.type === 'D' ? '#EF4444' :
-                                        disc.type === 'I' ? '#10B981' :
-                                          disc.type === 'S' ? '#3B82F6' : '#F59E0B',
-                                    }}
-                                  ></div>
-                                  <span className="text-xs text-gray-700 font-medium">{char}</span>
-                                </div>
-                              ))}
-                            </div>
-                            {disc.characteristics.length > 4 && (
-                              <p className="text-xs text-gray-500 mt-2 text-center">
-                                +{disc.characteristics.length - 4} características adicionais no relatório completo
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Botão de detalhes premium */}
-                        <button
-                          onClick={() => setShowDiscDetails(true)}
-                          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-6 rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          <span>Ver Relatório Completo</span>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        {/* Estado sem DISC Premium */}
-                        <div className="text-center py-8">
-                          <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                          </div>
-                          <h3 className="text-[#1F2937] font-bold text-lg mb-2">Descubra Seu Perfil DISC</h3>
-                          <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
-                            Entenda melhor seu comportamento e potencialize sua carreira no agronegócio
-                          </p>
-                          <button
-                            onClick={() => navigate('/teste-disc')}
-                            className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-3 px-6 rounded-xl text-sm font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-2 mx-auto"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            <span>Fazer Teste DISC Gratuito</span>
-                          </button>
-                        </div>
-                      </>
+                    {disc && (
+                      <button
+                        onClick={() => navigate("/teste-disc")}
+                        className="px-2 sm:px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-300 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 whitespace-nowrap"
+                      >
+                        Refazer Teste
+                      </button>
                     )}
                   </div>
                 </div>
+              </div>
 
-                {/* Modal DISC Simples */}
-                {showDiscDetails && disc && (
-                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                      {/* Header */}
-                      <div className="relative bg-gradient-to-r from-gray-800 to-gray-900 text-white p-6">
-                        <button
-                          onClick={() => setShowDiscDetails(false)}
-                          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors"
+
+
+
+
+
+
+
+              {/* Modal DISC Simples */}
+              {showDiscDetails && disc && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                  <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                    {/* Header */}
+                    <div className="relative bg-gradient-to-r from-gray-800 to-gray-900 text-white p-6">
+                      <button
+                        onClick={() => setShowDiscDetails(false)}
+                        className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        <X className="h-6 w-6" />
+                      </button>
+
+                      <div className="text-center">
+                        <div
+                          className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-2xl"
+                          style={{
+                            backgroundColor: disc.type === 'D' ? '#EF4444' :
+                              disc.type === 'I' ? '#10B981' :
+                                disc.type === 'S' ? '#3B82F6' : '#F59E0B'
+                          }}
                         >
-                          <X className="h-6 w-6" />
-                        </button>
+                          {disc.type}
+                        </div>
+                        <h2 className="text-3xl font-bold mb-2">
+                          Perfil {disc.name}
+                        </h2>
+                        <p className="text-gray-400 text-lg">
+                          {disc.description}
+                        </p>
+                      </div>
+                    </div>
 
-                        <div className="text-center">
-                          <div
-                            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-white font-bold text-2xl"
-                            style={{
-                              backgroundColor: disc.type === 'D' ? '#EF4444' :
-                                disc.type === 'I' ? '#10B981' :
-                                  disc.type === 'S' ? '#3B82F6' : '#F59E0B'
-                            }}
-                          >
-                            {disc.type}
+                    {/* Content */}
+                    <div className="p-6">
+                      {/* Barra de Progresso Visual */}
+                      <div className="mb-8">
+                        <h3 className="text-xl font-semibold text-white mb-4 text-center">
+                          Intensidade do Perfil
+                        </h3>
+                        <div className="bg-gray-800 rounded-lg p-4">
+                          <div className="flex items-center mb-4">
+                            <div
+                              className="h-8 rounded-l flex items-center justify-center text-white font-bold text-sm"
+                              style={{
+                                width: `${disc.percentage || 75}%`,
+                                minWidth: '80px',
+                                backgroundColor: disc.type === 'D' ? '#EF4444' :
+                                  disc.type === 'I' ? '#10B981' :
+                                    disc.type === 'S' ? '#3B82F6' : '#F59E0B'
+                              }}
+                            >
+                              {disc.type} - {disc.percentage || 75}%
+                            </div>
+                            <div
+                              className="h-8 bg-gray-700 flex-1 rounded-r"
+                            ></div>
                           </div>
-                          <h2 className="text-3xl font-bold mb-2">
-                            Perfil {disc.name}
-                          </h2>
-                          <p className="text-gray-400 text-lg">
-                            {disc.description}
-                          </p>
                         </div>
                       </div>
 
-                      {/* Content */}
-                      <div className="p-6">
-                        {/* Barra de Progresso Visual */}
-                        <div className="mb-8">
-                          <h3 className="text-xl font-semibold text-white mb-4 text-center">
-                            Intensidade do Perfil
-                          </h3>
-                          <div className="bg-gray-800 rounded-lg p-4">
-                            <div className="flex items-center mb-4">
-                              <div
-                                className="h-8 rounded-l flex items-center justify-center text-white font-bold text-sm"
-                                style={{
-                                  width: `${disc.percentage || 75}%`,
-                                  minWidth: '80px',
-                                  backgroundColor: disc.type === 'D' ? '#EF4444' :
-                                    disc.type === 'I' ? '#10B981' :
-                                      disc.type === 'S' ? '#3B82F6' : '#F59E0B'
-                                }}
-                              >
-                                {disc.type} - {disc.percentage || 75}%
-                              </div>
-                              <div
-                                className="h-8 bg-gray-700 flex-1 rounded-r"
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Seções de Informações */}
-                        <div className="grid md:grid-cols-2 gap-6 mb-6">
-                          {/* Características */}
-                          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-                            <h4 className="font-semibold text-white mb-4 text-lg flex items-center">
-                              <div className="w-3 h-3 bg-blue-400 rounded-full mr-3"></div>
-                              Características Principais
-                            </h4>
-                            <ul className="space-y-3">
-                              {(disc.characteristics || [
-                                "Orientado para resultados",
-                                "Toma decisões rapidamente",
-                                "Gosta de desafios",
-                                "Prefere liderar",
-                                "Direto na comunicação"
-                              ]).map((char, index) => (
-                                <li key={index} className="text-gray-300 flex items-start">
-                                  <div className="w-2 h-2 bg-blue-400 rounded-full mr-3 mt-2"></div>
-                                  {char}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-
-                          {/* Pontos Fortes */}
-                          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-                            <h4 className="font-semibold text-white mb-4 text-lg flex items-center">
-                              <div className="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
-                              Pontos Fortes
-                            </h4>
-                            <ul className="space-y-3">
-                              {(disc.strengths || [
-                                "Liderança natural",
-                                "Foco em resultados",
-                                "Tomada de decisão rápida",
-                                "Capacidade de superar obstáculos",
-                                "Motivação por desafios"
-                              ]).map((strength, index) => (
-                                <li key={index} className="text-gray-300 flex items-start">
-                                  <div className="w-2 h-2 bg-green-400 rounded-full mr-3 mt-2"></div>
-                                  {strength}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-
-                        {/* Áreas de Desenvolvimento */}
-                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-6">
+                      {/* Seções de Informações */}
+                      <div className="grid md:grid-cols-2 gap-6 mb-6">
+                        {/* Características */}
+                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
                           <h4 className="font-semibold text-white mb-4 text-lg flex items-center">
-                            <div className="w-3 h-3 bg-yellow-400 rounded-full mr-3"></div>
-                            Áreas de Desenvolvimento
+                            <div className="w-3 h-3 bg-blue-400 rounded-full mr-3"></div>
+                            Características Principais
                           </h4>
                           <ul className="space-y-3">
-                            {(disc.improvements || [
-                              "Desenvolvimento da paciência",
-                              "Melhora na escuta ativa",
-                              "Consideração de outras perspectivas",
-                              "Trabalho em equipe colaborativo"
-                            ]).map((improvement, index) => (
+                            {(disc.characteristics || [
+                              "Orientado para resultados",
+                              "Toma decisões rapidamente",
+                              "Gosta de desafios",
+                              "Prefere liderar",
+                              "Direto na comunicação"
+                            ]).map((char, index) => (
                               <li key={index} className="text-gray-300 flex items-start">
-                                <div className="w-2 h-2 bg-yellow-400 rounded-full mr-3 mt-2"></div>
-                                {improvement}
+                                <div className="w-2 h-2 bg-blue-400 rounded-full mr-3 mt-2"></div>
+                                {char}
                               </li>
                             ))}
                           </ul>
                         </div>
 
-                        {/* Dicas de Carreira */}
-                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-6">
+                        {/* Pontos Fortes */}
+                        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
                           <h4 className="font-semibold text-white mb-4 text-lg flex items-center">
-                            <div className="w-3 h-3 bg-purple-400 rounded-full mr-3"></div>
-                            Dicas para o Ambiente de Trabalho
+                            <div className="w-3 h-3 bg-green-400 rounded-full mr-3"></div>
+                            Pontos Fortes
                           </h4>
-                          <div className="grid md:grid-cols-2 gap-4">
-                            <div>
-                              <h5 className="font-medium text-white mb-2">Funciona Bem Com:</h5>
-                              <ul className="space-y-2 text-gray-300 text-sm">
-                                <li>• Metas claras e desafiadoras</li>
-                                <li>• Autonomia para tomar decisões</li>
-                                <li>• Feedback direto e honesto</li>
-                                <li>• Projetos com impacto visível</li>
-                              </ul>
-                            </div>
-                            <div>
-                              <h5 className="font-medium text-white mb-2">Pode Ter Dificuldade Com:</h5>
-                              <ul className="space-y-2 text-gray-300 text-sm">
-                                <li>• Processos muito burocráticos</li>
-                                <li>• Tarefas repetitivas</li>
-                                <li>• Microgerenciamento</li>
-                                <li>• Decisões por comitê</li>
-                              </ul>
-                            </div>
+                          <ul className="space-y-3">
+                            {(disc.strengths || [
+                              "Liderança natural",
+                              "Foco em resultados",
+                              "Tomada de decisão rápida",
+                              "Capacidade de superar obstáculos",
+                              "Motivação por desafios"
+                            ]).map((strength, index) => (
+                              <li key={index} className="text-gray-300 flex items-start">
+                                <div className="w-2 h-2 bg-green-400 rounded-full mr-3 mt-2"></div>
+                                {strength}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {/* Áreas de Desenvolvimento */}
+                      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-6">
+                        <h4 className="font-semibold text-white mb-4 text-lg flex items-center">
+                          <div className="w-3 h-3 bg-yellow-400 rounded-full mr-3"></div>
+                          Áreas de Desenvolvimento
+                        </h4>
+                        <ul className="space-y-3">
+                          {(disc.improvements || [
+                            "Desenvolvimento da paciência",
+                            "Melhora na escuta ativa",
+                            "Consideração de outras perspectivas",
+                            "Trabalho em equipe colaborativo"
+                          ]).map((improvement, index) => (
+                            <li key={index} className="text-gray-300 flex items-start">
+                              <div className="w-2 h-2 bg-yellow-400 rounded-full mr-3 mt-2"></div>
+                              {improvement}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Dicas de Carreira */}
+                      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-6">
+                        <h4 className="font-semibold text-white mb-4 text-lg flex items-center">
+                          <div className="w-3 h-3 bg-purple-400 rounded-full mr-3"></div>
+                          Dicas para o Ambiente de Trabalho
+                        </h4>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <h5 className="font-medium text-white mb-2">Funciona Bem Com:</h5>
+                            <ul className="space-y-2 text-gray-300 text-sm">
+                              <li>• Metas claras e desafiadoras</li>
+                              <li>• Autonomia para tomar decisões</li>
+                              <li>• Feedback direto e honesto</li>
+                              <li>• Projetos com impacto visível</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h5 className="font-medium text-white mb-2">Pode Ter Dificuldade Com:</h5>
+                            <ul className="space-y-2 text-gray-300 text-sm">
+                              <li>• Processos muito burocráticos</li>
+                              <li>• Tarefas repetitivas</li>
+                              <li>• Microgerenciamento</li>
+                              <li>• Decisões por comitê</li>
+                            </ul>
                           </div>
                         </div>
+                      </div>
 
-                        {/* Ações */}
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                          <button
-                            onClick={() => {
-                              setShowDiscDetails(false);
-                              navigate('/teste-disc');
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
-                          >
-                            Refazer Teste DISC
-                          </button>
-                          <button
-                            onClick={() => setShowDiscDetails(false)}
-                            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
-                          >
-                            Fechar
-                          </button>
-                        </div>
+                      {/* Ações */}
+                      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button
+                          onClick={() => {
+                            setShowDiscDetails(false);
+                            navigate('/teste-disc');
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
+                        >
+                          Refazer Teste DISC
+                        </button>
+                        <button
+                          onClick={() => setShowDiscDetails(false)}
+                          className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+                        >
+                          Fechar
+                        </button>
                       </div>
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+
             </div>
           </div>
 
