@@ -36,7 +36,8 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  X
+  X,
+  TextSearch
 } from 'lucide-react';
 
 const CRMPage = () => {
@@ -761,6 +762,14 @@ const CRMPage = () => {
                               className="border-gray-600  text-gray-300  hover:bg-gray-700  p-1 "
                             >
                               <MoreVertical className="h-3 w-3 " />
+                            </Button>
+                            {/* Botao que vai ver os dados da entrevista do chatbot */}
+                             <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="border-gray-600  text-gray-300  hover:bg-gray-700  p-1 "
+                            >
+                              <TextSearch className="h-3 w-3 " />
                             </Button>
                           </div>
                         </TableCell>
