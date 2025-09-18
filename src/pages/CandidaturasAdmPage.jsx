@@ -30,13 +30,13 @@ import {
     Clock4,
     MessageSquare
 } from "lucide-react";
-import { API_URL } from "../utils/api";
+import { API_URL } from "../components/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
-import Navbar from "./Navbar";
-import testService from "../../services/testService";
-import CandidaturasPorVaga from './CandidaturasPorVaga';
-import InterviewDetailsModal from "./InterviewDetailsModal";
-import CandidateDetailsModal from "./CandidateDetailsModal";
+import Navbar from "../components/ui/Navbar";
+import testService from "../services/testService";
+import CandidaturasPorVaga from '../components/ui/CandidaturasPorVaga';
+import InterviewDetailsModal from "../components/ui/InterviewDetailsModal";
+import CandidateDetailsModal from "../components/ui/CandidateDetailsModal";
 
 const discConfig = {
     D: { name: "Dominância", color: "from-red-500 to-red-600" },

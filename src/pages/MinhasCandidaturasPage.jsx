@@ -19,8 +19,8 @@ import {
   X
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { API_URL } from "../utils/api";
-import Navbar from "./Navbar";
+import { API_URL } from "../components/utils/api";
+import Navbar from "../components/ui/Navbar";
 import { Button } from "@/components/ui/button.jsx";
 import interviewService from "@/services/interviewService.js";
 import InterviewModal from "@/components/ui/InterviewModal";

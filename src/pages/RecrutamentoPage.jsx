@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import jsPDF from 'jspdf';
-import Navbar from './Navbar';
-import InterviewModal from './InterviewModal';
-import InterviewButton from './InterviewButton';
-import CreateJobWithAIModal from './CreateJobWithAIModal';
-import InterviewCompletionPage from './InterviewCompletionPage';
-import AdminPage from './AdminPage';
-import coresignalService from '../../services/coresignalService';
-import interviewService from '../../services/interviewService';
+import Navbar from '../components/ui/Navbar';
+import InterviewModal from '../components/ui/InterviewModal';
+import InterviewButton from '../components/ui/InterviewButton';
+import CreateJobWithAIModal from '../components/ui/CreateJobWithAIModal';
+import InterviewCompletionPage from '../components/ui/InterviewCompletionPage';
+import AdminPage from '../components/ui/AdminPage';
+import coresignalService from '../services/coresignalService';
+import interviewService from '../services/interviewService';
 import {
   Briefcase,
   Users,

@@ -1,7 +1,7 @@
 // src/components/ui/ResetPassword.jsx - VERSÃO CORRIGIDA
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom"; // ✅ useSearchParams em vez de useParams
-import { API_URL } from "../utils/api"; // ✅ Usar constante API_URL
+import { API_URL } from "../components/utils/api"; // ✅ Usar constante API_URL
 
 export default function ResetPassword() {
   const [searchParams] = useSearchParams(); // ✅ Para pegar ?token=...

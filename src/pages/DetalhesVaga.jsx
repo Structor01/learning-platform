@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { API_URL } from '../utils/api';
+import { API_URL } from '../components/utils/api';
 import { MapPin, Clock, Building2, ArrowLeft } from 'lucide-react';
-import Navbar from './Navbar';
-import BotaoCandidatura from '../ui/BotaoCandidatura';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNotification } from '../ui/Notification';
+import Navbar from '../components/ui/Navbar';
+import BotaoCandidatura from '../components/ui/BotaoCandidatura';
+import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../components/ui/Notification';
 
 const DetalhesVaga = () => {
     const { vagaId } = useParams();

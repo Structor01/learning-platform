@@ -13,10 +13,10 @@ import {
   Clock,
   CheckCircle
 } from 'lucide-react';
-import Navbar from './Navbar';
-import FaceAnalysis from './FaceAnalysis';
-import mockInterviewService from '../../services/mockInterviewService';
-import { API_URL } from '../utils/api';
+import Navbar from '../components/ui/Navbar';
+import FaceAnalysis from '../components/ui/FaceAnalysis';
+import mockInterviewService from '../services/mockInterviewService';
+import { API_URL } from '../components/utils/api';
 
 // Componente de Notificação Toast
 const Toast = ({ message, type, isVisible, onClose }) => {

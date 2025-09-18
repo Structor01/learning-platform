@@ -1,6 +1,6 @@
 // src/components/ui/ForgotPassword.jsx - VERSÃO SIMPLES QUE DEVE FUNCIONAR
 import React, {useEffect, useState} from "react";
-import { API_URL } from "../utils/api";
+import { API_URL } from "../components/utils/api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");

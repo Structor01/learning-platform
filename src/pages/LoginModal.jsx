@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { X, User, Lock, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { API_URL } from "../utils/api";
+import { API_URL } from "../components/utils/api";
 
 const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
   const navigate = useNavigate();

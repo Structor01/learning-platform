@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Navbar from "./Navbar";
+import Navbar from "../components/ui/Navbar";
 import {
   User,
   Calendar,
@@ -31,7 +31,7 @@ import {
   Camera,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import testService from "../../services/testService";
+import testService from "../services/testService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
