@@ -39,6 +39,7 @@ import {
   X,
   TextSearch
 } from 'lucide-react';
+import { BotEntrevistaModal } from '@/components/ui/modal-bot-entrevista';
 
 const CRMPage = () => {
   const [leads, setLeads] = useState([]);
@@ -53,6 +54,11 @@ const CRMPage = () => {
   const [filterLideranca, setFilterLideranca] = useState('all');
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
+
+  //Modal do bot de entrevista
+  const [isModalBotEntrevistaOpen, setIsModalBotEntrevistaOpen] = useState(false);
+  console.log("isModalBotEntrevistaOpen:", isModalBotEntrevistaOpen);
+  const [selectedUserId, setSelectedUserId] = useState(null);
   
   // Estados para paginação
   const [currentPage, setCurrentPage] = useState(1);
@@ -763,10 +769,15 @@ const CRMPage = () => {
                             >
                               <MoreVertical className="h-3 w-3 " />
                             </Button>
-                            {/* Botao que vai ver os dados da entrevista do chatbot */}
+                            {/* Botao que vai ver os dados da bot entrevista */}
                              <Button 
                               size="sm" 
                               variant="outline"
+                              placeholder="Ver dados da entrevista"
+                              onClick={()=> {
+                                setIsModalBotEntrevistaOpen(true) 
+                                setSelectedUserId(lead.id)
+                              }}
                               className="border-gray-600  text-gray-300  hover:bg-gray-700  p-1 "
                             >
                               <TextSearch className="h-3 w-3 " />
@@ -879,6 +890,12 @@ const CRMPage = () => {
           </Card>
         </div>
       </div>
+        {/* Modal do bot de entrevista */}
+      <BotEntrevistaModal 
+        isOpen={isModalBotEntrevistaOpen} 
+        userId={selectedUserId}
+        onClose={() => setIsModalBotEntrevistaOpen(false)} 
+      />
     </>
   );
 };
