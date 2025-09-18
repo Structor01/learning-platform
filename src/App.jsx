@@ -24,6 +24,7 @@ import EntrevistaSimuladaPage from "./components/ui/EntrevistaSimuladaPage";
 import VideoPitchPage from "./components/ui/VideoPitchPage";
 import MeusTestesPage from "./components/ui/MeusTestesPage";
 import TesteDISCPage from "./components/ui/TesteDISCPage";
+import DISCProfilePage from "./components/ui/DISCProfilePage";
 import CRMPage from "./components/ui/CRMPage";
 import RecrutamentoPage from "./components/ui/RecrutamentoPage";
 import TrilhaDetalhes from "@/components/ui/TrilhaDetalhes";
@@ -67,7 +68,7 @@ function AppContent() {
 
   // useEffect(() => {
   //   if (!accessToken) return;
-    
+
   //   axios.get(`${API_URL}/api/videos`, {
   //     headers: { Authorization: `Bearer ${accessToken}` },
   //   })
@@ -281,6 +282,7 @@ function App() {
             <Route path="/video-pitch" element={<PrivateRoute><VideoPitchPage /></PrivateRoute>} />
             <Route path="/meus-testes" element={<PrivateRoute><MeusTestesPage /></PrivateRoute>} />
             <Route path="/teste-disc" element={<PrivateRoute><TesteDISCPage /></PrivateRoute>} />
+            <Route path="/disc-profile" element={<PrivateRoute><DISCProfilePage /></PrivateRoute>} />
 
             {/* Páginas CRM, Recrutamento e Candidaturas */}
             <Route path="/crm" element={<PrivateRoute><CRMPage /></PrivateRoute>} />
