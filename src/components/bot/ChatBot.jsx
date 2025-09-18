@@ -13,6 +13,8 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
   const [isCompleted, setIsCompleted] = useState(false);
   const messagesEndRef = useRef(null);
 
+   const expirationHours = 24;
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -31,24 +33,88 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
     try {
       setIsLoading(true);
       setError(null);
-      
+     
       console.log('🚀 Inicializando chat para usuário:', userId);
-      
-      const chatData = await botService.startChat(userId);
-      
-      setSessionId(chatData.sessionId);
-      setMessages([{
-        id: Date.now(),
-        content: chatData.message,
-        isBot: true,
-        timestamp: new Date(),
-        step: chatData.step
-      }]);
 
-    } catch (error) {
-      console.error('❌ Erro ao inicializar chat:', error);
-      setError('Erro ao iniciar conversa. Tente novamente.');
-    } finally {
+        let sessionData;
+        try {
+          sessionData = JSON.parse(localStorage.getItem('agroskills:guestSession'));
+        } catch {
+          // Se houver erro ao fazer parse do JSON, sessionData será null
+          sessionData = null;
+        }
+        
+        let guestSessionId;
+
+        if (sessionData &&  new Date(sessionData.expiry) > new Date()) {
+          guestSessionId = sessionData.sessionId;
+          console.log('🔑 Usando sessão existente:', guestSessionId);
+        }else{
+          guestSessionId = (userId ? `agroskill_${userId}` : `agroskill_${Date.now()}`); // --- IGNORE ---
+          console.log('🆕 Criando nova sessão:', guestSessionId);
+
+           // Calcular data de expiração
+          const expiresAt = new Date();
+          expiresAt.setHours(expiresAt.getHours() + expirationHours);
+          
+          // Salvar no localStorage com data de expiração
+          localStorage.setItem('agroskills:guestSession', JSON.stringify({
+            id: guestSessionId,
+            createdAt: new Date().toISOString(),
+            expiresAt: expiresAt.toISOString()
+          }));
+        }
+
+        setSessionId(guestSessionId);
+
+        // Determinar se é uma sessão existente (para mensagem de boas-vindas)
+        let isReturningUser = sessionData && sessionData.id === guestSessionId;
+
+
+        try {
+          await botService.sendMessage(guestSessionId, "oi");
+        } catch (error) {
+          console.error("Erro ao inicializar bot:", error);
+       }
+
+
+
+      try {
+          setIsLoading(true);
+          const initialResponse = await botService.sendMessage(guestSessionId, 
+            "Quem e voce?");
+          
+          // Adicionar resposta do bot como primeira mensagem
+          const botMessage = {
+            id: Date.now(),
+            content: initialResponse.message,
+            isBot: true,
+            timestamp: new Date()
+          };
+          
+          setMessages([botMessage]);
+        } catch (error) {
+          console.error("Erro ao obter saudação inicial:", error);
+          
+          // Se falhar, usar mensagem padrão
+          let content = isReturningUser
+            ? "Olá, prazer em vê-lo novamente! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?"
+            : "Olá! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?"
+          
+          const welcomeMessage = {
+            id: Date.now(),
+            content: content,
+            isBot: true,
+            timestamp: new Date()
+          };
+          
+          setMessages([welcomeMessage]);
+        } finally {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Erro ao inicializar chat:', error);
+      } finally {
       setIsLoading(false);
     }
   };

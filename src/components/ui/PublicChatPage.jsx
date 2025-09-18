@@ -61,7 +61,7 @@ const PublicChatPage = () => {
           console.log('🔄 Usando sessão existente:', guestSessionId);
         } else {
           // Criar nova sessão com timestamp
-          guestSessionId = `guest_${Date.now()}`;
+          guestSessionId = `agroskill_${Date.now()}`;
           console.log('🆕 Criando nova sessão:', guestSessionId);
           
           // Calcular data de expiração
