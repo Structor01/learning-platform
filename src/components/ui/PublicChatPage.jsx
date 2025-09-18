@@ -383,4 +383,3 @@ const PublicChatPage = () => {
 };
 
 export default PublicChatPage;
-

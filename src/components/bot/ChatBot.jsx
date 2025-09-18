@@ -296,4 +296,3 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
 };
 
 export default ChatBot;
-
