@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import Navbar from './Navbar';
+import Navbar from '../components/ui/Navbar';
 import { 
   Users, 
   TrendingUp, 

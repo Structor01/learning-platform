@@ -1,33 +1,39 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/ui/LoginPage";
-import EntrevistaSimuladaPage from "./components/ui/EntrevistaSimuladaPage";
-import PublicChatPage from "./components/ui/PublicChatPage";
-import UserProfile from "./components/ui/UserProfile";
-import DetalhesVaga from "./components/ui/DetalhesVaga";
-import CompanyPage from "./components/ui/CompanyPage";
-import VagasPage from "./components/ui/VagasPage";
+import EntrevistaSimuladaPage from "./pages/EntrevistaSimuladaPage";
+import PublicChatPage from "./pages/PublicChatPage";
+import UserProfile from "./pages/UserProfile";
+import DetalhesVaga from "./pages/DetalhesVaga";
+import CompanyPage from "./pages/CompanyPage";
+import VagasPage from "./pages/VagasPage";
 import PrivateRoute from "./components/ui/PrivateRoute";
-import EmpresasPage from "./components/ui/EmpresasPage";
-import MeusInteresses from "./components/ui/MeusInteresses";
-import MinhasCandidaturasPage from "./components/ui/MinhasCandidaturasPage";
-import InterviewPage from "./components/ui/InterviewPage";
-import LoginModal from "./components/ui/LoginModal";
-import SignUpPage from "./components/ui/SignUpPage";
-import TrilhaPage from "./components/ui/TrilhaPage";
-import CartaoVirtualPage from "./components/ui/CartaoVirtualPage";
-import AgendaEventosPage from "./components/ui/AgendaEventosPage";
-import VideoPitchPage from "./components/ui/VideoPitchPage";
+import EmpresasPage from "./pages/EmpresasPage";
+import MeusInteresses from "./pages/MeusInteresses";
+import MinhasCandidaturasPage from "./pages/MinhasCandidaturasPage";
+import InterviewPage from "./pages/InterviewPage";
+import LoginModal from "./pages/LoginModal";
+import SignUpPage from "./pages/SignUpPage";
+import TrilhaPage from "./pages/TrilhaPage";
+import CartaoVirtualPage from "./pages/CartaoVirtualPage";
+import AgendaEventosPage from "./pages/AgendaEventosPage";
+import VideoPitchPage from "./pages/VideoPitchPage";
 import MeusTestesPage from "./components/ui/MeusTestesPage";
-import TesteDISCPage from "./components/ui/TesteDISCPage";
-import DISCProfilePage from "./components/ui/DISCProfilePage";
-import CRMPage from "./components/ui/CRMPage";
-import RecrutamentoPage from "./components/ui/RecrutamentoPage";
-import ForgotPassword from "./components/ui/ForgotPassword";
-import ResetPassword from "./components/ui/ResetPassword";
-import CandidaturasAdmPage from "./components/ui/CandidaturasAdmPage";
+import TesteDISCPage from "./pages/TesteDISCPage";
+import DISCProfilePage from "./pages/DISCProfilePage";
+import CRMPage from "./pages/CRMPage";
+import RecrutamentoPage from "./pages/RecrutamentoPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import CandidaturasAdmPage from "./pages/CandidaturasAdmPage";
 import { useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
 import axios from "axios";
+import Navbar from "./components/ui/Navbar";
+import Dashboard from "./components/ui/Dashboard";
+import VideoPlayer from "./components/ui/VideoPlayer";
+import TrilhaPreviewModal from "./components/ui/TrilhaPreviewModal";
+import TrilhasForm from "./components/ui/TrilhasForm";
+import VideoUpload from "./components/ui/VideoUpload";
 
 const getApiUrl = () => {
   // Se estiver em produção (hostname não é localhost)
@@ -159,7 +165,7 @@ function AppContent() {
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
         trilha={previewTrilha}
-        onAccess={(t) => {
+        onAccess={() => {
           // futuramente navegar para a página de curso completo
           setIsPreviewOpen(false);
           // ex: navigate(`/trilha/${t.id}`)

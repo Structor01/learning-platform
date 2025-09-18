@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import Navbar from './Navbar';
+import Navbar from '../components/ui/Navbar';
 
 const VideoPitchPage = () => {
   const [currentStep, setCurrentStep] = useState('templates'); // templates, recording, preview, library

@@ -4,11 +4,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft, MapPin, Clock, Building2, Users, ExternalLink, Briefcase, Globe, ChevronRight } from 'lucide-react';
 import LoginModal from './LoginModal';
-import { API_URL } from '../utils/api';
-import Navbar from './Navbar';
+import { API_URL } from '../components/utils/api';
+import Navbar from '../components/ui/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNotification } from '../ui/Notification';
-import BotaoCandidatura from './BotaoCandidatura';
+import { useNotification } from '../components/ui/Notification';
+import BotaoCandidatura from '../components/ui/BotaoCandidatura';
 
 const CompanyPage = () => {
     const { id: companyId } = useParams();

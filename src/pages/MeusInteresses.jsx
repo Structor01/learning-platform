@@ -13,10 +13,10 @@ import {
   Search,
   Briefcase,
 } from "lucide-react";
-import { API_URL } from "../utils/api";
-import Navbar from "./Navbar";
+import { API_URL } from "../components/utils/api";
+import Navbar from "../components/ui/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNotification } from "../ui/Notification";
+import { useNotification } from "../components/ui/Notification";
 import { Navigate } from "react-router-dom";
 
 const MeusInteresses = () => {

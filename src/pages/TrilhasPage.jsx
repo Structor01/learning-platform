@@ -1,7 +1,7 @@
 // TrilhasPage.jsx
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import TrilhaModal from "./TrilhaModal";
+import TrilhaModal from "../components/ui/TrilhaModal";
 
 const trilhasExemplo = [
   {

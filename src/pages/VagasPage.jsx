@@ -17,12 +17,12 @@ import {
   ChevronRight,
 } from "lucide-react";
 import LoginModal from "./LoginModal";
-import { API_URL } from "../utils/api";
-import Navbar from "./Navbar";
+import { API_URL } from "../components/utils/api";
+import Navbar from "../components/ui/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNotification } from "../ui/Notification";
-import BotaoCandidatura from "./BotaoCandidatura";
-import BotaoInteresse from "./BotaoInteresse";
+import { useNotification } from "../components/ui/Notification";
+import BotaoCandidatura from "../components/ui/BotaoCandidatura";
+import BotaoInteresse from "../components/ui/BotaoInteresse";
 import { Heart } from "lucide-react"; // Adicione o Heart nos imports do lucide-react
 
 const VagasPage = () => {

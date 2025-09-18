@@ -3,11 +3,11 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { EditModulesModal } from "@/components/ui/EditModulesModal";
-import { AddLessonModal } from "./AddLessonModal";
+import { AddLessonModal } from "../components/ui/AddLessonModal";
 import { motion } from "framer-motion";
 import { ChevronRight, Settings, ChevronDown, Play, Pause, Edit2, Trash } from "lucide-react";
-import Navbar from "./Navbar";
-import { API_URL } from "../utils/api";
+import Navbar from "../components/ui/Navbar";
+import { API_URL } from "../components/utils/api";
 
 
 const TrilhaPage = () => {

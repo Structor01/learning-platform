@@ -11,10 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import Navbar from './Navbar';
-import CompanyFormModal from './CompanyFormModal';
-import DeleteConfirmModal from './DeleteConfirmModal';
-import { useNotification } from './Notification';
+import Navbar from '../components/ui/Navbar';
+import CompanyFormModal from '../components/ui/CompanyFormModal';
+import DeleteConfirmModal from '../components/ui/DeleteConfirmModal';
+import { useNotification } from '../components/ui/Notification';
 import companiesService from '@/services/companiesService';
 import { formatCNPJ } from '@/types/company';
 import {
