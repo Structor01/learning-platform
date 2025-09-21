@@ -57,7 +57,6 @@ const CRMPage = () => {
 
   //Modal do bot de entrevista
   const [isModalBotEntrevistaOpen, setIsModalBotEntrevistaOpen] = useState(false);
-  console.log("isModalBotEntrevistaOpen:", isModalBotEntrevistaOpen);
   const [selectedUserId, setSelectedUserId] = useState(null);
   
   // Estados para paginação
