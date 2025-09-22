@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import testService from "@/services/testService"; // Fallback para API antiga
 import discApiService from "@/services/discApi"; // Nova API DISC
 import { ArrowLeft, Calendar, Download } from "lucide-react";
+import { RelatorioCompleto } from '../components/ui/RelatorioCompleto';
 
 const DISCProfilePage = () => {
   const { user } = useAuth();
@@ -245,7 +246,8 @@ const DISCProfilePage = () => {
               percentage: 75,
               characteristics: getDiscCharacteristics(discType),
               strengths: getDiscStrengths(discType),
-              improvements: getDiscImprovements(discType)
+              improvements: getDiscImprovements(discType),
+              counts: testData.disc_scores || testData.result?.disc?.counts || testData.counts || { D: 0, I: 0, S: 0, C: 0 }
             };
 
             console.log('✅ DISCProfilePage - Perfil montado da nova API:', discProfile);
@@ -303,7 +305,8 @@ const DISCProfilePage = () => {
             percentage: 75, // Pode ser calculado se tiver dados
             characteristics: getDiscCharacteristics(discType),
             strengths: getDiscStrengths(discType),
-            improvements: getDiscImprovements(discType)
+            improvements: getDiscImprovements(discType),
+            counts: testData.disc_scores || testData.result?.disc?.counts || testData.counts || { D: 0, I: 0, S: 0, C: 0 }
           };
 
           console.log('Perfil DISC montado:', discProfile);
@@ -332,6 +335,37 @@ const DISCProfilePage = () => {
   const handleTestSelection = () => {
     const selectElement = document.getElementById('data_teste');
     const testId = selectElement.value;
+
+    function App() {
+      const usuario = {
+        name: "João Silva",
+        email: "joao@email.com",
+        cpf: "123.456.789-00",
+        // ... outros dados
+      };
+
+      const discResult = {
+        perfil: "D",
+        counts: { D: 8, I: 5, S: 7, C: 3 }
+      };
+
+      const conteudos = [
+        {
+          title: "CARACTERÍSTICAS GERAIS",
+          content: "<p>Você é uma pessoa dominante...</p>"
+        }
+      ];
+
+      return (
+        <RelatorioCompleto
+          usuario={usuario}
+          discResult={discResult}
+          conteudos={conteudos}
+          logoUrl="/sua-logo.svg"
+        />
+      );
+    }
+
 
     if (testId) {
       setSelectedTestId(parseInt(testId));
@@ -438,82 +472,64 @@ const DISCProfilePage = () => {
               <p className="text-gray-600">Visualize o relatório gerado com base no seu teste de perfil comportamental</p>
             </div>
 
-            {/* Todo o conteúdo do relatório (mantido do seu código original) */}
-            <div className="space-y-8 p-6">
-
-              {/* Header do Relatório */}
-              <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-8 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-3xl font-bold mb-2">RELATÓRIO AGROSKILLS</h1>
-                    <p className="text-emerald-100">METODOLOGIA DISC | ANÁLISE COMPORTAMENTAL</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-emerald-200 mb-1">Data do Relatório</div>
-                    <div className="text-lg font-semibold">{new Date().toLocaleDateString('pt-BR')}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Perfil Principal */}
-              <div className="p-8">
-                <h2 className="text-2xl font-bold mb-6">Seu Perfil DISC: {disc.name}</h2>
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-2xl">
-                      {disc.type}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-xl font-bold text-gray-900 mb-2">
-                        Perfil Comportamental: {disc.name}
-                      </h4>
-                      <p className="text-gray-700 leading-relaxed">
-                        {disc.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Características */}
-              <div className="p-8 bg-gray-50">
-                <h3 className="text-xl font-bold mb-6">Características Principais</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {disc.characteristics?.map((characteristic, index) => (
-                    <div key={index} className="bg-white p-4 rounded-lg border shadow-sm">
-                      <span className="text-gray-800 font-medium">{characteristic}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Pontos Fortes e Melhorias */}
-              <div className="grid md:grid-cols-2 gap-8 p-8">
-                <div>
-                  <h3 className="text-xl font-bold mb-6 text-green-700">Pontos Fortes</h3>
-                  <div className="space-y-3">
-                    {disc.strengths?.map((strength, index) => (
-                      <div key={index} className="flex items-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
-                        <span className="text-gray-800">{strength}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-bold mb-6 text-orange-700">Áreas de Desenvolvimento</h3>
-                  <div className="space-y-3">
-                    {disc.improvements?.map((improvement, index) => (
-                      <div key={index} className="flex items-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                        <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
-                        <span className="text-gray-800">{improvement}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
+            <div className="card">
+              <RelatorioCompleto
+                discResult={{
+                  perfil: disc.type,
+                  counts: disc.counts || { D: 0, I: 0, S: 0, C: 0 }
+                }}
+                conteudos={[
+                  {
+                    title: "CARACTERÍSTICAS GERAIS",
+                    content: `
+                      <p>${disc.description}</p>
+                      ${disc.characteristics ? `
+                        <h3>Características Principais:</h3>
+                        <ul>
+                          ${disc.characteristics.map(char => `<li>${char}</li>`).join('')}
+                        </ul>
+                      ` : ''}
+                    `
+                  },
+                  {
+                    title: "PONTOS FORTES",
+                    content: disc.strengths ? `
+                      <ul>
+                        ${disc.strengths.map(strength => `<li>${strength}</li>`).join('')}
+                      </ul>
+                    ` : '<p>Pontos fortes identificados através da análise DISC.</p>'
+                  },
+                  {
+                    title: "ÁREAS DE DESENVOLVIMENTO",
+                    content: disc.improvements ? `
+                      <ul>
+                        ${disc.improvements.map(improvement => `<li>${improvement}</li>`).join('')}
+                      </ul>
+                    ` : '<p>Áreas de desenvolvimento identificadas através da análise DISC.</p>'
+                  },
+                  {
+                    title: "PERFIL COMPORTAMENTAL",
+                    content: `
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td><strong>Tipo de Perfil</strong></td>
+                            <td>${disc.name} (${disc.type})</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Percentual Dominante</strong></td>
+                            <td>${disc.percentage}%</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Data do Relatório</strong></td>
+                            <td>${new Date().toLocaleDateString('pt-BR')}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    `
+                  }
+                ]}
+              />
             </div>
           </div>
         ) : (
