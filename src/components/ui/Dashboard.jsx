@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import testService from "@/services/testService";
+import discApiService from "@/services/discApi";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -160,9 +161,22 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       try {
         console.log("🔍 Dashboard - Buscando perfil DISC para usuário:", user.id);
 
-        // Tentar buscar testes psicológicos do usuário
+        // Primeiro tentar buscar usando a nova API DISC
+        try {
+          const discProfile = await discApiService.getUserDiscProfile(user.id);
+          if (discProfile) {
+            const convertedProfile = discApiService.convertApiDataToProfile(discProfile);
+            console.log("🔍 Dashboard - Perfil DISC encontrado na nova API:", convertedProfile);
+            setDiscProfile(convertedProfile);
+            return;
+          }
+        } catch (apiError) {
+          console.warn("⚠️ Dashboard - Nova API não disponível, tentando API antiga:", apiError);
+        }
+
+        // Fallback: Tentar buscar testes psicológicos do usuário (API antiga)
         const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 50);
-        console.log("🔍 Dashboard - Testes encontrados:", userTests);
+        console.log("🔍 Dashboard - Testes encontrados (API antiga):", userTests);
 
         if (userTests && userTests.length > 0) {
           // Encontrar o teste DISC/unified mais recente
@@ -306,8 +320,18 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         setTimeout(() => {
           const fetchDiscProfile = async () => {
             try {
+              // Tentar nova API primeiro
+              const discProfile = await discApiService.getUserDiscProfile(user.id);
+              if (discProfile) {
+                const convertedProfile = discApiService.convertApiDataToProfile(discProfile);
+                console.log("🔍 Dashboard - Recarregamento: Perfil DISC da nova API:", convertedProfile);
+                setDiscProfile(convertedProfile);
+                return;
+              }
+
+              // Fallback para API antiga
               const discResult = await testService.getUserDISCResult(user.id);
-              console.log("🔍 Dashboard - Recarregamento: Resultado DISC direto:", discResult);
+              console.log("🔍 Dashboard - Recarregamento: Resultado DISC da API antiga:", discResult);
 
               if (discResult && discResult.disc_scores) {
                 const discScores = typeof discResult.disc_scores === 'string'
