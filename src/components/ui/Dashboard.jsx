@@ -181,36 +181,84 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         if (userTests && userTests.length > 0) {
           // Encontrar o teste DISC/unified mais recente
           const discTest = userTests
-            .filter(test => (test.test_type === 'DISC' || test.test_type === 'unified') && test.status === 'completed')
+            .filter(test => {
+              const testType = test.test_type?.toLowerCase();
+              return (testType === 'disc' || testType === 'unified') && test.status === 'completed';
+            })
             .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))[0];
 
           console.log("🔍 Dashboard - Teste DISC filtrado:", discTest);
 
-          if (discTest && discTest.disc_scores) {
-            let discScores;
-            try {
-              discScores = typeof discTest.disc_scores === 'string'
-                ? JSON.parse(discTest.disc_scores)
-                : discTest.disc_scores;
-            } catch (parseError) {
-              console.warn("🔍 Dashboard - Erro ao parsear disc_scores:", parseError);
-              discScores = discTest.disc_scores;
+          if (discTest) {
+            console.log("🔍 Dashboard - Teste DISC encontrado:", discTest);
+
+            // Tentar extrair dados DISC de diferentes fontes
+            let discType = null;
+            let discCounts = null;
+
+            // 1. Verificar se tem disc_scores
+            if (discTest.disc_scores) {
+              let discScores;
+              try {
+                discScores = typeof discTest.disc_scores === 'string'
+                  ? JSON.parse(discTest.disc_scores)
+                  : discTest.disc_scores;
+              } catch (parseError) {
+                console.warn("🔍 Dashboard - Erro ao parsear disc_scores:", parseError);
+                discScores = discTest.disc_scores;
+              }
+
+              if (discScores && discScores.type) {
+                discType = discScores.type;
+                discCounts = discScores.counts || { D: 0, I: 0, S: 0, C: 0 };
+              }
             }
 
-            console.log("🔍 Dashboard - discScores parseados:", discScores);
+            // 2. Verificar se tem result.disc
+            if (!discType && discTest.result?.disc) {
+              const discResult = discTest.result.disc;
+              if (discResult.perfil) {
+                // Extrair tipo do perfil textual
+                const perfilLower = discResult.perfil.toLowerCase();
+                if (perfilLower.includes('dominante')) discType = 'D';
+                else if (perfilLower.includes('influente')) discType = 'I';
+                else if (perfilLower.includes('estável') || perfilLower.includes('estavel')) discType = 'S';
+                else if (perfilLower.includes('conforme') || perfilLower.includes('consciencioso')) discType = 'C';
+              }
+              discCounts = discResult.counts || { D: 0, I: 0, S: 0, C: 0 };
+            }
 
-            if (discScores && discScores.type) {
+            // 3. Verificar se tem perfil_disc direto
+            if (!discType && discTest.perfil_disc) {
+              const perfilLower = discTest.perfil_disc.toLowerCase();
+              if (perfilLower.includes('dominante')) discType = 'D';
+              else if (perfilLower.includes('influente')) discType = 'I';
+              else if (perfilLower.includes('estável') || perfilLower.includes('estavel')) discType = 'S';
+              else if (perfilLower.includes('conforme') || perfilLower.includes('consciencioso')) discType = 'C';
+            }
+
+            if (discType) {
+              // Calcular porcentagem baseada nos counts se disponível
+              let percentage = 75;
+              if (discCounts) {
+                const total = Object.values(discCounts).reduce((sum, val) => sum + val, 0);
+                if (total > 0) {
+                  percentage = Math.round((discCounts[discType] / total) * 100);
+                }
+              }
+
               const discProfile = {
-                type: discScores.type,
-                name: getDiscName(discScores.type),
-                description: discScores.description || getDiscDescription(discScores.type),
-                percentage: discScores.percentages ? discScores.percentages[discScores.type] : 75,
-                characteristics: discScores.characteristics || getDiscCharacteristics(discScores.type),
-                strengths: getDiscStrengths(discScores.type),
-                improvements: getDiscImprovements(discScores.type)
+                type: discType,
+                name: getDiscName(discType),
+                description: getDiscDescription(discType),
+                percentage: percentage,
+                characteristics: getDiscCharacteristics(discType),
+                strengths: getDiscStrengths(discType),
+                improvements: getDiscImprovements(discType),
+                counts: discCounts
               };
 
-              console.log("🔍 Dashboard - Perfil DISC montado:", discProfile);
+              console.log("🔍 Dashboard - Perfil DISC montado a partir de dados reais:", discProfile);
               setDiscProfile(discProfile);
               return;
             }
@@ -293,25 +341,18 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     const handleDiscTestCompleted = (e) => {
       console.log("🔍 Dashboard - Evento discTestCompleted recebido:", e.detail);
       if (e.detail && e.detail.userId === user?.id) {
-        // Usar os dados do evento diretamente se disponível
-        if (e.detail.discData) {
-          const discData = e.detail.discData;
-          const discProfile = {
-            type: discData.type,
-            name: getDiscName(discData.type),
-            description: discData.description || getDiscDescription(discData.type),
-            percentage: discData.percentages ? discData.percentages[discData.type] : 75,
-            characteristics: discData.characteristics || getDiscCharacteristics(discData.type),
-            strengths: getDiscStrengths(discData.type),
-            improvements: getDiscImprovements(discData.type)
-          };
+        // Limpar cache antigo
+        const cacheKey = `disc_completed_${user.id}`;
+        const profileCacheKey = `disc_profile_${user.id}`;
+        localStorage.removeItem(cacheKey);
+        localStorage.removeItem(profileCacheKey);
 
-          console.log("🔍 Dashboard - Perfil DISC atualizado via evento:", discProfile);
-          setDiscProfile(discProfile);
-        } else {
-          // Fallback: recarregar do servidor
+        console.log("🔍 Dashboard - Cache limpo, recarregando perfil com dados frescos");
+
+        // Forçar recarregamento com dados frescos da API
+        setTimeout(() => {
           reloadDiscProfile();
-        }
+        }, 1000); // Aguardar 1 segundo para garantir que o backend processou
       }
     };
 
@@ -329,28 +370,77 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 return;
               }
 
-              // Fallback para API antiga
-              const discResult = await testService.getUserDISCResult(user.id);
-              console.log("🔍 Dashboard - Recarregamento: Resultado DISC da API antiga:", discResult);
+              // Fallback para API antiga - buscar testes psicológicos mais recentes
+              const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 10);
+              console.log("🔍 Dashboard - Recarregamento: Testes encontrados:", userTests);
 
-              if (discResult && discResult.disc_scores) {
-                const discScores = typeof discResult.disc_scores === 'string'
-                  ? JSON.parse(discResult.disc_scores)
-                  : discResult.disc_scores;
+              if (userTests && userTests.length > 0) {
+                // Encontrar o teste DISC mais recente
+                const discTest = userTests
+                  .filter(test => {
+                    const testType = test.test_type?.toLowerCase();
+                    return (testType === 'disc' || testType === 'unified') && test.status === 'completed';
+                  })
+                  .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))[0];
 
-                if (discScores && discScores.type) {
-                  const discProfile = {
-                    type: discScores.type,
-                    name: getDiscName(discScores.type),
-                    description: discScores.description || getDiscDescription(discScores.type),
-                    percentage: discScores.percentages ? discScores.percentages[discScores.type] : 75,
-                    characteristics: discScores.characteristics || getDiscCharacteristics(discScores.type),
-                    strengths: getDiscStrengths(discScores.type),
-                    improvements: getDiscImprovements(discScores.type)
-                  };
+                if (discTest) {
+                  // Usar a mesma lógica de extração que usamos acima
+                  let discType = null;
+                  let discCounts = null;
 
-                  console.log("🔍 Dashboard - Perfil DISC recarregado:", discProfile);
-                  setDiscProfile(discProfile);
+                  // Verificar disc_scores
+                  if (discTest.disc_scores) {
+                    let discScores;
+                    try {
+                      discScores = typeof discTest.disc_scores === 'string'
+                        ? JSON.parse(discTest.disc_scores)
+                        : discTest.disc_scores;
+                    } catch (parseError) {
+                      discScores = discTest.disc_scores;
+                    }
+
+                    if (discScores && discScores.type) {
+                      discType = discScores.type;
+                      discCounts = discScores.counts || { D: 0, I: 0, S: 0, C: 0 };
+                    }
+                  }
+
+                  // Verificar result.disc
+                  if (!discType && discTest.result?.disc) {
+                    const discResult = discTest.result.disc;
+                    if (discResult.perfil) {
+                      const perfilLower = discResult.perfil.toLowerCase();
+                      if (perfilLower.includes('dominante')) discType = 'D';
+                      else if (perfilLower.includes('influente')) discType = 'I';
+                      else if (perfilLower.includes('estável') || perfilLower.includes('estavel')) discType = 'S';
+                      else if (perfilLower.includes('conforme') || perfilLower.includes('consciencioso')) discType = 'C';
+                    }
+                    discCounts = discResult.counts || { D: 0, I: 0, S: 0, C: 0 };
+                  }
+
+                  if (discType) {
+                    let percentage = 75;
+                    if (discCounts) {
+                      const total = Object.values(discCounts).reduce((sum, val) => sum + val, 0);
+                      if (total > 0) {
+                        percentage = Math.round((discCounts[discType] / total) * 100);
+                      }
+                    }
+
+                    const discProfile = {
+                      type: discType,
+                      name: getDiscName(discType),
+                      description: getDiscDescription(discType),
+                      percentage: percentage,
+                      characteristics: getDiscCharacteristics(discType),
+                      strengths: getDiscStrengths(discType),
+                      improvements: getDiscImprovements(discType),
+                      counts: discCounts
+                    };
+
+                    console.log("🔍 Dashboard - Perfil DISC recarregado com dados reais:", discProfile);
+                    setDiscProfile(discProfile);
+                  }
                 }
               }
             } catch (error) {

@@ -1,16 +1,44 @@
 // RelatorioCompleto.jsx
 import React from 'react';
 import '../../styles/report.css'
+import { InteligenciaEmocionalChart } from '../charts/InteligenciaEmocionalChart';
+import { LiderancaChart } from '../charts/LiderancaChart';
+import { BigFiveChart } from '../charts/BigFiveChart';
 
 export const RelatorioCompleto = ({
   usuario,
   discResult,
+  inteligenciaEmocionalResult,
+  liderancaResult,
+  bigFiveResult,
   conteudos,
   logoUrl = "/logo.svg"
 }) => {
 
   // Garantir que discResult.counts existe e tem valores válidos
   const counts = discResult?.counts || { D: 0, I: 0, S: 0, C: 0 };
+
+  // Usar dados de inteligência emocional calculados pelo backend
+  const ieScores = inteligenciaEmocionalResult?.scores || {
+    automotivacao: 0,
+    autoconsciencia: 0,
+    habilidadeSocial: 0,
+    empatia: 0,
+    autorregulacao: 0
+  };
+
+  // Usar media_geral calculada pelo backend
+  const mediaGeralIE = inteligenciaEmocionalResult?.media_geral || 0;
+
+  // Estrutura para facilitar uso nos componentes
+  const porcentagensIE = {
+    geral: mediaGeralIE,
+    automotivacao: ieScores.automotivacao || 0,
+    autoconsciencia: ieScores.autoconsciencia || 0,
+    habilidadeSocial: ieScores.habilidadeSocial || 0,
+    empatia: ieScores.empatia || 0,
+    autorregulacao: ieScores.autorregulacao || 0
+  };
 
   // Função para converter letra do perfil para nome completo
   const getPerfilNome = (letra) => {
@@ -83,7 +111,7 @@ export const RelatorioCompleto = ({
 
                   {/* Gráficos DISC */}
                   <div className="w-full">
-                    <p>Perfil: <b>{perfilCalculado.nome}</b> ({perfilCalculado.valor > 0 ? `${Math.round((perfilCalculado.valor / Object.values(counts).reduce((a,b) => a+b, 0)) * 100)}%` : '0%'})</p>
+                    <p>Perfil: <b>{perfilCalculado.nome}</b> ({perfilCalculado.valor > 0 ? `${Math.round((perfilCalculado.valor / Object.values(counts).reduce((a, b) => a + b, 0)) * 100)}%` : '0%'})</p>
                     <div className="w-full mt-2">
                       <div className="flex rounded-lg overflow-hidden shadow-sm">
                         {percentuais.map((item, index) => {
@@ -149,81 +177,13 @@ export const RelatorioCompleto = ({
               <div className="page">
                 <section id="autodiagnostico">
                   <h1>1. Autodiagnóstico</h1>
-                  <p>Olá {/*<b>{usuario.name}</b>, antes de começarmos a apresentar o resultado da */}
-                    sua avaliação de perfil comportamental, preparamos um quadro de Autodiagnóstico de carreira para que
-                    possa, ao final, realizar uma reflexão sobre o seu atual momento e os resultados apresentados neste
-                    relatório.</p>
-
-                  <table>
-                    <tbody>
-                      <tr>
-                        <td>Nome completo</td>
-                        {/* <td>{usuario.name}</td> */}
-                      </tr>
-                      <tr>
-                        <td>E-mail</td>
-                        {/* <td>{usuario.email}</td> */}
-                      </tr>
-                      {/* {usuario.cpf && ( */}
-                      <tr>
-                        <td>CPF</td>
-                        {/* <td>{usuario.cpf}</td> */}
-                      </tr>
-                      {/* )} */}
-                      {/* {usuario.birth_date && (
-                            <tr>
-                              <td>Data de nascimento</td>
-                              <td>{usuario.birth_date}</td>
-                            </tr>
-                          )}
-                          {usuario.phone && (
-                            <tr>
-                              <td>Telefone</td>
-                              <td>{usuario.phone}</td>
-                            </tr>
-                          )}
-                          {usuario.educational_background && (
-                            <tr>
-                              <td>Formação</td>
-                              <td>{usuario.educational_background}</td>
-                            </tr>
-                          )}
-                          {usuario.education_level && (
-                            <tr>
-                              <td>Escolaridade</td>
-                              <td>{usuario.education_level}</td>
-                            </tr>
-                          )}
-                          {usuario.acting_area && (
-                            <tr>
-                              <td>Área de atuação</td>
-                              <td>{usuario.acting_area}</td>
-                            </tr>
-                          )}
-                          {(usuario.city || usuario.state) && (
-                            <tr>
-                              <td>Cidade/estado</td>
-                              <td>{usuario.city}{usuario.city && usuario.state ? ', ' : ''}{usuario.state}</td>
-                            </tr>
-                          )}
-                          {usuario.current_company && (
-                            <tr>
-                              <td>Empresa</td>
-                              <td>{usuario.current_company}</td>
-                            </tr>
-                          )}
-                          {usuario.professional_challenge && (
-                            <tr>
-                              <td>Desafio profissional</td>
-                              <td>{usuario.professional_challenge}</td>
-                            </tr>
-                          )} */}
-                    </tbody>
-                  </table>
+                  <p>
+                    Olá, este relatório analisou o seu perfil comportamental a sua maneira de agir e interagir com o ambiente. Apresentaremos tendências e padrões de personalidade comuns ao seu perfil. Ao final do relatório, utilize este espaço para refletir sobre seu momento atual e os aprendizados obtidos.
+                  </p>
                 </section>
               </div>
 
-              {/* RELATÓRIO */}
+
               <div className="page">
                 <section id="relatorio-agroskills">
                   <h1>2. Relatório Agroskills</h1>
@@ -238,10 +198,6 @@ export const RelatorioCompleto = ({
                     <li>3. Estilo de Liderança;</li>
                     <li>4. Big 5.</li>
                   </ol>
-                  <p>
-                    Este relatório analisou o seu perfil comportamental {/* <b>{User.name}</b> */}
-                    a sua maneira de agir e interagir com o ambiente. Apresentaremos tendências e padrões de personalidade comuns ao seu perfil.
-                  </p>
                 </section>
               </div>
 
@@ -280,7 +236,7 @@ export const RelatorioCompleto = ({
                   <h1>4. DISC</h1>
 
                   {/* Puxar perfil do usuário */}
-                  <p>Perfil: <b>{perfilCalculado.nome}</b> ({perfilCalculado.valor > 0 ? `${Math.round((perfilCalculado.valor / Object.values(counts).reduce((a,b) => a+b, 0)) * 100)}%` : '0%'})</p>
+                  <p>Perfil: <b>{perfilCalculado.nome}</b> ({perfilCalculado.valor > 0 ? `${Math.round((perfilCalculado.valor / Object.values(counts).reduce((a, b) => a + b, 0)) * 100)}%` : '0%'})</p>
                   <div className="bar-chart">
                     <div className="legend">
                       {percentuais.map((item, index) => (
@@ -345,38 +301,38 @@ export const RelatorioCompleto = ({
                     Então vamos então ver o resultado do teste de Inteligência emocional?
                   </p>
                   <h2 class="before-chart">
-                    SUA INTELIGÊNCIA EMOCIONAL É: <strong>57%</strong>
+                    SUA INTELIGÊNCIA EMOCIONAL É: <strong>{porcentagensIE.geral}%</strong>
                   </h2>
                   <div className="chart-wrapper">
-                    <canvas className="inteligenciaEmocionalCanvas"></canvas>
+                    <InteligenciaEmocionalChart porcentagensIE={porcentagensIE} />
                   </div>
                   <div className="subsection" data-index="0">
-                    <h2>Automotivação — 63%</h2>
+                    <h2>Automotivação — {porcentagensIE.automotivacao}%</h2>
                     <p
                       className='text-justify'>Automotivação é a capacidade que você tem de buscar em você mesmo motivos ou estímulos para alcançar seus objetivos. Na prática, isso se traduz em um perfil que não tende a precisar de direcionamentos ou cobranças, sendo altamente consciente de seus objetivos, tarefas e as executa de forma motivada.
                     </p>
                   </div>
                   <div className="subsection">
-                    <h2>Autoconsciência — 68%</h2>
+                    <h2>Autoconsciência — {porcentagensIE.autoconsciencia}%</h2>
                     <p className='text-justify'>
                       Dessa maneira, autoconsciência emocional é um termo para denominar a busca por um conhecimento maior de si mesmo e por estar ciente da existência das nossas emoções, com o objetivo de compreender o que sentimos e vivenciamos no dia a dia.
                     </p>
                   </div>
                   <div className="subsection">
-                    <h2>Habilidade Social — 63%</h2>
+                    <h2>Habilidade Social — {porcentagensIE.habilidadeSocial}%</h2>
                     <p className='text-justify'>
                       O que são habilidades socioemocionais? São habilidades que,  ajudam nas interações sociais por meio do controle das emoções. São competências essenciais para a vida em sociedade, que permitem que as pessoas tenham interações mais saudáveis, com menos atritos e conflitos.
                     </p>
                   </div>
                   <div className="subsection">
-                    <h2>Empatia — 29%</h2>
+                    <h2>Empatia — {porcentagensIE.empatia}%</h2>
                     <p className='text-justify'>
                       A empatia emocional ou empatia afetiva é caracterizada por ser a capacidade de compartilhar dos mesmos sentimentos de outro indivíduo; isso ajuda a desenvolver melhor a conexão emocional com os outros
 
                     </p>
                   </div>
                   <div className="subsection">
-                    <h2>Autorregulação — 55%</h2>
+                    <h2>Autorregulação — {porcentagensIE.autorregulacao}%</h2>
                     <p className='text-justify'>
                       Autorregulação emocional ou regulação emocional refere-se a um processo dinâmico intrinsecamente ligado a esforços conscientes no controle dos comportamentos, dos sentimentos e das emoções para que algum objetivo seja alcançado.
                     </p>
@@ -389,7 +345,7 @@ export const RelatorioCompleto = ({
                 <section id="lideranca">
                   <h1>7. ESTILO DE LIDERANÇA</h1>
                   <div class="chart-wrapper">
-                    <canvas class="liderancaCanvas"></canvas>
+                    <LiderancaChart liderancaData={liderancaResult?.scores} />
                   </div>
                   <br />
                   <br />
@@ -442,7 +398,7 @@ export const RelatorioCompleto = ({
                     <br />
                   </p>
                   <div className="chart-wrapper">
-                    <canvas className="big5Canvas"></canvas>
+                    <BigFiveChart bigFiveData={bigFiveResult?.scores} />
                   </div>
                   <div className="subsection">
                     <h2>Extroversão — 42%</h2>
