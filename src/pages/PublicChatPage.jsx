@@ -81,19 +81,11 @@ const PublicChatPage = () => {
         // Determinar se é uma sessão existente (para mensagem de boas-vindas)
         let isReturningUser = sessionData && sessionData.id === guestSessionId;
         
-        // Enviar uma mensagem inicial "silenciosa" para o bot
-        // Isso faz com que o bot inicialize a conversa sem mostrar a mensagem no chat
-        try {
-          await botService.sendMessage(guestSessionId, "oi");
-        } catch (error) {
-          console.error("Erro ao inicializar bot:", error);
-        }
-        
         // Aguardar resposta do bot para mostrar como primeira mensagem
         try {
           setIsLoading(true);
           const initialResponse = await botService.sendMessage(guestSessionId, 
-            "Ola!");
+            "oi");
           
           // Adicionar resposta do bot como primeira mensagem
           const botMessage = {
@@ -104,6 +96,20 @@ const PublicChatPage = () => {
           };
           
           setMessages([botMessage]);
+          
+          // Verificar se há actionCommands na resposta inicial
+          if(initialResponse.actionCommands){
+            const sendCvCommand = initialResponse.actionCommands.find(cmd => cmd.name === 'send-cv');
+            const sendBooleanCommand = initialResponse.actionCommands.find(cmd => cmd.name === 'send-boolean');
+
+            if(sendCvCommand){
+              setActionCommand('send-cv');
+            }
+
+            if(sendBooleanCommand){
+              setActionCommand('send-boolean');
+            }
+          }
         } catch (error) {
           console.error("Erro ao obter saudação inicial:", error);
           
@@ -153,6 +159,8 @@ const PublicChatPage = () => {
     try {
       // Enviar mensagem para o bot (sem autenticação)
       const response = await botService.sendMessage(sessionId, content);
+
+      console.log('Resposta do bot:', response);
       
       // Adicionar resposta do bot
       const botMessage = {

@@ -82,7 +82,7 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
       try {
           setIsLoading(true);
           const initialResponse = await botService.sendMessage(guestSessionId, 
-            "Quem e voce?");
+            "Ola. Quem e voce?");
           
           // Adicionar resposta do bot como primeira mensagem
           const botMessage = {
@@ -287,6 +287,7 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
               onSendMessage={sendMessage}
               disabled={isLoading || isTyping}
               placeholder={isTyping ? "O assistente está digitando..." : "Digite sua resposta..."}
+              
             />
           )}
         </>
