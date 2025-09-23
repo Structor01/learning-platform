@@ -287,6 +287,7 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
               onSendMessage={sendMessage}
               disabled={isLoading || isTyping}
               placeholder={isTyping ? "O assistente está digitando..." : "Digite sua resposta..."}
+              
             />
           )}
         </>
