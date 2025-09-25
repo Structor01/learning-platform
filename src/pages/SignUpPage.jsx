@@ -139,8 +139,8 @@ const SignUpPage = () => {
                   type="button"
                   onClick={() => setUserType(USER_TYPES.CANDIDATE)}
                   className={`flex items-center justify-center p-3 rounded-lg border transition-all ${userType === USER_TYPES.CANDIDATE
-                      ? 'bg-white/20 border-white/40 text-white'
-                      : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10'
+                    ? 'bg-white/20 border-white/40 text-white'
+                    : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10'
                     }`}
                 >
                   <User className="mr-2 h-4 w-4" />
@@ -150,8 +150,8 @@ const SignUpPage = () => {
                   type="button"
                   onClick={() => setUserType(USER_TYPES.COMPANY)}
                   className={`flex items-center justify-center p-3 rounded-lg border transition-all ${userType === USER_TYPES.COMPANY
-                      ? 'bg-white/20 border-white/40 text-white'
-                      : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10'
+                    ? 'bg-white/20 border-white/40 text-white'
+                    : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10'
                     }`}
                 >
                   <Building2 className="mr-2 h-4 w-4" />
