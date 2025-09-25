@@ -25,6 +25,7 @@ import RecrutamentoPage from "./pages/RecrutamentoPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import CandidaturasAdmPage from "./pages/CandidaturasAdmPage";
+import CompanyDashboard from "./components/ui/CompanyDashboard";
 import { useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
 import axios from "axios";
@@ -265,6 +266,9 @@ export function Router() {
 
             {/* Página de dashboard, protegida por autenticação */}
             <Route path="/dashboard" element={<PrivateRoute><AppContent /></PrivateRoute>} />
+
+            {/* Dashboard da empresa */}
+            <Route path="/dashboard-empresa" element={<PrivateRoute><CompanyDashboard /></PrivateRoute>} />
 
             {/* Página da trilha */}
             <Route path="/trilha/:id" element={<PrivateRoute><TrilhaPage /></PrivateRoute>} />

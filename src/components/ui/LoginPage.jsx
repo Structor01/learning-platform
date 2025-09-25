@@ -32,7 +32,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
-    console.log("🔍 LoginPage useEffect disparado - user:", !!user, "accessToken:", !!accessToken, "step:", step);
+    console.log("🔍 Loginage useEffect disparado - user:", !!user, "accessToken:", !!accessToken, "step:", step);
     // REMOVIDO: navegação automática para dashboard, pois deve ser controlada pela função checkDISCCompletion
     // Deixar que a lógica de login e checkDISCCompletion controle a navegação
   }, [user, navigate, step, showDISCModal]);
@@ -72,17 +72,11 @@ const LoginPage = () => {
     try {
       const loggedUser = await login(trimmedEmail, trimmedPassword);
 
-      console.log("🔍 DEBUG - Usuário logado:", loggedUser);
-      console.log("🔍 DEBUG - userType:", loggedUser?.userType);
-
       // Identificação automática do tipo de usuário e redirecionamento
       const userType = loggedUser.userType || USER_TYPES.CANDIDATE;
 
-      console.log("🔍 DEBUG - Tipo determinado:", userType);
-      console.log("🔍 DEBUG - É empresa?", userType === USER_TYPES.COMPANY);
-
       if (userType === USER_TYPES.COMPANY) {
-        console.log("🔍 DEBUG - Redirecionando para dashboard-empresa");
+
         navigate("/dashboard-empresa");
       } else {
         console.log("🔍 DEBUG - Redirecionando para fluxo candidato");
@@ -176,11 +170,11 @@ const LoginPage = () => {
 
       if (!hasCompletedDISC) {
         // Usuário não completou o teste DISC, mostrar modal
-        console.log("🔍 Mostrando modal DISC");
+
         setShowDISCModal(true);
       } else {
         // Usuário já completou, ir direto para dashboard
-        console.log("🔍 DISC já completado, navegando para dashboard");
+
         navigate("/dashboard");
       }
     } catch (error) {
@@ -188,12 +182,12 @@ const LoginPage = () => {
 
       // Tentar método de fallback usando API antiga
       try {
-        console.log("🔍 Tentando método de fallback...");
+
         const discResult = await testService.checkDISCCompletion(currentUser.id);
-        console.log("🔍 Resultado fallback:", discResult);
+
 
         if (discResult && discResult.completed) {
-          console.log("🔍 DISC completado via fallback, navegando para dashboard");
+
 
           // Atualizar cache
           const cacheKey = `disc_completed_${currentUser.id}`;
@@ -202,20 +196,20 @@ const LoginPage = () => {
 
           navigate("/dashboard");
         } else {
-          console.log("🔍 DISC não completado via fallback, mostrando modal");
+
           setShowDISCModal(true);
         }
       } catch (fallbackError) {
-        console.error("🔍 Erro no fallback:", fallbackError);
+
         // Em caso de erro completo, mostrar modal (melhor experiência)
-        console.log("🔍 Erro total, mostrando modal por segurança");
+
         setShowDISCModal(true);
       }
     }
   };
 
   const handleDISCModalClose = () => {
-    console.log("🔍 handleDISCModalClose chamado");
+
     setShowDISCModal(false);
     // Navegar para dashboard após fechar modal
     navigate("/dashboard", { replace: true });
