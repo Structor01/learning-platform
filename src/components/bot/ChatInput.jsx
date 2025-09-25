@@ -106,7 +106,7 @@ const ChatInput = forwardRef(({
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={actionCommand === 'send-cv' 
-              ? "Digite seu nome completo..." 
+              ? "Anexe seu CV ou digite sua mensagem..." 
               : actionCommand === 'send-boolean'
               ? "Use os botões Sim/Não ou digite sua resposta..."
               : placeholder}
@@ -154,41 +154,7 @@ const ChatInput = forwardRef(({
               )}
             </button>
           </div>
-        ) : actionCommand === 'send-boolean' ? (
-          // Botões Sim/Não quando actionCommand é 'send-boolean'
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => handleBooleanResponse('Sim')}
-              disabled={disabled || isLoading}
-              className="flex-shrink-0 bg-green-600 text-white rounded-lg px-4 py-3 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <Check className="w-5 h-5" />
-                  <span>Sim</span>
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => handleBooleanResponse('Não')}
-              disabled={disabled || isLoading}
-              className="flex-shrink-0 bg-red-600 text-white rounded-lg px-4 py-3 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <X className="w-5 h-5" />
-                  <span>Não</span>
-                </>
-              )}
-            </button>
-          </div>
-        ) : (
+        ): (
           // Botão padrão para enviar mensagem
           <button
             type="submit"
