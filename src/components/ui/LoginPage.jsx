@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { USER_TYPES } from "@/types/userTypes";
 import DISCIncentiveModal from "./DISCIncentiveModal";
 import testService from "@/services/testService";
 
@@ -91,7 +92,24 @@ const LoginPage = () => {
     setErrorMsg("");
 
     try {
-      const emailExists = await checkEmailExists(trimmedEmail);
+      const loggedUser = await login(email, password);
+
+      console.log("🔍 DEBUG - Usuário logado:", loggedUser);
+      console.log("🔍 DEBUG - userType:", loggedUser?.userType);
+
+      // Identificação automática do tipo de usuário e redirecionamento
+      const userType = loggedUser.userType || USER_TYPES.CANDIDATE;
+
+      console.log("🔍 DEBUG - Tipo determinado:", userType);
+      console.log("🔍 DEBUG - É empresa?", userType === USER_TYPES.COMPANY);
+
+      if (userType === USER_TYPES.COMPANY) {
+        console.log("🔍 DEBUG - Redirecionando para dashboard-empresa");
+        navigate("/dashboard-empresa");
+      } else {
+        console.log("🔍 DEBUG - Redirecionando para fluxo candidato");
+        await checkDISCCompletion();
+      }
 
       if (emailExists) {
         localStorage.setItem('email', trimmedEmail);
@@ -155,7 +173,7 @@ const LoginPage = () => {
 
   const checkDISCCompletion = async () => {
     console.log("🔍 checkDISCCompletion chamado");
-    
+
     // Aguardar o user estar disponível
     let currentUser = user;
     if (!currentUser?.id) {
@@ -169,10 +187,10 @@ const LoginPage = () => {
         }
       }
     }
-    
+
     console.log("🔍 user final:", currentUser);
     console.log("🔍 user.id final:", currentUser?.id);
-    
+
     try {
       if (!currentUser?.id) {
         console.log("🔍 Usuário sem ID, navegando para dashboard");
@@ -187,12 +205,12 @@ const LoginPage = () => {
       const cacheKey = `disc_completed_${currentUser.id}`;
       const cachedResult = localStorage.getItem(cacheKey);
       const cacheExpiry = localStorage.getItem(`${cacheKey}_expiry`);
-      
+
       // Se tem cache válido (expira em 1 hora)
       if (cachedResult && cacheExpiry && Date.now() < parseInt(cacheExpiry)) {
         const isCompleted = cachedResult === 'true';
         console.log("🔍 Usando cache - DISC completado:", isCompleted);
-        
+
         if (isCompleted) {
           navigate("/dashboard");
           return;
@@ -204,24 +222,24 @@ const LoginPage = () => {
 
       // Verificar se usuário já completou teste DISC
       console.log("🔍 Verificando testes do usuário ID:", currentUser.id);
-      
+
       // Buscar testes psicológicos do usuário
       const userTests = await testService.getUserPsychologicalTests(currentUser.id, 'completed', 50);
       console.log("🔍 Testes encontrados:", userTests);
-      
+
       // Verificar se há algum teste DISC ou unified completado
-      const hasCompletedDISC = userTests && userTests.length > 0 && 
-        userTests.some(test => 
-          (test.test_type === 'DISC' || test.test_type === 'unified') && 
+      const hasCompletedDISC = userTests && userTests.length > 0 &&
+        userTests.some(test =>
+          (test.test_type === 'DISC' || test.test_type === 'unified') &&
           test.status === 'completed'
         );
 
       console.log("🔍 hasCompletedDISC:", hasCompletedDISC);
-      
+
       // Salvar no cache (expira em 1 hora)
       localStorage.setItem(cacheKey, hasCompletedDISC.toString());
       localStorage.setItem(`${cacheKey}_expiry`, (Date.now() + 3600000).toString());
-      
+
       if (!hasCompletedDISC) {
         // Usuário não completou o teste DISC, mostrar modal
         console.log("🔍 Mostrando modal DISC");
@@ -233,21 +251,21 @@ const LoginPage = () => {
       }
     } catch (error) {
       console.error("🔍 Erro ao verificar teste DISC:", error);
-      
+
       // Tentar método de fallback usando API antiga
       try {
         console.log("🔍 Tentando método de fallback...");
         const discResult = await testService.checkDISCCompletion(currentUser.id);
         console.log("🔍 Resultado fallback:", discResult);
-        
+
         if (discResult && discResult.completed) {
           console.log("🔍 DISC completado via fallback, navegando para dashboard");
-          
+
           // Atualizar cache
           const cacheKey = `disc_completed_${currentUser.id}`;
           localStorage.setItem(cacheKey, 'true');
           localStorage.setItem(`${cacheKey}_expiry`, (Date.now() + 3600000).toString());
-          
+
           navigate("/dashboard");
         } else {
           console.log("🔍 DISC não completado via fallback, mostrando modal");

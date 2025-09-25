@@ -1,5 +1,6 @@
 // src/contexts/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
+import { USER_TYPES, validateUserType } from "../types/userTypes";
 
 const AuthContext = createContext();
 
@@ -16,10 +17,28 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
-  const isAuthenticated = !!user;
+  const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "https://learning-platform-backend-2x39.onrender.com";
 
-  // Inicialização do contexto
+  const isAuthenticated = !!user && !!accessToken;
+
+  // Helper para limpar dados grandes antes de salvar no sessionStorage
+  const cleanUserForStorage = (userData) => {
+    return {
+      ...userData,
+      // Converter Buffers/objetos grandes em booleans (mantém informação de existência)
+      curriculo_url: userData?.curriculo_url ? true : null,
+      curriculoUrl: userData?.curriculoUrl ? true : null,
+      // Manter campos string pequenos importantes
+      linkedin: userData?.linkedin || null,
+      // Remover outros campos grandes se existirem
+      password: undefined, // Nunca salvar senha
+      resetToken: undefined, // Nunca salvar tokens de reset
+    };
+  };
+
+  // Carrega usuário do sessionStorage ao iniciar
   useEffect(() => {
     initializeAuth();
   }, []);
@@ -57,10 +76,10 @@ export const AuthProvider = ({ children }) => {
   const saveAuthData = (userData, accessToken, refreshToken) => {
     setUser(userData);
     setAccessToken(accessToken);
-    
+
     localStorage.setItem("user", JSON.stringify(userData));
     localStorage.setItem("accessToken", accessToken);
-    
+
     if (refreshToken) {
       localStorage.setItem("refreshToken", refreshToken);
     }
@@ -68,7 +87,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     setIsLoading(true);
-    
+
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -82,9 +101,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      
+
       saveAuthData(data.user, data.access_token, data.refresh_token);
-      
+
       return data.user;
     } catch (error) {
       const errorMessage = error.message || "Erro inesperado no login";
@@ -96,7 +115,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async ({ name, email, password, cpf }) => {
     setIsLoading(true);
-    
+
     try {
       const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: "POST",
@@ -110,9 +129,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      
+
       saveAuthData(data.user, data.access_token, data.refresh_token);
-      
+
       return data.user;
     } catch (error) {
       throw new Error(error.message || "Erro inesperado no cadastro");
@@ -185,15 +204,13 @@ export const AuthProvider = ({ children }) => {
 
     const updatedUser = {
       ...user,
-      subscription: {
-        ...user.subscription,
-        ...subscriptionData,
-      },
+      subscription: subscriptionData,
     };
-    
+
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
+
 
   const logout = () => {
     clearAuthData();
@@ -214,6 +231,12 @@ export const AuthProvider = ({ children }) => {
     updateSubscription,
     hasActiveSubscription,
     canAccessContent,
+    isAuthenticated,
+    updateUser,
+    getUserType,
+    isCompany,
+    isCandidate,
+    USER_TYPES,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, User, LogOut, Settings, Briefcase, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { USER_TYPES } from "@/types/userTypes";
+// REMOVIDO: import MinhasCandidaturasPage - não estava sendo usado
 
 const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, getUserType, isCandidate } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -103,142 +105,134 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
 
           {/* User Menu & Ações */}
           <div className="flex items-center space-x-4">
-            {/* Botão Hambúrguer - Só em Mobile */}
-            <Button
-              onClick={toggleMobileMenu}
-              variant="ghost"
-              className="!flex md:!hidden p-2"
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </Button>
-
-            {/* Links de Navegação - Desktop */}
-            <div className="items-center space-x-4" style={{ display: window.innerWidth >= 768 ? 'flex' : 'none' }}>
-
-              <a href="/dashboard" className="text-gray-300 hover:text-white transition-colors text-sm">
-                Dashboard
-              </a>
-
-              <a href="/Vagas" className="text-gray-300 hover:text-white transition-colors text-sm">
-                Vagas
-              </a>
-
-              <a
-                href="/meus-interesses"
-                className="text-gray-300 hover:text-white transition-colors text-sm"
-              >
-                Meus interesses
-              </a>
-              <a
-                href="/entrevista-simulada"
-                className="text-gray-300 hover:text-white transition-colors text-sm"
-              >
-                Treinamento de Entrevista
-              </a>
-
-              {/* Menu Administrador */}
-              {(userData.email === "matheuslucasdesouza22@gmail.com" || userData.email === "artfbgyn@gmail.com" || userData.email === "gabrielacavalcantipereira@gmail.com") && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="text-gray-300 hover:text-black transition-colors text-sm px-3 py-2"
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      Administrador
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-48" align="start">
-                    <DropdownMenuItem asChild>
-                      <a href="/crm" className="flex items-center w-full">
-                        <span className="mr-2">📊</span>
-                        CRM - Gestão de Leads
-                      </a>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <a
-                        href="/recrutamento"
-                        className="flex items-center w-full"
-                      >
-                        <span className="mr-2">👥</span>
-                        Recrutamento LinkedIn
-                      </a>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <a href="/candidaturas" className="flex items-center w-full">
-                        <span className="mr-2">📚</span>
-                        Candidaturas
-                      </a>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <a href="/empresas" className="flex items-center w-full">
-                        <span className="mr-2">🏢</span>
-                        Gestão de Empresas
-                      </a>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-
-            {/* DISC Profile Badge - Desktop */}
-            <div className="hidden md:flex items-center space-x-2">
-              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">
-                  {predominant.charAt(0)}
-                </span>
-              </div>
-              <span className="text-sm text-gray-300">{predominant}</span>
-            </div>
-
-            {/* User Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative h-8 w-8 rounded-full"
+            {/* Links de Navegação - Apenas para candidatos */}
+            {isCandidate() && (
+              <div className="md:flex items-center space-x-4">
+                <a
+                  href="/dashboard"
+                  className="text-gray-300 hover:text-white transition-colors text-sm"
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={userData.profile_image || userData.userLegacy?.image || "/placeholder-avatar.jpg"}
-                      alt={userData.name}
-                    />
-                    <AvatarFallback className="bg-gray-600 text-white">
-                      {userData?.name?.split(" ")
+                  Dashboard
+                </a>
+
+                <a
+                  href="/Vagas"
+                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                >
+                  Vagas
+                </a>
+
+                <a
+                  href="/meus-interesses"
+                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                >
+                  Meus interesses
+                </a>
+              </div>
+            )}
+
+            {/* Menu Administrador */}
+            {userData.email === "kauanytorres19@gmail.com" && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="text-gray-300 hover:text-black transition-colors text-sm px-3 py-2"
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    Administrador
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48" align="start">
+                  <DropdownMenuItem asChild>
+                    <a href="/crm" className="flex items-center w-full">
+                      <span className="mr-2">📊</span>
+                      CRM - Gestão de Leads
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a
+                      href="/recrutamento"
+                      className="flex items-center w-full"
+                    >
+                      <span className="mr-2">👥</span>
+                      Recrutamento LinkedIn
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="/candidaturas" className="flex items-center w-full">
+                      <span className="mr-2">📚</span>
+                      Candidaturas
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <a href="/empresas" className="flex items-center w-full">
+                      <span className="mr-2">🏢</span>
+                      Gestão de Empresas
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+
+          {/* DISC Profile Badge */}
+          <div className="hidden md:flex items-center space-x-2">
+            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs font-bold">
+                {predominant.charAt(0)}
+              </span>
+            </div>
+            <span className="text-sm text-gray-300">{predominant}</span>
+          </div>
+
+          {/* User Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="relative h-8 w-8 rounded-full"
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage
+                    src="/placeholder-avatar.jpg"
+                    alt={userData.name}
+                  />
+                  {/* <AvatarFallback className="bg-gray-600 text-white">
+                      {userData.name
+                        .split(" ")
                         .map((n) => n[0])
                         .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{userData.name}</p>
-                    <p className="w-[200px] truncate text-sm text-muted-foreground">
-                      {userData.email}
-                    </p>
-                  </div>
+                    </AvatarFallback> */}
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <div className="flex items-center justify-start gap-2 p-2">
+                <div className="flex flex-col space-y-1 leading-none">
+                  <p className="font-medium">{userData.name}</p>
+                  <p className="w-[200px] truncate text-sm text-muted-foreground">
+                    {userData.email}
+                  </p>
                 </div>
-                <DropdownMenuItem onClick={handleProfileClick}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Perfil</span>
-                </DropdownMenuItem>
+              </div>
+              <DropdownMenuItem onClick={handleProfileClick}>
+                <User className="mr-2 h-4 w-4" />
+                <span>Perfil</span>
+              </DropdownMenuItem>
+              {/* Item de candidaturas apenas para candidatos */}
+              {isCandidate() && (
                 <DropdownMenuItem onClick={handleCandidaturasClick}>
                   <Briefcase className="mr-2 h-4 w-4" />
                   <span>Candidaturas</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sair</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              )}
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sair</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Menu Mobile - Dropdown */}
@@ -343,7 +337,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
           </div>
         )}
       </div>
-    </nav>
+    </nav >
   );
 };
 
