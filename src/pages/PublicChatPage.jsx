@@ -17,7 +17,6 @@ const PublicChatPage = () => {
   const chatInputRef = useRef(null);
 
 
-  console.log('Comando de ação atual:', actionCommand);
 
   // Função para rolar para o final da conversa
   const scrollToBottom = () => {
@@ -87,10 +86,20 @@ const PublicChatPage = () => {
           const initialResponse = await botService.sendMessage(guestSessionId, 
             "oi");
           
+          // Tentar fazer parse do JSON que vem no campo message
+          let parsedMessage;
+          try {
+            parsedMessage = JSON.parse(initialResponse.message);
+          } catch {
+            // Se não for JSON válido, usar como string normal
+            parsedMessage = { pergunta: initialResponse.message };
+          }
+          
           // Adicionar resposta do bot como primeira mensagem
           const botMessage = {
             id: Date.now(),
-            content: initialResponse.message,
+            content: parsedMessage.pergunta || parsedMessage.message || initialResponse.message,
+            options: parsedMessage.opcoes || null,
             isBot: true,
             timestamp: new Date()
           };
@@ -162,10 +171,20 @@ const PublicChatPage = () => {
 
       console.log('Resposta do bot:', response);
       
+      // Tentar fazer parse do JSON que vem no campo message
+      let parsedMessage;
+      try {
+        parsedMessage = JSON.parse(response.message);
+      } catch {
+        // Se não for JSON válido, usar como string normal
+        parsedMessage = { pergunta: response.message };
+      }
+      
       // Adicionar resposta do bot
       const botMessage = {
         id: Date.now() + 1,
-        content: response.message,
+        content: parsedMessage.pergunta || parsedMessage.message || response.message,
+        options: parsedMessage.opcoes || null,
         isBot: true,
         timestamp: new Date()
       };
@@ -200,6 +219,11 @@ const PublicChatPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleOptionSelect = async (selectedOption) => {
+    // Enviar a opção selecionada como uma mensagem normal
+    await handleSendMessage(selectedOption);
   };
 
   const handleFileUpload = async (file) => {
@@ -332,6 +356,9 @@ const PublicChatPage = () => {
                       message={message.content}
                       isBot={message.isBot}
                       timestamp={message.timestamp}
+                      options={message.options}
+                      onSelectOption={handleOptionSelect}
+                      disabled={isLoading}
                     />
                   ))}
                   

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Bot, User } from 'lucide-react';
+import OptionsButtons from './OptionsButtons';
 
-const MessageBubble = ({ message, isBot, timestamp, isTyping = false }) => {
+const MessageBubble = ({ message, isBot, timestamp, options, onSelectOption, disabled = false, isTyping = false }) => {
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
@@ -47,7 +48,15 @@ const MessageBubble = ({ message, isBot, timestamp, isTyping = false }) => {
             : 'bg-blue-600 text-white'
         }`}>
           <p dangerouslySetInnerHTML={{__html: message}} className="text-sm leading-relaxed whitespace-pre-wrap"/>
-
+          
+          {/* Adicionar opções apenas para mensagens do bot */}
+          {isBot && options && (
+            <OptionsButtons 
+              options={options}
+              onSelectOption={onSelectOption}
+              disabled={disabled}
+            />
+          )}
         </div>
         
         {timestamp && (
