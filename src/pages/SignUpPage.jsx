@@ -46,12 +46,14 @@ const SignUpPage = () => {
     setErrorMsg("");
     setSuccessMsg(""); // Limpa mensagem de sucesso anterior
 
-    // Validação simples de CPF (somente tamanho de 11 dígitos)
-    const cpfDigits = cpf.replace(/\D/g, "");
-    if (cpfDigits.length !== 11) {
-      setIsLoading(false);
-      setErrorMsg("CPF inválido. Informe 11 dígitos.");
-      return;
+    // Validação de CPF apenas para candidatos
+    if (userType === USER_TYPES.CANDIDATE) {
+      const cpfDigits = cpf.replace(/\D/g, "");
+      if (cpfDigits.length !== 11) {
+        setIsLoading(false);
+        setErrorMsg("CPF inválido. Informe 11 dígitos.");
+        return;
+      }
     }
 
     try {
@@ -82,6 +84,8 @@ const SignUpPage = () => {
       if (userType === USER_TYPES.COMPANY) {
         signupData.companyName = companyName;
         signupData.cnpj = cnpj.replace(/[^\d]/g, ''); // Remove formatação
+      } else if (userType === USER_TYPES.CANDIDATE) {
+        signupData.cpf = cpf.replace(/\D/g, ''); // Remove formatação do CPF
       }
 
       await signup(signupData);
@@ -93,6 +97,7 @@ const SignUpPage = () => {
       setPassword("");
       setCompanyName("");
       setCnpj("");
+      setCpf("");
 
       // Redirecionar para login após 2 segundos
       setTimeout(() => {
@@ -210,18 +215,21 @@ const SignUpPage = () => {
               </>
             )}
 
-            <div>
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder="CPF"
-                value={cpf}
-                onChange={(e) => setCpf(formatCPF(e.target.value))}
-                maxLength={14} // 000.000.000-00
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                required
-              />
-            </div>
+            {/* Campo CPF apenas para candidatos */}
+            {userType === USER_TYPES.CANDIDATE && (
+              <div>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="CPF"
+                  value={cpf}
+                  onChange={(e) => setCpf(formatCPF(e.target.value))}
+                  maxLength={14} // 000.000.000-00
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                  required
+                />
+              </div>
+            )}
 
             <div className="relative">
               <Input

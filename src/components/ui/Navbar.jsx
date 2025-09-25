@@ -12,13 +12,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, User, LogOut, Settings, Briefcase, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { USER_TYPES } from "@/types/userTypes";
 
 const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
-  const { user, logout, isAuthenticated, getUserType, isCandidate } = useAuth();
+  const { user, logout, isAuthenticated, getUserType, isCandidate, isCompany } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Debug logs
+  console.log("🔍 NAVBAR - user:", user);
+  console.log("🔍 NAVBAR - getUserType():", getUserType());
+  console.log("🔍 NAVBAR - isCompany():", isCompany());
+  console.log("🔍 NAVBAR - isCandidate():", isCandidate());
 
   // Dados padrão para quando user for undefined
   const userData = user || {
@@ -82,120 +87,145 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
             </span>
           </button>
 
-          {/* Search Bar - Esconde em mobile muito pequeno */}
-          <div className="flex-1 max-w-md mx-8 hidden sm:block">
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                type="text"
-                placeholder="Buscar cursos, mentores... "
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-800 border-gray-700 text-white placeholder-gray-400 rounded-lg focus:border-white focus:ring-white"
-              />
-            </form>
-          </div>
-
-          {/* Navigation Links - Desktop */}
-          <div className=" items-center space-x-6">
-            <a
-              href="/dashboard"
-              className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
-            >
-              Dashboard
-            </a>
-            <a
-              href="/vagas"
-              className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
-            >
-              Vagas
-            </a>
-            <a
-              href="/meus-interesses"
-              className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
-            >
-              Meus interesses
-            </a>
-            <a
-              href="/entrevista-simulada"
-              className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
-            >
-              Entrevistas
-            </a>
-            <a
-              href="/trilha"
-              className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
-            >
-              Trilhas
-            </a>
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
+          <div className="flex items-center space-x-4">
+            {/* Botão Hambúrguer - Só em Mobile */}
             <Button
-              variant="ghost"
-              size="sm"
               onClick={toggleMobileMenu}
-              className="text-gray-300 hover:text-white"
+              variant="ghost"
+              className="!flex md:!hidden p-2"
             >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </Button>
-          </div>
 
-          {/* DISC Profile Badge */}
-          <div className="hidden md:flex items-center space-x-2">
-            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">
-                {predominant.charAt(0)}
-              </span>
+            {/* Search Bar - Esconde em mobile muito pequeno */}
+            <div className="flex-1 max-w-md mx-8 hidden sm:block">
+              <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="Buscar cursos, mentores... "
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-800 border-gray-700 text-white placeholder-gray-400 rounded-lg focus:border-white focus:ring-white"
+                />
+              </form>
             </div>
-            <span className="text-sm text-gray-300">{predominant}</span>
-          </div>
 
-          {/* User Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative h-8 w-8 rounded-full"
+            {/* Navigation Links - Desktop */}
+            <div className="items-center space-x-4" style={{ display: window.innerWidth >= 768 ? 'flex' : 'none' }}>
+              <a
+                href="/dashboard"
+                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
               >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage
-                    src="/placeholder-avatar.jpg"
-                    alt={userData.name}
-                  />
-                  <AvatarFallback className="bg-gray-600 text-white">
-                    {userData.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <div className="flex items-center justify-start gap-2 p-2">
-                <div className="flex flex-col space-y-1 leading-none">
-                  <p className="font-medium">{userData.name}</p>
-                  <p className="w-[200px] truncate text-sm text-muted-foreground">
-                    {userData.email}
-                  </p>
-                </div>
+                Dashboard
+              </a>
+
+              {isCompany() ? (
+                <>
+                  <a
+                    href="/minhas-vagas"
+                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Minhas Vagas
+                  </a>
+                  <a
+                    href="/candidatos"
+                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Candidatos
+                  </a>
+                  <a
+                    href="/publicar-vaga"
+                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Publicar Vaga
+                  </a>
+                </>
+              ) : (
+                <>
+                  <a
+                    href="/vagas"
+                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Vagas
+                  </a>
+                  <a
+                    href="/meus-interesses"
+                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Meus interesses
+                  </a>
+                  <a
+                    href="/entrevista-simulada"
+                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Entrevistas Simuladas
+                  </a>
+                </>
+              )}
+            </div>
+
+
+
+            {/* DISC Profile Badge */}
+            <div className="hidden md:flex items-center space-x-2">
+              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">
+                  {predominant.charAt(0)}
+                </span>
               </div>
-              <DropdownMenuItem onClick={handleProfileClick}>
-                <User className="mr-2 h-4 w-4" />
-                <span>Perfil</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleCandidaturasClick}>
-                <Briefcase className="mr-2 h-4 w-4" />
-                <span>Candidaturas</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sair</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <span className="text-sm text-gray-300">{predominant}</span>
+            </div>
+
+            {/* User Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative h-8 w-8 rounded-full"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src="/placeholder-avatar.jpg"
+                      alt={userData.name}
+                    />
+                    <AvatarFallback className="bg-gray-600 text-white">
+                      {userData.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium">{userData.name}</p>
+                    <p className="w-[200px] truncate text-sm text-muted-foreground">
+                      {userData.email}
+                    </p>
+                  </div>
+                </div>
+                <DropdownMenuItem onClick={handleProfileClick}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Perfil</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCandidaturasClick}>
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  <span>Candidaturas</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Menu Mobile - Dropdown */}
@@ -209,34 +239,56 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
               >
                 Dashboard
               </a>
-              <a
-                href="/vagas"
-                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Vagas
-              </a>
-              <a
-                href="/meus-interesses"
-                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Meus interesses
-              </a>
-              <a
-                href="/entrevista-simulada"
-                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Entrevistas
-              </a>
-              <a
-                href="/trilha"
-                className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Trilhas
-              </a>
+
+              {isCompany() ? (
+                <>
+                  <a
+                    href="/minhas-vagas"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Minhas Vagas
+                  </a>
+                  <a
+                    href="/candidatos"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Candidatos
+                  </a>
+                  <a
+                    href="/publicar-vaga"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Publicar Vaga
+                  </a>
+                </>
+              ) : (
+                <>
+                  <a
+                    href="/vagas"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Vagas
+                  </a>
+                  <a
+                    href="/meus-interesses"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Meus interesses
+                  </a>
+                  <a
+                    href="/entrevista-simulada"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Entrevistas Simuladas
+                  </a>
+                </>
+              )}
             </div>
           </div>
         )}

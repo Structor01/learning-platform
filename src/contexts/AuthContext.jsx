@@ -101,6 +101,8 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
+      console.log("🔍 Resposta do login:", data);
+      console.log("🔍 User retornado:", data.user);
 
       saveAuthData(data.user, data.access_token, data.refresh_token);
 
@@ -113,14 +115,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async ({ name, email, password, cpf }) => {
+  const signup = async (signupData) => {
     setIsLoading(true);
 
     try {
+      console.log("🔍 Dados sendo enviados para signup:", signupData);
+
       const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, cpf }),
+        body: JSON.stringify(signupData),
       });
 
       if (!response.ok) {
