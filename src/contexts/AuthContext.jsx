@@ -219,6 +219,10 @@ export const AuthProvider = ({ children }) => {
   const hasActiveSubscription = () => user?.subscription?.status === "active";
   const canAccessContent = () => hasActiveSubscription();
 
+  const getUserType = () => user?.userType || user?.type || null;
+  const isCompany = () => getUserType() === USER_TYPES.COMPANY;
+  const isCandidate = () => getUserType() === USER_TYPES.CANDIDATE;
+
   const value = {
     user,
     accessToken,
@@ -231,8 +235,6 @@ export const AuthProvider = ({ children }) => {
     updateSubscription,
     hasActiveSubscription,
     canAccessContent,
-    isAuthenticated,
-    updateUser,
     getUserType,
     isCompany,
     isCandidate,

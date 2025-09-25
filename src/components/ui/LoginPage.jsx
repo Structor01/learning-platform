@@ -37,46 +37,14 @@ const LoginPage = () => {
     // Deixar que a lógica de login e checkDISCCompletion controle a navegação
   }, [user, navigate, step, showDISCModal]);
 
-  // Função para verificar se o email existe no banco
-  const checkEmailExists = async (emailToCheck) => {
-    if (!emailToCheck || typeof emailToCheck !== 'string') {
-      throw new Error('Email inválido fornecido');
-    }
 
-    const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-    const url = `${API_URL}/api/auth/check-email`;
-
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: emailToCheck.toLowerCase() }),
-      });
-
-      if (!response.ok) {
-        // Se der 404, significa que a rota não existe, então assumimos que não existe verificação
-        if (response.status === 404) {
-          return true; // Permite prosseguir para tentar fazer login
-        }
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.exists;
-    } catch (error) {
-      console.error("Erro ao verificar email:", error);
-      // Em caso de erro de conexão, permitir prosseguir
-      return true;
-    }
-  };
-
-
-  const handleEmailSubmit = async (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
 
     const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    // Validações
     if (!trimmedEmail) {
       setErrorMsg("Por favor, insira um email válido.");
       return;
@@ -88,11 +56,21 @@ const LoginPage = () => {
       return;
     }
 
+    if (!trimmedPassword) {
+      setErrorMsg("Por favor, insira sua senha.");
+      return;
+    }
+
+    if (trimmedPassword.length < 6) {
+      setErrorMsg("A senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+
     setIsLoading(true);
     setErrorMsg("");
 
     try {
-      const loggedUser = await login(email, password);
+      const loggedUser = await login(trimmedEmail, trimmedPassword);
 
       console.log("🔍 DEBUG - Usuário logado:", loggedUser);
       console.log("🔍 DEBUG - userType:", loggedUser?.userType);
@@ -110,48 +88,6 @@ const LoginPage = () => {
         console.log("🔍 DEBUG - Redirecionando para fluxo candidato");
         await checkDISCCompletion();
       }
-
-      if (emailExists) {
-        localStorage.setItem('email', trimmedEmail);
-        setIsExpanding(true);
-        setTimeout(() => {
-          setStep("password");
-          setIsExpanding(false);
-        }, 300);
-      } else {
-        setStep("signup");
-      }
-    } catch (error) {
-      console.error("Erro ao verificar email:", error);
-      setErrorMsg("Erro ao verificar email. Tente novamente.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePasswordSubmit = async (e) => {
-    e.preventDefault();
-
-    const trimmedPassword = password.trim();
-    if (!trimmedPassword) {
-      setErrorMsg("Por favor, insira sua senha.");
-      return;
-    }
-
-    if (trimmedPassword.length < 6) {
-      setErrorMsg("Senha deve ter pelo menos 6 caracteres.");
-      return;
-    }
-
-    setIsLoading(true);
-    setErrorMsg("");
-
-    try {
-      await login(email, trimmedPassword);
-      // Aguardar um pouco para garantir que o user foi definido no contexto
-      setTimeout(async () => {
-        await checkDISCCompletion();
-      }, 500);
     } catch (error) {
       console.error("Erro no login:", error);
 
@@ -171,8 +107,8 @@ const LoginPage = () => {
     }
   };
 
+
   const checkDISCCompletion = async () => {
-    console.log("🔍 checkDISCCompletion chamado");
 
     // Aguardar o user estar disponível
     let currentUser = user;
@@ -181,19 +117,17 @@ const LoginPage = () => {
       if (savedUser) {
         try {
           currentUser = JSON.parse(savedUser);
-          console.log("🔍 Usuário carregado do localStorage:", currentUser);
         } catch (e) {
           console.error("🔍 Erro ao parsear usuário do localStorage:", e);
         }
       }
     }
 
-    console.log("🔍 user final:", currentUser);
-    console.log("🔍 user.id final:", currentUser?.id);
+
 
     try {
       if (!currentUser?.id) {
-        console.log("🔍 Usuário sem ID, navegando para dashboard");
+        console.lg("🔍 Usuário sem ID, navegando para dashboard");
         navigate("/dashboard");
         return;
       }
@@ -296,159 +230,156 @@ const LoginPage = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-black flex items-center justify-center p-4 relative">
-        {/* Ver Vagas no canto superior direito */}
-        <div className="absolute top-8 right-8 text-1xl text-white font-bold z-10 whitespace-nowrap">
-          <a
-            className="text-white transition duration-200 cursor-pointer hover:bg-white hover:text-black px-2 py-1 rounded"
-            onClick={() => navigate("/vagas")}
-          >
-            Ver Vagas
-          </a>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Elementos de background decorativos */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-green-500/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
         </div>
 
+        {/* Ver Vagas no canto superior direito
+        <div className="absolute top-6 right-6 z-10">
+          <button
+            className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 hover:border-white/30 px-4 py-2 rounded-xl transition-all duration-200 font-medium text-sm"
+            onClick={() => navigate("/vagas")}
+          >
+            <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6" />
+            </svg>
+            Ver Vagas
+          </button>
+        </div> */}
+
         <Card
-          className={`w-full max-w-md bg-white/5 backdrop-blur-lg border-white/10 transition-all duration-300 ${isExpanding ? "scale-105" : ""
-            }`}
+          className={`w-full max-w-lg bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl transition-all duration-500 relative z-10 ${isExpanding ? "scale-[1.02] shadow-3xl" : ""} sm:max-w-md`}
         >
-          <CardContent className="p-8">
+          <CardContent className="p-6 sm:p-8">
             {/* Cabeçalho */}
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center mb-10">
+              <div className="w-20 h-20 bg-gradient-to-br from-white to-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
                 <img
                   src="/1.png"
                   alt="Logo da empresa"
-                  className="w-full h-full object-contain"
+                  className="w-12 h-12 object-contain"
                 />
               </div>
-              <h1 className="text-2xl font-bold text-white mb-2">AgroSkills</h1>
-              <p className="text-white/70">
-                {step === "email"
-                  ? "Preencha seu email para logar ou criar uma conta"
-                  : step === "password"
-                    ? "Digite sua senha para continuar"
-                    : "Crie uma nova conta"}
+              <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">AgroSkills</h1>
+              <p className="text-white/80 text-lg leading-relaxed">
+                Entre na sua conta ou crie uma nova
               </p>
             </div>
 
-            {/* Formulário - Step Email */}
-            {step === "email" && (
-              <form onSubmit={handleEmailSubmit} className="space-y-6">
-                {errorMsg && (
-                  <p className="text-red-400 text-center">{errorMsg}</p>
-                )}
+            {/* Formulário de Login */}
+            <div className="space-y-6">
+              {errorMsg && (
+                <div className="bg-red-500/10 border border-red-400/20 rounded-xl p-4">
+                  <p className="text-red-300 text-sm text-center flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errorMsg}
+                  </p>
+                </div>
+              )}
 
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  required
-                  disabled={isLoading}
-                  autoComplete="email"
-                />
+              <form onSubmit={handleLoginSubmit} className="space-y-6">
+                {/* Campo de Email */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                    </svg>
+                  </div>
+                  <Input
+                    type="email"
+                    placeholder="Digite seu email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pl-12 py-3 rounded-xl focus:ring-2 focus:ring-white/30 transition-all duration-200"
+                    required
+                    disabled={isLoading}
+                    autoComplete="email"
+                  />
+                </div>
+
+                {/* Campo de Senha */}
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <Input
+                    type="password"
+                    placeholder="Digite sua senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 pl-12 py-3 rounded-xl focus:ring-2 focus:ring-white/30 transition-all duration-200"
+                    required
+                    disabled={isLoading}
+                    autoComplete="current-password"
+                  />
+                </div>
 
                 <Button
                   type="submit"
-                  disabled={isLoading || !email}
-                  className="w-full bg-white text-black hover:bg-white/90 font-medium py-3"
+                  disabled={isLoading || !email || !password}
+                  className="w-full bg-gradient-to-r from-white to-gray-100 text-gray-900 hover:from-gray-100 hover:to-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:transform-none"
                 >
-                  {isLoading ? "Verificando..." : "Continuar"}
+                  {isLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Entrando...
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                      </svg>
+                      Entrar
+                    </div>
+                  )}
                 </Button>
               </form>
-            )}
 
-            {/* Formulário - Step Password */}
-            {step === "password" && (
-              <div className="space-y-6">
-                {errorMsg && (
-                  <p className="text-red-400 text-center">{errorMsg}</p>
-                )}
+              {/* Link para esqueci a senha */}
+              <div className="text-center">
+                <a
+                  href="/forgot-password"
+                  className="text-white/60 hover:text-white text-sm underline transition-colors duration-200 flex items-center justify-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Esqueci minha senha
+                </a>
+              </div>
 
-                {/* Mostrar email confirmado */}
-                <div className="bg-white/5 border border-white/10 rounded-md p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/70 text-sm">Email:</span>
-                    <span className="text-white text-sm">{email}</span>
-                    <button
-                      type="button"
-                      onClick={handleBackToEmail}
-                      className="text-white/50 hover:text-white text-xs underline"
-                    >
-                      alterar
-                    </button>
-                  </div>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/20" />
                 </div>
-
-                <form onSubmit={handlePasswordSubmit} className="space-y-6">
-                  <Input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                    required
-                    disabled={isLoading}
-                    autoFocus
-                    autoComplete="current-password"
-                  />
-
-                  <Button
-                    type="submit"
-                    disabled={isLoading || !password}
-                    className="w-full bg-white text-black hover:bg-white/90 font-medium py-3"
-                  >
-                    {isLoading ? "Entrando..." : "Continuar"}
-                  </Button>
-                </form>
-
-                {/* Opções extras */}
-                <div className="text-center mt-4">
-                  <a
-                    href="/forgot-password"
-                    className="text-white/70 hover:text-white text-sm"
-                  >
-                    Esqueceu sua senha?
-                  </a>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-transparent px-2 text-white/60">ou</span>
                 </div>
               </div>
-            )}
 
-            {/* Formulário - Step Signup */}
-            {step === "signup" && (
-              <div className="space-y-6">
-                <div className="text-center space-y-4">
-                  <div className="bg-blue-500/10 border border-blue-400/20 rounded-md p-4">
-                    <h3 className="text-blue-300 font-medium mb-2">Email não encontrado!</h3>
-                    <p className="text-white/70 text-sm">
-                      O email <span className="text-white font-medium">{email}</span> não está cadastrado em nossa plataforma.
-                    </p>
-                  </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/signup")}
+                className="w-full border-white/30 text-white hover:bg-white/10 hover:border-white/50 font-medium py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.01]"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                Criar nova conta
+              </Button>
+            </div>
 
-                  <p className="text-white/70 text-sm">
-                    Que tal criar uma nova conta? É rápido e gratuito!
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <Button
-                    onClick={() => navigate("/signup", { state: { email } })}
-                    className="w-full bg-green-600 text-white hover:bg-green-700 font-medium py-3"
-                  >
-                    Criar Nova Conta
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    onClick={handleBackToEmail}
-                    className="w-full border-white/20 text-white bg-white/5 font-medium py-3"
-                  >
-                    Tentar Outro Email
-                  </Button>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
