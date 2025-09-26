@@ -3,7 +3,8 @@ import testService from "@/services/testService";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, Play, Clock, Award, X, Sun, Moon } from "lucide-react";
+import { TrendingUp, Play, Clock, Award, X, Sun, Moon, HelpCircle } from "lucide-react";
+import { useTour } from '@reactour/tour';
 import WelcomeAnimation from "./WelcomeAnimation";
 import TrilhaRequirementModal from "./TrilhaRequirementModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,8 +18,8 @@ import InterviewPromptModal from "@/components/ui/InterviewPromptModal.jsx";
 // testService já está sendo importado na linha 2
 
 const Dashboard = ({ onCourseSelect = [] }) => {
-  //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, accessToken, isLoading } = useAuth();
+  const { setIsOpen } = useTour();
   const [disc, setDiscProfile] = useState(null);
   const [showDiscDetails, setShowDiscDetails] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
@@ -33,6 +34,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [showInterviewPrompt, setShowInterviewPrompt] = useState(false);
   const [hasCompletedInterview, setHasCompletedInterview] = useState(false);
+  const [showTourPopup, setShowTourPopup] = useState(false);
   const bgCollor = {
     0: "#4285F4",
     1: "#EA4335",
@@ -45,8 +47,19 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       const hasSeenWelcome = localStorage.getItem(
         `welcome_seen_${user.email}`
       );
+      const hasSeenTour = localStorage.getItem(
+        `tour_seen_${user.email}`
+      );
+
       if (!hasSeenWelcome) {
         setShowWelcomeAnimation(false);
+      }
+
+      if (!hasSeenTour) {
+        // Mostrar popup do tour após um pequeno delay
+        setTimeout(() => {
+          setShowTourPopup(true);
+        }, 2000);
       }
     }
   }, [user]);
@@ -158,11 +171,11 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       if (!user?.id || !accessToken) return;
 
       try {
-        console.log("🔍 Dashboard - Buscando perfil DISC para usuário:", user.id);
+
 
         // Tentar buscar testes psicológicos do usuário
         const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 50);
-        console.log("🔍 Dashboard - Testes encontrados:", userTests);
+
 
         if (userTests && userTests.length > 0) {
           // Encontrar o teste DISC/unified mais recente
@@ -170,7 +183,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             .filter(test => (test.test_type === 'DISC' || test.test_type === 'unified') && test.status === 'completed')
             .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))[0];
 
-          console.log("🔍 Dashboard - Teste DISC filtrado:", discTest);
+
 
           if (discTest && discTest.disc_scores) {
             let discScores;
@@ -179,11 +192,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 ? JSON.parse(discTest.disc_scores)
                 : discTest.disc_scores;
             } catch (parseError) {
-              console.warn("🔍 Dashboard - Erro ao parsear disc_scores:", parseError);
+
               discScores = discTest.disc_scores;
             }
 
-            console.log("🔍 Dashboard - discScores parseados:", discScores);
 
             if (discScores && discScores.type) {
               const discProfile = {
@@ -196,7 +208,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 improvements: getDiscImprovements(discScores.type)
               };
 
-              console.log("🔍 Dashboard - Perfil DISC montado:", discProfile);
+
               setDiscProfile(discProfile);
               return;
             }
@@ -215,16 +227,12 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           if (savedProfile) {
             try {
               const discProfile = JSON.parse(savedProfile);
-              console.log("🔍 Dashboard - Perfil recuperado do cache local:", discProfile);
               setDiscProfile(discProfile);
               return;
             } catch (parseError) {
-              console.warn("🔍 Dashboard - Erro ao parsear perfil do cache:", parseError);
+
             }
           }
-
-          // Se não tem perfil salvo, usar perfil consistente baseado no usuário
-          console.log("🔍 Dashboard - Cache indica teste completado, gerando perfil consistente");
 
           // Usar hash do ID do usuário para garantir consistência
           const userId = user.id;
@@ -251,8 +259,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           localStorage.setItem(profileCacheKey, JSON.stringify(generatedProfile));
           setDiscProfile(generatedProfile);
         } else {
-          // Não completou, não mostrar perfil
-          console.log("🔍 Dashboard - Nenhum teste DISC completado encontrado");
           setDiscProfile(null);
         }
 
@@ -271,13 +277,11 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key && e.key.includes('disc_completed_') && e.newValue === 'true') {
-        console.log("🔍 Dashboard - Teste DISC completado detectado via storage, recarregando perfil");
         reloadDiscProfile();
       }
     };
 
     const handleDiscTestCompleted = (e) => {
-      console.log("🔍 Dashboard - Evento discTestCompleted recebido:", e.detail);
       if (e.detail && e.detail.userId === user?.id) {
         // Usar os dados do evento diretamente se disponível
         if (e.detail.discData) {
@@ -291,8 +295,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             strengths: getDiscStrengths(discData.type),
             improvements: getDiscImprovements(discData.type)
           };
-
-          console.log("🔍 Dashboard - Perfil DISC atualizado via evento:", discProfile);
           setDiscProfile(discProfile);
         } else {
           // Fallback: recarregar do servidor
@@ -307,7 +309,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           const fetchDiscProfile = async () => {
             try {
               const discResult = await testService.getUserDISCResult(user.id);
-              console.log("🔍 Dashboard - Recarregamento: Resultado DISC direto:", discResult);
 
               if (discResult && discResult.disc_scores) {
                 const discScores = typeof discResult.disc_scores === 'string'
@@ -324,8 +325,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     strengths: getDiscStrengths(discScores.type),
                     improvements: getDiscImprovements(discScores.type)
                   };
-
-                  console.log("🔍 Dashboard - Perfil DISC recarregado:", discProfile);
                   setDiscProfile(discProfile);
                 }
               }
@@ -431,6 +430,22 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     setShowWelcomeAnimation(false);
     if (user?.email) {
       localStorage.setItem(`welcome_seen_${user.email}`, "true");
+    }
+  };
+
+  // Funções para controlar o popup do tour
+  const handleStartTour = () => {
+    setShowTourPopup(false);
+    setIsOpen(true);
+    if (user?.email) {
+      localStorage.setItem(`tour_seen_${user.email}`, "true");
+    }
+  };
+
+  const handleDismissTour = () => {
+    setShowTourPopup(false);
+    if (user?.email) {
+      localStorage.setItem(`tour_seen_${user.email}`, "true");
     }
   };
 
@@ -1215,9 +1230,18 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     </span>
                   </div>
                 )}
-                <h1 className="text-xl lg:text-2xl lg:p-4 p xl:text-3xl text-black font-bold">
-                  Olá, {userData?.name?.split(" ")[0]}!
-                </h1>
+                <div className="flex flex-col gap-2">
+                  <h1 className="text-xl lg:text-2xl xl:text-3xl text-black font-bold">
+                    Olá, {userData?.name?.split(" ")[0]}!
+                  </h1>
+                  <button
+                    onClick={() => setIsOpen(true)}
+                    className="first-step flex items-center gap-2 text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                    Iniciar Tour Guiado
+                  </button>
+                </div>
               </div>
 
 
@@ -1984,12 +2008,48 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       )}
 
       {/* Modal de Promoção da Entrevista Simulada */}
-      <InterviewPromptModal
+      {/* <InterviewPromptModal
         isOpen={showInterviewPrompt}
         onClose={handleDismissInterviewPrompt}
         onStartInterview={handleStartInterview}
         onDismissPermanently={handleDismissInterviewPermanently}
-      />
+      /> */}
+
+      {/* Modal de Tour Popup */}
+      {showTourPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            {/* Header */}
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <HelpCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Bem-vindo à AgroSkills! 🚀
+              </h2>
+              <p className="text-gray-600">
+                Que tal fazer um tour rápido pela plataforma? Vamos te mostrar as principais funcionalidades em poucos minutos!
+              </p>
+            </div>
+
+            {/* Botões */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleDismissTour}
+                className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+              >
+                Pular por agora
+              </button>
+              <button
+                onClick={handleStartTour}
+                className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors"
+              >
+                Começar Tour
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
