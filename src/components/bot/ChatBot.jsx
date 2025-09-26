@@ -83,11 +83,20 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
           setIsLoading(true);
           const initialResponse = await botService.sendMessage(guestSessionId, 
             "Ola. Quem e voce?");
+           
+
+            let parsedMessage;
+          try {
+            parsedMessage = JSON.parse(initialResponse.message);
+          } catch {
+            // Se não for JSON válido, usar como string normal
+            parsedMessage = { pergunta: initialResponse.message };
+          }
           
           // Adicionar resposta do bot como primeira mensagem
           const botMessage = {
             id: Date.now(),
-            content: initialResponse.message,
+            content: parsedMessage.pergunta || parsedMessage.message || initialResponse.message,
             isBot: true,
             timestamp: new Date()
           };
