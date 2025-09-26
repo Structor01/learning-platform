@@ -16,32 +16,50 @@ class TestService {
     };
 
     console.log(`[TestService] ${config.method || 'GET'} ${url}`);
-    const response = await fetch(url, config);
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[TestService] Erro ${response.status}:`, errorText);
-      throw new Error(`Erro ${response.status}: ${response.statusText}`);
+
+    try {
+      const response = await fetch(url, config);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[TestService] Erro ${response.status}:`, errorText);
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log(`[TestService] Resposta:`, data);
+      return data;
+    } catch (error) {
+      console.error(`[TestService] Erro na requisição para ${url}:`, error);
+      throw error;
     }
-    const data = await response.json();
-    console.log(`[TestService] Resposta:`, data);
-    return data;
   }
 
   // ===== TESTE PSICOLÓGICO UNIFICADO =====
 
-  async createPsychologicalTest(userId, testType = 'unified') {
+  async createPsychologicalTest(testData) {
+    console.log('🔍 TestService - Criando teste psicológico:', testData);
+
     return this.makeRequest('/psychological', {
       method: 'POST',
-      body: JSON.stringify({ user_id: userId, test_type: testType })
+      body: JSON.stringify(testData)
     });
   }
 
   async getUserPsychologicalTests(userId, status = null, limit = 10) {
     let endpoint = `/psychological/user/${userId}`;
     const params = new URLSearchParams();
-    if (status) params.append('status', status);
+
+    if (status) {
+      // Se status é um objeto, precisamos serializar corretamente
+      if (typeof status === 'object') {
+        params.append('status', JSON.stringify(status));
+      } else {
+        params.append('status', status);
+      }
+    }
+
     if (limit) params.append('limit', limit.toString());
     if (params.toString()) endpoint += `?${params.toString()}`;
+
     return this.makeRequest(endpoint);
   }
 
@@ -60,12 +78,66 @@ class TestService {
     });
   }
 
+  async saveTestResponses(testId, responses) {
+    console.log('🔍 TestService - Salvando respostas para teste:', testId);
+    console.log('🔍 TestService - Dados das respostas:', responses);
+
+    // Validar e formatar dados antes de enviar
+    const formattedResponses = responses.map((response, index) => ({
+      question_id: parseInt(response.question_id) || (index + 1), // Garantir que seja número
+      question_number: parseInt(response.question_number) || (index + 1), // Garantir que seja número
+      selected_option: String(response.selected_option || ''), // Garantir que seja string
+      response_text: response.response_text || '' // Opcional
+    }));
+
+    console.log('🔍 TestService - Respostas formatadas:', formattedResponses);
+
+    return this.makeRequest(`/psychological/${testId}/responses`, {
+      method: 'POST',
+      body: JSON.stringify({
+        responses: formattedResponses
+      })
+    });
+  }
+
+  async updateTestStatus(testId, status) {
+    console.log('🔍 TestService - Atualizando status do teste:', testId, 'para:', status);
+
+    return this.makeRequest(`/psychological/${testId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        status: status
+      })
+    });
+  }
+
   async completePsychologicalTest(testId) {
     return this.makeRequest(`/psychological/${testId}/complete`, { method: 'POST' });
   }
 
   async getPsychologicalTestReport(testId) {
     return this.makeRequest(`/psychological/${testId}/report`);
+  }
+
+  async getPsychologicalTestResult(testId) {
+    console.log('🔍 TestService - Buscando resultado do teste:', testId);
+    return this.makeRequest(`/psychological/${testId}`);
+  }
+
+  // ===== DISC API METHODS =====
+
+  async getAdjectives() {
+    return this.makeRequest('/adjectives');
+  }
+
+  async submitDiscTest(userId, selectedAdjectives) {
+    return this.makeRequest('/disc-test', {
+      method: 'POST',
+      body: JSON.stringify({
+        user_id: userId,
+        selected_adjectives: selectedAdjectives
+      })
+    });
   }
 
   // ===== SISTEMA ANTIGO (COMPATIBILIDADE) =====
@@ -116,7 +188,7 @@ class TestService {
     };
 
     const dominantType = Object.keys(percentages).reduce((a, b) =>
-        percentages[a] > percentages[b] ? a : b
+      percentages[a] > percentages[b] ? a : b
     );
 
     return { scores, percentages, dominantType };
@@ -149,7 +221,7 @@ class TestService {
     if (!questionId || questionId <= 0) {
       throw new Error('ID da pergunta inválido');
     }
-    if (!['A','B','C','D'].includes(selectedOption)) {
+    if (!['A', 'B', 'C', 'D'].includes(selectedOption)) {
       throw new Error('Opção selecionada inválida');
     }
     return true;
@@ -162,8 +234,8 @@ class TestService {
         type: testResult.test_type,
         completedAt: this.formatDate(testResult.completed_at),
         duration: this.formatTime(
-            Math.floor((new Date(testResult.completed_at).getTime() -
-                new Date(testResult.created_at).getTime()) / 1000)
+          Math.floor((new Date(testResult.completed_at).getTime() -
+            new Date(testResult.created_at).getTime()) / 1000)
         )
       },
       scores: {
@@ -175,6 +247,43 @@ class TestService {
       recommendations: testResult.recommendations,
       responses
     };
+  }
+
+  // ===== MÉTODOS PARA DEBUG =====
+
+  logTestState(testId, state, additionalData = {}) {
+    console.log(`[TestService] Estado do teste ${testId}:`, state, additionalData);
+  }
+
+  validateTestData(testData) {
+    const required = ['user_id', 'test_type'];
+    const missing = required.filter(field => !testData[field]);
+
+    if (missing.length > 0) {
+      throw new Error(`Campos obrigatórios ausentes: ${missing.join(', ')}`);
+    }
+
+    return true;
+  }
+
+  validateResponseData(responses) {
+    if (!Array.isArray(responses)) {
+      throw new Error('Responses deve ser um array');
+    }
+
+    responses.forEach((response, index) => {
+      if (typeof response.question_id !== 'number') {
+        console.warn(`Response ${index}: question_id não é um número:`, response.question_id);
+      }
+      if (typeof response.question_number !== 'number') {
+        console.warn(`Response ${index}: question_number não é um número:`, response.question_number);
+      }
+      if (typeof response.selected_option !== 'string') {
+        console.warn(`Response ${index}: selected_option não é uma string:`, response.selected_option);
+      }
+    });
+
+    return true;
   }
 }
 

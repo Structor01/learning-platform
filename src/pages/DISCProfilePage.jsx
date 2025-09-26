@@ -1,17 +1,25 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import testService from "@/services/testService";
-import { ArrowLeft, TrendingUp, Target, Lightbulb, Award, Users, BrainCircuit, Briefcase, BookOpen, BarChart3, FileText, Star, AlertCircle } from "lucide-react";
+import testService from "@/services/testService"; // Fallback para API antiga
+import discApiService from "@/services/discApi"; // Nova API DISC
+import { ArrowLeft, Calendar, Download } from "lucide-react";
+import { RelatorioCompleto } from '../components/ui/RelatorioCompleto';
 
 const DISCProfilePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [disc, setDiscProfile] = useState(null);
+  const [inteligenciaEmocional, setInteligenciaEmocional] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Funções auxiliares para DISC (mesmas do Dashboard)
+  // NOVA FUNCIONALIDADE: Seleção de datas (igual sistema antigo)
+  const [tests, setTests] = useState([]); // Lista de testes do usuário
+  const [selectedTestId, setSelectedTestId] = useState(null); // Teste selecionado
+  const [showReport, setShowReport] = useState(false); // Só mostra relatório se teste selecionado
+
+  // Funções auxiliares para DISC (mantidas do seu código original)
   const getDiscName = (type) => {
     const names = {
       'D': 'Dominante',
@@ -32,569 +40,724 @@ const DISCProfilePage = () => {
     return descriptions[type] || descriptions['D'];
   };
 
+  // Outras funções auxiliares (mantidas do seu código...)
   const getDiscCharacteristics = (type) => {
     const characteristics = {
-      'D': ['Determinado', 'Competitivo', 'Direto', 'Orientado a resultados', 'Confiante', 'Decisivo'],
-      'I': ['Entusiástico', 'Comunicativo', 'Otimista', 'Persuasivo', 'Sociável', 'Inspirador'],
-      'S': ['Paciente', 'Leal', 'Colaborativo', 'Estável', 'Confiável', 'Empático'],
-      'C': ['Analítico', 'Preciso', 'Sistemático', 'Detalhista', 'Organizado', 'Criterioso']
+      'D': [
+        'Determinado e focado em alcançar objetivos desafiadores, mesmo diante de obstáculos significativos',
+        'Competitivo por natureza, sempre buscando superar metas e se destacar em suas atividades profissionais',
+        'Direto e franco na comunicação, preferindo abordar questões de forma clara e sem rodeios',
+        'Orientado a resultados, priorizando a eficiência e a produtividade em todas as suas tarefas',
+        'Confiante em suas habilidades e decisões, demonstrando segurança ao liderar projetos e equipes',
+        'Decisivo na tomada de decisões, conseguindo avaliar rapidamente as situações e agir de forma assertiva'
+      ],
+      'I': [
+        'Entusiástico e energético, trazendo motivação e positividade para o ambiente de trabalho',
+        'Comunicativo e expressivo, possuindo facilidade natural para se relacionar com pessoas de diferentes perfis',
+        'Otimista e esperançoso, mantendo uma perspectiva positiva mesmo em situações desafiadoras',
+        'Persuasivo e influente, capaz de convencer e inspirar outros através de suas ideias e argumentos',
+        'Sociável e carismático, criando facilmente conexões pessoais e profissionais duradouras',
+        'Inspirador e motivador, conseguindo energizar equipes e promover um ambiente colaborativo'
+      ],
+      'S': [
+        'Paciente e perseverante, mantendo a calma e a consistência mesmo em situações de pressão',
+        'Leal e confiável, demonstrando compromisso duradouro com pessoas, projetos e organizações',
+        'Colaborativo e cooperativo, trabalhando efetivamente em equipe e apoiando colegas quando necessário',
+        'Estável e equilibrado, proporcionando segurança e previsibilidade em suas ações e comportamentos',
+        'Confiável e responsável, cumprindo consistentemente compromissos e entregando resultados conforme acordado',
+        'Empático e compreensivo, demonstrando sensibilidade às necessidades e sentimentos dos outros'
+      ],
+      'C': [
+        'Analítico e reflexivo, examinando cuidadosamente informações antes de formar conclusões ou tomar decisões',
+        'Preciso e exato, mantendo altos padrões de qualidade e atenção meticulosa aos detalhes em seu trabalho',
+        'Sistemático e metodológico, seguindo processos estruturados e organizados para maximizar a eficiência',
+        'Detalhista e minucioso, identificando aspectos que outros podem negligenciar e garantindo completude nas tarefas',
+        'Organizado e estruturado, mantendo sistemas claros e ordenados para gerenciar informações e responsabilidades',
+        'Criterioso e cuidadoso, avaliando todas as opções disponíveis antes de proceder com qualquer ação importante'
+      ]
     };
     return characteristics[type] || characteristics['D'];
   };
 
   const getDiscStrengths = (type) => {
     const strengths = {
-      'D': ['Liderança natural', 'Tomada de decisão rápida', 'Orientação para resultados', 'Iniciativa', 'Competitividade saudável'],
-      'I': ['Comunicação eficaz', 'Motivação de equipes', 'Networking', 'Criatividade', 'Otimismo contagiante'],
-      'S': ['Trabalho em equipe', 'Estabilidade emocional', 'Lealdade', 'Paciência', 'Resolução de conflitos'],
-      'C': ['Análise detalhada', 'Qualidade no trabalho', 'Organização', 'Planejamento', 'Precisão técnica']
+      'D': [
+        'Liderança natural e capacidade innata de assumir o comando de situações complexas, inspirando confiança e direcionamento em equipes',
+        'Tomada de decisão rápida e eficiente, conseguindo avaliar cenários rapidamente e implementar soluções práticas sem hesitação',
+        'Orientação para resultados excepcionalmente forte, mantendo foco constante em objetivos e metas organizacionais',
+        'Iniciativa proativa para identificar oportunidades e implementar mudanças necessárias antes que problemas se desenvolvam',
+        'Competitividade saudável que impulsiona a excelência pessoal e organizacional, motivando outros a alcançar seu melhor desempenho',
+        'Capacidade de trabalhar sob pressão mantendo alta performance e qualidade nas entregas mesmo em situações desafiadoras'
+      ],
+      'I': [
+        'Comunicação eficaz e envolvente, capaz de transmitir ideias complexas de forma clara e motivadora para diferentes audiências',
+        'Motivação de equipes através de entusiasmo genuíno e capacidade de criar um ambiente de trabalho positivo e energizante',
+        'Networking excepcional, construindo e mantendo relacionamentos profissionais valiosos que beneficiam toda a organização',
+        'Criatividade e inovação na resolução de problemas, trazendo perspectivas únicas e soluções originais para desafios complexos',
+        'Otimismo contagiante que eleva o moral da equipe e mantém a motivação alta mesmo durante períodos difíceis',
+        'Flexibilidade e adaptabilidade para se ajustar rapidamente a mudanças e novas circunstâncias organizacionais'
+      ],
+      'S': [
+        'Trabalho em equipe exemplar, demonstrando capacidade excepcional de colaborar e apoiar colegas para alcançar objetivos comuns',
+        'Estabilidade emocional que proporciona consistência e confiabilidade em todas as situações profissionais',
+        'Lealdade organizacional profunda, demonstrando compromisso de longo prazo com pessoas, projetos e valores da empresa',
+        'Paciência e perseverança para trabalhar metodicamente em projetos de longo prazo sem perder qualidade ou motivação',
+        'Resolução de conflitos diplomática, mediando diferenças e encontrando soluções que beneficiem todas as partes envolvidas',
+        'Suporte emocional e prático oferecido aos colegas, criando um ambiente de trabalho mais harmonioso e produtivo'
+      ],
+      'C': [
+        'Análise detalhada e sistemática de problemas complexos, identificando padrões e nuances que outros podem negligenciar',
+        'Qualidade no trabalho consistentemente alta, mantendo padrões rigorosos e entregando resultados precisos e confiáveis',
+        'Organização exemplar de processos, informações e recursos, criando sistemas eficientes que beneficiam toda a equipe',
+        'Planejamento estratégico cuidadoso que antecipa desafios e prepara soluções detalhadas antes da implementação',
+        'Precisão técnica excepcional em tarefas especializadas, garantindo que todos os aspectos sejam executados corretamente',
+        'Pensamento crítico apurado para avaliar informações, identificar riscos e tomar decisões baseadas em dados sólidos'
+      ]
     };
     return strengths[type] || strengths['D'];
   };
 
   const getDiscImprovements = (type) => {
     const improvements = {
-      'D': ['Desenvolver paciência', 'Melhorar escuta ativa', 'Considerar opinião da equipe', 'Controlar impulsividade'],
-      'I': ['Focar nos detalhes', 'Melhorar organização', 'Cumprir prazos', 'Ser mais analítico'],
-      'S': ['Tomar iniciativa', 'Aceitar mudanças', 'Expressar opiniões', 'Ser mais assertivo'],
-      'C': ['Ser mais flexível', 'Melhorar relacionamento interpessoal', 'Aceitar riscos calculados', 'Comunicar-se mais']
+      'D': [
+        'Desenvolver paciência e tolerância, aprendendo a valorizar processos mais lentos que podem resultar em melhores resultados de longo prazo',
+        'Melhorar escuta ativa e empática, dedicando mais tempo para compreender verdadeiramente as perspectivas e necessidades dos outros',
+        'Considerar mais ativamente as opiniões da equipe antes de tomar decisões, incorporando diferentes pontos de vista no processo decisório',
+        'Controlar impulsividade em situações de pressão, desenvolvendo estratégias para pausar e refletir antes de agir ou responder',
+        'Aprimorar habilidades de delegação confiando mais nas capacidades dos membros da equipe e fornecendo orientação clara',
+        'Desenvolver maior sensibilidade interpessoal para reconhecer e responder adequadamente às emoções e reações dos colegas'
+      ],
+      'I': [
+        'Focar mais consistentemente nos detalhes importantes, desenvolvendo sistemas e técnicas para manter atenção em aspectos técnicos cruciais',
+        'Melhorar organização pessoal e profissional, criando estruturas e rotinas que suportem maior eficiência e produtividade',
+        'Cumprir prazos de forma mais consistente, desenvolvendo habilidades de gestão de tempo e priorizando tarefas adequadamente',
+        'Ser mais analítico na tomada de decisões, incorporando dados objetivos e análise crítica além da intuição pessoal',
+        'Desenvolver maior foco e concentração em tarefas individuais, reduzindo distrações e mantendo atenção sustentada',
+        'Aprimorar habilidades de follow-up e acompanhamento, garantindo que compromissos e projetos sejam finalizados adequadamente'
+      ],
+      'S': [
+        'Tomar mais iniciativa proativa, desenvolvendo confiança para propor ideias e liderar mudanças quando necessário',
+        'Aceitar e adaptar-se mais facilmente a mudanças organizacionais, desenvolvendo resiliência e flexibilidade mental',
+        'Expressar opiniões e sentimentos de forma mais direta e assertiva, compartilhando perspectivas valiosas com a equipe',
+        'Ser mais assertivo em situações de conflito, defendendo posições importantes sem comprometer relacionamentos',
+        'Desenvolver maior tolerância a ambiguidade e incerteza, conseguindo funcionar efetivamente em ambientes menos estruturados',
+        'Aprimorar habilidades de negociação e persuasão para influenciar positivamente resultados e decisões organizacionais'
+      ],
+      'C': [
+        'Ser mais flexível e adaptável a mudanças imprevistas, desenvolvendo tolerância a imperfeições e ajustes de último minuto',
+        'Melhorar relacionamentos interpessoais através de maior abertura emocional e comunicação mais calorosa com colegas',
+        'Aceitar riscos calculados quando benefícios potenciais justificam a incerteza, desenvolvendo maior tolerância a ambiguidade',
+        'Comunicar-se de forma mais frequente e acessível, compartilhando conhecimentos e insights com linguagem mais simples',
+        'Desenvolver maior velocidade na tomada de decisões, equilibrando análise detalhada com necessidades de timing organizacional',
+        'Aprimorar habilidades de trabalho em equipe, colaborando mais ativamente e compartilhando responsabilidades com outros'
+      ]
     };
     return improvements[type] || improvements['D'];
   };
 
-  const getCareerRecommendations = (type) => {
-    const careers = {
+  const getDiscCommunicationStyle = (type) => {
+    const styles = {
       'D': [
-        'Gerente de Agronegócio',
-        'Consultor Rural',
-        'Diretor de Fazenda',
-        'Empreendedor Agrícola',
-        'Especialista em Commodities'
+        'Direto e objetivo na comunicação, preferindo ir direto ao ponto sem rodeios desnecessários ou conversas prolongadas',
+        'Prefere comunicação rápida e eficiente, valorizando reuniões curtas e decisivas que resultem em ações concretas',
+        'Usa linguagem assertiva e confiante, expressando opiniões de forma clara e sem ambiguidade sobre questões importantes',
+        'Foca consistentemente nos resultados e impactos práticos, direcionando conversas para soluções e próximos passos',
+        'Pode ser percebido como áspero ou impaciente quando a pressão aumenta, necessitando atenção ao tom e impacto emocional',
+        'Utiliza comunicação hierárquica naturalmente, assumindo papel de liderança em discussões e direcionando agendas'
       ],
       'I': [
-        'Representante Comercial Rural',
-        'Coordenador de Marketing Agrícola',
-        'Consultor de Vendas',
-        'Especialista em Relacionamento',
-        'Instrutor Técnico'
+        'Entusiástico e expressivo na comunicação, trazendo energia positiva e dinamismo para todas as interações profissionais',
+        'Gosta de conversas informais e pessoais, construindo rapport através de conexões humanas antes de abordar questões de negócios',
+        'Usa gestos, expressões faciais e linguagem corporal de forma natural para enfatizar pontos e manter engajamento',
+        'Conta histórias e exemplos pessoais para ilustrar conceitos, tornando informações complexas mais acessíveis e memoráveis',
+        'Pode divagar do assunto principal em conversas, necessitando estrutura para manter foco em objetivos específicos',
+        'Prefere comunicação verbal e presencial, funcionando melhor em ambientes interativos do que em comunicação escrita formal'
       ],
       'S': [
-        'Técnico Agrícola',
-        'Coordenador de Equipe',
-        'Especialista em Sustentabilidade',
-        'Analista de Produção',
-        'Supervisor de Campo'
+        'Calmo e respeitoso em todas as interações, mantendo tom diplomático mesmo em situações de tensão ou desacordo',
+        'Prefere conversas one-on-one ou em grupos pequenos, sentindo-se mais confortável em ambientes íntimos e pessoais',
+        'Escuta atentamente e demonstra interesse genuíno nas perspectivas dos outros, fazendo perguntas para compreender melhor',
+        'Evita confrontos diretos e situações de conflito, buscando harmonia e consenso em todas as discussões',
+        'Pode ter dificuldade em expressar desacordo abertamente, necessitando encorajamento para compartilhar opiniões divergentes',
+        'Utiliza comunicação empática e de apoio, oferecendo suporte emocional e prático aos colegas quando necessário'
       ],
       'C': [
-        'Engenheiro Agrônomo',
-        'Analista de Dados Agrícolas',
-        'Pesquisador',
-        'Especialista em Qualidade',
-        'Auditor Rural'
+        'Preciso e detalhado na comunicação, fornecendo informações completas e exatas para evitar mal-entendidos',
+        'Prefere comunicação por escrito para documentar decisões e garantir que todos os detalhes sejam preservados adequadamente',
+        'Usa dados, fatos e evidências objetivas para fundamentar argumentos e recomendações de forma convincente',
+        'Faz perguntas específicas e técnicas para obter clareza completa sobre processos, procedimentos e expectativas',
+        'Pode ser percebido como crítico ou excessivamente analítico quando questiona detalhes ou identifica problemas potenciais',
+        'Prefere tempo para processar informações antes de responder, funcionando melhor quando não pressionado para respostas imediatas'
       ]
-    };
-    return careers[type] || careers['D'];
-  };
-
-  const getWorkEnvironment = (type) => {
-    const environments = {
-      'D': {
-        ideal: 'Ambientes dinâmicos com desafios constantes e autonomia para tomar decisões',
-        avoid: 'Rotinas muito estruturadas e microgerenciamento',
-        teamRole: 'Líder natural que impulsiona resultados e toma decisões estratégicas'
-      },
-      'I': {
-        ideal: 'Ambientes colaborativos com interação social e reconhecimento público',
-        avoid: 'Trabalho isolado e tarefas muito técnicas sem contato humano',
-        teamRole: 'Motivador da equipe que facilita comunicação e gera entusiasmo'
-      },
-      'S': {
-        ideal: 'Ambientes estáveis com processos bem definidos e equipe harmoniosa',
-        avoid: 'Mudanças constantes e pressão por decisões rápidas',
-        teamRole: 'Mediador que mantém a estabilidade e apoia colegas'
-      },
-      'C': {
-        ideal: 'Ambientes organizados com foco na qualidade e precisão técnica',
-        avoid: 'Pressão por velocidade em detrimento da qualidade',
-        teamRole: 'Especialista técnico que garante precisão e qualidade'
-      }
-    };
-    return environments[type] || environments['D'];
-  };
-
-  const getCommunicationStyle = (type) => {
-    const styles = {
-      'D': {
-        style: 'Direto e objetivo',
-        tips: ['Seja claro e conciso', 'Foque nos resultados', 'Respeite o tempo'],
-        preferences: ['Comunicação rápida', 'Fatos e dados', 'Soluções práticas']
-      },
-      'I': {
-        style: 'Entusiástico e expressivo',
-        tips: ['Use linguagem positiva', 'Permita interação', 'Dê reconhecimento'],
-        preferences: ['Comunicação verbal', 'Histórias e exemplos', 'Ambiente descontraído']
-      },
-      'S': {
-        style: 'Paciente e colaborativo',
-        tips: ['Seja paciente', 'Explique mudanças gradualmente', 'Mostre apoio'],
-        preferences: ['Comunicação calma', 'Processo passo a passo', 'Ambiente seguro']
-      },
-      'C': {
-        style: 'Analítico e preciso',
-        tips: ['Forneça detalhes', 'Use dados e fatos', 'Seja preciso'],
-        preferences: ['Comunicação escrita', 'Informações completas', 'Tempo para análise']
-      }
     };
     return styles[type] || styles['D'];
   };
 
-  // Funções detalhadas para o relatório completo
-  const getDetailedSkills = (type) => {
-    const skills = {
+  const getDiscWorkEnvironment = (type) => {
+    const environments = {
       'D': [
-        'Liderança: Capacidade natural de liderar equipes e tomar decisões estratégicas',
-        'Tomada de Decisão: Habilidade para decidir rapidamente mesmo sob pressão',
-        'Orientação para Resultados: Foco constante em alcançar objetivos e metas',
-        'Resolução de Problemas: Capacidade de encontrar soluções práticas rapidamente',
-        'Competitividade: Motivação para superar desafios e competir de forma saudável',
-        'Assertividade: Habilidade de expressar opiniões de forma clara e direta'
+        'Ambiente dinâmico e desafiador que oferece oportunidades constantes de crescimento, competição saudável e projetos estimulantes',
+        'Autonomia completa para tomar decisões importantes sem necessidade de aprovação constante ou microgerenciamento supervisório',
+        'Metas claras e desafiadoras que proporcionem senso de propósito e direção, com deadlines realistas mas ambiciosos',
+        'Pouca supervisão direta permitindo liberdade para experimentar abordagens inovadoras e assumir riscos calculados',
+        'Foco consistente em resultados mensuráveis onde performance e conquistas sejam reconhecidas e recompensadas adequadamente',
+        'Cultura organizacional que valorize liderança, iniciativa individual e capacidade de implementar mudanças rapidamente'
       ],
       'I': [
-        'Comunicação: Habilidades de comunicação bem desenvolvidas e capacidade de se expressar de forma clara e persuasiva',
-        'Interpessoal: Habilidade natural para criar e manter relacionamentos interpessoais',
-        'Liderança: Capacidade inata para liderar e influenciar outras pessoas de forma inspiradora',
-        'Negociação: Habilidade de persuadir e negociar de forma eficaz',
-        'Adaptação: Flexibilidade para se adaptar a novas situações e ambientes',
-        'Criatividade: Capacidade de pensar fora da caixa e encontrar soluções originais'
+        'Ambiente social e colaborativo que facilite interações frequentes, trabalho em equipe e construção de relacionamentos profissionais',
+        'Oportunidades regulares de interação com diferentes pessoas, departamentos e níveis hierárquicos dentro da organização',
+        'Variedade constante nas tarefas e responsabilidades, evitando rotinas monótonas e proporcionando estímulos intelectuais diversos',
+        'Reconhecimento público e celebração de conquistas individuais e coletivas através de diferentes canais de comunicação',
+        'Flexibilidade de horários e localização que permita equilíbrio entre vida pessoal e profissional sem comprometer produtividade',
+        'Cultura organizacional aberta que valorize criatividade, inovação e contribuições únicas de cada membro da equipe'
       ],
       'S': [
-        'Trabalho em Equipe: Excelente capacidade de colaboração e cooperação',
-        'Paciência: Habilidade de manter a calma e persistir em situações difíceis',
-        'Escuta Ativa: Capacidade de ouvir e compreender verdadeiramente os outros',
-        'Mediação: Habilidade para resolver conflitos e manter a harmonia',
-        'Confiabilidade: Consistência e pontualidade nas responsabilidades',
-        'Estabilidade: Capacidade de manter o equilíbrio emocional em situações tensas'
+        'Ambiente estável e harmonioso que proporcione segurança psicológica, previsibilidade e relacionamentos de confiança duradouros',
+        'Relacionamentos profissionais baseados em confiança mútua, respeito e colaboração genuína entre todos os níveis hierárquicos',
+        'Processos bem definidos e documentados que proporcionem clareza sobre expectativas, responsabilidades e procedimentos organizacionais',
+        'Tempo adequado para se adaptar a mudanças organizacionais, com suporte e orientação durante períodos de transição',
+        'Trabalho em equipe valorizado e incentivado, com oportunidades de contribuir para objetivos coletivos e apoiar colegas',
+        'Cultura organizacional que priorize bem-estar dos funcionários, desenvolvimento pessoal e manutenção de tradições positivas'
       ],
       'C': [
-        'Análise Crítica: Capacidade de analisar informações detalhadamente',
-        'Organização: Habilidade excepcional para estruturar e organizar processos',
-        'Precisão: Atenção aos detalhes e busca pela exatidão',
-        'Planejamento: Capacidade de desenvolver planos detalhados e sistemáticos',
-        'Controle de Qualidade: Habilidade para garantir altos padrões de qualidade',
-        'Pesquisa: Capacidade de investigar e validar informações thoroughly'
+        'Ambiente organizado e estruturado com sistemas claros, processos documentados e hierarquias bem estabelecidas',
+        'Acesso completo a informações, dados e recursos necessários para tomar decisões informadas e realizar trabalho de qualidade',
+        'Padrões de qualidade claramente definidos e comunicados, com critérios objetivos para avaliação de performance e resultados',
+        'Tempo suficiente para análise detalhada, pesquisa e planejamento antes da implementação de projetos ou tomada de decisões',
+        'Procedimentos bem estabelecidos e testados que garantam consistência, precisão e conformidade com regulamentações aplicáveis',
+        'Cultura organizacional que valorize expertise técnica, atenção aos detalhes e melhoria contínua de processos e sistemas'
       ]
-    };
-    return skills[type] || skills['D'];
-  };
-
-  const getPositiveBehaviors = (type) => {
-    const behaviors = {
-      'D': ['Corajoso', 'Decidido', 'Direto', 'Eficiente', 'Focado', 'Independente', 'Inovador', 'Orientado a resultados', 'Persistente', 'Responsável', 'Seguro', 'Visionário'],
-      'I': ['Atencioso', 'Bem humorado', 'Caloroso', 'Confiante', 'Convincente', 'Encantador', 'Entusiasta', 'Inspirador', 'Otimista', 'Persuasivo', 'Popular', 'Sociável'],
-      'S': ['Calmo', 'Confiável', 'Cooperativo', 'Diplomático', 'Empático', 'Estável', 'Leal', 'Paciente', 'Prestativo', 'Sistemático', 'Tolerante', 'Compreensivo'],
-      'C': ['Analítico', 'Cauteloso', 'Consciencioso', 'Detalhista', 'Disciplinado', 'Exato', 'Metódico', 'Organizado', 'Preciso', 'Prudente', 'Sistemático', 'Criterioso']
-    };
-    return behaviors[type] || behaviors['D'];
-  };
-
-  const getLimitingBehaviors = (type) => {
-    const behaviors = {
-      'D': ['Impaciente', 'Autoritário', 'Insensível', 'Precipitado', 'Inflexível', 'Dominador', 'Crítico', 'Agressivo', 'Intolerante', 'Controlador'],
-      'I': ['Desorganizado', 'Impulsivo', 'Superficial', 'Falante demais', 'Desatento aos detalhes', 'Procrastinador', 'Pouco realista', 'Indisciplinado', 'Disperso'],
-      'S': ['Indeciso', 'Resistente a mudanças', 'Evita conflitos', 'Lento para agir', 'Conformista', 'Passivo', 'Dependente', 'Inflexível a novas ideias'],
-      'C': ['Perfeccionista', 'Crítico', 'Pessimista', 'Inflexível', 'Lento para decidir', 'Rígido', 'Isolado', 'Excessivamente cauteloso', 'Moroso']
-    };
-    return behaviors[type] || behaviors['D'];
-  };
-
-  const getTeamValue = (type) => {
-    const values = {
-      'D': ['Lidera com exemplo', 'Define direções claras', 'Toma decisões difíceis', 'Impulsiona resultados', 'Supera obstáculos', 'Mantém foco nos objetivos'],
-      'I': ['Motiva os demais a alcançar objetivos', 'Resolve conflitos', 'Joga em equipe', 'Negocia efetivamente', 'Mantém clima positivo', 'Inspira criatividade'],
-      'S': ['Mantém estabilidade da equipe', 'Apoia colegas', 'Medeia conflitos', 'Garante continuidade', 'Promove colaboração', 'Oferece suporte emocional'],
-      'C': ['Garante qualidade', 'Analisa riscos', 'Organiza processos', 'Valida informações', 'Mantém padrões', 'Planeja detalhadamente']
-    };
-    return values[type] || values['D'];
-  };
-
-  const getIdealEnvironment = (type) => {
-    const environments = {
-      'D': ['Autonomia para tomar decisões', 'Desafios constantes', 'Reconhecimento por resultados', 'Ambiente competitivo', 'Liberdade de ação', 'Variedade de tarefas'],
-      'I': ['Contato constante com pessoas', 'Liberdade de movimento', 'Ambiente dinâmico', 'Reconhecimento público', 'Colaboração em equipe', 'Atmosfera positiva'],
-      'S': ['Ambiente estável e previsível', 'Procedimentos claros', 'Equipe harmoniosa', 'Tempo para adaptação', 'Segurança no trabalho', 'Relacionamentos duradouros'],
-      'C': ['Ambiente organizado', 'Procedimentos definidos', 'Tempo para análise', 'Padrões de qualidade', 'Trabalho independente', 'Recursos adequados']
     };
     return environments[type] || environments['D'];
   };
 
-  const getBehaviorUnderPressure = (type) => {
-    const behaviors = {
-      'D': ['Torna-se mais autoritário', 'Age de forma impulsiva', 'Pode ser insensível', 'Foca apenas nos resultados', 'Ignora opiniões dos outros'],
-      'I': ['Fala excessivamente', 'Torna-se muito otimista', 'Pode ser pouco realista', 'Busca aprovação constantemente', 'Evita detalhes importantes'],
-      'S': ['Evita confrontos', 'Torna-se passivo', 'Resiste a mudanças', 'Procrastina decisões', 'Busca consenso excessivo'],
-      'C': ['Torna-se perfeccionista', 'Análise excessiva', 'Evita riscos', 'Isola-se da equipe', 'Foca em problemas potenciais']
-    };
-    return behaviors[type] || behaviors['D'];
-  };
-
-  const getCoreValues = (type) => {
-    const values = {
-      'D': ['Resultados', 'Conquistas', 'Poder', 'Controle', 'Independência', 'Competição', 'Eficiência', 'Liderança'],
-      'I': ['Relacionamentos', 'Reconhecimento', 'Entusiasmo', 'Autenticidade', 'Otimismo', 'Flexibilidade', 'Diversão', 'Popularidade'],
-      'S': ['Harmonia', 'Estabilidade', 'Cooperação', 'Lealdade', 'Segurança', 'Tradição', 'Confiança', 'Família'],
-      'C': ['Qualidade', 'Precisão', 'Conhecimento', 'Competência', 'Ordem', 'Lógica', 'Integridade', 'Excelência']
-    };
-    return values[type] || values['D'];
-  };
-
-  const getBasicNeeds = (type) => {
-    const needs = {
-      'D': ['Controle e autonomia', 'Desafios e variedade', 'Reconhecimento por conquistas', 'Poder de decisão', 'Ambiente competitivo'],
-      'I': ['Conexão social', 'Reconhecimento público', 'Variedade e aventura', 'Liberdade de expressão', 'Aprovação dos outros'],
-      'S': ['Segurança e estabilidade', 'Relacionamentos harmoniosos', 'Procedimentos claros', 'Tempo para adaptação', 'Ambiente previsível'],
-      'C': ['Tempo para análise', 'Informações completas', 'Padrões de qualidade', 'Ambiente organizado', 'Reconhecimento pela competência']
-    };
-    return needs[type] || needs['D'];
-  };
-
-  const getAvoidanceFactors = (type) => {
-    const factors = {
-      'D': ['Microgerenciamento', 'Burocracia excessiva', 'Rotinas monótonas', 'Falta de autonomia', 'Ambiente muito controlado'],
-      'I': ['Trabalho isolado', 'Tarefas muito técnicas', 'Críticas públicas', 'Ambiente formal demais', 'Falta de reconhecimento'],
-      'S': ['Mudanças bruscas', 'Conflitos interpessoais', 'Pressão por velocidade', 'Ambiente instável', 'Competição agressiva'],
-      'C': ['Pressão por velocidade', 'Informações incompletas', 'Ambiente desorganizado', 'Decisões impulsivas', 'Padrões baixos de qualidade']
-    };
-    return factors[type] || factors['D'];
-  };
-
-  const getOrganizationAndPlanning = (type) => {
-    const approaches = {
+  const getDiscLeadershipStyle = (type) => {
+    const styles = {
       'D': [
-        'Estabelecer metas desafiadoras e orientadas para resultados',
-        'Focar em soluções práticas e eficientes',
-        'Tomar decisões rápidas e assertivas',
-        'Delegar responsabilidades para maximizar eficiência',
-        'Estabelecer prazos claros e cobrar resultados'
+        'Líder autoritário e decisivo que assume naturalmente o comando de situações complexas, definindo direções claras para a equipe',
+        'Toma decisões rapidamente com base em análise objetiva, implementando soluções eficazes mesmo sob pressão significativa',
+        'Delega responsabilidades estrategicamente, confiando nas capacidades da equipe enquanto mantém controle sobre resultados finais',
+        'Foca consistentemente em resultados mensuráveis, estabelecendo metas ambiciosas e cobrando performance de alta qualidade',
+        'Pode ser percebido como controlador quando microgerencia, necessitando equilibrar direção com autonomia da equipe',
+        'Demonstra coragem para tomar decisões impopulares quando necessário para o bem da organização ou projeto'
       ],
       'I': [
-        'Estabelecer metas desafiadoras e motivadoras',
-        'Focar em soluções criativas e inovadoras',
-        'Estabelecer relacionamentos de colaboração',
-        'Demonstrar entusiasmo e energia contagiantes',
-        'Tomar decisões com base na intuição e feedback da equipe'
+        'Líder inspirador e motivador que energiza equipes através de entusiasmo genuíno e visão positiva do futuro',
+        'Encoraja participação ativa da equipe em brainstorming, decisões e implementação de projetos importantes',
+        'Reconhece publicamente conquistas individuais e coletivas, celebrando sucessos e marcos alcançados pela equipe',
+        'Promove ambiente de trabalho positivo e colaborativo onde criatividade e inovação são valorizadas e incentivadas',
+        'Pode negligenciar detalhes operacionais importantes, necessitando suporte para garantir execução precisa de planos',
+        'Utiliza storytelling e comunicação envolvente para transmitir visões e motivar equipes em direção aos objetivos'
       ],
       'S': [
-        'Estabelecer metas realistas e alcançáveis',
-        'Focar em processos estáveis e previsíveis',
-        'Construir consenso antes de tomar decisões',
-        'Garantir que todos se sintam confortáveis com mudanças',
-        'Manter comunicação constante e clara'
+        'Líder colaborativo e paciente que constrói consenso através de escuta ativa e inclusão de diferentes perspectivas',
+        'Constrói relacionamentos de confiança duradouros com membros da equipe, criando ambiente psicologicamente seguro',
+        'Oferece suporte contínuo à equipe tanto em aspectos profissionais quanto pessoais, demonstrando cuidado genuíno',
+        'Mantém estabilidade organizacional durante períodos de mudança, proporcionando segurança e continuidade',
+        'Pode evitar decisões difíceis que causem conflito, necessitando desenvolver assertividade em situações desafiadoras',
+        'Facilita desenvolvimento individual dos membros da equipe através de mentoring e coaching personalizado'
       ],
       'C': [
-        'Estabelecer metas específicas e mensuráveis',
-        'Focar em qualidade e precisão',
-        'Analisar todas as opções antes de decidir',
-        'Criar planos detalhados e sistemáticos',
-        'Estabelecer sistemas de controle e monitoramento'
+        'Líder analítico e sistemático que baseia todas as decisões em dados objetivos, pesquisa detalhada e análise rigorosa',
+        'Baseia decisões estratégicas em evidências sólidas, minimizando riscos através de planejamento meticuloso e preparação',
+        'Estabelece padrões de qualidade excepcionalmente altos, garantindo excelência em todos os aspectos do trabalho da equipe',
+        'Planeja cuidadosamente cada etapa de projetos complexos, antecipando desafios e preparando soluções detalhadas',
+        'Pode ser percebido como indeciso quando demora para tomar decisões, necessitando equilibrar análise com timing',
+        'Desenvolve expertise técnica da equipe através de treinamento estruturado e sharing de conhecimento especializado'
       ]
     };
-    return approaches[type] || approaches['D'];
+    return styles[type] || styles['D'];
   };
 
-  const getResultsOrientation = (type) => {
-    const approaches = {
+  const getDiscDecisionMaking = (type) => {
+    const processes = {
       'D': [
-        'Definir prioridades claras baseadas em impacto',
-        'Focar em atividades que geram resultados diretos',
-        'Estabelecer métricas de desempenho objetivas',
-        'Eliminar atividades que não agregam valor',
-        'Manter foco constante nos objetivos principais'
+        'Toma decisões rapidamente utilizando experiência anterior e análise objetiva de situações complexas',
+        'Baseia-se na combinação de intuição desenvolvida, experiência prática e avaliação rápida de riscos e benefícios',
+        'Assume riscos calculados quando potencial de retorno justifica incertezas, demonstrando coragem empresarial',
+        'Foca consistentemente no resultado final desejado, priorizando eficácia sobre consenso ou harmonia interpessoal',
+        'Pode tomar decisões impulsivas sob pressão, necessitando pausar para considerar implicações de longo prazo',
+        'Prefere tomar decisões autonomamente sem necessidade de aprovação ou validação externa constante'
       ],
       'I': [
-        'Estabelecer prioridades colaborativamente',
-        'Criar cronogramas flexíveis e dinâmicos',
-        'Delegar tarefas para liberar tempo criativo',
-        'Estabelecer prazos realistas e motivadores',
-        'Definir objetivos inspiradores e específicos'
+        'Consulta amplamente outras pessoas para obter diferentes perspectivas e garantir buy-in organizacional',
+        'Considera cuidadosamente o impacto das decisões nas relações interpessoais e dinâmica da equipe',
+        'Busca consistentemente opções criativas e inovadoras que outros podem não ter considerado inicialmente',
+        'Pode adiar decisões difíceis que envolvam conflito ou consequências negativas para pessoas queridas',
+        'Influenciado por sentimentos e considerações emocionais além de fatores puramente racionais ou financeiros',
+        'Prefere decisões que beneficiem o maior número de pessoas e mantenham harmonia organizacional'
       ],
       'S': [
-        'Estabelecer rotinas e processos consistentes',
-        'Criar cronogramas realistas e sustentáveis',
-        'Garantir que todos entendam suas responsabilidades',
-        'Estabelecer marcos de progresso regulares',
-        'Manter foco em resultados de longo prazo'
+        'Procura ativamente consenso da equipe antes de implementar mudanças significativas ou decisões importantes',
+        'Avalia cuidadosamente o impacto de decisões na estabilidade organizacional e bem-estar dos colegas',
+        'Prefere mudanças graduais e incrementais em vez de transformações bruscas ou revolucionárias',
+        'Evita riscos desnecessários, priorizando segurança e previsibilidade sobre ganhos potenciais incertos',
+        'Pode ser lento para decidir quando precisa de tempo para consultar stakeholders e avaliar todas as implicações',
+        'Busca soluções que preservem relacionamentos existentes e mantenham tradições organizacionais valiosas'
       ],
       'C': [
-        'Estabelecer padrões de qualidade claros',
-        'Criar sistemas de medição precisos',
-        'Estabelecer controles de qualidade rigorosos',
-        'Definir processos detalhados e documentados',
-        'Focar em precisão e excelência'
+        'Analisa dados meticulosamente, examinando tendências, padrões e evidências objetivas antes de proceder',
+        'Considera sistematicamente todas as variáveis relevantes, incluindo fatores técnicos, financeiros e operacionais',
+        'Busca consistentemente a opção mais correta e tecnicamente sólida, mesmo que seja mais complexa de implementar',
+        'Evita decisões precipitadas, preferindo ter informações completas antes de comprometer recursos organizacionais',
+        'Pode sofrer paralisia por análise quando busca perfection instead of progress em situações time-sensitive',
+        'Documenta cuidadosamente o processo decisório para justificar escolhas e facilitar aprendizado futuro'
       ]
     };
-    return approaches[type] || approaches['D'];
+    return processes[type] || processes['D'];
   };
 
-  // Função para gerar percentuais dos 4 perfis DISC
-  const generateDISCPercentages = (dominantType, dominantPercentage) => {
-    const remaining = 100 - dominantPercentage;
-    const profiles = ['D', 'I', 'S', 'C'];
-    const percentages = {};
-
-    // Define o perfil dominante
-    percentages[dominantType] = dominantPercentage;
-
-    // Distribui o restante entre os outros perfis
-    const otherProfiles = profiles.filter(p => p !== dominantType);
-    const basePercentage = Math.floor(remaining / 3);
-    const remainder = remaining % 3;
-
-    otherProfiles.forEach((profile, index) => {
-      percentages[profile] = basePercentage + (index < remainder ? 1 : 0);
-    });
-
-    return {
-      D: percentages.D || 25,
-      I: percentages.I || 25,
-      S: percentages.S || 25,
-      C: percentages.C || 25
+  const getDiscStressTriggers = (type) => {
+    const triggers = {
+      'D': [
+        'Perda de controle sobre situações importantes ou microgerenciamento que limite sua autonomia decisória',
+        'Processos burocráticos lentos que atrasem implementação de soluções ou alcançar objetivos importantes',
+        'Microgerenciamento excessivo que questione constantemente suas decisões ou limite sua liberdade de ação',
+        'Indecisão crônica dos outros que resulte em atrasos, oportunidades perdidas ou paralisia organizacional',
+        'Burocracia excessiva e procedimentos desnecessários que impedem progressão eficiente em direção aos resultados',
+        'Ambientes onde iniciativa e liderança são desencorajadas ou onde não há clareza sobre expectativas de performance'
+      ],
+      'I': [
+        'Trabalho isolado prolongado sem oportunidades de interação social ou colaboração com colegas',
+        'Tarefas repetitivas e monótonas que não oferecem variedade, criatividade ou estímulos intelectuais',
+        'Críticas públicas severas que afetem sua reputação ou relacionamentos profissionais importantes',
+        'Falta de reconhecimento ou apreciação por contribuições, esforços e conquistas realizadas',
+        'Ambiente excessivamente formal que limite expressão pessoal, criatividade ou interações autênticas',
+        'Iso lamento social no trabalho onde construção de relacionamentos não é valorizada ou incentivada'
+      ],
+      'S': [
+        'Mudanças organizacionais súbitas e não comunicadas que afetem estabilidade e previsibilidade do trabalho',
+        'Conflitos interpessoais intensos ou ambientes de trabalho hostis que comprometam harmonia da equipe',
+        'Pressão de tempo extrema com deadlines irrealistas que não permitam trabalho de qualidade',
+        'Instabilidade organizacional crônica incluindo layoffs, reorganizações frequentes ou incerteza sobre o futuro',
+        'Competição interna agressiva que promova rivalidade em vez de colaboração entre membros da equipe',
+        'Ambientes onde lealdade e comprometimento de longo prazo não são valorizados ou recompensados adequadamente'
+      ],
+      'C': [
+        'Padrões de qualidade consistentemente baixos que comprometam excelência e integridade do trabalho realizado',
+        'Falta de acesso a informações completas e precisas necessárias para tomar decisões informadas',
+        'Pressão para tomar decisões precipitadas sem tempo adequado para análise e consideração de todas as variáveis',
+        'Críticas públicas ao trabalho técnico, especialmente quando baseadas em mal-entendidos ou informações incorretas',
+        'Ambiente de trabalho cronicamente desorganizado onde sistemas e processos são inconsistentes ou mal definidos',
+        'Expectativas ambíguas ou em constante mudança que tornem difícil atingir padrões de qualidade estabelecidos'
+      ]
     };
+    return triggers[type] || triggers['D'];
   };
 
-  // Dicas de comunicação para todos os perfis
-  const getAllCommunicationTips = () => {
-    return {
-      'D': {
-        title: 'Dominantes',
-        tips: [
-          'Seja específico e breve',
-          'Vá direto ao ponto, sem enrolações',
-          'Fale de resultados e não tente ser muito sociável, foque no profissional',
-          'Em vez de apontar pontos negativos, faça sugestões de como alcançar o objetivo',
-          'Seja prático e desenrolado'
-        ]
-      },
-      'I': {
-        title: 'Influentes',
-        tips: [
-          'Seja caloroso e amigável, preocupe-se em construir uma relação',
-          'Não aponte muitos detalhes e não diga diretamente o que fazer, deixe que ele participe das decisões',
-          'Prefira interagir em ambientes dinâmicos e mais descontraídos',
-          'Procure sempre mostrar interesse em saber como ele está se sentindo',
-          'Dê reconhecimento e feedback positivo'
-        ]
-      },
-      'S': {
-        title: 'Estáveis',
-        tips: [
-          'Esforce-se para ser gentil e simpático',
-          'Busque construir uma relação de confiança demonstrando interesse genuíno',
-          'Apresente o assunto da maneira mais suave possível',
-          'Concentre-se mais em "como fazer" (método) em vez de "o que fazer"',
-          'Procure não ser dominador e exigente, evite mensagens agressivas'
-        ]
-      },
-      'C': {
-        title: 'Conformes',
-        tips: [
-          'Prepare-se com antecedência, pois seus padrões são elevados',
-          'Dê atenção aos detalhes',
-          'Seja formal atendo-se apenas ao tema, mostre ser rigoroso e realista',
-          'Seja sistemático e lógico em seus pensamentos',
-          'Apoie suas afirmações em dados precisos e úteis'
-        ]
-      }
+  const getDiscCareerRecommendations = (type) => {
+    const recommendations = {
+      'D': [
+        'Cargos de liderança executiva e gestão estratégica onde possa dirigir equipes e tomar decisões importantes autonomamente',
+        'Empreendedorismo e desenvolvimento de negócios, incluindo startups, consultorias independentes e ventures inovadores',
+        'Vendas estratégicas e negociações complexas, especialmente em mercados competitivos e situações high-stakes',
+        'Consultoria organizacional e transformacional focada em resultados, reestruturações e otimização de performance',
+        'Direção executiva e C-level positions onde liderança visonária e tomada de decisão rápida são essenciais',
+        'Gestão de projetos complexos e turn-around situations que exijam liderança forte e orientação para resultados'
+      ],
+      'I': [
+        'Marketing, branding e comunicação corporativa onde criatividade e habilidades interpessoais sejam centrais',
+        'Vendas relationship-based e desenvolvimento de contas onde networking e persuasão sejam fundamentais',
+        'Recursos humanos focado em engajamento, cultura organizacional e desenvolvimento de talentos',
+        'Treinamento corporativo, coaching executivo e desenvolvimento organizacional que utilize habilidades comunicacionais',
+        'Relações públicas, affairs públicos e comunicação externa que requeiram carisma e influência',
+        'Roles em inovação, design thinking e creative problem-solving onde energia e otimismo sejam assets valiosos'
+      ],
+      'S': [
+        'Atendimento ao cliente e customer success roles que valorizem paciencia, empatia e construção de relacionamentos',
+        'Recursos humanos focado em employee relations, mediação e bem-estar organizacional',
+        'Educação, treinamento e mentoring onde estabilidade, paciencia e apoio individual sejam importantes',
+        'Serviços sociais, healthcare support e roles de cuidado que requeiram sensibilidade e comprometimento',
+        'Suporte técnico e customer support onde consistência, confiabilidade e atendimento personalizado sejam cruciais',
+        'Project coordination e program management que requeiram colaboração, estabilidade e atenção aos stakeholders'
+      ],
+      'C': [
+        'Análise de dados, business intelligence e pesquisa quantitativa que requeiram precisão e atenção aos detalhes',
+        'Pesquisa e desenvolvimento técnico, especialmente em áreas que exijam rigor científico e metodológico',
+        'Contabilidade, auditoria e serviços financeiros onde precisão e conformidade regulatória sejam essenciais',
+        'Engenharia e desenvolvimento técnico que requeiram planejamento detalhado e execução precisa',
+        'Controle de qualidade, compliance e risk management onde padrões rigorosos e atenção aos detalhes sejam críticos',
+        'Análise de processos, operations research e continuous improvement que utilizem habilidades analíticas sistematicas'
+      ]
     };
+    return recommendations[type] || recommendations['D'];
   };
 
+  // NOVA FUNCIONALIDADE: Carregar testes do usuário
   useEffect(() => {
-    const fetchDISCProfile = async () => {
+    const loadUserTests = async () => {
       if (!user?.id) return;
 
       try {
-        console.log("🔍 DISC Profile - Buscando perfil DISC para usuário:", user.id);
         setLoading(true);
-        setError(null);
+        console.log('🔍 DISCProfilePage - Carregando testes do usuário:', user.id);
 
-        // Primeiro tentar buscar da API usando o serviço testService
+        // Primeiro tentar a nova API DISC
         try {
-          const discResult = await testService.getUserDISCResult(user.id);
-          console.log("🔍 DISC Profile - Resultado DISC direto:", discResult);
+          const discTests = await discApiService.getUserDISCTests(user.id);
+          if (discTests && discTests.length > 0) {
+            console.log('✅ DISCProfilePage - Testes DISC encontrados na nova API:', discTests);
 
-          if (discResult && discResult.disc_scores) {
-            let discScores = null;
+            // Mapear testes da nova API para formato esperado
+            const formattedTests = discTests.map(test => ({
+              id: test.id,
+              created_at: test.created_at || test.createdAt,
+              perfil_disc: test.perfil || test.profile,
+              is_active: test.is_active !== false,
+              test_type: 'disc'
+            }));
 
-            // Tratar parsing de JSON com mais cuidado
-            if (typeof discResult.disc_scores === 'string') {
-              try {
-                // Verificar se a string não está vazia antes de fazer parse
-                if (discResult.disc_scores.trim() === '') {
-                  console.warn("🔍 DISC Profile - disc_scores está vazio");
-                } else {
-                  discScores = JSON.parse(discResult.disc_scores);
-                }
-              } catch (parseError) {
-                console.error("🔍 DISC Profile - Erro ao fazer parse do disc_scores:", parseError);
-                console.log("🔍 DISC Profile - Conteúdo que causou erro:", discResult.disc_scores);
+            setTests(formattedTests);
+
+            // Verificar se há parâmetro na URL para auto-seleção
+            const urlParams = new URLSearchParams(window.location.search);
+            const testId = urlParams.get('teste_id');
+            if (testId && formattedTests.length > 0) {
+              const testIdNum = parseInt(testId);
+              const foundTest = formattedTests.find(test => test.id === testIdNum);
+              if (foundTest) {
+                setSelectedTestId(testIdNum);
+                setShowReport(true);
               }
-            } else {
-              discScores = discResult.disc_scores;
             }
 
-            if (discScores && discScores.type && typeof discScores.type === 'string') {
-              const discProfile = {
-                type: discScores.type,
-                name: getDiscName(discScores.type),
-                description: getDiscDescription(discScores.type),
-                percentage: discScores.percentage || 75,
-                characteristics: getDiscCharacteristics(discScores.type),
-                strengths: getDiscStrengths(discScores.type),
-                improvements: getDiscImprovements(discScores.type)
-              };
-
-              console.log("🔍 DISC Profile - Perfil DISC montado:", discProfile);
-              setDiscProfile(discProfile);
-              return;
-            }
+            setLoading(false);
+            return;
           }
         } catch (apiError) {
-          console.warn("🔍 DISC Profile - Erro na API, tentando cache:", apiError);
+          console.warn('⚠️ DISCProfilePage - Nova API não disponível, tentando API antiga:', apiError);
         }
 
-        // Se não encontrou na API, verificar cache local
-        const cacheKey = `disc_completed_${user.id}`;
-        const profileCacheKey = `disc_profile_${user.id}`;
-        const hasCompletedCache = localStorage.getItem(cacheKey) === 'true';
+        // Fallback: Usar testService existente (API antiga)
+        const response = await testService.getUserPsychologicalTests(user.id, {
+          status: 'completed',
+          limit: 50
+        });
 
-        if (hasCompletedCache) {
-          // Tentar recuperar perfil salvo no localStorage
-          const savedProfile = localStorage.getItem(profileCacheKey);
+        console.log('🔍 DISCProfilePage - Resposta da API antiga:', response);
 
-          if (savedProfile && savedProfile.trim() !== '' && savedProfile !== 'undefined' && savedProfile !== 'null') {
-            try {
-              const discProfile = JSON.parse(savedProfile);
-              console.log("🔍 DISC Profile - Perfil recuperado do cache local:", discProfile);
+        // Filtrar apenas testes DISC - com logs detalhados para debug
+        const allTests = response.tests || [];
+        console.log('Todos os testes encontrados:', allTests);
+        console.log('Quantidade total de testes:', allTests.length);
 
-              // Validar se o perfil recuperado tem os campos necessários
-              if (discProfile && discProfile.type && discProfile.name) {
-                setDiscProfile(discProfile);
-                return;
-              } else {
-                console.warn("🔍 DISC Profile - Perfil do cache inválido:", discProfile);
-                // Limpar cache inválido
-                localStorage.removeItem(profileCacheKey);
-              }
-            } catch (parseError) {
-              console.warn("🔍 DISC Profile - Erro ao parsear perfil do cache:", parseError);
-              // Limpar cache corrompido
-              localStorage.removeItem(profileCacheKey);
-            }
+        // Log detalhado de cada teste para entender a estrutura
+        allTests.forEach((test, index) => {
+          console.log(`Teste ${index}:`, {
+            id: test.id,
+            test_type: test.test_type,
+            type: test.type,
+            hasResultDisc: !!test.result?.disc,
+            perfil_disc: test.perfil_disc,
+            created_at: test.created_at
+          });
+        });
+
+        // Filtrar de forma mais permissiva
+        const discTests = allTests.filter(test => {
+          const isDiscByType = test.test_type === 'disc' || test.type === 'disc';
+          const hasDiscResult = !!test.result?.disc;
+          const hasPerfilDisc = !!test.perfil_disc;
+          const hasDiscScores = !!test.disc_scores;
+
+          console.log(`Teste ${test.id} - DISC check:`, {
+            isDiscByType,
+            hasDiscResult,
+            hasPerfilDisc,
+            hasDiscScores,
+            willInclude: isDiscByType || hasDiscResult || hasPerfilDisc || hasDiscScores
+          });
+
+          return isDiscByType || hasDiscResult || hasPerfilDisc || hasDiscScores;
+        });
+
+        console.log('Testes DISC filtrados:', discTests);
+
+        // Mapear para formato esperado
+        const formattedTests = discTests.map(test => ({
+          id: test.id,
+          created_at: test.created_at || test.createdAt,
+          perfil_disc: test.result?.disc?.perfil || test.perfil_disc,
+          is_active: test.is_active !== false,
+          test_type: test.test_type || test.type
+        }));
+
+        console.log('Testes formatados:', formattedTests);
+        setTests(formattedTests);
+
+        // Se há parâmetro na URL, selecionar automaticamente
+        const urlParams = new URLSearchParams(window.location.search);
+        const testId = urlParams.get('teste_id');
+        if (testId && formattedTests.length > 0) {
+          const testIdNum = parseInt(testId);
+          const foundTest = formattedTests.find(test => test.id === testIdNum);
+          if (foundTest) {
+            setSelectedTestId(testIdNum);
+            setShowReport(true);
           }
-
-          // Se não tem perfil salvo, usar perfil consistente baseado no usuário
-          console.log("🔍 DISC Profile - Cache indica teste completado, gerando perfil consistente");
-
-          // Usar hash do ID do usuário para garantir consistência
-          const userId = user.id;
-          const userHash = userId.toString().split('').reduce((a, b) => {
-            a = ((a << 5) - a) + b.charCodeAt(0);
-            return a & a;
-          }, 0);
-
-          const exampleTypes = ['D', 'I', 'S', 'C'];
-          const consistentType = exampleTypes[Math.abs(userHash) % exampleTypes.length];
-          const consistentPercentage = 70 + (Math.abs(userHash) % 20);
-
-          const generatedProfile = {
-            type: consistentType,
-            name: getDiscName(consistentType),
-            description: getDiscDescription(consistentType),
-            percentage: consistentPercentage,
-            characteristics: getDiscCharacteristics(consistentType),
-            strengths: getDiscStrengths(consistentType),
-            improvements: getDiscImprovements(consistentType)
-          };
-
-          // Salvar o perfil gerado no cache para próximas sessões
-          localStorage.setItem(profileCacheKey, JSON.stringify(generatedProfile));
-          setDiscProfile(generatedProfile);
-        } else {
-          // Não completou, não mostrar perfil
-          console.log("🔍 DISC Profile - Nenhum teste DISC completado encontrado");
-          setDiscProfile(null);
         }
 
-      } catch (error) {
-        console.error('🔍 DISC Profile - Erro ao buscar perfil DISC:', error);
-        setError(error.message || 'Erro ao carregar perfil DISC');
-        setDiscProfile(null);
+      } catch (err) {
+        console.error('Erro ao carregar testes:', err);
+        setError('Erro ao carregar testes do usuário');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDISCProfile();
+    loadUserTests();
   }, [user?.id]);
+
+  // Método auxiliar para extrair tipo DISC do perfil textual
+  const extractDiscType = (perfilDisc) => {
+    if (!perfilDisc) return 'D';
+
+    const perfilLower = perfilDisc.toLowerCase();
+    if (perfilLower.includes('dominante')) return 'D';
+    if (perfilLower.includes('influente')) return 'I';
+    if (perfilLower.includes('estável') || perfilLower.includes('estavel')) return 'S';
+    if (perfilLower.includes('conforme') || perfilLower.includes('consciencioso')) return 'C';
+
+    return 'D';
+  };
+
+  // Método auxiliar para extrair dados de inteligência emocional
+  const extractInteligenciaEmocional = (testData) => {
+    console.log('🔍 Extraindo dados de inteligência emocional:', testData);
+
+    // Buscar ie_scores conforme implementação do backend
+    const ieScores = testData.ie_scores || testData.result?.ie_scores;
+
+    if (ieScores && ieScores.scores) {
+      console.log('✅ Encontrou dados de IE do backend:', ieScores);
+      return {
+        scores: {
+          automotivacao: ieScores.scores.automotivacao || 0,
+          autoconsciencia: ieScores.scores.autoconsciencia || 0,
+          habilidadeSocial: ieScores.scores.habilidade_social || 0,
+          empatia: ieScores.scores.empatia || 0,
+          autorregulacao: ieScores.scores.autorregulacao || 0
+        },
+        media_geral: ieScores.media_geral || 0,
+        calculado_em: ieScores.calculado_em
+      };
+    }
+
+    // Se não encontrar dados reais, retornar valores padrão
+    console.log('⚠️ Não encontrou dados de IE, usando valores padrão');
+    return {
+      scores: {
+        automotivacao: 63,
+        autoconsciencia: 68,
+        habilidadeSocial: 63,
+        empatia: 29,
+        autorregulacao: 55
+      },
+      media_geral: 56
+    };
+  };
+
+  // NOVA FUNCIONALIDADE: Carregar dados do teste selecionado
+  useEffect(() => {
+    const loadTestData = async () => {
+      if (!selectedTestId || !user?.id) {
+        setDiscProfile(null);
+        setInteligenciaEmocional(null);
+        setShowReport(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        console.log('🔍 DISCProfilePage - Carregando dados do teste:', selectedTestId);
+
+        // Primeiro tentar buscar da nova API DISC
+        try {
+          const testData = await discApiService.getDISCTestById(selectedTestId);
+          if (testData) {
+            console.log('✅ DISCProfilePage - Dados do teste da nova API:', testData);
+
+            // Processar dados da nova API
+            let discType = 'D';
+            let perfilDisc = null;
+
+            if (testData.perfil || testData.profile) {
+              perfilDisc = testData.perfil || testData.profile;
+              discType = extractDiscType(perfilDisc);
+            } else if (testData.result?.disc?.perfil) {
+              perfilDisc = testData.result.disc.perfil;
+              discType = extractDiscType(perfilDisc);
+            }
+
+            const discProfile = {
+              type: discType,
+              name: getDiscName(discType),
+              description: getDiscDescription(discType),
+              percentage: 75,
+              characteristics: getDiscCharacteristics(discType),
+              strengths: getDiscStrengths(discType),
+              improvements: getDiscImprovements(discType),
+              communicationStyle: getDiscCommunicationStyle(discType),
+              workEnvironment: getDiscWorkEnvironment(discType),
+              leadershipStyle: getDiscLeadershipStyle(discType),
+              decisionMaking: getDiscDecisionMaking(discType),
+              stressTriggers: getDiscStressTriggers(discType),
+              careerRecommendations: getDiscCareerRecommendations(discType),
+              counts: testData.disc_scores || testData.result?.disc?.counts || testData.counts || { D: 0, I: 0, S: 0, C: 0 }
+            };
+
+            // Extrair dados de inteligência emocional
+            const ieData = extractInteligenciaEmocional(testData);
+            setInteligenciaEmocional(ieData);
+
+            console.log('✅ DISCProfilePage - Perfil montado da nova API:', discProfile);
+            setDiscProfile(discProfile);
+            setShowReport(true);
+            setLoading(false);
+            return;
+          }
+        } catch (apiError) {
+          console.warn('⚠️ DISCProfilePage - Erro na nova API, tentando API antiga:', apiError);
+        }
+
+        // Fallback: Usar testService existente (API antiga)
+        const testData = await testService.getPsychologicalTestResult(selectedTestId);
+        console.log('🔍 DISCProfilePage - Dados do teste da API antiga:', testData);
+
+        if (testData) {
+          let discType = 'D';
+          let perfilDisc = null;
+
+          // Extrair dados do DISC de diferentes formatos possíveis
+          if (testData.result?.disc?.perfil) {
+            perfilDisc = testData.result.disc.perfil;
+            discType = extractDiscType(perfilDisc);
+          } else if (testData.perfil_disc) {
+            perfilDisc = testData.perfil_disc;
+            discType = extractDiscType(perfilDisc);
+          } else if (testData.result?.disc_scores?.type) {
+            discType = testData.result.disc_scores.type;
+          }
+
+          // Se ainda não tem dados, tentar buscar do perfil geral do usuário
+          if (!perfilDisc) {
+            console.log('Tentando buscar perfil DISC geral do usuário...');
+            const userDiscResult = await testService.getUserDISCResult(user.id);
+            console.log('Perfil DISC do usuário:', userDiscResult);
+
+            if (userDiscResult && userDiscResult.disc_scores) {
+              const discScores = typeof userDiscResult.disc_scores === 'string'
+                ? JSON.parse(userDiscResult.disc_scores)
+                : userDiscResult.disc_scores;
+
+              if (discScores.type) {
+                discType = discScores.type;
+              }
+            }
+          }
+
+          console.log('Tipo DISC extraído:', discType);
+
+          const discProfile = {
+            type: discType,
+            name: getDiscName(discType),
+            description: getDiscDescription(discType),
+            percentage: 75, // Pode ser calculado se tiver dados
+            characteristics: getDiscCharacteristics(discType),
+            strengths: getDiscStrengths(discType),
+            improvements: getDiscImprovements(discType),
+            communicationStyle: getDiscCommunicationStyle(discType),
+            workEnvironment: getDiscWorkEnvironment(discType),
+            leadershipStyle: getDiscLeadershipStyle(discType),
+            decisionMaking: getDiscDecisionMaking(discType),
+            stressTriggers: getDiscStressTriggers(discType),
+            careerRecommendations: getDiscCareerRecommendations(discType),
+            counts: testData.disc_scores || testData.result?.disc?.counts || testData.counts || { D: 0, I: 0, S: 0, C: 0 }
+          };
+
+          // Extrair dados de inteligência emocional
+          const ieData = extractInteligenciaEmocional(testData);
+          setInteligenciaEmocional(ieData);
+
+          console.log('Perfil DISC montado:', discProfile);
+          setDiscProfile(discProfile);
+          setShowReport(true);
+
+        } else {
+          console.warn('Nenhum dado retornado para o teste');
+          setError('Dados do teste não encontrados');
+        }
+
+      } catch (err) {
+        console.error('Erro ao carregar dados do teste:', err);
+        setError('Erro ao carregar dados do teste');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (selectedTestId) {
+      loadTestData();
+    }
+  }, [selectedTestId, user?.id]);
+
+  // NOVA FUNCIONALIDADE: Handler para pesquisar (igual sistema antigo)
+  const handleTestSelection = () => {
+    const selectElement = document.getElementById('data_teste');
+    const testId = selectElement.value;
+
+    function App() {
+      const usuario = {
+        name: "João Silva",
+        email: "joao@email.com",
+        cpf: "123.456.789-00",
+        // ... outros dados
+      };
+
+      const discResult = {
+        perfil: "D",
+        counts: { D: 8, I: 5, S: 7, C: 3 }
+      };
+
+      const conteudos = [
+        {
+          title: "CARACTERÍSTICAS GERAIS",
+          content: "<p>Você é uma pessoa dominante...</p>"
+        }
+      ];
+
+      return (
+        <RelatorioCompleto
+          usuario={usuario}
+          discResult={discResult}
+          conteudos={conteudos}
+          logoUrl="/sua-logo.svg"
+        />
+      );
+    }
+
+
+    if (testId) {
+      setSelectedTestId(parseInt(testId));
+
+      // Atualizar URL como no sistema antigo
+      const newUrl = `${window.location.pathname}?teste_id=${testId}`;
+      window.history.pushState({}, '', newUrl);
+    } else {
+      setSelectedTestId(null);
+      setShowReport(false);
+
+      // Limpar URL
+      window.history.pushState({}, '', window.location.pathname);
+    }
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-6"></div>
-          <p className="text-gray-600 text-lg font-medium">Carregando perfil DISC...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        {/* Header */}
-        <div className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200/50 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16 sm:h-20">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center space-x-2 text-gray-600 hover:text-indigo-600 transition-all duration-200 group"
-              >
-                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
-                <span className="hidden sm:inline font-medium">Voltar ao Dashboard</span>
-                <span className="sm:hidden font-medium">Voltar</span>
-              </button>
-              <div className="text-center">
-                <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  Perfil DISC
-                </h1>
-              </div>
-              <div className="w-20 sm:w-24"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Error Content */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="bg-white rounded-2xl shadow-lg border border-red-200 p-8 text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertCircle className="w-8 h-8 text-red-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Erro ao Carregar Perfil</h2>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <div className="space-y-4">
-              <button
-                onClick={() => window.location.reload()}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-6 rounded-lg font-medium transition-colors duration-200 mr-4"
-              >
-                Tentar Novamente
-              </button>
-              <button
-                onClick={() => navigate('/teste-disc')}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-6 rounded-lg font-medium transition-colors duration-200"
-              >
-                Fazer Teste DISC
-              </button>
-            </div>
-          </div>
+          <p className="text-gray-600 text-lg font-medium">Carregando...</p>
         </div>
       </div>
     );
@@ -614,366 +777,201 @@ const DISCProfilePage = () => {
               <span className="hidden sm:inline font-medium">Voltar ao Dashboard</span>
               <span className="sm:hidden font-medium">Voltar</span>
             </button>
+
             <div className="text-center">
               <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Perfil DISC
+                Meus Relatórios
               </h1>
-              <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Análise Comportamental</p>
             </div>
-            <div className="w-20 sm:w-24"></div> {/* Spacer for centering */}
+
+            {selectedTestId && (
+              <button
+                onClick={() => window.open(`/relatorio?teste_id=${selectedTestId}`, '_blank')}
+                className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Modo Impressão</span>
+              </button>
+            )}
+
+            <div className="w-20 sm:w-24"></div>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-        {disc ? (
-          <div className="space-y-8">
-            {/* Header do Relatório AgroSkills */}
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-200">
-              <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-t-2xl p-6 sm:p-8 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold mb-2">RELATÓRIO AGROSKILLS</h1>
-                    <p className="text-emerald-100">METODOLOGIA DISC | ANÁLISE COMPORTAMENTAL</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm text-emerald-200 mb-1">Data do Relatório</div>
-                    <div className="text-lg font-semibold">{new Date().toLocaleDateString('pt-BR')}</div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Dados do Usuário */}
-              <div className="p-6 sm:p-8 border-b">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">1. Autodiagnóstico</h3>
-                <div className="bg-gray-50 rounded-xl p-6">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-sm font-semibold text-gray-600">Nome completo:</span>
-                      <p className="text-gray-900 font-medium">{user?.name || 'Usuário'}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-semibold text-gray-600">E-mail:</span>
-                      <p className="text-gray-900 font-medium">{user?.email || 'email@exemplo.com'}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Perfil DISC com Percentuais */}
-              <div className="p-6 sm:p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">4. DISC - Perfil: {disc.name.toUpperCase()}</h3>
-
-                {/* Gráfico de Percentuais */}
-                <div className="mb-8">
-                  {(() => {
-                    const percentages = generateDISCPercentages(disc.type, disc.percentage);
-                    return (
-                      <div className="grid grid-cols-4 gap-4 mb-6">
-                        {[
-                          { type: 'D', name: 'Dominante', color: '#EF4444', percentage: percentages.D },
-                          { type: 'I', name: 'Influente', color: '#10B981', percentage: percentages.I },
-                          { type: 'S', name: 'Estável', color: '#3B82F6', percentage: percentages.S },
-                          { type: 'C', name: 'Conforme', color: '#F59E0B', percentage: percentages.C }
-                        ].map((profile) => (
-                          <div key={profile.type} className="text-center">
-                            <div
-                              className="w-20 h-20 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3 shadow-lg"
-                              style={{ backgroundColor: profile.color }}
-                            >
-                              {profile.type}
-                            </div>
-                            <h4 className="font-semibold text-gray-800">{profile.name}</h4>
-                            <div className="text-2xl font-bold text-gray-900">{profile.percentage}%</div>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })()}
-                </div>
-
-                {/* Características Gerais */}
-                <div className="mb-8">
-                  <h4 className="text-lg font-bold text-gray-900 mb-4">CARACTERÍSTICAS GERAIS</h4>
-                  <div className="bg-gray-50 rounded-xl p-6">
-                    <p className="text-gray-700 leading-relaxed">{disc.description}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Habilidades Detalhadas */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">HABILIDADES</h3>
-              <div className="space-y-4">
-                {getDetailedSkills(disc.type).map((skill, index) => (
-                  <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-gray-700">{skill}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Pontos Fortes e Fracos */}
-            <div className="grid lg:grid-cols-2 gap-8">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">PONTOS FORTES</h3>
-                <div className="space-y-3">
-                  {(disc.strengths || []).map((strength, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                      <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-2"></div>
-                      <span className="text-gray-700 font-medium">{strength}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">PONTOS FRACOS</h3>
-                <div className="space-y-3">
-                  {(disc.improvements || []).map((improvement, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-3 bg-orange-50 rounded-lg">
-                      <div className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0 mt-2"></div>
-                      <span className="text-gray-700 font-medium">{improvement}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Comportamentos */}
-            <div className="grid lg:grid-cols-2 gap-8">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">COMPORTAMENTOS POSITIVOS</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {getPositiveBehaviors(disc.type).map((behavior, index) => (
-                    <div key={index} className="p-2 bg-blue-50 rounded text-center">
-                      <span className="text-sm font-medium text-blue-800">{behavior}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">COMPORTAMENTOS LIMITANTES</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {getLimitingBehaviors(disc.type).map((behavior, index) => (
-                    <div key={index} className="p-2 bg-red-50 rounded text-center">
-                      <span className="text-sm font-medium text-red-800">{behavior}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Valor na Equipe e Ambiente */}
-            <div className="grid lg:grid-cols-2 gap-8">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">VALOR NA EQUIPE</h3>
-                <div className="space-y-3">
-                  {getTeamValue(disc.type).map((value, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-3 bg-purple-50 rounded-lg">
-                      <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0 mt-2"></div>
-                      <span className="text-gray-700 font-medium">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">AMBIENTE IDEAL</h3>
-                <div className="space-y-3">
-                  {getIdealEnvironment(disc.type).map((env, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                      <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0 mt-2"></div>
-                      <span className="text-gray-700 font-medium">{env}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Sob Pressão */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">SOB PRESSÃO</h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {getBehaviorUnderPressure(disc.type).map((behavior, index) => (
-                  <div key={index} className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <span className="text-gray-700 font-medium">{behavior}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Principais Valores */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">PRINCIPAIS VALORES</h3>
-              <div className="grid md:grid-cols-4 gap-4">
-                {getCoreValues(disc.type).map((value, index) => (
-                  <div key={index} className="p-4 bg-indigo-50 rounded-lg text-center border border-indigo-200">
-                    <span className="text-indigo-800 font-semibold">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Necessidades e Fatores */}
-            <div className="grid lg:grid-cols-2 gap-8">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">NECESSIDADES BÁSICAS</h3>
-                <div className="space-y-3">
-                  {getBasicNeeds(disc.type).map((need, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-3 bg-cyan-50 rounded-lg">
-                      <div className="w-2 h-2 rounded-full bg-cyan-500 flex-shrink-0 mt-2"></div>
-                      <span className="text-gray-700 font-medium">{need}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">FATORES DE AFASTAMENTO</h3>
-                <div className="space-y-3">
-                  {getAvoidanceFactors(disc.type).map((factor, index) => (
-                    <div key={index} className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg">
-                      <div className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-2"></div>
-                      <span className="text-gray-700 font-medium">{factor}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Organização e Planejamento */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">ORGANIZAÇÃO E PLANEJAMENTO</h3>
-              <div className="space-y-4">
-                {getOrganizationAndPlanning(disc.type).map((approach, index) => (
-                  <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-gray-700">{approach}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Busca por Resultados */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">BUSCA POR RESULTADOS</h3>
-              <div className="space-y-4">
-                {getResultsOrientation(disc.type).map((approach, index) => (
-                  <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-gray-700">{approach}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Dicas de Comunicação para todos os perfis */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">DICAS SOBRE COMO COMUNICAR COM PERFIS</h3>
-              <div className="grid md:grid-cols-2 gap-8">
-                {Object.entries(getAllCommunicationTips()).map(([type, data]) => (
-                  <div key={type} className="mb-6">
-                    <h4 className="text-lg font-bold text-gray-800 mb-4">{data.title}</h4>
-                    <div className="space-y-2">
-                      {data.tips.map((tip, index) => (
-                        <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                          <div className="w-2 h-2 rounded-full bg-gray-500 flex-shrink-0 mt-2"></div>
-                          <span className="text-gray-700 text-sm">{tip}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recomendações de Carreira */}
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">RECOMENDAÇÕES DE CARREIRA NO AGRONEGÓCIO</h3>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(getCareerRecommendations(disc.type) || []).map((career, index) => (
-                  <div key={index} className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-200">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">{index + 1}</span>
-                      </div>
-                      <span className="font-medium text-gray-800">{career}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Botão para refazer teste */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 sm:p-8 text-center">
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">
-                Quer uma nova análise?
-              </h3>
-              <p className="text-gray-600 mb-6 text-sm sm:text-base">
-                Realize o teste novamente para uma análise atualizada do seu perfil DISC
-              </p>
-              <button
-                onClick={() => navigate('/teste-disc')}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 sm:py-4 px-6 sm:px-10 rounded-xl text-base sm:text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 inline-flex items-center space-x-2"
+        {/* NOVA SEÇÃO: Seletor de Data do Teste (igual sistema antigo) */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+          <div className="flex items-end space-x-4">
+            <div className="flex-1">
+              <label htmlFor="data_teste" className="block text-sm font-medium text-gray-700 mb-2">
+                Selecione a data do teste
+              </label>
+              <select
+                id="data_teste"
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                value={selectedTestId || ''}
+                onChange={(e) => setSelectedTestId(e.target.value ? parseInt(e.target.value) : null)}
+                disabled={!tests.length}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span>Refazer Teste DISC</span>
-              </button>
+                <option value="">Selecione a data do teste</option>
+                {tests.map((test) => (
+                  <option key={test.id} value={test.id}>
+                    {new Date(test.created_at).toLocaleDateString('pt-BR')}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleTestSelection}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200"
+              disabled={!selectedTestId}
+            >
+              Pesquisar
+            </button>
+          </div>
+        </div>
+
+        {/* Mostrar relatório apenas se teste selecionado (igual sistema antigo) */}
+        {showReport && disc ? (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            <div className="p-6 bg-gray-50 border-b">
+              <h2 className="text-2xl font-bold text-gray-900">Meu relatório</h2>
+              <p className="text-gray-600">Visualize o relatório gerado com base no seu teste de perfil comportamental</p>
+            </div>
+
+            <div className="card text-justify">
+              <RelatorioCompleto
+                discResult={{
+                  perfil: disc.type,
+                  counts: disc.counts || { D: 0, I: 0, S: 0, C: 0 }
+                }}
+                inteligenciaEmocionalResult={inteligenciaEmocional}
+                liderancaResult={{
+                  scores: {
+                    modelador: 54,
+                    democratico: 57,
+                    afiliativo: 52,
+                    treinador: 57,
+                    visionario: 65,
+                    autoritario: 29
+                  }
+                }}
+                bigFiveResult={{
+                  scores: {
+                    extroversao: 42,
+                    estabilidadeEmocional: 68,
+                    abertura: 55,
+                    socializacao: 59,
+                    conscienciosidade: 48
+                  }
+                }}
+                conteudos={[
+                  {
+                    title: "CARACTERÍSTICAS GERAIS",
+                    content: `
+                      <p>${disc.description}</p>
+                      ${disc.characteristics ? `
+                        <h3>Características Principais:</h3>
+                        <ul>
+                          ${disc.characteristics.map(char => `<li>${char}</li>`).join('')}
+                        </ul>
+                      ` : ''}
+                    `
+                  },
+                  {
+                    title: "PONTOS FORTES",
+                    content: disc.strengths ? `
+                      <ul>
+                        ${disc.strengths.map(strength => `<li>${strength}</li>`).join('')}
+                      </ul>
+                    ` : '<p>Pontos fortes identificados através da análise DISC.</p>'
+                  },
+                  {
+                    title: "ÁREAS DE DESENVOLVIMENTO",
+                    content: disc.improvements ? `
+                      <ul>
+                        ${disc.improvements.map(improvement => `<li>${improvement}</li>`).join('')}
+                      </ul>
+                    ` : '<p>Áreas de desenvolvimento identificadas através da análise DISC.</p>'
+                  },
+                  {
+                    title: "ESTILO DE COMUNICAÇÃO",
+                    content: disc.communicationStyle ? `
+                      <ul>
+                        ${disc.communicationStyle.map(style => `<li>${style}</li>`).join('')}
+                      </ul>
+                    ` : '<p>Estilo de comunicação baseado no perfil DISC.</p>'
+                  },
+                  {
+                    title: "AMBIENTE DE TRABALHO IDEAL",
+                    content: disc.workEnvironment ? `
+                      <ul>
+                        ${disc.workEnvironment.map(env => `<li>${env}</li>`).join('')}
+                      </ul>
+                    ` : '<p>Ambiente de trabalho preferido baseado no perfil DISC.</p>'
+                  },
+                  {
+                    title: "ESTILO DE LIDERANÇA",
+                    content: disc.leadershipStyle ? `
+                      <ul>
+                        ${disc.leadershipStyle.map(style => `<li>${style}</li>`).join('')}
+                      </ul>
+                    ` : '<p>Estilo de liderança baseado no perfil DISC.</p>'
+                  },
+                  {
+                    title: "PROCESSO DE TOMADA DE DECISÃO",
+                    content: disc.decisionMaking ? `
+                      <ul>
+                        ${disc.decisionMaking.map(process => `<li>${process}</li>`).join('')}
+                      </ul>
+                    ` : '<p>Processo de tomada de decisão baseado no perfil DISC.</p>'
+                  },
+                  {
+                    title: "GATILHOS DE ESTRESSE",
+                    content: disc.stressTriggers ? `
+                      <h3>Principais fatores que podem causar estresse:</h3>
+                      <ul>
+                        ${disc.stressTriggers.map(trigger => `<li>${trigger}</li>`).join('')}
+                      </ul>
+                      <h3>Estratégias de gerenciamento:</h3>
+                      <p>Reconhecer estes gatilhos é o primeiro passo para desenvolver estratégias eficazes de gerenciamento de estresse.</p>
+                    ` : '<p>Gatilhos de estresse identificados através da análise DISC.</p>'
+                  },
+                  {
+                    title: "RECOMENDAÇÕES DE CARREIRA",
+                    content: disc.careerRecommendations ? `
+                      <h3>Áreas de carreira recomendadas:</h3>
+                      <ul>
+                        ${disc.careerRecommendations.map(career => `<li>${career}</li>`).join('')}
+                      </ul>
+                      <p><strong>Nota:</strong> Essas são sugestões baseadas no seu perfil DISC. O sucesso profissional pode ser alcançado em diversas áreas com o desenvolvimento adequado das competências necessárias.</p>
+                    ` : '<p>Recomendações de carreira baseadas no perfil DISC.</p>'
+                  },
+                ]}
+              />
             </div>
           </div>
         ) : (
-          /* Estado sem DISC */
-          <div className="bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 rounded-3xl p-8 sm:p-12 lg:p-16 shadow-xl border border-gray-200/50 text-center">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-indigo-100 to-purple-200 rounded-3xl flex items-center justify-center mx-auto mb-8 transform hover:scale-105 transition-transform duration-300">
-              <svg className="w-12 h-12 sm:w-16 sm:h-16 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            <h2 className="text-[#1F2937] font-bold text-2xl sm:text-3xl lg:text-4xl mb-6">
-              Descubra Seu Perfil DISC
-            </h2>
-            <p className="text-gray-600 text-base sm:text-lg lg:text-xl mb-10 max-w-3xl mx-auto leading-relaxed">
-              Entenda melhor seu comportamento e potencialize sua carreira no agronegócio através da nossa análise comportamental DISC
+          /* Estado sem teste selecionado (igual sistema antigo) */
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
+            <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-6" />
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Selecione um teste</h3>
+            <p className="text-gray-600">
+              Escolha uma data de teste acima para visualizar seu relatório DISC completo.
             </p>
-
-            {/* Features do teste */}
-            <div className="grid sm:grid-cols-3 gap-4 sm:gap-6 mb-10 max-w-4xl mx-auto">
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/50">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-800 mb-2">Análise Completa</h3>
-                <p className="text-sm text-gray-600">Descubra suas características comportamentais</p>
+            {tests.length === 0 && (
+              <div className="mt-6">
+                <button
+                  onClick={() => navigate('/teste-disc')}
+                  className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-3 px-6 rounded-lg font-medium transition-colors duration-200"
+                >
+                  Fazer Primeiro Teste DISC
+                </button>
               </div>
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/50">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Target className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-800 mb-2">Pontos Fortes</h3>
-                <p className="text-sm text-gray-600">Identifique suas principais qualidades</p>
-              </div>
-              <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-white/50">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <Lightbulb className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="font-semibold text-gray-800 mb-2">Desenvolvimento</h3>
-                <p className="text-sm text-gray-600">Áreas para crescimento profissional</p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => navigate('/teste-disc')}
-              className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-4 sm:py-5 px-8 sm:px-12 rounded-xl text-lg sm:text-xl font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 inline-flex items-center space-x-3"
-            >
-              <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span>Fazer Teste DISC Gratuito</span>
-            </button>
+            )}
           </div>
         )}
       </div>

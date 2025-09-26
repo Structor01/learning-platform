@@ -1,0 +1,403 @@
+1. CSS COMPLETO (report.css)
+
+  /* Variáveis CSS - cores exatas do AgroSkills */
+  :root {
+    --font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+  sans-serif;
+    --font-size: 14px;
+
+    --primary-color: #2c2c36;
+    --border-color: #e7e7e7;
+    --success-color: #7ed957;
+    --gray-color: #626262;
+    --dark-color: #171717;
+
+    --header-height: 50px;
+  }
+
+  /* Reset e Layout Principal */
+  .print-layout {
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    margin: 0;
+    padding: 0;
+  }
+
+  .report-container {
+    width: 100%;
+    table-layout: fixed;
+    page-break-after: always;
+  }
+
+  .report-header {
+    display: table-header-group;
+    height: var(--header-height);
+  }
+
+  .report-content {
+    display: table-row-group;
+  }
+
+  .profile-test-report-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .profile-test-report-header p {
+    margin: 0;
+    font-weight: 400;
+    font-size: 16px;
+  }
+
+  .profile-test-report-header .logo {
+    margin-left: 1rem;
+    width: 50px;
+    flex: 0 0 50px;
+  }
+
+  .profile-test-report-header .logo img {
+    width: 100%;
+  }
+
+  /* Estrutura das Páginas */
+  .page {
+    padding: 2rem;
+    page-break-inside: avoid;
+  }
+
+  .page.full-height {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .page + .page {
+    page-break-before: always;
+    border-top: 2px dashed #ddd;
+    margin-top: 3rem;
+    padding-top: 3rem;
+  }
+
+  /* Tipografia */
+  .page h1, .page h2 {
+    text-transform: uppercase;
+    font-weight: 800;
+    margin: 0 0 1rem;
+  }
+
+  .page h1 {
+    font-size: 22px;
+    margin-bottom: 2rem;
+  }
+
+  .page h2 {
+    font-size: 18px;
+    margin-bottom: 0.5rem;
+  }
+
+  .page h3 {
+    font-size: 16px;
+  }
+
+  /* Seções com Título Colorido */
+  .page section:not(#capa):not(#contracapa) h1 {
+    background-color: #434343;
+    color: #fff;
+    width: fit-content;
+    padding: 0.5rem;
+  }
+
+  .page section .subsection {
+    margin: 2.5rem 0 0;
+  }
+
+  /* Capa */
+  #capa {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+  }
+
+  #capa .logo {
+    width: 25%;
+    margin-bottom: 2rem;
+  }
+
+  #capa .logo img {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  #capa h1 {
+    margin: 0;
+    background: none !important;
+    color: inherit !important;
+    padding: 0 !important;
+    font-size: 2.5rem;
+  }
+
+  #capa i {
+    font-style: italic;
+    font-size: 1.2rem;
+    color: var(--gray-color);
+    margin-top: 1rem;
+  }
+
+  /* Contracapa */
+  #contracapa ol {
+    counter-reset: item;
+    padding-left: 0;
+  }
+
+  #contracapa li {
+    display: block;
+    margin-bottom: 1rem;
+    position: relative;
+    padding-left: 2rem;
+  }
+
+  #contracapa li::before {
+    content: counter(item) ".";
+    counter-increment: item;
+    font-weight: 600;
+    position: absolute;
+    left: 0;
+  }
+
+  #contracapa a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* Autodiagnóstico */
+  #autodiagnostico table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin-top: 2rem;
+  }
+
+  #autodiagnostico td {
+    border: 1px solid #454545;
+    padding: 1rem;
+    vertical-align: top;
+  }
+
+  #autodiagnostico td:first-child {
+    background-color: #666;
+    color: #fff;
+    font-weight: 500;
+    width: 30%;
+  }
+
+  /* Tabelas Gerais */
+  .page section table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+
+  .page section table td,
+  .page section table th {
+    border: 1px solid #ddd;
+    padding: 1rem;
+    vertical-align: top;
+  }
+
+  /* Gráfico DISC */
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    margin: 2rem 0;
+  }
+
+  .bar-chart .legend {
+    display: flex;
+    justify-content: space-evenly;
+    margin-bottom: 1rem;
+  }
+
+  .bar-chart .legend > div {
+    display: flex;
+    align-items: center;
+  }
+
+  .bar-chart .legend span {
+    width: 20px;
+    height: 15px;
+    display: inline-block;
+    margin-right: 0.2rem;
+    border-radius: 3px;
+    margin-left: 6px;
+  }
+
+  .bar-chart .legend small {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .bar-chart .chart {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    border-radius: 4px;
+    height: 60px;
+  }
+
+  .bar-chart .chart div {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    color: #fff;
+    font-size: 16px;
+  }
+
+  /* Cores DISC - exatas do AgroSkills */
+  .bar-chart .chart > div:nth-child(1),
+  .bar-chart .legend > div:nth-child(1) span {
+    background-color: #4285f4; /* Dominante - Azul */
+  }
+
+  .bar-chart .chart > div:nth-child(2),
+  .bar-chart .legend > div:nth-child(2) span {
+    background-color: #ea4335; /* Influente - Vermelho */
+  }
+
+  .bar-chart .chart > div:nth-child(3),
+  .bar-chart .legend > div:nth-child(3) span {
+    background-color: #fbbc04; /* Estável - Amarelo */
+  }
+
+  .bar-chart .chart > div:nth-child(4),
+  .bar-chart .legend > div:nth-child(4) span {
+    background-color: #34a853; /* Conforme - Verde */
+  }
+
+  /* Seções de Testes */
+  #inteligencia-emocional .chart-wrapper,
+  #lideranca .chart-wrapper,
+  #big-5 .chart-wrapper {
+    margin: 0 auto;
+    width: 45%;
+  }
+
+  #lideranca .chart-wrapper {
+    width: 40%;
+  }
+
+  #inteligencia-emocional .chart-wrapper canvas,
+  #lideranca .chart-wrapper canvas,
+  #big-5 .chart-wrapper canvas {
+    width: 100%;
+  }
+
+  /* Planos de Carreira e Ação */
+  #plano-carreira ul,
+  #plano-acao ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  #plano-carreira ol li,
+  #plano-acao ol li,
+  #plano-carreira ul li,
+  #plano-acao ul li {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  #plano-carreira .line,
+  #plano-acao .line {
+    display: block;
+    width: 100%;
+    height: 1px;
+    background-color: #ccc;
+    margin: 3rem 0;
+  }
+
+  #plano-carreira table,
+  #plano-acao table {
+    width: 100%;
+  }
+
+  #plano-carreira th,
+  #plano-acao th {
+    font-size: 20px;
+  }
+
+  #plano-carreira th,
+  #plano-carreira td,
+  #plano-acao th,
+  #plano-acao td {
+    vertical-align: middle;
+    text-align: center;
+    padding: 1rem;
+    height: 60px;
+  }
+
+  /* Media Queries */
+  @media screen {
+    .print-layout {
+      background-color: #212121;
+      min-height: 100vh;
+    }
+
+    .report-container {
+      background-color: #fff;
+      max-width: 21cm;
+      margin: 0 auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      border-left: 10px solid var(--success-color);
+    }
+  }
+
+  @media print {
+    .print-layout {
+      font-size: 150%;
+    }
+
+    @page {
+      margin: 20mm;
+      width: 21cm;
+    }
+
+    .page {
+      padding-left: 0.4in;
+    }
+
+    .page.full-height {
+      margin-top: 50%;
+    }
+
+    a {
+      text-decoration: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .bar-chart .legend {
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    #capa .logo {
+      width: 50%;
+    }
+
+    #inteligencia-emocional .chart-wrapper,
+    #lideranca .chart-wrapper,
+    #big-5 .chart-wrapper {
+      width: 100% !important;
+    }
+  }
