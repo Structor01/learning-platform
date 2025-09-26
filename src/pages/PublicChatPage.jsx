@@ -167,7 +167,7 @@ const PublicChatPage = () => {
 
     try {
       // Enviar mensagem para o bot (sem autenticação)
-      const response = await botService.sendMessage(sessionId, content);
+      const response = await botService.sendMessageRecrutamento(sessionId, content);
 
       console.log('Resposta do bot:', response);
       
@@ -265,7 +265,7 @@ const PublicChatPage = () => {
       setMessages(prev => [...prev, confirmationMessage]);
       
       // Enviar mensagem por baixo dos panos 
-      const hiddenResponse = await botService.sendMessage(
+      const hiddenResponse = await botService.sendMessageRecrutamento(
         sessionId, 
         "SISTEMA: Currículo enviado pelo usuário. Continue a conversa analisando o perfil e oferecendo opções relevantes."
       );
