@@ -142,8 +142,8 @@ class DiscApiService {
       const counts = apiData.result.disc.counts;
       console.log('🔍 [convertApiDataToProfile] Tipo:', type, 'Counts:', counts);
 
-      const totalAnswers = Object.values(counts).reduce((sum: number, count: any) => sum + count, 0);
-      const percentage = totalAnswers > 0 ? Math.round((counts[type] / totalAnswers) * 100) : 75;
+      const totalAnswers = Object.values(counts as Record<string, number>).reduce((sum: number, count: number) => sum + count, 0);
+      const percentage = totalAnswers > 0 ? Math.round(((counts as any)[type] / totalAnswers) * 100) : 75;
 
       const profile = {
         type,
