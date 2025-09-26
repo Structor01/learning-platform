@@ -83,7 +83,7 @@ const PublicChatPage = () => {
         // Aguardar resposta do bot para mostrar como primeira mensagem
         try {
           setIsLoading(true);
-          const initialResponse = await botService.sendMessage(guestSessionId, 
+          const initialResponse = await botService.sendMessageRecrutamento(guestSessionId, 
             "oi");
           
           // Tentar fazer parse do JSON que vem no campo message
