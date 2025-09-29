@@ -19,8 +19,10 @@ const TesteDISCPage = () => {
     const loadQuestions = async () => {
       try {
         console.log('🔍 Carregando perguntas do DISC...');
+        console.log('🔍 API_URL sendo usada:', import.meta.env.VITE_API_URL);
         const apiQuestions = await getQuestions();
         console.log('✅ Perguntas carregadas:', apiQuestions);
+        console.log('✅ Número de perguntas:', apiQuestions?.length);
 
         // Debug detalhado da estrutura das perguntas
         apiQuestions.forEach((question, index) => {
