@@ -88,17 +88,14 @@ const PublicChatPage = () => {
           
           // Tentar fazer parse do JSON que vem no campo message
           let parsedMessage;
-          try {
+        
             parsedMessage = JSON.parse(initialResponse.message);
-          } catch {
-            // Se não for JSON válido, usar como string normal
-            parsedMessage = { pergunta: initialResponse.message };
-          }
+         
           
           // Adicionar resposta do bot como primeira mensagem
           const botMessage = {
             id: Date.now(),
-            content: parsedMessage.pergunta || parsedMessage.message || initialResponse.message,
+            content: parsedMessage.pergunta ,
             options: parsedMessage.opcoes || null,
             isBot: true,
             timestamp: new Date()
