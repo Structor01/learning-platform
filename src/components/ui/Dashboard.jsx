@@ -8,19 +8,19 @@ import { TrendingUp, Play, Clock, Award, X, Sun, Moon, HelpCircle } from "lucide
 import { useTour } from '@reactour/tour';
 import WelcomeAnimation from "./WelcomeAnimation";
 import TrilhaRequirementModal from "./TrilhaRequirementModal";
+import { HeroVideoDialog } from "./hero-video-dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@radix-ui/react-progress";
 import axios from "axios";
 import { API_URL } from "@/components/utils/api"; // certifique-se de que este caminho está correto
 import { MapPin, Briefcase, Building2 } from "lucide-react";
 import api from "@/services/api.js";
-import DiscDetailsModal from "@/components/ui/DiscDetailsModal.jsx";
 import InterviewPromptModal from "@/components/ui/InterviewPromptModal.jsx";
 // testService já está sendo importado na linha 2
 
 const Dashboard = ({ onCourseSelect = [] }) => {
-  const { user, accessToken, isLoading } = useAuth();
-  const { setIsOpen } = useTour();
+  const { user, accessToken, isLoading, showWelcomeVideo, closeWelcomeVideo } = useAuth();
+  const { setIsOpen, isOpen } = useTour();
   const [disc, setDiscProfile] = useState(null);
   const [showDiscDetails, setShowDiscDetails] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
@@ -35,6 +35,23 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [showInterviewPrompt, setShowInterviewPrompt] = useState(false);
   const [hasCompletedInterview, setHasCompletedInterview] = useState(false);
+
+  // Estado para controlar se vídeo já foi mostrado
+  const [videoWasShown, setVideoWasShown] = useState(false);
+
+  // Controlar vídeo
+  useEffect(() => {
+    if (showWelcomeVideo) {
+      setIsOpen(false);
+      setVideoWasShown(true);
+      const timer = setTimeout(() => {
+        handleCloseVideoAndStartTour();
+      }, 180000);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcomeVideo, closeWelcomeVideo, setIsOpen]);
+
+  // TOUR DESATIVADO COMPLETAMENTE
   const [showTourPopup, setShowTourPopup] = useState(false);
   const bgCollor = {
     0: "#4285F4",
@@ -553,10 +570,10 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     }
   };
 
-  // Funções para controlar o popup do tour
+  // Funções para controlar o popup do tour - DESATIVADO
   const handleStartTour = () => {
     setShowTourPopup(false);
-    setIsOpen(true);
+    // setIsOpen(true); // TOUR DESATIVADO
     if (user?.email) {
       localStorage.setItem(`tour_seen_${user.email}`, "true");
     }
@@ -567,6 +584,14 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     if (user?.email) {
       localStorage.setItem(`tour_seen_${user.email}`, "true");
     }
+  };
+
+  // Função para fechar o vídeo e iniciar o tour
+  const handleCloseVideoAndStartTour = () => {
+    closeWelcomeVideo();
+    setTimeout(() => {
+      setIsOpen(true);
+    }, 500);
   };
 
   // Função para redirecionar para página do aplicativo
@@ -1359,7 +1384,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     Olá, {userData?.name?.split(" ")[0]}!
                   </h1>
                   <button
-                    onClick={() => setIsOpen(true)}
+                    onClick={() => {/* setIsOpen(true); // TOUR DESATIVADO */ }}
                     className="first-step flex items-center gap-2 text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
                   >
                     <HelpCircle className="h-4 w-4" />
@@ -1443,7 +1468,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
 
               {/* Modal DISC Simples */}
-              {showDiscDetails && disc && (
+              {false && showDiscDetails && disc && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                   <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                     {/* Header */}
@@ -2152,11 +2177,11 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         onDismissPermanently={handleDismissInterviewPermanently}
       /> */}
 
-      {/* Modal de Tour Popup */}
+      {/* Modal de Tour Popup 
       {showTourPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
-            {/* Header */}
+             Header 
             <div className="text-center mb-4">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <HelpCircle className="h-8 w-8 text-green-600" />
@@ -2169,24 +2194,47 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </p>
             </div>
 
-            {/* Botões */}
-            <div className="flex gap-3">
-              <button
-                onClick={handleDismissTour}
-                className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
-              >
-                Pular por agora
-              </button>
-              <button
-                onClick={handleStartTour}
-                className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors"
-              >
-                Começar Tour
-              </button>
+      <div className="flex gap-3">
+        <button
+          onClick={handleDismissTour}
+          className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+        >
+          Pular por agora
+        </button>
+        <button
+          onClick={handleStartTour}
+          className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors"
+        >
+          Começar Tour
+        </button>
+      </div>
+    </div >
+        </div >
+      )} */}
+
+      {/* Modal de Vídeo de Boas-vindas */}
+      {showWelcomeVideo && (
+        <div className="fixed inset-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', zIndex: '999999 !important', position: 'fixed !important' }}>
+          <div className="relative mx-4 aspect-video w-full max-w-4xl md:mx-0">
+            <button
+              onClick={handleCloseVideoAndStartTour}
+              className="absolute -top-16 right-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+            >
+              Pular vídeo
+            </button>
+            <div className="relative isolate z-[1] size-full overflow-hidden rounded-2xl border-2 border-white shadow-2xl">
+              <iframe
+                src="https://iframe.mediadelivery.net/embed/480681/932d82ca-1a19-4431-888a-3bd610a17180?autoplay=true&loop=false&muted=false&preload=true&responsive=true"
+                title="Vídeo de Boas-vindas"
+                className="size-full rounded-2xl"
+                allowFullScreen
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              ></iframe>
             </div>
           </div>
         </div>
-      )}
+      )
+      }
     </>
   );
 };
