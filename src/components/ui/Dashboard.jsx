@@ -1323,11 +1323,15 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       {showWelcomeAnimation && (
         <WelcomeAnimation
           userName={userData.name.split(" ")[0]}
+
           onComplete={handleWelcomeComplete}
         />
+
       )}
 
+
       <div className="min-h-screen bg-white pt-20">
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
 
@@ -1360,6 +1364,15 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   >
                     <HelpCircle className="h-4 w-4" />
                     Iniciar Tour Guiado
+                  </button>
+                  <button
+                    className="chat-bot-button bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2"
+                    onClick={() => navigate("/chat")}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" />
+                    </svg>
+                    Falar com IZA
                   </button>
                 </div>
               </div>
@@ -1612,8 +1625,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </div>
           </div>
 
+
           {/* Últimas Vagas - Nova Seção */}
-          <section className="mb-12">
+          <section className="mb-12 vagas-section">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-black">
                 Últimas Vagas
@@ -1698,17 +1712,20 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 </Button>
               </div>
             )}
+
+            <button
+
+            >
+
+            </button>
           </section>
 
           {/* Biblioteca de Aplicativos - Movida para cima */}
-          <section className="mb-12">
+          <section className="mb-12 biblioteca-section">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-black">
                 Biblioteca de Aplicativos
               </h2>
-              {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
-              {/*  Ver todos <ChevronRight className="w-4 h-4 ml-1" />*/}
-              {/*</Button>*/}
             </div>
 
             <div className="biblioteca-apps grid grid-cols-2 sm:!grid-cols-4 gap-4">
@@ -1827,7 +1844,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           </section>
 
           {/* Trilhas para acelerar sua carreira */}
-          <section className="mb-12">
+          <section className="mb-12 trilhas-section">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-black">
                 Trilhas para acelerar sua carreira

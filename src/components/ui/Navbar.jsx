@@ -161,7 +161,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                   </a>
                   <a
                     href="/entrevista-simulada"
-                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium section-entrevista"
                   >
                     Entrevistas Simuladas
                   </a>
