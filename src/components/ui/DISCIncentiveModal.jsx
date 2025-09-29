@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Brain, 
-  Target, 
-  Users, 
-  TrendingUp, 
-  X, 
+import {
+  Brain,
+  Target,
+  Users,
+  TrendingUp,
+  X,
   ArrowRight,
   Briefcase,
   BookOpen,
@@ -59,7 +59,7 @@ const DISCIncentiveModal = ({ isOpen, onClose }) => {
       description: "Liderança e resultados"
     },
     {
-      type: "I", 
+      type: "I",
       name: "Influência",
       color: "from-yellow-500 to-yellow-600",
       icon: Star,
@@ -67,7 +67,7 @@ const DISCIncentiveModal = ({ isOpen, onClose }) => {
     },
     {
       type: "S",
-      name: "Estabilidade", 
+      name: "Estabilidade",
       color: "from-green-500 to-green-600",
       icon: Users,
       description: "Colaboração e harmonia"
@@ -75,7 +75,7 @@ const DISCIncentiveModal = ({ isOpen, onClose }) => {
     {
       type: "C",
       name: "Conformidade",
-      color: "from-blue-500 to-blue-600", 
+      color: "from-blue-500 to-blue-600",
       icon: Brain,
       description: "Análise e precisão"
     }
@@ -108,7 +108,7 @@ const DISCIncentiveModal = ({ isOpen, onClose }) => {
             >
               <X className="h-5 w-5" />
             </button>
-            
+
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Brain className="w-8 h-8 text-white" />

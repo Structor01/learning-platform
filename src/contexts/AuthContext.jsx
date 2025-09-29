@@ -16,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
 
   const API_URL =
     import.meta.env.VITE_API_URL ||
@@ -105,6 +106,16 @@ export const AuthProvider = ({ children }) => {
       console.log("🔍 User retornado:", data.user);
 
       saveAuthData(data.user, data.access_token, data.refresh_token);
+
+      // Verificar se é o primeiro login do usuário
+      const hasSeenWelcomeVideo = localStorage.getItem(`welcomeVideo_${data.user.id}`);
+      const neverShowAgain = localStorage.getItem('welcomeVideo_neverShow');
+      console.log('🎥 AuthContext - userId:', data.user.id, 'hasSeenWelcomeVideo:', hasSeenWelcomeVideo, 'neverShowAgain:', neverShowAgain);
+
+      if (!hasSeenWelcomeVideo && !neverShowAgain) {
+        console.log('🎥 AuthContext - Mostrando vídeo de boas-vindas');
+        setShowWelcomeVideo(true);
+      }
 
       return data.user;
     } catch (error) {
@@ -220,6 +231,21 @@ export const AuthProvider = ({ children }) => {
     clearAuthData();
   };
 
+  // Funções para controlar o vídeo de boas-vindas
+  const closeWelcomeVideo = () => {
+    if (user?.id) {
+      localStorage.setItem(`welcomeVideo_${user.id}`, 'seen');
+    }
+    setShowWelcomeVideo(false);
+  };
+
+  const resetWelcomeVideo = () => {
+    if (user?.id) {
+      localStorage.removeItem(`welcomeVideo_${user.id}`);
+      setShowWelcomeVideo(true);
+    }
+  };
+
   const hasActiveSubscription = () => user?.subscription?.status === "active";
   const canAccessContent = () => hasActiveSubscription();
 
@@ -240,6 +266,9 @@ export const AuthProvider = ({ children }) => {
     hasActiveSubscription,
     canAccessContent,
     getUserType,
+    showWelcomeVideo,
+    closeWelcomeVideo,
+    resetWelcomeVideo,
     isCompany,
     isCandidate,
     USER_TYPES,

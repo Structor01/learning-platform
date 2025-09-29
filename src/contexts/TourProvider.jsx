@@ -1,4 +1,8 @@
 import { TourProvider } from '@reactour/tour'
+import { TbXboxX } from "react-icons/tb";
+
+
+
 
 const steps = [
     {
@@ -42,12 +46,34 @@ export function CustomTourProvider({ children }) {
             scrollSmooth={true}
             padding={{ mask: 10, popover: [10, 10] }}
             showCloseButton={true}
+            components={{
+                Close: ({ onClick }) => (
+                    <button onClick={onClick} style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        width: '24px',
+                        height: '24px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}>
+                        <TbXboxX
+                            className='' size={14} />
+                    </button>
+                ),
+            }}
             styles={{
                 popover: (base) => ({
                     ...base,
                     '--reactour-accent': '#10b981',
                     borderRadius: '16px',
-                    background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                    background: 'white',
                     border: '1px solid #e2e8f0',
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1)',
                     padding: '20px 50px 20px 20px',
@@ -103,30 +129,27 @@ export function CustomTourProvider({ children }) {
                 }),
                 close: (base) => ({
                     ...base,
-                    position: 'absolute !important',
-                    top: '12px !important',
-                    right: '12px !important',
-                    background: '#dc2626 !important',
-                    color: 'white !important',
-                    border: 'none !important',
-                    borderRadius: '6px !important',
-                    width: '28px !important',
-                    height: '28px !important',
-                    cursor: 'pointer !important',
-                    display: 'flex !important',
-                    alignItems: 'center !important',
-                    justifyContent: 'center !important',
-                    fontSize: '18px !important',
-                    fontWeight: 'bold !important',
-                    transition: 'all 0.2s ease !important',
-                    zIndex: '99999 !important',
-                    textAlign: 'center !important',
-                    lineHeight: '1 !important',
-                    fontFamily: 'Arial, sans-serif !important',
+                    top: '10px',
+                    right: '10px',
+                    background: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    width: '24px',
+                    height: '24px',
+                    fontSize: '16px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ':hover': {
+                        background: '#dc2626',
+                    },
+
                 }),
             }}
         >
             {children}
-        </TourProvider>
+        </TourProvider >
     )
 }

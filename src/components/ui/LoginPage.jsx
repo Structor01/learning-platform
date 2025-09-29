@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { USER_TYPES } from "@/types/userTypes";
-import DISCIncentiveModal from "./DISCIncentiveModal";
-import testService from "@/services/testService";
 
 const LoginPage = () => {
   const { login, user } = useAuth();
@@ -16,7 +14,6 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [showDISCModal, setShowDISCModal] = useState(false);
 
   // Novos estados para controlar o fluxo
   const [step, setStep] = useState("email"); // "email", "password" ou "signup"
@@ -33,10 +30,7 @@ const LoginPage = () => {
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     console.log("🔍 Loginage useEffect disparado - user:", !!user, "accessToken:", !!accessToken, "step:", step);
-    // REMOVIDO: navegação automática para dashboard, pois deve ser controlada pela função checkDISCCompletion
-    // Deixar que a lógica de login e checkDISCCompletion controle a navegação
-  }, [user, navigate, step, showDISCModal]);
-
+  }, [user, navigate, step]);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -52,11 +46,11 @@ const LoginPage = () => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
-      setErrorMsg("Formato de email inválido.");
+      setErrorMsg("Por favor, insira um email válido.");
       return;
     }
 
-    if (!trimmedPassword) {
+    if (step === "password" && !trimmedPassword) {
       setErrorMsg("Por favor, insira sua senha.");
       return;
     }
@@ -70,156 +64,64 @@ const LoginPage = () => {
     setErrorMsg("");
 
     try {
+      console.log("🔍 Tentando fazer login com:", trimmedEmail);
       const loggedUser = await login(trimmedEmail, trimmedPassword);
+      console.log("🔍 Login realizado com sucesso:", loggedUser);
+
+      localStorage.setItem("email", trimmedEmail);
 
       // Identificação automática do tipo de usuário e redirecionamento
       const userType = loggedUser.userType || USER_TYPES.CANDIDATE;
 
       if (userType === USER_TYPES.COMPANY) {
-
         navigate("/dashboard-empresa");
       } else {
-        console.log("🔍 DEBUG - Redirecionando para fluxo candidato");
-        await checkDISCCompletion();
+        navigate("/dashboard");
       }
     } catch (error) {
       console.error("Erro no login:", error);
 
       if (error.message.includes('Erro de conexão')) {
         setErrorMsg("Erro de conexão. Verifique sua internet e tente novamente.");
-      } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-        setErrorMsg("Email ou senha incorretos.");
-      } else if (error.message.includes('429')) {
-        setErrorMsg("Muitas tentativas. Aguarde alguns minutos e tente novamente.");
-      } else if (error.message.includes('fetch') || error.name === 'TypeError') {
-        setErrorMsg("Erro de conexão. Verifique sua internet e tente novamente.");
+      } else if (error.message.includes('404')) {
+        setErrorMsg("Usuário não encontrado. Verifique seu email ou cadastre-se.");
+      } else if (error.message.includes('401')) {
+        setErrorMsg("Senha incorreta. Tente novamente.");
       } else {
-        setErrorMsg(error.message || "Falha no login. Tente novamente.");
+        setErrorMsg(error.message || "Erro desconhecido. Tente novamente.");
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-
-  const checkDISCCompletion = async () => {
-
-    // Aguardar o user estar disponível
-    let currentUser = user;
-    if (!currentUser?.id) {
-      const savedUser = localStorage.getItem("user");
-      if (savedUser) {
-        try {
-          currentUser = JSON.parse(savedUser);
-        } catch (e) {
-          console.error("🔍 Erro ao parsear usuário do localStorage:", e);
-        }
-      }
-    }
-
-
-
-    try {
-      if (!currentUser?.id) {
-        console.lg("🔍 Usuário sem ID, navegando para dashboard");
-        navigate("/dashboard");
-        return;
-      }
-
-      // Para testes: descomentar a linha abaixo para limpar o cache
-      // localStorage.removeItem(`disc_completed_${currentUser.id}`); localStorage.removeItem(`disc_completed_${currentUser.id}_expiry`);
-
-      // Cache simples para evitar consultas desnecessárias
-      const cacheKey = `disc_completed_${currentUser.id}`;
-      const cachedResult = localStorage.getItem(cacheKey);
-      const cacheExpiry = localStorage.getItem(`${cacheKey}_expiry`);
-
-      // Se tem cache válido (expira em 1 hora)
-      if (cachedResult && cacheExpiry && Date.now() < parseInt(cacheExpiry)) {
-        const isCompleted = cachedResult === 'true';
-        console.log("🔍 Usando cache - DISC completado:", isCompleted);
-
-        if (isCompleted) {
-          navigate("/dashboard");
-          return;
-        } else {
-          setShowDISCModal(true);
-          return;
-        }
-      }
-
-      // Verificar se usuário já completou teste DISC
-      console.log("🔍 Verificando testes do usuário ID:", currentUser.id);
-
-      // Buscar testes psicológicos do usuário
-      const userTests = await testService.getUserPsychologicalTests(currentUser.id, 'completed', 50);
-      console.log("🔍 Testes encontrados:", userTests);
-
-      // Verificar se há algum teste DISC ou unified completado
-      const hasCompletedDISC = userTests && userTests.length > 0 &&
-        userTests.some(test =>
-          (test.test_type === 'DISC' || test.test_type === 'unified') &&
-          test.status === 'completed'
-        );
-
-      console.log("🔍 hasCompletedDISC:", hasCompletedDISC);
-
-      // Salvar no cache (expira em 1 hora)
-      localStorage.setItem(cacheKey, hasCompletedDISC.toString());
-      localStorage.setItem(`${cacheKey}_expiry`, (Date.now() + 3600000).toString());
-
-      if (!hasCompletedDISC) {
-        // Usuário não completou o teste DISC, mostrar modal
-
-        setShowDISCModal(true);
-      } else {
-        // Usuário já completou, ir direto para dashboard
-
-        navigate("/dashboard");
-      }
-    } catch (error) {
-      console.error("🔍 Erro ao verificar teste DISC:", error);
-
-      // Tentar método de fallback usando API antiga
-      try {
-
-        const discResult = await testService.checkDISCCompletion(currentUser.id);
-
-
-        if (discResult && discResult.completed) {
-
-
-          // Atualizar cache
-          const cacheKey = `disc_completed_${currentUser.id}`;
-          localStorage.setItem(cacheKey, 'true');
-          localStorage.setItem(`${cacheKey}_expiry`, (Date.now() + 3600000).toString());
-
-          navigate("/dashboard");
-        } else {
-
-          setShowDISCModal(true);
-        }
-      } catch (fallbackError) {
-
-        // Em caso de erro completo, mostrar modal (melhor experiência)
-
-        setShowDISCModal(true);
-      }
-    }
-  };
-
-  const handleDISCModalClose = () => {
-
-    setShowDISCModal(false);
-    // Navegar para dashboard após fechar modal
-    navigate("/dashboard", { replace: true });
+  const handleSignupRedirect = () => {
+    navigate("/cadastro");
   };
 
   const handleBackToEmail = () => {
     setStep("email");
     setPassword("");
     setErrorMsg("");
-    localStorage.removeItem("email");
+  };
+
+  const handleContinueToPassword = (e) => {
+    e.preventDefault();
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setErrorMsg("Por favor, insira um email válido.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      setErrorMsg("Por favor, insira um email válido.");
+      return;
+    }
+
+    setStep("password");
+    setErrorMsg("");
   };
 
   return (
@@ -376,12 +278,6 @@ const LoginPage = () => {
 
           </CardContent>
         </Card>
-
-        {/* Modal de Incentivo ao Teste DISC */}
-        <DISCIncentiveModal
-          isOpen={showDISCModal}
-          onClose={handleDISCModalClose}
-        />
       </div>
     </>
   );
