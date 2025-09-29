@@ -1,6 +1,7 @@
 /* src/App.jsx */
 import { AuthProvider, } from "./contexts/AuthContext";
 import { ChatBotProvider } from "./components/bot/ChatBotProvider";
+import { CustomTourProvider } from "./contexts/TourProvider";
 import "./App.css";
 import { Router } from "./Router";
 
@@ -8,9 +9,11 @@ import { Router } from "./Router";
 function App() {
   return (
     <AuthProvider>
-      <ChatBotProvider>
-        <Router />
-      </ChatBotProvider>
+      <CustomTourProvider>
+        <ChatBotProvider>
+          <Router />
+        </ChatBotProvider>
+      </CustomTourProvider>
     </AuthProvider>
   );
 }

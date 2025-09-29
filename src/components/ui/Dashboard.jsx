@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import testService from "@/services/testService";
+import discApiService from "@/services/discApi";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, Play, Clock, Award, X, Sun, Moon } from "lucide-react";
+import { TrendingUp, Play, Clock, Award, X, Sun, Moon, HelpCircle } from "lucide-react";
+import { useTour } from '@reactour/tour';
 import WelcomeAnimation from "./WelcomeAnimation";
 import TrilhaRequirementModal from "./TrilhaRequirementModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,8 +19,8 @@ import InterviewPromptModal from "@/components/ui/InterviewPromptModal.jsx";
 // testService já está sendo importado na linha 2
 
 const Dashboard = ({ onCourseSelect = [] }) => {
-  //console.log("🚀 Dashboard montado! trilhas =", trilhas);
   const { user, accessToken, isLoading } = useAuth();
+  const { setIsOpen } = useTour();
   const [disc, setDiscProfile] = useState(null);
   const [showDiscDetails, setShowDiscDetails] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
@@ -33,6 +35,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [showInterviewPrompt, setShowInterviewPrompt] = useState(false);
   const [hasCompletedInterview, setHasCompletedInterview] = useState(false);
+  const [showTourPopup, setShowTourPopup] = useState(false);
   const bgCollor = {
     0: "#4285F4",
     1: "#EA4335",
@@ -45,8 +48,19 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       const hasSeenWelcome = localStorage.getItem(
         `welcome_seen_${user.email}`
       );
+      const hasSeenTour = localStorage.getItem(
+        `tour_seen_${user.email}`
+      );
+
       if (!hasSeenWelcome) {
         setShowWelcomeAnimation(false);
+      }
+
+      if (!hasSeenTour) {
+        // Mostrar popup do tour após um pequeno delay
+        setTimeout(() => {
+          setShowTourPopup(true);
+        }, 2000);
       }
     }
   }, [user]);
@@ -158,45 +172,106 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       if (!user?.id || !accessToken) return;
 
       try {
-        console.log("🔍 Dashboard - Buscando perfil DISC para usuário:", user.id);
 
-        // Tentar buscar testes psicológicos do usuário
+
+        // Primeiro tentar buscar usando a nova API DISC
+        try {
+          const discProfile = await discApiService.getUserDiscProfile(user.id);
+          if (discProfile) {
+            const convertedProfile = discApiService.convertApiDataToProfile(discProfile);
+            console.log("🔍 Dashboard - Perfil DISC encontrado na nova API:", convertedProfile);
+            setDiscProfile(convertedProfile);
+            return;
+          }
+        } catch (apiError) {
+          console.warn("⚠️ Dashboard - Nova API não disponível, tentando API antiga:", apiError);
+        }
+
+        // Fallback: Tentar buscar testes psicológicos do usuário (API antiga)
         const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 50);
-        console.log("🔍 Dashboard - Testes encontrados:", userTests);
+        console.log("🔍 Dashboard - Testes encontrados (API antiga):", userTests);
 
         if (userTests && userTests.length > 0) {
           // Encontrar o teste DISC/unified mais recente
           const discTest = userTests
-            .filter(test => (test.test_type === 'DISC' || test.test_type === 'unified') && test.status === 'completed')
+            .filter(test => {
+              const testType = test.test_type?.toLowerCase();
+              return (testType === 'disc' || testType === 'unified') && test.status === 'completed';
+            })
             .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))[0];
 
-          console.log("🔍 Dashboard - Teste DISC filtrado:", discTest);
 
-          if (discTest && discTest.disc_scores) {
-            let discScores;
-            try {
-              discScores = typeof discTest.disc_scores === 'string'
-                ? JSON.parse(discTest.disc_scores)
-                : discTest.disc_scores;
-            } catch (parseError) {
-              console.warn("🔍 Dashboard - Erro ao parsear disc_scores:", parseError);
-              discScores = discTest.disc_scores;
+
+          if (discTest) {
+            console.log("🔍 Dashboard - Teste DISC encontrado:", discTest);
+
+            // Tentar extrair dados DISC de diferentes fontes
+            let discType = null;
+            let discCounts = null;
+
+            // 1. Verificar se tem disc_scores
+            if (discTest.disc_scores) {
+              let discScores;
+              try {
+                discScores = typeof discTest.disc_scores === 'string'
+                  ? JSON.parse(discTest.disc_scores)
+                  : discTest.disc_scores;
+              } catch (parseError) {
+                console.warn("🔍 Dashboard - Erro ao parsear disc_scores:", parseError);
+                discScores = discTest.disc_scores;
+              }
+
+              if (discScores && discScores.type) {
+                discType = discScores.type;
+                discCounts = discScores.counts || { D: 0, I: 0, S: 0, C: 0 };
+              }
             }
 
-            console.log("🔍 Dashboard - discScores parseados:", discScores);
+            // 2. Verificar se tem result.disc
+            if (!discType && discTest.result?.disc) {
+              const discResult = discTest.result.disc;
+              if (discResult.perfil) {
+                // Extrair tipo do perfil textual
+                const perfilLower = discResult.perfil.toLowerCase();
+                if (perfilLower.includes('dominante')) discType = 'D';
+                else if (perfilLower.includes('influente')) discType = 'I';
+                else if (perfilLower.includes('estável') || perfilLower.includes('estavel')) discType = 'S';
+                else if (perfilLower.includes('conforme') || perfilLower.includes('consciencioso')) discType = 'C';
+              }
+              discCounts = discResult.counts || { D: 0, I: 0, S: 0, C: 0 };
+            }
 
-            if (discScores && discScores.type) {
+            // 3. Verificar se tem perfil_disc direto
+            if (!discType && discTest.perfil_disc) {
+              const perfilLower = discTest.perfil_disc.toLowerCase();
+              if (perfilLower.includes('dominante')) discType = 'D';
+              else if (perfilLower.includes('influente')) discType = 'I';
+              else if (perfilLower.includes('estável') || perfilLower.includes('estavel')) discType = 'S';
+              else if (perfilLower.includes('conforme') || perfilLower.includes('consciencioso')) discType = 'C';
+            }
+
+            if (discType) {
+              // Calcular porcentagem baseada nos counts se disponível
+              let percentage = 75;
+              if (discCounts) {
+                const total = Object.values(discCounts).reduce((sum, val) => sum + val, 0);
+                if (total > 0) {
+                  percentage = Math.round((discCounts[discType] / total) * 100);
+                }
+              }
+
               const discProfile = {
-                type: discScores.type,
-                name: getDiscName(discScores.type),
-                description: discScores.description || getDiscDescription(discScores.type),
-                percentage: discScores.percentages ? discScores.percentages[discScores.type] : 75,
-                characteristics: discScores.characteristics || getDiscCharacteristics(discScores.type),
-                strengths: getDiscStrengths(discScores.type),
-                improvements: getDiscImprovements(discScores.type)
+                type: discType,
+                name: getDiscName(discType),
+                description: getDiscDescription(discType),
+                percentage: percentage,
+                characteristics: getDiscCharacteristics(discType),
+                strengths: getDiscStrengths(discType),
+                improvements: getDiscImprovements(discType),
+                counts: discCounts
               };
 
-              console.log("🔍 Dashboard - Perfil DISC montado:", discProfile);
+              console.log("🔍 Dashboard - Perfil DISC montado a partir de dados reais:", discProfile);
               setDiscProfile(discProfile);
               return;
             }
@@ -215,16 +290,12 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           if (savedProfile) {
             try {
               const discProfile = JSON.parse(savedProfile);
-              console.log("🔍 Dashboard - Perfil recuperado do cache local:", discProfile);
               setDiscProfile(discProfile);
               return;
             } catch (parseError) {
-              console.warn("🔍 Dashboard - Erro ao parsear perfil do cache:", parseError);
+
             }
           }
-
-          // Se não tem perfil salvo, usar perfil consistente baseado no usuário
-          console.log("🔍 Dashboard - Cache indica teste completado, gerando perfil consistente");
 
           // Usar hash do ID do usuário para garantir consistência
           const userId = user.id;
@@ -251,8 +322,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           localStorage.setItem(profileCacheKey, JSON.stringify(generatedProfile));
           setDiscProfile(generatedProfile);
         } else {
-          // Não completou, não mostrar perfil
-          console.log("🔍 Dashboard - Nenhum teste DISC completado encontrado");
           setDiscProfile(null);
         }
 
@@ -271,33 +340,24 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key && e.key.includes('disc_completed_') && e.newValue === 'true') {
-        console.log("🔍 Dashboard - Teste DISC completado detectado via storage, recarregando perfil");
         reloadDiscProfile();
       }
     };
 
     const handleDiscTestCompleted = (e) => {
-      console.log("🔍 Dashboard - Evento discTestCompleted recebido:", e.detail);
       if (e.detail && e.detail.userId === user?.id) {
-        // Usar os dados do evento diretamente se disponível
-        if (e.detail.discData) {
-          const discData = e.detail.discData;
-          const discProfile = {
-            type: discData.type,
-            name: getDiscName(discData.type),
-            description: discData.description || getDiscDescription(discData.type),
-            percentage: discData.percentages ? discData.percentages[discData.type] : 75,
-            characteristics: discData.characteristics || getDiscCharacteristics(discData.type),
-            strengths: getDiscStrengths(discData.type),
-            improvements: getDiscImprovements(discData.type)
-          };
+        // Limpar cache antigo
+        const cacheKey = `disc_completed_${user.id}`;
+        const profileCacheKey = `disc_profile_${user.id}`;
+        localStorage.removeItem(cacheKey);
+        localStorage.removeItem(profileCacheKey);
 
-          console.log("🔍 Dashboard - Perfil DISC atualizado via evento:", discProfile);
-          setDiscProfile(discProfile);
-        } else {
-          // Fallback: recarregar do servidor
+        console.log("🔍 Dashboard - Cache limpo, recarregando perfil com dados frescos");
+
+        // Forçar recarregamento com dados frescos da API
+        setTimeout(() => {
           reloadDiscProfile();
-        }
+        }, 1000); // Aguardar 1 segundo para garantir que o backend processou
       }
     };
 
@@ -306,27 +366,86 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         setTimeout(() => {
           const fetchDiscProfile = async () => {
             try {
-              const discResult = await testService.getUserDISCResult(user.id);
-              console.log("🔍 Dashboard - Recarregamento: Resultado DISC direto:", discResult);
+              // Tentar nova API primeiro
+              const discProfile = await discApiService.getUserDiscProfile(user.id);
+              if (discProfile) {
+                const convertedProfile = discApiService.convertApiDataToProfile(discProfile);
+                console.log("🔍 Dashboard - Recarregamento: Perfil DISC da nova API:", convertedProfile);
+                setDiscProfile(convertedProfile);
+                return;
+              }
 
-              if (discResult && discResult.disc_scores) {
-                const discScores = typeof discResult.disc_scores === 'string'
-                  ? JSON.parse(discResult.disc_scores)
-                  : discResult.disc_scores;
+              // Fallback para API antiga - buscar testes psicológicos mais recentes
+              const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 10);
+              console.log("🔍 Dashboard - Recarregamento: Testes encontrados:", userTests);
 
-                if (discScores && discScores.type) {
-                  const discProfile = {
-                    type: discScores.type,
-                    name: getDiscName(discScores.type),
-                    description: discScores.description || getDiscDescription(discScores.type),
-                    percentage: discScores.percentages ? discScores.percentages[discScores.type] : 75,
-                    characteristics: discScores.characteristics || getDiscCharacteristics(discScores.type),
-                    strengths: getDiscStrengths(discScores.type),
-                    improvements: getDiscImprovements(discScores.type)
-                  };
+              if (userTests && userTests.length > 0) {
+                // Encontrar o teste DISC mais recente
+                const discTest = userTests
+                  .filter(test => {
+                    const testType = test.test_type?.toLowerCase();
+                    return (testType === 'disc' || testType === 'unified') && test.status === 'completed';
+                  })
+                  .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))[0];
 
-                  console.log("🔍 Dashboard - Perfil DISC recarregado:", discProfile);
-                  setDiscProfile(discProfile);
+                if (discTest) {
+                  // Usar a mesma lógica de extração que usamos acima
+                  let discType = null;
+                  let discCounts = null;
+
+                  // Verificar disc_scores
+                  if (discTest.disc_scores) {
+                    let discScores;
+                    try {
+                      discScores = typeof discTest.disc_scores === 'string'
+                        ? JSON.parse(discTest.disc_scores)
+                        : discTest.disc_scores;
+                    } catch (parseError) {
+                      discScores = discTest.disc_scores;
+                    }
+
+                    if (discScores && discScores.type) {
+                      discType = discScores.type;
+                      discCounts = discScores.counts || { D: 0, I: 0, S: 0, C: 0 };
+                    }
+                  }
+
+                  // Verificar result.disc
+                  if (!discType && discTest.result?.disc) {
+                    const discResult = discTest.result.disc;
+                    if (discResult.perfil) {
+                      const perfilLower = discResult.perfil.toLowerCase();
+                      if (perfilLower.includes('dominante')) discType = 'D';
+                      else if (perfilLower.includes('influente')) discType = 'I';
+                      else if (perfilLower.includes('estável') || perfilLower.includes('estavel')) discType = 'S';
+                      else if (perfilLower.includes('conforme') || perfilLower.includes('consciencioso')) discType = 'C';
+                    }
+                    discCounts = discResult.counts || { D: 0, I: 0, S: 0, C: 0 };
+                  }
+
+                  if (discType) {
+                    let percentage = 75;
+                    if (discCounts) {
+                      const total = Object.values(discCounts).reduce((sum, val) => sum + val, 0);
+                      if (total > 0) {
+                        percentage = Math.round((discCounts[discType] / total) * 100);
+                      }
+                    }
+
+                    const discProfile = {
+                      type: discType,
+                      name: getDiscName(discType),
+                      description: getDiscDescription(discType),
+                      percentage: percentage,
+                      characteristics: getDiscCharacteristics(discType),
+                      strengths: getDiscStrengths(discType),
+                      improvements: getDiscImprovements(discType),
+                      counts: discCounts
+                    };
+
+                    console.log("🔍 Dashboard - Perfil DISC recarregado com dados reais:", discProfile);
+                    setDiscProfile(discProfile);
+                  }
                 }
               }
             } catch (error) {
@@ -431,6 +550,22 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     setShowWelcomeAnimation(false);
     if (user?.email) {
       localStorage.setItem(`welcome_seen_${user.email}`, "true");
+    }
+  };
+
+  // Funções para controlar o popup do tour
+  const handleStartTour = () => {
+    setShowTourPopup(false);
+    setIsOpen(true);
+    if (user?.email) {
+      localStorage.setItem(`tour_seen_${user.email}`, "true");
+    }
+  };
+
+  const handleDismissTour = () => {
+    setShowTourPopup(false);
+    if (user?.email) {
+      localStorage.setItem(`tour_seen_${user.email}`, "true");
     }
   };
 
@@ -1188,11 +1323,15 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       {showWelcomeAnimation && (
         <WelcomeAnimation
           userName={userData.name.split(" ")[0]}
+
           onComplete={handleWelcomeComplete}
         />
+
       )}
 
+
       <div className="min-h-screen bg-white pt-20">
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
 
@@ -1215,9 +1354,27 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     </span>
                   </div>
                 )}
-                <h1 className="text-xl lg:text-2xl lg:p-4 p xl:text-3xl text-black font-bold">
-                  Olá, {userData?.name?.split(" ")[0]}!
-                </h1>
+                <div className="flex flex-col gap-2">
+                  <h1 className="text-xl lg:text-2xl xl:text-3xl text-black font-bold">
+                    Olá, {userData?.name?.split(" ")[0]}!
+                  </h1>
+                  <button
+                    onClick={() => setIsOpen(true)}
+                    className="first-step flex items-center gap-2 text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                    Iniciar Tour Guiado
+                  </button>
+                  <button
+                    className="chat-bot-button bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center gap-2"
+                    onClick={() => navigate("/chat")}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" />
+                    </svg>
+                    Falar com IZA
+                  </button>
+                </div>
               </div>
 
 
@@ -1468,8 +1625,9 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </div>
           </div>
 
+
           {/* Últimas Vagas - Nova Seção */}
-          <section className="mb-12">
+          <section className="mb-12 vagas-section">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-black">
                 Últimas Vagas
@@ -1554,17 +1712,20 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 </Button>
               </div>
             )}
+
+            <button
+
+            >
+
+            </button>
           </section>
 
           {/* Biblioteca de Aplicativos - Movida para cima */}
-          <section className="mb-12">
+          <section className="mb-12 biblioteca-section">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-black">
                 Biblioteca de Aplicativos
               </h2>
-              {/*<Button variant="ghost" className="text-gray-300 hover:text-white">*/}
-              {/*  Ver todos <ChevronRight className="w-4 h-4 ml-1" />*/}
-              {/*</Button>*/}
             </div>
 
             <div className="biblioteca-apps grid grid-cols-2 sm:!grid-cols-4 gap-4">
@@ -1683,7 +1844,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           </section>
 
           {/* Trilhas para acelerar sua carreira */}
-          <section className="mb-12">
+          <section className="mb-12 trilhas-section">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-black">
                 Trilhas para acelerar sua carreira
@@ -1984,12 +2145,48 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       )}
 
       {/* Modal de Promoção da Entrevista Simulada */}
-      <InterviewPromptModal
+      {/* <InterviewPromptModal
         isOpen={showInterviewPrompt}
         onClose={handleDismissInterviewPrompt}
         onStartInterview={handleStartInterview}
         onDismissPermanently={handleDismissInterviewPermanently}
-      />
+      /> */}
+
+      {/* Modal de Tour Popup */}
+      {showTourPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            {/* Header */}
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <HelpCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Bem-vindo à AgroSkills! 🚀
+              </h2>
+              <p className="text-gray-600">
+                Que tal fazer um tour rápido pela plataforma? Vamos te mostrar as principais funcionalidades em poucos minutos!
+              </p>
+            </div>
+
+            {/* Botões */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleDismissTour}
+                className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+              >
+                Pular por agora
+              </button>
+              <button
+                onClick={handleStartTour}
+                className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors"
+              >
+                Começar Tour
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
