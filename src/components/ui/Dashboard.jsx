@@ -1879,6 +1879,118 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               {/*</Button>*/}
             </div>
 
+            {/* Carrossel Destaque - Mentoria de Empregabilidade */}
+
+            {/* <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-black">Em Destaque</h3>
+                <div className="flex gap-2">
+                  <button className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button className="p-2 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto scrollbar-hide">
+                <div className="flex gap-6 pb-4">
+                  {/* Card Principal - Mentoria de Empregabilidade 
+                  <div
+                    className="flex-shrink-0 w-[400px] h-[280px] rounded-2xl overflow-hidden cursor-pointer group relative"
+                    onClick={() => navigate("/trilha/6")}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-500 via-yellow-400 to-orange-500">
+                      <div className="absolute inset-0 bg-black/20"></div>
+                    </div>
+
+                    <div className="relative h-full flex flex-col justify-between p-8">
+                      <div>
+                        <span className="inline-block bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-white text-xs font-semibold mb-3">
+                          ⭐ DESTAQUE
+                        </span>
+                        <div className="text-white/80 text-sm mb-2">MÓDULO ESPECIAL</div>
+                      </div>
+
+                      <div>
+                        <h4 className="text-3xl font-bold text-white mb-3 group-hover:scale-105 transition-transform">
+                          MENTORIA DE<br />EMPREGABILIDADE
+                        </h4>
+                        <p className="text-white/90 text-sm mb-4">
+                          Acelere sua carreira no agronegócio
+                        </p>
+                        <div className="flex items-center gap-4 text-white/80 text-xs">
+                          <span>10 módulos</span>
+                          <span>•</span>
+                          <span>5h de conteúdo</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    className="flex-shrink-0 w-[400px] h-[280px] rounded-2xl overflow-hidden cursor-pointer group relative"
+                    onClick={() => navigate("/trilha/2")}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500 via-red-500 to-red-600">
+                      <div className="absolute inset-0 bg-black/20"></div>
+                    </div>
+
+                    <div className="relative h-full flex flex-col justify-between p-8">
+                      <div>
+                        <div className="text-white/80 text-sm mb-2">MÓDULO 4</div>
+                      </div>
+
+                      <div>
+                        <h4 className="text-3xl font-bold text-white mb-3 group-hover:scale-105 transition-transform">
+                          GESTÃO DE<br />CARREIRA
+                        </h4>
+                        <p className="text-white/90 text-sm mb-4">
+                          Estratégias avançadas para acelerar sua carreira
+                        </p>
+                        <div className="flex items-center gap-4 text-white/80 text-xs">
+                          <span>17 módulos</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  
+                  <div
+                    className="flex-shrink-0 w-[400px] h-[280px] rounded-2xl overflow-hidden cursor-pointer group relative"
+                    onClick={() => navigate("/trilha/1")}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500">
+                      <div className="absolute inset-0 bg-black/20"></div>
+                    </div>
+
+                    <div className="relative h-full flex flex-col justify-between p-8">
+                      <div>
+                        <div className="text-white/80 text-sm mb-2">MÓDULO 1</div>
+                      </div>
+
+                      <div>
+                        <h4 className="text-3xl font-bold text-white mb-3 group-hover:scale-105 transition-transform">
+                          AUTOCONHECIMENTO
+                        </h4>
+                        <p className="text-white/90 text-sm mb-4">
+                          Descubra seu potencial e perfil profissional
+                        </p>
+                        <div className="flex items-center gap-4 text-white/80 text-xs">
+                          <span>8 módulos</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div> */}
+
             <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-4 gap-6">
               {/* Trilha 1: Autoconhecimento para Aceleração de Carreiras */}
               <Card className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer">
