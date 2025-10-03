@@ -35,6 +35,7 @@ const TrilhaPage = () => {
   const [courseProgress, setCourseProgress] = useState(0);
   const [isCourseComplete, setIsCourseComplete] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
+  const [loadingNextLesson, setLoadingNextLesson] = useState(false);
 
   // Funções para processar URLs do YouTube
   const isYouTubeURL = (url) => {
@@ -441,6 +442,49 @@ const TrilhaPage = () => {
 
     // Tentar salvar no backend (sem bloquear UI)
     await courseProgressService.markLessonAsCompleted(user.id, lessonId, trilhaId);
+
+    // Carregar próxima aula automaticamente
+    loadNextLesson(lessonId);
+  };
+
+  // Função para carregar a próxima aula
+  const loadNextLesson = (currentLessonId) => {
+    // Encontrar todas as aulas em ordem
+    const allLessons = [];
+    modules.forEach(module => {
+      if (module.lessons && module.lessons.length > 0) {
+        module.lessons.forEach(lesson => {
+          allLessons.push(lesson);
+        });
+      }
+    });
+
+    // Encontrar índice da aula atual
+    const currentIndex = allLessons.findIndex(l => l.id === currentLessonId);
+
+    // Se existe próxima aula, carregá-la
+    if (currentIndex !== -1 && currentIndex < allLessons.length - 1) {
+      const nextLesson = allLessons[currentIndex + 1];
+
+      // Mostrar mensagem de carregamento
+      setLoadingNextLesson(true);
+
+      // Pequeno delay para melhor UX
+      setTimeout(() => {
+        selectLesson(nextLesson);
+
+        // Expandir o módulo da próxima aula
+        const nextModule = modules.find(m =>
+          m.lessons?.some(l => l.id === nextLesson.id)
+        );
+        if (nextModule && !expandedModules.includes(nextModule.id)) {
+          setExpandedModules(prev => [...prev, nextModule.id]);
+        }
+
+        // Esconder mensagem após carregar
+        setTimeout(() => setLoadingNextLesson(false), 1000);
+      }, 800);
+    }
   };
 
   // Função para alternar status de conclusão da aula
@@ -486,6 +530,18 @@ const TrilhaPage = () => {
               </p>
             </div>
           )}
+
+          {/* Mensagem de carregamento da próxima aula
+          {loadingNextLesson && (
+            <div className="mb-6 bg-green-600 rounded-lg p-4 border border-green-500 animate-pulse">
+              <div className="flex items-center justify-center gap-3">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold text-white">
+                  Carregando próxima aula...
+                </span>
+              </div>
+            </div>
+          )} */}
 
 
 
