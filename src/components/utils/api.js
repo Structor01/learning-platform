@@ -15,8 +15,9 @@ export const getApiUrl = () => {
         return 'https://learning-platform-backend-2x39.onrender.com';
     }
 
-    const url = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    console.log('🔍 [API] Usando URL local:', url);
+    // Em desenvolvimento, usar proxy do Vite (sem especificar URL completa)
+    const url = import.meta.env.VITE_API_URL || '';
+    console.log('🔍 [API] Usando proxy local (vite):', url || 'proxy /api -> localhost:3001');
     return url;
 };
 

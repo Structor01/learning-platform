@@ -4,13 +4,17 @@ import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
 import { EditModulesModal } from "@/components/ui/EditModulesModal";
 import { AddLessonModal } from "../components/ui/AddLessonModal";
+import { Certificate } from "@/components/ui/Certificate";
 import { motion } from "framer-motion";
-import { ChevronRight, Settings, ChevronDown, Play, Pause, Edit2, Trash } from "lucide-react";
+import { ChevronRight, Settings, ChevronDown, Play, Pause, Edit2, Trash, CheckCircle, Circle } from "lucide-react";
 import Navbar from "../components/ui/Navbar";
 import { API_URL } from "../components/utils/api";
+import { useAuth } from "@/contexts/AuthContext";
+import courseProgressService from "@/services/courseProgressService";
 
 
 const TrilhaPage = () => {
+  const { user } = useAuth();
   const [modules, setModules] = useState([]);
   const [expandedModules, setExpandedModules] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
@@ -19,12 +23,18 @@ const TrilhaPage = () => {
   const [totalTime, setTotalTime] = useState("0:00");
   const videoRef = useRef(null);
   const [showEditModules, setShowEditModules] = useState(false);
-  const courseTitle = "Autoconhecimento para Aceleração de Carreiras";
+  const [courseTitle, setCourseTitle] = useState("");
   const { id: trilhaId } = useParams();
 
   const [isAddLessonModalOpen, setIsAddLessonModalOpen] = useState(false);
   const [currentModuleForAddingLesson, setCurrentModuleForAddingLesson] =
     useState(null);
+
+  // Estados para controle de progresso e certificado
+  const [completedLessons, setCompletedLessons] = useState([]);
+  const [courseProgress, setCourseProgress] = useState(0);
+  const [isCourseComplete, setIsCourseComplete] = useState(false);
+  const [showCertificate, setShowCertificate] = useState(false);
 
   // Funções para processar URLs do YouTube
   const isYouTubeURL = (url) => {
@@ -59,6 +69,13 @@ const TrilhaPage = () => {
   };
 
   useEffect(() => {
+    // Buscar título da trilha
+    axios.get(`${API_URL}/api/trilhas/${trilhaId}`)
+      .then((res) => {
+        setCourseTitle(res.data.titulo || "Curso");
+      })
+      .catch((err) => console.error("Erro ao buscar trilha:", err));
+
     axios
       .get(`${API_URL}/api/modules/trilha/${trilhaId}`) // ✅ Nova URL específica
       .then((res) => {
@@ -100,6 +117,47 @@ const TrilhaPage = () => {
       })
       .catch((err) => console.error(err));
   }, [trilhaId]);
+
+  // Carregar progresso do usuário
+  useEffect(() => {
+    const loadProgress = async () => {
+      if (!user?.id || !trilhaId) {
+        console.log('⚠️ Usuário ou trilha não disponível:', { userId: user?.id, trilhaId });
+        return;
+      }
+
+      console.log('🔄 Carregando progresso...', { userId: user.id, trilhaId });
+
+      try {
+        const progress = await courseProgressService.getProgressByTrilha(user.id, trilhaId);
+        console.log('✅ Progresso recebido do backend:', progress);
+        setCompletedLessons(progress.completedLessons || []);
+      } catch (error) {
+        console.error('❌ Erro ao carregar progresso:', error);
+        // Fallback para localStorage
+        const localProgress = courseProgressService.getLocalProgress(user.id, trilhaId);
+        console.log('📦 Carregando do localStorage:', localProgress);
+        setCompletedLessons(localProgress);
+      }
+    };
+
+    loadProgress();
+  }, [user, trilhaId]);
+
+  // Calcular progresso e verificar conclusão
+  useEffect(() => {
+    if (modules.length === 0) return;
+
+    const progress = courseProgressService.calculateProgress(modules, completedLessons);
+    setCourseProgress(progress);
+
+    const isComplete = courseProgressService.isCourseComplete(modules, completedLessons);
+    setIsCourseComplete(isComplete);
+
+    if (isComplete && !showCertificate) {
+      setShowCertificate(true);
+    }
+  }, [modules, completedLessons]);
 
   // Funções de CRUD (já estão corretas)
   const handleAdd = async (title) => {
@@ -371,6 +429,31 @@ const TrilhaPage = () => {
     );
   };
 
+  // Função para marcar aula como concluída
+  const markLessonAsCompleted = async (lessonId) => {
+    if (!user?.id || completedLessons.includes(lessonId)) return;
+
+    // Atualizar estado local imediatamente (UX responsiva)
+    setCompletedLessons(prev => [...prev, lessonId]);
+
+    // Salvar no localStorage (backup)
+    courseProgressService.saveProgressLocally(user.id, trilhaId, lessonId);
+
+    // Tentar salvar no backend (sem bloquear UI)
+    await courseProgressService.markLessonAsCompleted(user.id, lessonId, trilhaId);
+  };
+
+  // Função para alternar status de conclusão da aula
+  const toggleLessonCompletion = (lessonId) => {
+    if (completedLessons.includes(lessonId)) {
+      // Desmarcar como concluída
+      setCompletedLessons(prev => prev.filter(id => id !== lessonId));
+    } else {
+      // Marcar como concluída
+      markLessonAsCompleted(lessonId);
+    }
+  };
+
   // Função simplificada para selecionar a aula. Apenas atualiza o estado.
   const selectLesson = useCallback((lesson) => {
     setSelectedLesson(lesson);
@@ -384,6 +467,29 @@ const TrilhaPage = () => {
       <Navbar />
       <div className="min-h-screen bg-black text-white pt-20">
         <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Barra de Progresso */}
+          {user && (
+            <div className="mb-6 bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-gray-300">Progresso do Curso</h3>
+                <span className="text-sm font-bold text-green-500">{courseProgress}%</span>
+              </div>
+              <div className="w-full bg-gray-800 rounded-full h-2.5">
+                <div
+                  className="bg-green-600 h-2.5 rounded-full transition-all duration-300"
+                  style={{ width: `${courseProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {completedLessons.length} de{' '}
+                {modules.reduce((total, m) => total + (m.lessons?.length || 0), 0)} aulas concluídas
+              </p>
+            </div>
+          )}
+
+
+
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* --- INÍCIO DA COLUNA ESQUERDA: PLAYER DE VÍDEO E CONTEÚDO --- */}
             <div className="lg:col-span-2">
@@ -406,9 +512,9 @@ const TrilhaPage = () => {
                             display: 'block'
                           }}
                         />
-                      ) : (selectedLesson.videoType === 'youtube' && selectedLesson.youtubeId) || 
-                           (selectedLesson.videoUrl && selectedLesson.videoUrl.includes('youtube.com')) ||
-                           (selectedLesson.content && selectedLesson.content.includes('youtube.com')) ? (
+                      ) : (selectedLesson.videoType === 'youtube' && selectedLesson.youtubeId) ||
+                        (selectedLesson.videoUrl && selectedLesson.videoUrl.includes('youtube.com')) ||
+                        (selectedLesson.content && selectedLesson.content.includes('youtube.com')) ? (
                         // Player YouTube (iframe)
                         <>
                           <iframe
@@ -431,6 +537,12 @@ const TrilhaPage = () => {
                             poster={selectedLesson.coverUrl || ""}
                             onPlay={() => setIsPlaying(true)}
                             onPause={() => setIsPlaying(false)}
+                            onEnded={() => {
+                              // Marcar automaticamente como concluída quando o vídeo terminar
+                              if (selectedLesson?.id) {
+                                markLessonAsCompleted(selectedLesson.id);
+                              }
+                            }}
                             onTimeUpdate={(e) => {
                               const time = e.target.currentTime;
                               const minutes = Math.floor(time / 60);
@@ -513,10 +625,25 @@ const TrilhaPage = () => {
                             {module.lessons?.length > 0 ? (
                               module.lessons.map((lesson) => (
                                 <div key={lesson.id} className="flex items-center">
+                                  {/* Checkbox de conclusão */}
+                                  {user && (
+                                    <button
+                                      onClick={() => toggleLessonCompletion(lesson.id)}
+                                      className="p-2 ml-2 text-gray-400 hover:text-green-400 transition-colors"
+                                      title={completedLessons.includes(lesson.id) ? "Marcar como não concluída" : "Marcar como concluída"}
+                                    >
+                                      {completedLessons.includes(lesson.id) ? (
+                                        <CheckCircle className="w-5 h-5 text-green-500" />
+                                      ) : (
+                                        <Circle className="w-5 h-5" />
+                                      )}
+                                    </button>
+                                  )}
+
                                   {/* Botão principal da aula */}
                                   <button
                                     onClick={() => selectLesson(lesson)}
-                                    className={`flex-1 flex items-center gap-3 p-3 pl-5 text-left transition-colors ${selectedLesson?.id === lesson.id
+                                    className={`flex-1 flex items-center gap-3 p-3 pl-3 text-left transition-colors ${selectedLesson?.id === lesson.id
                                       ? "bg-green-600/20 text-green-400"
                                       : "hover:bg-gray-700/50 text-gray-300"
                                       }`}
@@ -527,7 +654,7 @@ const TrilhaPage = () => {
                                         : "text-gray-500"
                                         }`}
                                     />
-                                    <span className="text-sm">
+                                    <span className={`text-sm ${completedLessons.includes(lesson.id) ? 'line-through opacity-75' : ''}`}>
                                       {lesson.title}
                                     </span>
                                   </button>
@@ -574,6 +701,18 @@ const TrilhaPage = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Certificado (exibido quando o curso é concluído) */}
+              {showCertificate && user && (
+                <div className="mt-6">
+                  <Certificate
+                    userName={user.name || user.email}
+                    courseName={courseTitle}
+                    completionDate={new Date().toLocaleDateString('pt-BR')}
+                    trilhaId={trilhaId}
+                  />
+                </div>
+              )}
             </div>
             {/* --- FIM DA COLUNA DIREITA --- */}
           </div>
@@ -597,6 +736,9 @@ const TrilhaPage = () => {
           onSave={handleSaveNewLesson}
         />
       )}
+
+
+
     </>
   );
 };
