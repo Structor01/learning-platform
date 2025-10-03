@@ -2086,7 +2086,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                     </svg>
                   </div>
                   <h3 className="text-lg font-semibold text-black mb-2">
-                    Auto análise e Foco em metas
+                    Auto Análise e Foco em Metas
                   </h3>
                   <p className="text-gray-600 text-sm mb-4">
                     Defina objetivos claros e alcance suas metas profissionais
