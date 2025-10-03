@@ -86,17 +86,29 @@ const PublicChatPage = () => {
           const initialResponse = await botService.sendMessageRecrutamento(guestSessionId, 
             "oi");
           
-          // Tentar fazer parse do JSON que vem no campo message
-          let parsedMessage;
-        
-            parsedMessage = JSON.parse(initialResponse.message);
+          console.log('🔍 Resposta inicial recebida:', initialResponse);
+          console.log('📝 Conteúdo da mensagem:', initialResponse.message);
+          
+          // Primeira tentativa: usar a mensagem diretamente (sem JSON)
+          let messageContent = initialResponse.message;
+          let options = null;
+          
+          // Segunda tentativa: verificar se há opções via actionCommands
+          if (initialResponse.actionCommands) {
+            const optionsCommand = initialResponse.actionCommands.find(cmd => cmd.name === 'send-options');
+            if (optionsCommand && optionsCommand.data && optionsCommand.data.options) {
+              options = optionsCommand.data.options;
+              console.log('✅ Opções encontradas via actionCommands:', options);
+            }
+          }
+          
          
           
           // Adicionar resposta do bot como primeira mensagem
           const botMessage = {
             id: Date.now(),
-            content: parsedMessage.pergunta ,
-            options: parsedMessage.opcoes || null,
+            content: messageContent,
+            options: options,
             isBot: true,
             timestamp: new Date()
           };
@@ -168,20 +180,25 @@ const PublicChatPage = () => {
 
       console.log('Resposta do bot:', response);
       
-      // Tentar fazer parse do JSON que vem no campo message
-      let parsedMessage;
-      try {
-        parsedMessage = JSON.parse(response.message);
-      } catch {
-        // Se não for JSON válido, usar como string normal
-        parsedMessage = { pergunta: response.message };
+     
+      let messageContent = response.message;
+      let options = null;
+      
+      // Verifica se a Action Command de opções está presente
+      if (response.actionCommands) {
+        const optionsCommand = response.actionCommands.find(cmd => cmd.name === 'send-options');
+        if (optionsCommand && optionsCommand.data && optionsCommand.data.options) {
+          options = optionsCommand.data.options;
+          console.log('✅ Opções encontradas via actionCommands:', options);
+        }
       }
+      
       
       // Adicionar resposta do bot
       const botMessage = {
         id: Date.now() + 1,
-        content: parsedMessage.pergunta || parsedMessage.message || response.message,
-        options: parsedMessage.opcoes || null,
+        content: messageContent,
+        options: options,
         isBot: true,
         timestamp: new Date()
       };
