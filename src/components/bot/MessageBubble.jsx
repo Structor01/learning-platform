@@ -31,13 +31,17 @@ const MessageBubble = ({ message, isBot, timestamp, options, onSelectOption, dis
 
   return (
     <div className={`flex items-start gap-3 mb-4 ${!isBot ? 'flex-row-reverse' : ''}`}>
-      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-        isBot ? 'bg-blue-600' : 'bg-green-600'
-      }`}>
+      <div className="flex-shrink-0 w-8 h-8 rounded-full overflow-hidden">
         {isBot ? (
-          <User className="w-4 h-4 text-white" />
+          <img 
+            src="/avatar.jpeg" 
+            alt="Avatar do Bot" 
+            className="w-full h-full object-cover"
+          />
         ) : (
-          <User className="w-4 h-4 text-white" />
+          <div className={`w-full h-full bg-green-600 flex items-center justify-center`}>
+            <User className="w-4 h-4 text-white" />
+          </div>
         )}
       </div>
       

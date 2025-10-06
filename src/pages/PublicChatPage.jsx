@@ -335,11 +335,15 @@ const PublicChatPage = () => {
         <Card className="w-full max-w-3xl mx-auto shadow-xl">
           <CardContent className="p-0">
             {/* Chat Header */}
-            <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 rounded-t-lg">
+            <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white p-4 rounded-t-lg mt-[-22px]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                    <MessageCircle className="w-6 h-6" />
+                  <div className="w-10 h-10 rounded-full overflow-hidden">
+                    <img 
+                      src="/avatar.jpeg" 
+                      alt="Avatar do Assistente" 
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
                     <h3 className="font-semibold">Assistente AgroSkills</h3>
