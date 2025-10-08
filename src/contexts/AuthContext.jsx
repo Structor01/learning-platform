@@ -226,29 +226,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
-  // Função temporária para ativar/desativar premium (apenas para testes)
-  const togglePremium = () => {
-    if (!user) return;
-
-    const isPremium = user?.subscription?.status === "active";
-
-    const updatedUser = {
-      ...user,
-      subscription: isPremium
-        ? { status: "inactive" }
-        : {
-            status: "active",
-            plan: "premium",
-            started_at: new Date().toISOString()
-          }
-    };
-
-    setUser(updatedUser);
-    localStorage.setItem("user", JSON.stringify(updatedUser));
-
-    console.log(`🔄 Premium ${isPremium ? 'DESATIVADO' : 'ATIVADO'} para teste`);
-  };
-
 
   const logout = () => {
     clearAuthData();
@@ -332,7 +309,6 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUser,
     updateSubscription,
-    togglePremium,
     hasActiveSubscription,
     canAccessContent,
     canAccessFeature,

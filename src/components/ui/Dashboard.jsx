@@ -19,7 +19,7 @@ import InterviewPromptModal from "@/components/ui/InterviewPromptModal.jsx";
 // testService já está sendo importado na linha 2
 
 const Dashboard = ({ onCourseSelect = [] }) => {
-  const { user, accessToken, isLoading, showWelcomeVideo, closeWelcomeVideo, togglePremium, hasActiveSubscription } = useAuth();
+  const { user, accessToken, isLoading, showWelcomeVideo, closeWelcomeVideo, togglePremium } = useAuth();
   const { setIsOpen, isOpen } = useTour();
   const [disc, setDiscProfile] = useState(null);
   const [showDiscDetails, setShowDiscDetails] = useState(false);
@@ -2281,16 +2281,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         </div>
       )
       }
-
-      {/* Botão Flutuante para Toggle Premium (apenas para testes) */}
-      <button
-        onClick={togglePremium}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold py-3 px-5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110"
-        title={hasActiveSubscription() ? "Desativar Premium (teste)" : "Ativar Premium (teste)"}
-      >
-        <Award className="w-5 h-5" />
-        {hasActiveSubscription() ? 'Desativar' : 'Ativar'} Premium
-      </button>
     </>
   );
 };
