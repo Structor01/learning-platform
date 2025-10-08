@@ -5,9 +5,13 @@ import testService from "@/services/testService"; // Fallback para API antiga
 import discApiService from "@/services/discApi"; // Nova API DISC
 import { ArrowLeft, Calendar, Download } from "lucide-react";
 import { RelatorioCompleto } from '../components/ui/RelatorioCompleto';
+import PremiumFeature from '@/components/ui/PremiumFeature';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 
 const DISCProfilePage = () => {
-  const { user } = useAuth();
+  const { user, PREMIUM_FEATURES, canAccessFeature } = useAuth();
   const navigate = useNavigate();
   const [disc, setDiscProfile] = useState(null);
   const [inteligenciaEmocional, setInteligenciaEmocional] = useState(null);
@@ -39,6 +43,10 @@ const DISCProfilePage = () => {
     };
     return descriptions[type] || descriptions['D'];
   };
+
+  const pdfAutoTablee = () => {
+    return pdfAutoTablee
+  }
 
   // Outras funções auxiliares (mantidas do seu código...)
   const getDiscCharacteristics = (type) => {
@@ -383,6 +391,342 @@ const DISCProfilePage = () => {
     return recommendations[type] || recommendations['D'];
   };
 
+  // Função para baixar PDF usando jsPDF puro (sem html2canvas)
+  const handleDownloadPDF = () => {
+    let loadingToast = null;
+
+    try {
+      // Validações
+      if (!disc) {
+        alert('Relatório não encontrado. Por favor, selecione um teste primeiro.');
+        return;
+      }
+
+      // Mostrar loading
+      loadingToast = document.createElement('div');
+      loadingToast.innerHTML = '⏳ Gerando PDF...';
+      loadingToast.className = 'fixed top-4 right-4 bg-indigo-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+      document.body.appendChild(loadingToast);
+
+      console.log('📄 Iniciando geração de PDF com jsPDF puro...');
+
+      // Criar PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      const contentWidth = pageWidth - (margin * 2);
+      let yPosition = margin;
+
+      // Cores
+      const primaryColor = [79, 70, 229]; // Indigo
+      const secondaryColor = [100, 100, 100]; // Gray
+      const accentColor = [34, 197, 94]; // Green
+
+      // Helper para adicionar nova página se necessário
+      const checkPageBreak = (requiredSpace = 20) => {
+        if (yPosition + requiredSpace > pageHeight - margin) {
+          pdf.addPage();
+          yPosition = margin;
+          return true;
+        }
+        return false;
+      };
+
+      // ====== CABEÇALHO ======
+      pdf.setFillColor(...primaryColor);
+      pdf.rect(0, 0, pageWidth, 40, 'F');
+
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('RELATÓRIO DISC', pageWidth / 2, 20, { align: 'center' });
+
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Análise de Perfil Comportamental', pageWidth / 2, 30, { align: 'center' });
+
+      yPosition = 50;
+
+      // ====== INFORMAÇÕES DO USUÁRIO ======
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Informações do Candidato', margin, yPosition);
+      yPosition += 8;
+
+      autoTable(pdf, {
+        startY: yPosition,
+        head: [['Campo', 'Informação']],
+        body: [
+          ['Nome', user?.name || 'Não informado'],
+          ['Email', user?.email || 'Não informado'],
+          ['Data do Relatório', new Date().toLocaleDateString('pt-BR')],
+          ['Perfil DISC', `${disc.type} - ${disc.name}`]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: primaryColor, textColor: 255, fontStyle: 'bold' },
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 10 }
+      });
+
+      yPosition = pdf.lastAutoTable.finalY + 15;
+      checkPageBreak(30);
+
+      // ====== PERFIL DISC ======
+      pdf.setFillColor(...accentColor);
+      pdf.rect(margin, yPosition, contentWidth, 10, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(`PERFIL ${disc.type} - ${disc.name.toUpperCase()}`, margin + 5, yPosition + 7);
+      yPosition += 15;
+
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const descLines = pdf.splitTextToSize(disc.description, contentWidth);
+      pdf.text(descLines, margin, yPosition);
+      yPosition += descLines.length * 5 + 10;
+
+      // ====== PONTUAÇÕES DISC ======
+      checkPageBreak(50);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Pontuações DISC', margin, yPosition);
+      yPosition += 8;
+
+      const counts = disc.counts || { D: 0, I: 0, S: 0, C: 0 };
+      autoTable(pdf, {
+        startY: yPosition,
+        head: [['Dimensão', 'Pontuação', 'Descrição']],
+        body: [
+          ['D - Dominância', counts.D.toString(), 'Orientação para resultados e controle'],
+          ['I - Influência', counts.I.toString(), 'Sociabilidade e persuasão'],
+          ['S - Estabilidade', counts.S.toString(), 'Paciência e colaboração'],
+          ['C - Conformidade', counts.C.toString(), 'Precisão e análise']
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: primaryColor, textColor: 255 },
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 10 }
+      });
+
+      yPosition = pdf.lastAutoTable.finalY + 15;
+
+      // ====== CARACTERÍSTICAS GERAIS ======
+      checkPageBreak(30);
+      pdf.setFillColor(240, 240, 240);
+      pdf.rect(margin, yPosition, contentWidth, 8, 'F');
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('CARACTERÍSTICAS GERAIS', margin + 3, yPosition + 5.5);
+      yPosition += 13;
+
+      if (disc.characteristics && disc.characteristics.length > 0) {
+        disc.characteristics.forEach((char, index) => {
+          checkPageBreak(15);
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          const charLines = pdf.splitTextToSize(`• ${char}`, contentWidth - 5);
+          pdf.text(charLines, margin + 3, yPosition);
+          yPosition += charLines.length * 4.5 + 2;
+        });
+      }
+      yPosition += 8;
+
+      // ====== PONTOS FORTES ======
+      checkPageBreak(30);
+      pdf.setFillColor(240, 240, 240);
+      pdf.rect(margin, yPosition, contentWidth, 8, 'F');
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('PONTOS FORTES', margin + 3, yPosition + 5.5);
+      yPosition += 13;
+
+      if (disc.strengths && disc.strengths.length > 0) {
+        disc.strengths.slice(0, 6).forEach((strength) => {
+          checkPageBreak(15);
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          const strengthLines = pdf.splitTextToSize(`• ${strength}`, contentWidth - 5);
+          pdf.text(strengthLines, margin + 3, yPosition);
+          yPosition += strengthLines.length * 4.5 + 2;
+        });
+      }
+      yPosition += 8;
+
+      // ====== ÁREAS DE DESENVOLVIMENTO ======
+      checkPageBreak(30);
+      pdf.setFillColor(240, 240, 240);
+      pdf.rect(margin, yPosition, contentWidth, 8, 'F');
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('ÁREAS DE DESENVOLVIMENTO', margin + 3, yPosition + 5.5);
+      yPosition += 13;
+
+      if (disc.improvements && disc.improvements.length > 0) {
+        disc.improvements.slice(0, 6).forEach((improvement) => {
+          checkPageBreak(15);
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          const improvementLines = pdf.splitTextToSize(`• ${improvement}`, contentWidth - 5);
+          pdf.text(improvementLines, margin + 3, yPosition);
+          yPosition += improvementLines.length * 4.5 + 2;
+        });
+      }
+      yPosition += 8;
+
+      // ====== ESTILO DE COMUNICAÇÃO ======
+      checkPageBreak(30);
+      pdf.setFillColor(240, 240, 240);
+      pdf.rect(margin, yPosition, contentWidth, 8, 'F');
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('ESTILO DE COMUNICAÇÃO', margin + 3, yPosition + 5.5);
+      yPosition += 13;
+
+      if (disc.communicationStyle && disc.communicationStyle.length > 0) {
+        disc.communicationStyle.slice(0, 6).forEach((style) => {
+          checkPageBreak(15);
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          const styleLines = pdf.splitTextToSize(`• ${style}`, contentWidth - 5);
+          pdf.text(styleLines, margin + 3, yPosition);
+          yPosition += styleLines.length * 4.5 + 2;
+        });
+      }
+      yPosition += 8;
+
+      // ====== AMBIENTE DE TRABALHO IDEAL ======
+      checkPageBreak(30);
+      pdf.setFillColor(240, 240, 240);
+      pdf.rect(margin, yPosition, contentWidth, 8, 'F');
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('AMBIENTE DE TRABALHO IDEAL', margin + 3, yPosition + 5.5);
+      yPosition += 13;
+
+      if (disc.workEnvironment && disc.workEnvironment.length > 0) {
+        disc.workEnvironment.slice(0, 6).forEach((env) => {
+          checkPageBreak(15);
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          const envLines = pdf.splitTextToSize(`• ${env}`, contentWidth - 5);
+          pdf.text(envLines, margin + 3, yPosition);
+          yPosition += envLines.length * 4.5 + 2;
+        });
+      }
+      yPosition += 8;
+
+      // ====== INTELIGÊNCIA EMOCIONAL ======
+      if (inteligenciaEmocional && inteligenciaEmocional.scores) {
+        checkPageBreak(50);
+        pdf.setFillColor(...accentColor);
+        pdf.rect(margin, yPosition, contentWidth, 10, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(16);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('INTELIGÊNCIA EMOCIONAL', margin + 5, yPosition + 7);
+        yPosition += 15;
+
+        autoTable(pdf, {
+          startY: yPosition,
+          head: [['Dimensão', 'Pontuação']],
+          body: [
+            ['Automotivação', `${inteligenciaEmocional.scores.automotivacao}%`],
+            ['Autoconsciência', `${inteligenciaEmocional.scores.autoconsciencia}%`],
+            ['Habilidade Social', `${inteligenciaEmocional.scores.habilidadeSocial}%`],
+            ['Empatia', `${inteligenciaEmocional.scores.empatia}%`],
+            ['Autorregulação', `${inteligenciaEmocional.scores.autorregulacao}%`],
+            ['Média Geral', `${inteligenciaEmocional.media_geral}%`]
+          ],
+          theme: 'striped',
+          headStyles: { fillColor: primaryColor, textColor: 255 },
+          margin: { left: margin, right: margin },
+          styles: { fontSize: 10 }
+        });
+
+        yPosition = pdf.lastAutoTable.finalY + 10;
+      }
+
+      // ====== RECOMENDAÇÕES DE CARREIRA ======
+      checkPageBreak(30);
+      pdf.setFillColor(240, 240, 240);
+      pdf.rect(margin, yPosition, contentWidth, 8, 'F');
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('RECOMENDAÇÕES DE CARREIRA', margin + 3, yPosition + 5.5);
+      yPosition += 13;
+
+      if (disc.careerRecommendations && disc.careerRecommendations.length > 0) {
+        disc.careerRecommendations.slice(0, 6).forEach((career) => {
+          checkPageBreak(15);
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          const careerLines = pdf.splitTextToSize(`• ${career}`, contentWidth - 5);
+          pdf.text(careerLines, margin + 3, yPosition);
+          yPosition += careerLines.length * 4.5 + 2;
+        });
+      }
+
+      // ====== RODAPÉ ======
+      const totalPages = pdf.internal.pages.length - 1;
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(150, 150, 150);
+        pdf.text(
+          `AgroSkills - Relatório DISC | Página ${i} de ${totalPages} | Gerado em ${new Date().toLocaleDateString('pt-BR')}`,
+          pageWidth / 2,
+          pageHeight - 10,
+          { align: 'center' }
+        );
+      }
+
+      // Salvar PDF
+      const fileName = `relatorio-disc-${user?.name?.replace(/\s+/g, '-') || 'usuario'}-${Date.now()}.pdf`;
+      pdf.save(fileName);
+
+      // Remover loading
+      if (loadingToast && document.body.contains(loadingToast)) {
+        document.body.removeChild(loadingToast);
+      }
+
+      // Mostrar sucesso
+      const successToast = document.createElement('div');
+      successToast.innerHTML = '✅ PDF baixado com sucesso!';
+      successToast.className = 'fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+      document.body.appendChild(successToast);
+      setTimeout(() => {
+        if (document.body.contains(successToast)) {
+          document.body.removeChild(successToast);
+        }
+      }, 3000);
+
+      console.log('✅ PDF gerado com sucesso usando jsPDF puro');
+
+    } catch (error) {
+      console.error('❌ Erro ao gerar PDF:', error);
+
+      if (loadingToast && document.body.contains(loadingToast)) {
+        document.body.removeChild(loadingToast);
+      }
+
+      const errorToast = document.createElement('div');
+      errorToast.innerHTML = `❌ Erro ao gerar PDF: ${error.message || 'Erro desconhecido'}`;
+      errorToast.className = 'fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 max-w-md text-sm';
+      errorToast.style.zIndex = '9999';
+      document.body.appendChild(errorToast);
+      setTimeout(() => {
+        if (document.body.contains(errorToast)) {
+          document.body.removeChild(errorToast);
+        }
+      }, 5000);
+    }
+  };
+
   // NOVA FUNCIONALIDADE: Carregar testes do usuário
   useEffect(() => {
     const loadUserTests = async () => {
@@ -521,6 +865,67 @@ const DISCProfilePage = () => {
     return 'D';
   };
 
+  // Calcular IE baseado no perfil DISC
+  const calculateIEFromDISC = (discType, counts) => {
+    // Pesos para cada perfil DISC em cada dimensão da IE
+    const ieWeights = {
+      'D': { automotivacao: 0.9, autoconsciencia: 0.6, habilidadeSocial: 0.5, empatia: 0.4, autorregulacao: 0.5 },
+      'I': { automotivacao: 0.8, autoconsciencia: 0.5, habilidadeSocial: 0.9, empatia: 0.8, autorregulacao: 0.4 },
+      'S': { automotivacao: 0.6, autoconsciencia: 0.7, habilidadeSocial: 0.7, empatia: 0.9, autorregulacao: 0.8 },
+      'C': { automotivacao: 0.7, autoconsciencia: 0.9, habilidadeSocial: 0.5, empatia: 0.6, autorregulacao: 0.9 }
+    };
+
+    // Normalizar counts
+    const total = (counts.D || 0) + (counts.I || 0) + (counts.S || 0) + (counts.C || 0);
+    const normalized = {
+      D: total > 0 ? (counts.D || 0) / total : 0.25,
+      I: total > 0 ? (counts.I || 0) / total : 0.25,
+      S: total > 0 ? (counts.S || 0) / total : 0.25,
+      C: total > 0 ? (counts.C || 0) / total : 0.25
+    };
+
+    // Calcular cada dimensão da IE baseado na mistura de perfis
+    const scores = {
+      automotivacao: Math.round(
+        (normalized.D * ieWeights.D.automotivacao +
+          normalized.I * ieWeights.I.automotivacao +
+          normalized.S * ieWeights.S.automotivacao +
+          normalized.C * ieWeights.C.automotivacao) * 100
+      ),
+      autoconsciencia: Math.round(
+        (normalized.D * ieWeights.D.autoconsciencia +
+          normalized.I * ieWeights.I.autoconsciencia +
+          normalized.S * ieWeights.S.autoconsciencia +
+          normalized.C * ieWeights.C.autoconsciencia) * 100
+      ),
+      habilidadeSocial: Math.round(
+        (normalized.D * ieWeights.D.habilidadeSocial +
+          normalized.I * ieWeights.I.habilidadeSocial +
+          normalized.S * ieWeights.S.habilidadeSocial +
+          normalized.C * ieWeights.C.habilidadeSocial) * 100
+      ),
+      empatia: Math.round(
+        (normalized.D * ieWeights.D.empatia +
+          normalized.I * ieWeights.I.empatia +
+          normalized.S * ieWeights.S.empatia +
+          normalized.C * ieWeights.C.empatia) * 100
+      ),
+      autorregulacao: Math.round(
+        (normalized.D * ieWeights.D.autorregulacao +
+          normalized.I * ieWeights.I.autorregulacao +
+          normalized.S * ieWeights.S.autorregulacao +
+          normalized.C * ieWeights.C.autorregulacao) * 100
+      )
+    };
+
+    const media_geral = Math.round(
+      (scores.automotivacao + scores.autoconsciencia + scores.habilidadeSocial +
+        scores.empatia + scores.autorregulacao) / 5
+    );
+
+    return { scores, media_geral };
+  };
+
   // Método auxiliar para extrair dados de inteligência emocional
   const extractInteligenciaEmocional = (testData) => {
     console.log('🔍 Extraindo dados de inteligência emocional:', testData);
@@ -543,18 +948,13 @@ const DISCProfilePage = () => {
       };
     }
 
-    // Se não encontrar dados reais, retornar valores padrão
-    console.log('⚠️ Não encontrou dados de IE, usando valores padrão');
-    return {
-      scores: {
-        automotivacao: 63,
-        autoconsciencia: 68,
-        habilidadeSocial: 63,
-        empatia: 29,
-        autorregulacao: 55
-      },
-      media_geral: 56
-    };
+    // Se não encontrar dados do backend, calcular baseado no DISC
+    console.log('⚠️ Não encontrou dados de IE do backend, calculando baseado no DISC');
+    const counts = testData.disc_scores || testData.result?.disc?.counts || testData.counts || { D: 0, I: 0, S: 0, C: 0 };
+    const perfil = testData.perfil || testData.profile || testData.result?.disc?.perfil;
+    const discType = extractDiscType(perfil) || 'D';
+
+    return calculateIEFromDISC(discType, counts);
   };
 
   // NOVA FUNCIONALIDADE: Carregar dados do teste selecionado
@@ -786,11 +1186,11 @@ const DISCProfilePage = () => {
 
             {selectedTestId && (
               <button
-                onClick={() => window.open(`/relatorio?teste_id=${selectedTestId}`, '_blank')}
+                onClick={handleDownloadPDF}
                 className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
               >
                 <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Modo Impressão</span>
+                <span className="hidden sm:inline">Baixar PDF</span>
               </button>
             )}
 
@@ -842,36 +1242,41 @@ const DISCProfilePage = () => {
               <p className="text-gray-600">Visualize o relatório gerado com base no seu teste de perfil comportamental</p>
             </div>
 
-            <div className="card text-justify">
-              <RelatorioCompleto
-                discResult={{
-                  perfil: disc.type,
-                  counts: disc.counts || { D: 0, I: 0, S: 0, C: 0 }
-                }}
-                inteligenciaEmocionalResult={inteligenciaEmocional}
-                liderancaResult={{
-                  scores: {
-                    modelador: 54,
-                    democratico: 57,
-                    afiliativo: 52,
-                    treinador: 57,
-                    visionario: 65,
-                    autoritario: 29
-                  }
-                }}
-                bigFiveResult={{
-                  scores: {
-                    extroversao: 42,
-                    estabilidadeEmocional: 68,
-                    abertura: 55,
-                    socializacao: 59,
-                    conscienciosidade: 48
-                  }
-                }}
-                conteudos={[
-                  {
-                    title: "CARACTERÍSTICAS GERAIS",
-                    content: `
+            <div className="card text-justify" id="relatorio-completo">
+              <PremiumFeature
+                feature={PREMIUM_FEATURES.DISC_RELATORIO}
+                upgradeMessage="Faça upgrade para Premium e tenha acesso ao relatório completo do seu perfil DISC"
+                mode="block"
+              >
+                <RelatorioCompleto
+                  discResult={{
+                    perfil: disc.type,
+                    counts: disc.counts || { D: 0, I: 0, S: 0, C: 0 }
+                  }}
+                  inteligenciaEmocionalResult={inteligenciaEmocional}
+                  liderancaResult={{
+                    scores: {
+                      modelador: 54,
+                      democratico: 57,
+                      afiliativo: 52,
+                      treinador: 57,
+                      visionario: 65,
+                      autoritario: 29
+                    }
+                  }}
+                  bigFiveResult={{
+                    scores: {
+                      extroversao: 42,
+                      estabilidadeEmocional: 68,
+                      abertura: 55,
+                      socializacao: 59,
+                      conscienciosidade: 48
+                    }
+                  }}
+                  conteudos={[
+                    {
+                      title: "CARACTERÍSTICAS GERAIS",
+                      content: `
                       <p>${disc.description}</p>
                       ${disc.characteristics ? `
                         <h3>Características Principais:</h3>
@@ -880,58 +1285,58 @@ const DISCProfilePage = () => {
                         </ul>
                       ` : ''}
                     `
-                  },
-                  {
-                    title: "PONTOS FORTES",
-                    content: disc.strengths ? `
+                    },
+                    {
+                      title: "PONTOS FORTES",
+                      content: disc.strengths ? `
                       <ul>
                         ${disc.strengths.map(strength => `<li>${strength}</li>`).join('')}
                       </ul>
                     ` : '<p>Pontos fortes identificados através da análise DISC.</p>'
-                  },
-                  {
-                    title: "ÁREAS DE DESENVOLVIMENTO",
-                    content: disc.improvements ? `
+                    },
+                    {
+                      title: "ÁREAS DE DESENVOLVIMENTO",
+                      content: disc.improvements ? `
                       <ul>
                         ${disc.improvements.map(improvement => `<li>${improvement}</li>`).join('')}
                       </ul>
                     ` : '<p>Áreas de desenvolvimento identificadas através da análise DISC.</p>'
-                  },
-                  {
-                    title: "ESTILO DE COMUNICAÇÃO",
-                    content: disc.communicationStyle ? `
+                    },
+                    {
+                      title: "ESTILO DE COMUNICAÇÃO",
+                      content: disc.communicationStyle ? `
                       <ul>
                         ${disc.communicationStyle.map(style => `<li>${style}</li>`).join('')}
                       </ul>
                     ` : '<p>Estilo de comunicação baseado no perfil DISC.</p>'
-                  },
-                  {
-                    title: "AMBIENTE DE TRABALHO IDEAL",
-                    content: disc.workEnvironment ? `
+                    },
+                    {
+                      title: "AMBIENTE DE TRABALHO IDEAL",
+                      content: disc.workEnvironment ? `
                       <ul>
                         ${disc.workEnvironment.map(env => `<li>${env}</li>`).join('')}
                       </ul>
                     ` : '<p>Ambiente de trabalho preferido baseado no perfil DISC.</p>'
-                  },
-                  {
-                    title: "ESTILO DE LIDERANÇA",
-                    content: disc.leadershipStyle ? `
+                    },
+                    {
+                      title: "ESTILO DE LIDERANÇA",
+                      content: disc.leadershipStyle ? `
                       <ul>
                         ${disc.leadershipStyle.map(style => `<li>${style}</li>`).join('')}
                       </ul>
                     ` : '<p>Estilo de liderança baseado no perfil DISC.</p>'
-                  },
-                  {
-                    title: "PROCESSO DE TOMADA DE DECISÃO",
-                    content: disc.decisionMaking ? `
+                    },
+                    {
+                      title: "PROCESSO DE TOMADA DE DECISÃO",
+                      content: disc.decisionMaking ? `
                       <ul>
                         ${disc.decisionMaking.map(process => `<li>${process}</li>`).join('')}
                       </ul>
                     ` : '<p>Processo de tomada de decisão baseado no perfil DISC.</p>'
-                  },
-                  {
-                    title: "GATILHOS DE ESTRESSE",
-                    content: disc.stressTriggers ? `
+                    },
+                    {
+                      title: "GATILHOS DE ESTRESSE",
+                      content: disc.stressTriggers ? `
                       <h3>Principais fatores que podem causar estresse:</h3>
                       <ul>
                         ${disc.stressTriggers.map(trigger => `<li>${trigger}</li>`).join('')}
@@ -939,19 +1344,20 @@ const DISCProfilePage = () => {
                       <h3>Estratégias de gerenciamento:</h3>
                       <p>Reconhecer estes gatilhos é o primeiro passo para desenvolver estratégias eficazes de gerenciamento de estresse.</p>
                     ` : '<p>Gatilhos de estresse identificados através da análise DISC.</p>'
-                  },
-                  {
-                    title: "RECOMENDAÇÕES DE CARREIRA",
-                    content: disc.careerRecommendations ? `
+                    },
+                    {
+                      title: "RECOMENDAÇÕES DE CARREIRA",
+                      content: disc.careerRecommendations ? `
                       <h3>Áreas de carreira recomendadas:</h3>
                       <ul>
                         ${disc.careerRecommendations.map(career => `<li>${career}</li>`).join('')}
                       </ul>
                       <p><strong>Nota:</strong> Essas são sugestões baseadas no seu perfil DISC. O sucesso profissional pode ser alcançado em diversas áreas com o desenvolvimento adequado das competências necessárias.</p>
                     ` : '<p>Recomendações de carreira baseadas no perfil DISC.</p>'
-                  },
-                ]}
-              />
+                    },
+                  ]}
+                />
+              </PremiumFeature>
             </div>
           </div>
         ) : (

@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,10 +11,12 @@ import Navbar from "../components/ui/Navbar";
 import { API_URL } from "../components/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 import courseProgressService from "@/services/courseProgressService";
+import PremiumFeature from "@/components/ui/PremiumFeature";
 
 
 const TrilhaPage = () => {
-  const { user } = useAuth();
+  const { user, PREMIUM_FEATURES } = useAuth();
+  const navigate = useNavigate();
   const [modules, setModules] = useState([]);
   const [expandedModules, setExpandedModules] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
@@ -509,8 +511,13 @@ const TrilhaPage = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-black text-white pt-20">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <PremiumFeature
+        feature={PREMIUM_FEATURES.TRILHAS}
+        upgradeMessage="Faça upgrade para Premium e tenha acesso completo a todas as trilhas de aprendizado"
+        mode="block"
+      >
+        <div className="min-h-screen bg-black text-white pt-24 pb-12">
+          <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Barra de Progresso */}
           {user && (
             <div className="mb-6 bg-gray-900 rounded-lg p-4 border border-gray-800">
@@ -792,9 +799,7 @@ const TrilhaPage = () => {
           onSave={handleSaveNewLesson}
         />
       )}
-
-
-
+      </PremiumFeature>
     </>
   );
 };

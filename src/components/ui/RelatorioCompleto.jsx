@@ -91,12 +91,24 @@ export const RelatorioCompleto = ({
 
   return (
     <div className="">
-
+      {/* Estilos inline para sobrescrever Tailwind e evitar oklch */}
+      <style>{`
+        .bg-blue-500 { background-color: #3B82F6 !important; }
+        .bg-red-500 { background-color: #EF4444 !important; }
+        .bg-yellow-400 { background-color: #FACC15 !important; }
+        .bg-green-500 { background-color: #22C55E !important; }
+        .text-blue-600 { color: #2563EB !important; }
+        .text-red-600 { color: #DC2626 !important; }
+        .text-yellow-600 { color: #CA8A04 !important; }
+        .text-green-600 { color: #16A34A !important; }
+        .text-gray-500 { color: #6B7280 !important; }
+        .text-white { color: #ffffff !important; }
+      `}</style>
 
       {/* Conteúdo */}
-      <tbody>
-        <tr>
-          <td>
+      <div>
+        <div>
+          <div>
             <div>
               {/* Capa */}
               <div className="page">
@@ -300,7 +312,7 @@ export const RelatorioCompleto = ({
                     {/* user.name */}
                     Então vamos então ver o resultado do teste de Inteligência emocional?
                   </p>
-                  <h2 class="before-chart">
+                  <h2 className="before-chart">
                     SUA INTELIGÊNCIA EMOCIONAL É: <strong>{porcentagensIE.geral}%</strong>
                   </h2>
                   <div className="chart-wrapper">
@@ -344,43 +356,43 @@ export const RelatorioCompleto = ({
               <div className="page">
                 <section id="lideranca">
                   <h1>7. ESTILO DE LIDERANÇA</h1>
-                  <div class="chart-wrapper">
+                  <div className="chart-wrapper">
                     <LiderancaChart liderancaData={liderancaResult?.scores} />
                   </div>
                   <br />
                   <br />
-                  <div class="subsection">
+                  <div className="subsection">
                     <h2>Modelador — 54%</h2>
                     <p className='text-justify'>
                       Esse é um tipo de liderança, que precisa ter o controle total da situação. Foca em estabelecer elevados padrões de desempenho e lidera pelo exemplo, muito por conta da sua obsessão em alcançar resultados da melhor forma e de maneira rápida. Uma ressalva é que normalmente quem tem esse estilo de liderança pensa que todos no time devem ter ou tem o mesmo perfil, por isso ele exige isso de todos.
                     </p>
                   </div>
-                  <div class="subsectio">
+                  <div className="subsection">
                     <h2>Democrático — 57%</h2>
                     <p className='text-justify'>
                       Podemos definir o que é liderança democrática como um modelo em que os colaboradores participam dos processos de tomada de decisão em conjunto com o líder. O poder decisório não se concentra naquele que ocupa posição de liderança, mas sim é distribuído.
                     </p>
                   </div>
-                  <div class="subsection">
+                  <div className="subsection">
                     <h2>Afiliativo — 52%</h2>
                     <p className='text-justify'>
                       A Liderança Afiliativa faz parte do modelo proposto por Daniel Goleman e tem como característica principal valorizar as pessoas e suas necessidades. O que percebemos nesse perfil é uma atuação altamente empática, o que favorece a comunicação dentro da equipe, promove maior segurança psicológica e fomenta a confiança.
                     </p>
                   </div>
-                  <div class="subsection">
+                  <div className="subsection">
                     <h2>Treinador — 57%</h2>
                     <p className='text-justify'>
                       O perfil Treinador sabe exatamente onde estão os pontos fortes e as oportunidades de melhoria de cada indivíduo da equipe e leva isso em consideração ao distribuir tarefas. Funciona bem quando o líder quer ajudar os membros de sua equipe a desenvolver seus pontos fortes para terem sucesso no longo prazo
 
                     </p>
                   </div>
-                  <div class="subsection">
+                  <div className="subsection">
                     <h2>Visionário — 65%</h2>
                     <p className='text-justify'>
                       Liderança visionária é guiar a equipe de forma clara em direção a uma visão de futuro, de longo prazo, que cumpre objetivos estratégicos da empresa. O líder visionário de sucesso consegue alcançar grandes resultados financeiros por explorar estratégias inteligentes.
                     </p>
                   </div>
-                  <div class="subsection">
+                  <div className="subsection">
                     <h2>Autoritário — 29%</h2>
                     <p className='text-justify'>
                       O líder Autoritário/ Coercitivo é uma pessoa que exige respostas rápidas do time e que &nbsp;tendem a decidir muito rápido e, por isso, pressionam a equipe para acompanhar seu ritmo. Esse estilo de liderança é muito eficaz em casos de crise, pois assim, o líder consegue direcionar o time rapidamente para solucionar desafios. Há lacunas de comunicação a serem trabalhadas, geralmente.
@@ -472,14 +484,9 @@ export const RelatorioCompleto = ({
 
               </div>
             </div>
-
-
-
-
-          </td>
-        </tr>
-      </tbody >
-    </div >
-
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };

@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/ui/Navbar';
+import { useAuth } from '@/contexts/AuthContext';
+import PremiumFeature from '@/components/ui/PremiumFeature';
 
 const AgendaEventosPage = () => {
+  const { PREMIUM_FEATURES } = useAuth();
   const [events, setEvents] = useState([
     {
       id: 1,
@@ -101,8 +104,13 @@ const AgendaEventosPage = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-black text-white pt-20">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+      <PremiumFeature
+        feature={PREMIUM_FEATURES.AGENDA_EVENTOS}
+        upgradeMessage="Faça upgrade para Premium e tenha acesso à agenda exclusiva de eventos do agronegócio"
+        mode="block"
+      >
+        <div className="min-h-screen bg-black text-white pt-24 pb-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -365,6 +373,7 @@ const AgendaEventosPage = () => {
           )}
         </div>
       </div>
+      </PremiumFeature>
     </>
   );
 };
