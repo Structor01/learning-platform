@@ -1,6 +1,7 @@
 // src/contexts/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
 import { USER_TYPES, validateUserType } from "../types/userTypes";
+import { API_URL } from "@/components/utils/api";
 
 const AuthContext = createContext();
 
@@ -18,10 +19,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
 
-  const API_URL =
-    import.meta.env.VITE_API_URL ||
-    "https://learning-platform-backend-2x39.onrender.com";
-
+  const API_URL = import.meta.env.VITE_API_URL
   const isAuthenticated = !!user && !!accessToken;
 
   // Helper para limpar dados grandes antes de salvar no sessionStorage

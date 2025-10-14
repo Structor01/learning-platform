@@ -170,9 +170,9 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
             </div>
 
             {/* Menu Administrador - Desktop */}
-            {(userData.email === "kauanytorres19@gmail.com" ||
-              userData.email === "matheuslucasdesouza22@gmail.com" ||
-              userData.email === "artfbgyn@gmail.com") && (
+            {(userData.email === "admin@email.com" ||
+              userData.email === "matheuslucasdesouza22@gmail.com"
+            ) && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -332,7 +332,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
               )}
 
               {/* Menu Admin em Mobile */}
-              {(userData.email === "gabrielapereiracavalcanti@gmai.com" ||
+              {(userData.email === "admim@email.com" ||
                 userData.email === "matheuslucasdesouza22@gmail.com") && (
                   <div className="border-t border-gray-700 pt-2 mt-2">
                     <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">

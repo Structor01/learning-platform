@@ -20,10 +20,6 @@ export const useUserPermissions = () => {
     return isCandidate() && isAuthenticated;
   };
 
-  const canAccessAdminFeatures = () => {
-    return user?.email === "kauanytorres19@gmail.com" && isAuthenticated;
-  };
-
   return {
     user,
     isAuthenticated,
@@ -34,7 +30,6 @@ export const useUserPermissions = () => {
     hasAnyRole,
     canAccessCompanyFeatures,
     canAccessCandidateFeatures,
-    canAccessAdminFeatures,
     USER_TYPES
   };
 };

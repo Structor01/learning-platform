@@ -21,6 +21,10 @@ export default function ResetPassword() {
       setMensagem("❌ Link inválido. Token não encontrado.");
     } else {
       console.log('✅ Token encontrado:', token.substring(0, 10) + '...');
+      console.log('✅ Token length:', token.length);
+      console.log('✅ Token type:', typeof token);
+      console.log('✅ Token tem espaços?', token.includes(' '));
+      console.log('✅ Token decodificado:', decodeURIComponent(token));
     }
   }, [token]);
 
@@ -49,21 +53,31 @@ export default function ResetPassword() {
     try {
       console.log("🔄 Enviando reset password...");
       console.log("🔑 Token:", token.substring(0, 10) + '...');
+      console.log("🔑 Token completo:", token);
 
       // ✅ CORREÇÕES:
       const url = `${API_URL}/api/auth/reset-password`; // ✅ API_URL + /api/
       console.log("🔗 URL:", url);
 
+      // Tentar múltiplos formatos de payload que o backend pode aceitar
+      const payload = {
+        token: token,
+        password: password,
+        newPassword: password, // Alguns backends usam este nome
+        new_password: password, // Alguns backends usam snake_case
+        confirmPassword: confirmPassword, // Alguns backends exigem confirmação
+        password_confirmation: confirmPassword // Laravel/Rails style
+      };
+      console.log("📦 Payload:", payload);
+
       const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token: token,
-          password: password
-        }),
+        body: JSON.stringify(payload),
       });
 
       console.log("📡 Status:", response.status);
+      console.log("📡 Response headers:", [...response.headers.entries()]);
 
       if (response.ok) {
         const data = await response.json();
@@ -78,13 +92,15 @@ export default function ResetPassword() {
         }, 3000);
 
       } else {
-        const errorData = await response.json();
-        console.log("❌ Erro:", errorData);
+        const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+        console.log("❌ Erro completo:", errorData);
+        console.log("❌ Erro message:", errorData.message);
+        console.log("❌ Erro error:", errorData.error);
 
         if (response.status === 400) {
-          setMensagem("❌ " + (errorData.message || "Token inválido ou expirado"));
+          setMensagem("❌ " + (errorData.message || errorData.error || "Token inválido ou expirado. Solicite um novo link de recuperação."));
         } else {
-          setMensagem("❌ " + (errorData.message || "Erro ao redefinir a senha"));
+          setMensagem("❌ " + (errorData.message || errorData.error || "Erro ao redefinir a senha"));
         }
       }
     } catch (err) {

@@ -1,7 +1,6 @@
 // src/components/DetalhesVaga.jsx - VERSÃO CORRIGIDA
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../services/api';
 import axios from 'axios';
 import { API_URL } from '../components/utils/api';
 import { MapPin, Clock, Building2, ArrowLeft } from 'lucide-react';
@@ -9,6 +8,12 @@ import Navbar from '../components/ui/Navbar';
 import BotaoCandidatura from '../components/ui/BotaoCandidatura';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../components/ui/Notification';
+
+// Função helper para obter o token
+const getAuthHeader = () => {
+    const token = localStorage.getItem('accessToken');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 const DetalhesVaga = () => {
     const { vagaId } = useParams();
@@ -48,7 +53,9 @@ const DetalhesVaga = () => {
         const fetchUserCandidaturas = async () => {
             if (isAuthenticated && user?.id) {
                 try {
-                    const response = await api.get(`/candidaturas/usuario/${user.id}`);
+                    const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${user.id}`, {
+                        headers: getAuthHeader()
+                    });
                     setUserCandidaturas(response.data);
                 } catch (error) {
                     console.error('❌ Erro ao buscar candidaturas:', error);
@@ -90,10 +97,12 @@ const DetalhesVaga = () => {
                 vaga_nome: vagaNome,
             });
 
-            const response = await api.post(`/candidaturas`, {
+            const response = await axios.post(`${API_URL}/api/candidaturas`, {
                 usuario_id: user.id,
                 vaga_id: vaga.id,
                 mensagem: `Candidatura para a vaga: ${vagaNome}`
+            }, {
+                headers: getAuthHeader()
             });
 
             console.log('✅ Candidatura enviada:', response.data);
@@ -126,7 +135,9 @@ const DetalhesVaga = () => {
                         // Recarregar candidaturas
                         if (isAuthenticated && user?.id) {
                             try {
-                                const response = await api.get(`/candidaturas/usuario/${user.id}`);
+                                const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${user.id}`, {
+                                    headers: getAuthHeader()
+                                });
                                 setUserCandidaturas(response.data);
                             } catch (reloadError) {
                                 console.error('Erro ao recarregar candidaturas:', reloadError);

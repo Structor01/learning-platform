@@ -51,20 +51,31 @@ const CandidaturasAdmPage = () => {
     const [error, setError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [filterStatus, setFilterStatus] = useState("todos");
-    const { accessToken, isAuthenticated, isLoading } = useAuth();
+    const { user, accessToken, isAuthenticated, isLoading } = useAuth();
     const [modalCurriculo, setModalCurriculo] = useState({ isOpen: false, url: "", nome: "" });
     const [modalDisc, setModalDisc] = useState({ isOpen: false, resultado: "", nome: "" });
     const [modalInterview, setModalInterview] = useState({ isOpen: false, entrevistas: [], nome: "", candidaturaId: null });
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [candidateDetailsModal, setCandidateDetailsModal] = useState({ isOpen: false, candidatura: null });
 
+    // Lista de emails de administradores
+    const adminEmails = [
+        "admin@email.com",
+    ];
+
+    // Verificar se o usuário é admin
+    const isAdmin = user && adminEmails.includes(user.email);
+
     // Carregar dados da API
     useEffect(() => {
-        console.log("Auth State:", { isLoading, isAuthenticated });
-        if (!isLoading && isAuthenticated) {
+        console.log("Auth State:", { isLoading, isAuthenticated, userEmail: user?.email, isAdmin });
+        if (!isLoading && isAuthenticated && isAdmin) {
             fetchTodasCandidaturas();
+        } else if (!isLoading && isAuthenticated && !isAdmin) {
+            setError("Você não tem permissão para acessar esta página.");
+            setLoading(false);
         }
-    }, [isAuthenticated, isLoading]);
+    }, [isAuthenticated, isLoading, isAdmin]);
 
     const getPrincipalDisc = (discScores) => {
         if (!discScores) return null;
@@ -367,11 +378,18 @@ const CandidaturasAdmPage = () => {
             setLoading(true);
             setError("");
 
+            // Obter token do localStorage ou do contexto
+            const token = localStorage.getItem('accessToken') || accessToken;
+
+            if (!token) {
+                throw new Error('Token de autenticação não encontrado. Faça login novamente.');
+            }
+
             // OTIMIZAÇÃO: Usar endpoint com LEFT JOIN completo
             // Backend retorna candidaturas com entrevistas, dados de usuário e DISC incluídos via JOIN
             // Isso elimina múltiplas requisições HTTP por candidatura
             const response = await axios.get(`${API_URL}/api/candidaturas?include_interviews=true&include_users=true&include_disc=true`, {
-                headers: { Authorization: `Bearer ${accessToken}` },
+                headers: { Authorization: `Bearer ${token}` },
             });
 
             let candidaturas = response.data || [];
@@ -468,9 +486,9 @@ const CandidaturasAdmPage = () => {
                         usuario: {
                             ...candidatura.usuario,
                             // Usar dados DISC do backend primeiro, depois fallback para busca manual
-                            perfil_disc: candidatura.usuario?.perfil_disc || 
-                                        candidatura.usuario?.disc_data || 
-                                        usuariosData[candidatura.usuario_id]?.perfil_disc || null,
+                            perfil_disc: candidatura.usuario?.perfil_disc ||
+                                candidatura.usuario?.disc_data ||
+                                usuariosData[candidatura.usuario_id]?.perfil_disc || null,
                             entrevistas: entrevistasOrdenadas
                         }
                     };
@@ -867,6 +885,32 @@ const CandidaturasAdmPage = () => {
             return matchesSearch && matchesFilter;
         });
     }, [candidaturas, searchTerm, filterStatus]);
+
+    // Tela de acesso negado
+    if (!isLoading && !isAdmin) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
+                <Navbar />
+                <div className="flex items-center justify-center min-h-screen px-4">
+                    <div className="text-center max-w-md">
+                        <div className="mb-6">
+                            <AlertCircle className="w-20 h-20 text-red-500 mx-auto mb-4" />
+                            <h1 className="text-3xl font-bold text-white mb-2">Acesso Negado</h1>
+                            <p className="text-gray-400">
+                                Você não tem permissão para acessar esta página. Esta área é restrita apenas para administradores.
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => window.history.back()}
+                            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                        >
+                            Voltar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800">
