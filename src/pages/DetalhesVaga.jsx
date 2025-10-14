@@ -1,6 +1,7 @@
 // src/components/DetalhesVaga.jsx - VERSÃO CORRIGIDA
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import api from '../services/api';
 import axios from 'axios';
 import { API_URL } from '../components/utils/api';
 import { MapPin, Clock, Building2, ArrowLeft } from 'lucide-react';
@@ -47,7 +48,7 @@ const DetalhesVaga = () => {
         const fetchUserCandidaturas = async () => {
             if (isAuthenticated && user?.id) {
                 try {
-                    const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${user.id}`);
+                    const response = await api.get(`/candidaturas/usuario/${user.id}`);
                     setUserCandidaturas(response.data);
                 } catch (error) {
                     console.error('❌ Erro ao buscar candidaturas:', error);
@@ -89,7 +90,7 @@ const DetalhesVaga = () => {
                 vaga_nome: vagaNome,
             });
 
-            const response = await axios.post(`${API_URL}/api/candidaturas`, {
+            const response = await api.post(`/candidaturas`, {
                 usuario_id: user.id,
                 vaga_id: vaga.id,
                 mensagem: `Candidatura para a vaga: ${vagaNome}`
@@ -125,7 +126,7 @@ const DetalhesVaga = () => {
                         // Recarregar candidaturas
                         if (isAuthenticated && user?.id) {
                             try {
-                                const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${user.id}`);
+                                const response = await api.get(`/candidaturas/usuario/${user.id}`);
                                 setUserCandidaturas(response.data);
                             } catch (reloadError) {
                                 console.error('Erro ao recarregar candidaturas:', reloadError);

@@ -169,7 +169,48 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
               )}
             </div>
 
-
+            {/* Menu Administrador - Desktop */}
+            {(userData.email === "kauanytorres19@gmail.com" ||
+              userData.email === "matheuslucasdesouza22@gmail.com" ||
+              userData.email === "artfbgyn@gmail.com") && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="text-gray-300 hover:text-white transition-colors text-sm px-3 py-2"
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      Administrador
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-48" align="start">
+                    <DropdownMenuItem asChild>
+                      <a href="/crm" className="flex items-center w-full">
+                        <span className="mr-2">📊</span>
+                        CRM - Gestão de Leads
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a href="/recrutamento" className="flex items-center w-full">
+                        <span className="mr-2">👥</span>
+                        Recrutamento LinkedIn
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a href="/candidaturas" className="flex items-center w-full">
+                        <span className="mr-2">📚</span>
+                        Candidaturas
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a href="/empresas" className="flex items-center w-full">
+                        <span className="mr-2">🏢</span>
+                        Gestão de Empresas
+                      </a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
             {/* DISC Profile Badge */}
             <div className="hidden md:flex items-center space-x-2">
@@ -289,6 +330,44 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                   </a>
                 </>
               )}
+
+              {/* Menu Admin em Mobile */}
+              {(userData.email === "gabrielapereiracavalcanti@gmai.com" ||
+                userData.email === "matheuslucasdesouza22@gmail.com") && (
+                  <div className="border-t border-gray-700 pt-2 mt-2">
+                    <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                      Administrador
+                    </div>
+                    <a
+                      href="/crm"
+                      className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      📊 CRM - Gestão de Leads
+                    </a>
+                    <a
+                      href="/recrutamento"
+                      className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      👥 Recrutamento LinkedIn
+                    </a>
+                    <a
+                      href="/candidaturas"
+                      className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      📚 Candidaturas
+                    </a>
+                    <a
+                      href="/empresas"
+                      className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      🏢 Gestão de Empresas
+                    </a>
+                  </div>
+                )}
             </div>
           </div>
         )}
