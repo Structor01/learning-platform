@@ -15,7 +15,6 @@ import courseProgressService from "@/services/courseProgressService";
 
 const TrilhaPage = () => {
   const { user, PREMIUM_FEATURES } = useAuth();
-  const navigate = useNavigate();
   // Verificar se o usuário é administrador
   const isAdmin = user?.role === 'admin';
   const [modules, setModules] = useState([]);
