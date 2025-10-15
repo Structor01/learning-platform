@@ -17,6 +17,9 @@ import PremiumFeature from "@/components/ui/PremiumFeature";
 const TrilhaPage = () => {
   const { user, PREMIUM_FEATURES } = useAuth();
   const navigate = useNavigate();
+
+  // Verificar se o usuário é administrador
+  const isAdmin = user?.role === 'admin';
   const [modules, setModules] = useState([]);
   const [expandedModules, setExpandedModules] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
@@ -651,12 +654,15 @@ const TrilhaPage = () => {
                     <h2 className="text-gray-100 text-lg font-semibold">
                       Módulos
                     </h2>
-                    <button
-                      onClick={() => setShowEditModules(true)}
-                      className="p-2 rounded hover:bg-gray-800"
-                    >
-                      <Settings className="w-5 h-5 text-gray-400 hover:text-green-500" />
-                    </button>
+                    {/* Botão de configurações - apenas para administradores */}
+                    {isAdmin && (
+                      <button
+                        onClick={() => setShowEditModules(true)}
+                        className="p-2 rounded hover:bg-gray-800"
+                      >
+                        <Settings className="w-5 h-5 text-gray-400 hover:text-green-500" />
+                      </button>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -722,23 +728,26 @@ const TrilhaPage = () => {
                                     </span>
                                   </button>
 
-                                  {/* Botão de editar */}
-                                  <button
-                                    onClick={() => handleEditLesson(lesson)}
-                                    className="p-2 mr-1 text-gray-400 hover:text-blue-400 transition-colors"
-                                    title="Editar aula"
-                                  >
-                                    <Edit2 className="w-4 h-4" />
-                                  </button>
+                                  {/* Botões de editar e deletar - apenas para administradores */}
+                                  {isAdmin && (
+                                    <>
+                                      <button
+                                        onClick={() => handleEditLesson(lesson)}
+                                        className="p-2 mr-1 text-gray-400 hover:text-blue-400 transition-colors"
+                                        title="Editar aula"
+                                      >
+                                        <Edit2 className="w-4 h-4" />
+                                      </button>
 
-                                  {/* Botão de deletar */}
-                                  <button
-                                    onClick={() => handleDeleteLesson(lesson)}
-                                    className="p-2 mr-2 text-gray-400 hover:text-red-400 transition-colors"
-                                    title="Deletar aula"
-                                  >
-                                    <Trash className="w-4 h-4" />
-                                  </button>
+                                      <button
+                                        onClick={() => handleDeleteLesson(lesson)}
+                                        className="p-2 mr-2 text-gray-400 hover:text-red-400 transition-colors"
+                                        title="Deletar aula"
+                                      >
+                                        <Trash className="w-4 h-4" />
+                                      </button>
+                                    </>
+                                  )}
                                 </div>
                               ))
                             ) : (
@@ -747,16 +756,19 @@ const TrilhaPage = () => {
                               </div>
                             )}
 
-                            <div className="p-2 px-5 pb-3">
-                              <button
-                                onClick={() =>
-                                  handleShowAddLessonModal(module.id)
-                                }
-                                className="w-full text-left text-sm text-green-500 hover:text-green-400"
-                              >
-                                + Adicionar Aula
-                              </button>
-                            </div>
+                            {/* Botão Adicionar Aula - apenas para administradores */}
+                            {isAdmin && (
+                              <div className="p-2 px-5 pb-3">
+                                <button
+                                  onClick={() =>
+                                    handleShowAddLessonModal(module.id)
+                                  }
+                                  className="w-full text-left text-sm text-green-500 hover:text-green-400"
+                                >
+                                  + Adicionar Aula
+                                </button>
+                              </div>
+                            )}
                           </motion.div>
                         )}
                       </div>
