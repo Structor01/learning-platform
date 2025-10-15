@@ -14,15 +14,10 @@ import courseProgressService from "@/services/courseProgressService";
 
 
 const TrilhaPage = () => {
-<<<<<<< HEAD
-  const { user } = useAuth();
-=======
   const { user, PREMIUM_FEATURES } = useAuth();
   const navigate = useNavigate();
-
   // Verificar se o usuário é administrador
   const isAdmin = user?.role === 'admin';
->>>>>>> 1260c32 (Adiciona validação de user admin para editar aula)
   const [modules, setModules] = useState([]);
   const [expandedModules, setExpandedModules] = useState([]);
   const [selectedLesson, setSelectedLesson] = useState(null);
