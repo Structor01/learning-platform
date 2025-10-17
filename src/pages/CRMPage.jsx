@@ -40,6 +40,7 @@ import {
   TextSearch
 } from 'lucide-react';
 import { BotEntrevistaModal } from '@/components/ui/modal-bot-entrevista';
+import { api } from '@/lib/api';
 
 const CRMPage = () => {
   const [leads, setLeads] = useState([]);
@@ -66,43 +67,35 @@ const CRMPage = () => {
 
   useEffect(() => {
     fetchCRMData();
+  
   }, []);
 
+  
+
   const fetchCRMData = async () => {
-    try {
+
       setLoading(true);
 
-      const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
-
-      // Buscar dados reais da API
-      const [leadsResponse, analyticsResponse, pipelineResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/crm/leads`),
-        fetch(`${API_BASE_URL}/api/crm/analytics`),
-        fetch(`${API_BASE_URL}/api/crm/pipeline`)
+      try{
+        const [leadsData, analyticsData, pipelineData] = await Promise.all([
+        api(`/api/crm/leads`),
+        api(`/api/crm/analytics`),
+        api(`/api/crm/pipeline`),
+        
       ]);
 
-      if (leadsResponse.ok && analyticsResponse.ok && pipelineResponse.ok) {
-        const leadsData = await leadsResponse.json();
-        const analyticsData = await analyticsResponse.json();
-        const pipelineData = await pipelineResponse.json();
-
-        setLeads(leadsData);
+      setLeads(leadsData);
         setAnalytics(analyticsData);
         setPipeline(pipelineData);
-      } else {
-        console.error('Erro ao carregar dados da API');
+      }catch(error){
+        console.error('Erro ao carregar dados da API:', error);
         setLeads([]);
         setAnalytics({ totalLeads: 0, leadsByStatus: [], leadsBySource: [], conversionTrend: [] });
         setPipeline({ new: 0, contacted: 0, qualified: 0, proposal: 0, closed_won: 0, closed_lost: 0 });
-      }
-    } catch (error) {
-      console.error('Erro ao carregar dados do CRM:', error);
-      setLeads([]);
-      setAnalytics({ totalLeads: 0, leadsByStatus: [], leadsBySource: [], conversionTrend: [] });
-      setPipeline({ new: 0, contacted: 0, qualified: 0, proposal: 0, closed_won: 0, closed_lost: 0 });
-    } finally {
+      }finally {
       setLoading(false);
     }
+      
   };
 
   const getClassificationColor = (classification) => {
