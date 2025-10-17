@@ -35,6 +35,7 @@ import VideoPlayer from "./components/ui/VideoPlayer";
 import TrilhaPreviewModal from "./components/ui/TrilhaPreviewModal";
 import TrilhasForm from "./components/ui/TrilhasForm";
 import VideoUpload from "./components/ui/VideoUpload";
+import NewsPage from "./pages/NewsPage";
 
 const getApiUrl = () => {
   // Se estiver em produção (hostname não é localhost)
@@ -219,79 +220,82 @@ function AppContent() {
 
 export function Router() {
 
-    return(
-        <BrowserRouter>
-             <Routes>
-            {/* Página inicial = Login */}
-            <Route path="/" element={<LoginPage />} />
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Página inicial = Login */}
+        <Route path="/" element={<LoginPage />} />
 
-            {/* Página de testes de entrevista */}
-            <Route path="/entrevista-simulada" element={<EntrevistaSimuladaPage />} />
+        {/* Página de testes de entrevista */}
+        <Route path="/entrevista-simulada" element={<EntrevistaSimuladaPage />} />
 
-            {/* Página pública do chat */}
-            <Route path="/chat" element={<PublicChatPage />} />
+        {/* Página de notícias */}
+        <Route path="/news" element={<NewsPage />} />
 
-            {/* Página de Perfil */}
-            <Route path="/profile" element={<UserProfile />} />
+        {/* Página pública do chat */}
+        <Route path="/chat" element={<PublicChatPage />} />
 
-            {/* Página de detatlhes das vagas */}
-            <Route path="/vagas/:vagaId" element={<DetalhesVaga />} />
+        {/* Página de Perfil */}
+        <Route path="/profile" element={<UserProfile />} />
 
-            {/* Página de Perfil */}
-            <Route path="/profile" element={<UserProfile />} />
+        {/* Página de detatlhes das vagas */}
+        <Route path="/vagas/:vagaId" element={<DetalhesVaga />} />
 
-            {/* Página de Empresas */}
-            <Route path="/empresa/:id" element={<CompanyPage />} />
+        {/* Página de Perfil */}
+        <Route path="/profile" element={<UserProfile />} />
 
-            {/* Página de Vagas */}
-            <Route path="/vagas" element={<VagasPage />} />
+        {/* Página de Empresas */}
+        <Route path="/empresa/:id" element={<CompanyPage />} />
 
-            {/* Página de Gestão de Empresas */}
-            <Route path="/empresas" element={<PrivateRoute><EmpresasPage /></PrivateRoute>} />
+        {/* Página de Vagas */}
+        <Route path="/vagas" element={<VagasPage />} />
 
-            {/* Página de Meus Interesses */}
-            <Route path="/meus-interesses" element={<MeusInteresses />} />
+        {/* Página de Gestão de Empresas */}
+        <Route path="/empresas" element={<PrivateRoute><EmpresasPage /></PrivateRoute>} />
 
-            {/* Página de Candidaturas */}
-            <Route path="/minhas-candidaturas" element={<MinhasCandidaturasPage />} />
+        {/* Página de Meus Interesses */}
+        <Route path="/meus-interesses" element={<MeusInteresses />} />
 
-            {/* Página de Entrevista */}
-            <Route path="/entrevista" element={<PrivateRoute><InterviewPage /></PrivateRoute>} />
+        {/* Página de Candidaturas */}
+        <Route path="/minhas-candidaturas" element={<MinhasCandidaturasPage />} />
 
-            {/* Página de Candidatura */}
-            <Route path="/LoginModal" element={<LoginModal />} />
+        {/* Página de Entrevista */}
+        <Route path="/entrevista" element={<PrivateRoute><InterviewPage /></PrivateRoute>} />
 
-            {/* Página de cadastro */}
-            <Route path="/signup" element={<SignUpPage />} />
+        {/* Página de Candidatura */}
+        <Route path="/LoginModal" element={<LoginModal />} />
 
-            {/* Página de dashboard, protegida por autenticação */}
-            <Route path="/dashboard" element={<PrivateRoute><AppContent /></PrivateRoute>} />
+        {/* Página de cadastro */}
+        <Route path="/signup" element={<SignUpPage />} />
 
-            {/* Dashboard da empresa */}
-            <Route path="/dashboard-empresa" element={<PrivateRoute><CompanyDashboard /></PrivateRoute>} />
+        {/* Página de dashboard, protegida por autenticação */}
+        <Route path="/dashboard" element={<PrivateRoute><AppContent /></PrivateRoute>} />
 
-            {/* Página da trilha */}
-            <Route path="/trilha/:id" element={<PrivateRoute><TrilhaPage /></PrivateRoute>} />
+        {/* Dashboard da empresa */}
+        <Route path="/dashboard-empresa" element={<PrivateRoute><CompanyDashboard /></PrivateRoute>} />
 
-            {/* Páginas dos Aplicativos */}
-            <Route path="/cartao-virtual" element={<PrivateRoute><CartaoVirtualPage /> </PrivateRoute>} />
-            <Route path="/agenda-eventos" element={<PrivateRoute> <AgendaEventosPage /> </PrivateRoute>} />
-            <Route path="/entrevista-simulada" element={<PrivateRoute><EntrevistaSimuladaPage /></PrivateRoute>} />
-            <Route path="/video-pitch" element={<PrivateRoute><VideoPitchPage /></PrivateRoute>} />
-            <Route path="/meus-testes" element={<PrivateRoute><MeusTestesPage /></PrivateRoute>} />
-            <Route path="/teste-disc" element={<PrivateRoute><TesteDISCPage /></PrivateRoute>} />
-            <Route path="/disc-profile" element={<PrivateRoute><DISCProfilePage /></PrivateRoute>} />
+        {/* Página da trilha */}
+        <Route path="/trilha/:id" element={<PrivateRoute><TrilhaPage /></PrivateRoute>} />
 
-            {/* Páginas CRM, Recrutamento e Candidaturas */}
-            <Route path="/crm" element={<PrivateRoute><CRMPage /></PrivateRoute>} />
-            <Route path="/recrutamento" element={<PrivateRoute><RecrutamentoPage /></PrivateRoute>} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/candidaturas" element={<CandidaturasAdmPage />} />
+        {/* Páginas dos Aplicativos */}
+        <Route path="/cartao-virtual" element={<PrivateRoute><CartaoVirtualPage /> </PrivateRoute>} />
+        <Route path="/agenda-eventos" element={<PrivateRoute> <AgendaEventosPage /> </PrivateRoute>} />
+        <Route path="/entrevista-simulada" element={<PrivateRoute><EntrevistaSimuladaPage /></PrivateRoute>} />
+        <Route path="/video-pitch" element={<PrivateRoute><VideoPitchPage /></PrivateRoute>} />
+        <Route path="/meus-testes" element={<PrivateRoute><MeusTestesPage /></PrivateRoute>} />
+        <Route path="/teste-disc" element={<PrivateRoute><TesteDISCPage /></PrivateRoute>} />
+        <Route path="/disc-profile" element={<PrivateRoute><DISCProfilePage /></PrivateRoute>} />
 
-            {/* Catch-all: redireciona para "/" */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-    )
+        {/* Páginas CRM, Recrutamento e Candidaturas */}
+        <Route path="/crm" element={<PrivateRoute><CRMPage /></PrivateRoute>} />
+        <Route path="/recrutamento" element={<PrivateRoute><RecrutamentoPage /></PrivateRoute>} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/candidaturas" element={<CandidaturasAdmPage />} />
+
+        {/* Catch-all: redireciona para "/" */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  )
 }

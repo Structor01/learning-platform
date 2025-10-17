@@ -165,6 +165,12 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                   >
                     Entrevistas Simuladas
                   </a>
+                  <a
+                    href="/news"
+                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium section-entrevista"
+                  >
+                    Notícias do Agro
+                  </a>
                 </>
               )}
             </div>
