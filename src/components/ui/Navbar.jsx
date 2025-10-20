@@ -334,6 +334,13 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                   >
                     Entrevistas Simuladas
                   </a>
+                  <a
+                    href="/news"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Notícias do Agro
+                  </a>
                 </>
               )}
 
