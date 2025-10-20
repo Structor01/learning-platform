@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,10 +11,13 @@ import Navbar from "../components/ui/Navbar";
 import { API_URL } from "../components/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 import courseProgressService from "@/services/courseProgressService";
+import PremiumFeature from "@/components/ui/PremiumFeature";
 
 
 const TrilhaPage = () => {
   const { user, PREMIUM_FEATURES } = useAuth();
+  const navigate = useNavigate();
+
   // Verificar se o usuário é administrador
   const isAdmin = user?.role === 'admin';
   const [modules, setModules] = useState([]);
@@ -511,29 +514,34 @@ const TrilhaPage = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-black text-white pt-20">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* Barra de Progresso */}
-          {user && (
-            <div className="mb-6 bg-gray-900 rounded-lg p-4 border border-gray-800">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-gray-300">Progresso do Curso</h3>
-                <span className="text-sm font-bold text-green-500">{courseProgress}%</span>
+      <PremiumFeature
+        feature={PREMIUM_FEATURES.TRILHAS}
+        upgradeMessage="Faça upgrade para Premium e tenha acesso completo a todas as trilhas de aprendizado"
+        mode="block"
+      >
+        <div className="min-h-screen bg-black text-white pt-24 pb-12">
+          <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Barra de Progresso */}
+            {user && (
+              <div className="mb-6 bg-gray-900 rounded-lg p-4 border border-gray-800">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-gray-300">Progresso do Curso</h3>
+                  <span className="text-sm font-bold text-green-500">{courseProgress}%</span>
+                </div>
+                <div className="w-full bg-gray-800 rounded-full h-2.5">
+                  <div
+                    className="bg-green-600 h-2.5 rounded-full transition-all duration-300"
+                    style={{ width: `${courseProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {completedLessons.length} de{' '}
+                  {modules.reduce((total, m) => total + (m.lessons?.length || 0), 0)} aulas concluídas
+                </p>
               </div>
-              <div className="w-full bg-gray-800 rounded-full h-2.5">
-                <div
-                  className="bg-green-600 h-2.5 rounded-full transition-all duration-300"
-                  style={{ width: `${courseProgress}%` }}
-                ></div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                {completedLessons.length} de{' '}
-                {modules.reduce((total, m) => total + (m.lessons?.length || 0), 0)} aulas concluídas
-              </p>
-            </div>
-          )}
+            )}
 
-          {/* Mensagem de carregamento da próxima aula
+            {/* Mensagem de carregamento da próxima aula
           {loadingNextLesson && (
             <div className="mb-6 bg-green-600 rounded-lg p-4 border border-green-500 animate-pulse">
               <div className="flex items-center justify-center gap-3">
@@ -548,264 +556,262 @@ const TrilhaPage = () => {
 
 
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* --- INÍCIO DA COLUNA ESQUERDA: PLAYER DE VÍDEO E CONTEÚDO --- */}
-            <div className="lg:col-span-2">
-              <Card className="bg-gray-900 border-gray-800 overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="relative aspect-video bg-black group">
-                    {selectedLesson?.videoUrl ? (
-                      selectedLesson.videoUrl.includes('iframe.mediadelivery.net') ? (
-                        // Player Bunny.net (iframe)
-                        <iframe
-                          key={selectedLesson.id}
-                          className="w-full-screen h-full border-0"
-                          src={selectedLesson.videoUrl}
-                          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-                          allowFullScreen
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            border: 'none',
-                            display: 'block'
-                          }}
-                        />
-                      ) : (selectedLesson.videoType === 'youtube' && selectedLesson.youtubeId) ||
-                        (selectedLesson.videoUrl && selectedLesson.videoUrl.includes('youtube.com')) ||
-                        (selectedLesson.content && selectedLesson.content.includes('youtube.com')) ? (
-                        // Player YouTube (iframe)
-                        <>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* --- INÍCIO DA COLUNA ESQUERDA: PLAYER DE VÍDEO E CONTEÚDO --- */}
+              <div className="lg:col-span-2">
+                <Card className="bg-gray-900 border-gray-800 overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="relative aspect-video bg-black group">
+                      {selectedLesson?.videoUrl ? (
+                        selectedLesson.videoUrl.includes('iframe.mediadelivery.net') ? (
+                          // Player Bunny.net (iframe)
                           <iframe
                             key={selectedLesson.id}
-                            src="https://www.youtube.com/embed/JIEDBoWU5fE"
-                            title={selectedLesson.title}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                            className="w-full h-full border-0"
-                            style={{ aspectRatio: '16/9' }}
-                          />
-                        </>
-                      ) : (
-                        // Player tradicional
-                        <>
-                          <video
-                            key={selectedLesson.id}
-                            ref={videoRef}
-                            className="w-full h-full object-cover"
-                            poster={selectedLesson.coverUrl || ""}
-                            onPlay={() => setIsPlaying(true)}
-                            onPause={() => setIsPlaying(false)}
-                            onEnded={() => {
-                              // Marcar automaticamente como concluída quando o vídeo terminar
-                              if (selectedLesson?.id) {
-                                markLessonAsCompleted(selectedLesson.id);
-                              }
-                            }}
-                            onTimeUpdate={(e) => {
-                              const time = e.target.currentTime;
-                              const minutes = Math.floor(time / 60);
-                              const seconds = Math.floor(time % 60)
-                                .toString()
-                                .padStart(2, "0");
-                              setCurrentTime(`${minutes}:${seconds}`);
-                            }}
+                            className="w-full-screen h-full border-0"
                             src={selectedLesson.videoUrl}
-                            controls
+                            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                            allowFullScreen
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              border: 'none',
+                              display: 'block'
+                            }}
                           />
-                        </>
-                      )
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-900">
-                        <p className="text-gray-500">
-                          Selecione uma aula para começar a assistir.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                        ) : (selectedLesson.videoType === 'youtube' && selectedLesson.youtubeId) ||
+                          (selectedLesson.videoUrl && selectedLesson.videoUrl.includes('youtube.com')) ||
+                          (selectedLesson.content && selectedLesson.content.includes('youtube.com')) ? (
+                          // Player YouTube (iframe)
+                          <>
+                            <iframe
+                              key={selectedLesson.id}
+                              src="https://www.youtube.com/embed/JIEDBoWU5fE"
+                              title={selectedLesson.title}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              className="w-full h-full border-0"
+                              style={{ aspectRatio: '16/9' }}
+                            />
+                          </>
+                        ) : (
+                          // Player tradicional
+                          <>
+                            <video
+                              key={selectedLesson.id}
+                              ref={videoRef}
+                              className="w-full h-full object-cover"
+                              poster={selectedLesson.coverUrl || ""}
+                              onPlay={() => setIsPlaying(true)}
+                              onPause={() => setIsPlaying(false)}
+                              onEnded={() => {
+                                // Marcar automaticamente como concluída quando o vídeo terminar
+                                if (selectedLesson?.id) {
+                                  markLessonAsCompleted(selectedLesson.id);
+                                }
+                              }}
+                              onTimeUpdate={(e) => {
+                                const time = e.target.currentTime;
+                                const minutes = Math.floor(time / 60);
+                                const seconds = Math.floor(time % 60)
+                                  .toString()
+                                  .padStart(2, "0");
+                                setCurrentTime(`${minutes}:${seconds}`);
+                              }}
+                              src={selectedLesson.videoUrl}
+                              controls
+                            />
+                          </>
+                        )
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                          <p className="text-gray-500">
+                            Selecione uma aula para começar a assistir.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Informações da Aula */}
-              <div className="mt-6 px-1">
-                <h1 className="text-2xl lg:text-3xl font-bold text-white">
-                  {selectedLesson?.title || "Bem-vindo!"}
-                </h1>
-                <p className="text-gray-400 mt-4 leading-relaxed">
-                  {selectedLesson?.description ||
-                    "Escolha um módulo e uma aula na lista abaixo para iniciar seus estudos."}
-                </p>
-              </div>
-            </div>
-            {/* --- FIM DA COLUNA ESQUERDA --- */}
-
-            {/* --- INÍCIO DA COLUNA DIREITA: SIDEBAR DE MÓDULOS --- */}
-            <div className="lg:col-span-1">
-              <Card className="bg-gray-900 border-gray-800">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-gray-100 text-lg font-semibold">
-                      Módulos
-                    </h2>
-                    {/* Botão de configurações - apenas para administradores */}
-                    {isAdmin && (
-                      <button
-                        onClick={() => setShowEditModules(true)}
-                        className="p-2 rounded hover:bg-gray-800"
-                      >
-                        <Settings className="w-5 h-5 text-gray-400 hover:text-green-500" />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    {modules.map((module) => (
-                      <div
-                        key={module.id}
-                        className="bg-gray-800/50 border border-gray-800 rounded-lg overflow-hidden"
-                      >
-                        <button
-                          onClick={() => toggleModule(module.id)}
-                          className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-700/50"
-                        >
-                          <span className="text-gray-300 font-medium">
-                            {module.title}
-                          </span>
-                          {expandedModules.includes(module.id) ? (
-                            <ChevronDown className="w-5 h-5 text-gray-400" />
-                          ) : (
-                            <ChevronRight className="w-5 h-5 text-gray-400" />
-                          )}
-                        </button>
-
-                        {expandedModules.includes(module.id) && (
-                          <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: "auto" }}
-                            className="border-t border-gray-700/50"
-                          >
-                            {module.lessons?.length > 0 ? (
-                              module.lessons.map((lesson) => (
-                                <div key={lesson.id} className="flex items-center">
-                                  {/* Checkbox de conclusão */}
-                                  {user && (
-                                    <button
-                                      onClick={() => toggleLessonCompletion(lesson.id)}
-                                      className="p-2 ml-2 text-gray-400 hover:text-green-400 transition-colors"
-                                      title={completedLessons.includes(lesson.id) ? "Marcar como não concluída" : "Marcar como concluída"}
-                                    >
-                                      {completedLessons.includes(lesson.id) ? (
-                                        <CheckCircle className="w-5 h-5 text-green-500" />
-                                      ) : (
-                                        <Circle className="w-5 h-5" />
-                                      )}
-                                    </button>
-                                  )}
-
-                                  {/* Botão principal da aula */}
-                                  <button
-                                    onClick={() => selectLesson(lesson)}
-                                    className={`flex-1 flex items-center gap-3 p-3 pl-3 text-left transition-colors ${selectedLesson?.id === lesson.id
-                                      ? "bg-green-600/20 text-green-400"
-                                      : "hover:bg-gray-700/50 text-gray-300"
-                                      }`}
-                                  >
-                                    <Play
-                                      className={`w-4 h-4 transition-all ${selectedLesson?.id === lesson.id
-                                        ? "text-green-500"
-                                        : "text-gray-500"
-                                        }`}
-                                    />
-                                    <span className={`text-sm ${completedLessons.includes(lesson.id) ? 'line-through opacity-75' : ''}`}>
-                                      {lesson.title}
-                                    </span>
-                                  </button>
-
-                                  {/* Botões de editar e deletar - apenas para administradores */}
-                                  {isAdmin && (
-                                    <>
-                                      <button
-                                        onClick={() => handleEditLesson(lesson)}
-                                        className="p-2 mr-1 text-gray-400 hover:text-blue-400 transition-colors"
-                                        title="Editar aula"
-                                      >
-                                        <Edit2 className="w-4 h-4" />
-                                      </button>
-
-                                      <button
-                                        onClick={() => handleDeleteLesson(lesson)}
-                                        className="p-2 mr-2 text-gray-400 hover:text-red-400 transition-colors"
-                                        title="Deletar aula"
-                                      >
-                                        <Trash className="w-4 h-4" />
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
-                              ))
-                            ) : (
-                              <div className="p-3 pl-5 text-gray-500 text-sm">
-                                Nenhuma aula neste módulo.
-                              </div>
-                            )}
-
-                            {/* Botão Adicionar Aula - apenas para administradores */}
-                            {isAdmin && (
-                              <div className="p-2 px-5 pb-3">
-                                <button
-                                  onClick={() =>
-                                    handleShowAddLessonModal(module.id)
-                                  }
-                                  className="w-full text-left text-sm text-green-500 hover:text-green-400"
-                                >
-                                  + Adicionar Aula
-                                </button>
-                              </div>
-                            )}
-                          </motion.div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Certificado (exibido quando o curso é concluído) */}
-              {showCertificate && user && (
-                <div className="mt-6">
-                  <Certificate
-                    userName={user.name || user.email}
-                    courseName={courseTitle}
-                    completionDate={new Date().toLocaleDateString('pt-BR')}
-                    trilhaId={trilhaId}
-                  />
+                {/* Informações da Aula */}
+                <div className="mt-6 px-1">
+                  <h1 className="text-2xl lg:text-3xl font-bold text-white">
+                    {selectedLesson?.title || "Bem-vindo!"}
+                  </h1>
+                  <p className="text-gray-400 mt-4 leading-relaxed">
+                    {selectedLesson?.description ||
+                      "Escolha um módulo e uma aula na lista abaixo para iniciar seus estudos."}
+                  </p>
                 </div>
-              )}
+              </div>
+              {/* --- FIM DA COLUNA ESQUERDA --- */}
+
+              {/* --- INÍCIO DA COLUNA DIREITA: SIDEBAR DE MÓDULOS --- */}
+              <div className="lg:col-span-1">
+                <Card className="bg-gray-900 border-gray-800">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-gray-100 text-lg font-semibold">
+                        Módulos
+                      </h2>
+                      {/* Botão de configurações - apenas para administradores */}
+                      {isAdmin && (
+                        <button
+                          onClick={() => setShowEditModules(true)}
+                          className="p-2 rounded hover:bg-gray-800"
+                        >
+                          <Settings className="w-5 h-5 text-gray-400 hover:text-green-500" />
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      {modules.map((module) => (
+                        <div
+                          key={module.id}
+                          className="bg-gray-800/50 border border-gray-800 rounded-lg overflow-hidden"
+                        >
+                          <button
+                            onClick={() => toggleModule(module.id)}
+                            className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-700/50"
+                          >
+                            <span className="text-gray-300 font-medium">
+                              {module.title}
+                            </span>
+                            {expandedModules.includes(module.id) ? (
+                              <ChevronDown className="w-5 h-5 text-gray-400" />
+                            ) : (
+                              <ChevronRight className="w-5 h-5 text-gray-400" />
+                            )}
+                          </button>
+
+                          {expandedModules.includes(module.id) && (
+                            <motion.div
+                              initial={{ height: 0 }}
+                              animate={{ height: "auto" }}
+                              className="border-t border-gray-700/50"
+                            >
+                              {module.lessons?.length > 0 ? (
+                                module.lessons.map((lesson) => (
+                                  <div key={lesson.id} className="flex items-center">
+                                    {/* Checkbox de conclusão */}
+                                    {user && (
+                                      <button
+                                        onClick={() => toggleLessonCompletion(lesson.id)}
+                                        className="p-2 ml-2 text-gray-400 hover:text-green-400 transition-colors"
+                                        title={completedLessons.includes(lesson.id) ? "Marcar como não concluída" : "Marcar como concluída"}
+                                      >
+                                        {completedLessons.includes(lesson.id) ? (
+                                          <CheckCircle className="w-5 h-5 text-green-500" />
+                                        ) : (
+                                          <Circle className="w-5 h-5" />
+                                        )}
+                                      </button>
+                                    )}
+
+                                    {/* Botão principal da aula */}
+                                    <button
+                                      onClick={() => selectLesson(lesson)}
+                                      className={`flex-1 flex items-center gap-3 p-3 pl-3 text-left transition-colors ${selectedLesson?.id === lesson.id
+                                        ? "bg-green-600/20 text-green-400"
+                                        : "hover:bg-gray-700/50 text-gray-300"
+                                        }`}
+                                    >
+                                      <Play
+                                        className={`w-4 h-4 transition-all ${selectedLesson?.id === lesson.id
+                                          ? "text-green-500"
+                                          : "text-gray-500"
+                                          }`}
+                                      />
+                                      <span className={`text-sm ${completedLessons.includes(lesson.id) ? 'line-through opacity-75' : ''}`}>
+                                        {lesson.title}
+                                      </span>
+                                    </button>
+
+                                    {/* Botões de editar e deletar - apenas para administradores */}
+                                    {isAdmin && (
+                                      <>
+                                        <button
+                                          onClick={() => handleEditLesson(lesson)}
+                                          className="p-2 mr-1 text-gray-400 hover:text-blue-400 transition-colors"
+                                          title="Editar aula"
+                                        >
+                                          <Edit2 className="w-4 h-4" />
+                                        </button>
+
+                                        <button
+                                          onClick={() => handleDeleteLesson(lesson)}
+                                          className="p-2 mr-2 text-gray-400 hover:text-red-400 transition-colors"
+                                          title="Deletar aula"
+                                        >
+                                          <Trash className="w-4 h-4" />
+                                        </button>
+                                      </>
+                                    )}
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="p-3 pl-5 text-gray-500 text-sm">
+                                  Nenhuma aula neste módulo.
+                                </div>
+                              )}
+
+                              {/* Botão Adicionar Aula - apenas para administradores */}
+                              {isAdmin && (
+                                <div className="p-2 px-5 pb-3">
+                                  <button
+                                    onClick={() =>
+                                      handleShowAddLessonModal(module.id)
+                                    }
+                                    className="w-full text-left text-sm text-green-500 hover:text-green-400"
+                                  >
+                                    + Adicionar Aula
+                                  </button>
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Certificado (exibido quando o curso é concluído) */}
+                {showCertificate && user && (
+                  <div className="mt-6">
+                    <Certificate
+                      userName={user.name || user.email}
+                      courseName={courseTitle}
+                      completionDate={new Date().toLocaleDateString('pt-BR')}
+                      trilhaId={trilhaId}
+                    />
+                  </div>
+                )}
+              </div>
+              {/* --- FIM DA COLUNA DIREITA --- */}
             </div>
-            {/* --- FIM DA COLUNA DIREITA --- */}
           </div>
-        </div>
-      </div >
+        </div >
 
-      {/* MODAIS */}
-      < EditModulesModal
-        open={showEditModules}
-        modules={modules}
-        onClose={() => setShowEditModules(false)}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onReorder={handleReorder}
-      />
-      {isAddLessonModalOpen && (
-        <AddLessonModal
-          moduleId={currentModuleForAddingLesson}
-          onClose={() => setIsAddLessonModalOpen(false)}
-          onSave={handleSaveNewLesson}
+        {/* MODAIS */}
+        < EditModulesModal
+          open={showEditModules}
+          modules={modules}
+          onClose={() => setShowEditModules(false)}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onReorder={handleReorder}
         />
-      )}
-
-
-
+        {isAddLessonModalOpen && (
+          <AddLessonModal
+            moduleId={currentModuleForAddingLesson}
+            onClose={() => setIsAddLessonModalOpen(false)}
+            onSave={handleSaveNewLesson}
+          />
+        )}
+      </PremiumFeature>
     </>
   );
 };

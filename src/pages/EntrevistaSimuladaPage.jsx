@@ -17,6 +17,8 @@ import Navbar from '../components/ui/Navbar';
 import FaceAnalysis from '../components/ui/FaceAnalysis';
 import mockInterviewService from '../services/mockInterviewService';
 import { API_URL } from '../components/utils/api';
+import { useAuth } from '@/contexts/AuthContext';
+import PremiumFeature from '@/components/ui/PremiumFeature';
 
 // Componente de Notificação Toast
 const Toast = ({ message, type, isVisible, onClose }) => {
@@ -315,6 +317,7 @@ const CandidaturaCard = ({ candidatura, onIniciarEntrevista, loading }) => {
 };
 
 const EntrevistaSimuladaPage = () => {
+  const { PREMIUM_FEATURES } = useAuth();
   const [currentStep, setCurrentStep] = useState('vagas'); // vagas, candidaturas, interview, feedback
   const [selectedVaga, setSelectedVaga] = useState(null);
   const [candidaturaId, setCandidaturaId] = useState(null);
@@ -961,7 +964,12 @@ const EntrevistaSimuladaPage = () => {
   return (
     <div className="min-h-screen bg-black text-white">
       <Navbar />
-
+      <PremiumFeature
+        feature={PREMIUM_FEATURES.ENTREVISTA_SIMULADA}
+        upgradeMessage="Faça upgrade para Premium e tenha acesso ilimitado a entrevistas simuladas"
+        mode="block"
+      >
+      <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       {/* Toast de Notificação */}
       <Toast
         message={toast.message}
@@ -1602,6 +1610,8 @@ const EntrevistaSimuladaPage = () => {
           </motion.div>
         )}
       </div>
+      </div>
+      </PremiumFeature>
     </div>
   );
 };

@@ -1,8 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/ui/Navbar';
+import { useAuth } from '@/contexts/AuthContext';
+import PremiumFeature from '@/components/ui/PremiumFeature';
 
 const VideoPitchPage = () => {
+  const { PREMIUM_FEATURES } = useAuth();
   const [currentStep, setCurrentStep] = useState('templates'); // templates, recording, preview, library
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -144,8 +147,13 @@ const VideoPitchPage = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-black text-white pt-20">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+      <PremiumFeature
+        feature={PREMIUM_FEATURES.VIDEO_PITCH}
+        upgradeMessage="Faça upgrade para Premium e tenha acesso ao Vídeo Pitch profissional"
+        mode="block"
+      >
+        <div className="min-h-screen bg-black text-white pt-24 pb-12">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -476,6 +484,7 @@ const VideoPitchPage = () => {
           )}
         </div>
       </div>
+      </PremiumFeature>
     </>
   );
 };

@@ -19,7 +19,7 @@ import InterviewPromptModal from "@/components/ui/InterviewPromptModal.jsx";
 // testService já está sendo importado na linha 2
 
 const Dashboard = ({ onCourseSelect = [] }) => {
-  const { user, accessToken, isLoading, showWelcomeVideo, closeWelcomeVideo } = useAuth();
+  const { user, accessToken, isLoading, showWelcomeVideo, closeWelcomeVideo, togglePremium } = useAuth();
   const { setIsOpen, isOpen } = useTour();
   const [disc, setDiscProfile] = useState(null);
   const [showDiscDetails, setShowDiscDetails] = useState(false);
@@ -1742,11 +1742,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               </div>
             )}
 
-            <button
-
-            >
-
-            </button>
           </section>
 
           {/* Biblioteca de Aplicativos - Movida para cima */}
@@ -2279,7 +2274,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
             </button>
             <div className="relative isolate z-[1] size-full overflow-hidden rounded-2xl border-2 border-white shadow-2xl">
               <iframe
-                src="https://iframe.mediadelivery.net/embed/480681/141d38c6-8994-48ee-8da9-a841c91a4737?autoplay=true&loop=false&muted=false&preload=true&responsive=true"
+                src="https://iframe.mediadelivery.net/embed/480681/092ea1c0-3607-4af6-af8b-427d4ea27cb8?autoplay=true&loop=false&muted=false&preload=true&responsive=true"
                 title="Vídeo de Boas-vindas"
                 className="size-full rounded-2xl"
                 allowFullScreen

@@ -251,6 +251,52 @@ export const AuthProvider = ({ children }) => {
   const isCompany = () => getUserType() === USER_TYPES.COMPANY;
   const isCandidate = () => getUserType() === USER_TYPES.CANDIDATE;
 
+  // Definição de features gratuitas e pagas
+  const FREE_FEATURES = {
+    VAGAS_BRASIL: 'vagas_brasil',
+    NOTICIAS_AGRO: 'noticias_agro',
+    CARTAO_VIRTUAL: 'cartao_virtual',
+    PODCASTS: 'podcasts',
+    RESPONDE_IZA: 'responde_iza',
+    TESTE_PERFIL: 'teste_perfil', // Pode fazer o teste mas não ver relatório
+  };
+
+  const PREMIUM_FEATURES = {
+    TRILHAS: 'trilhas',
+    CURSOS: 'cursos',
+    CERTIFICADOS: 'certificados',
+    DISC_RELATORIO: 'disc_relatorio', // Ver relatório completo do DISC
+    ENTREVISTA_SIMULADA: 'entrevista_simulada',
+    VIDEO_PITCH: 'video_pitch',
+    AGENDA_EVENTOS: 'agenda_eventos',
+  };
+
+  const FEATURES = { ...FREE_FEATURES, ...PREMIUM_FEATURES };
+
+  // Verificar se usuário tem acesso a uma feature específica
+  const canAccessFeature = (featureName) => {
+    // Features gratuitas são sempre acessíveis
+    if (Object.values(FREE_FEATURES).includes(featureName)) {
+      return true;
+    }
+
+    // Features premium requerem assinatura ativa
+    if (Object.values(PREMIUM_FEATURES).includes(featureName)) {
+      return hasActiveSubscription();
+    }
+
+    // Por padrão, se não estiver na lista, requer assinatura
+    return hasActiveSubscription();
+  };
+
+  // Verificar se é acesso limitado (ex: pode fazer teste mas não ver resultado)
+  const isLimitedAccess = (featureName) => {
+    if (featureName === FREE_FEATURES.TESTE_PERFIL) {
+      return !hasActiveSubscription();
+    }
+    return false;
+  };
+
   const value = {
     user,
     accessToken,
@@ -263,6 +309,11 @@ export const AuthProvider = ({ children }) => {
     updateSubscription,
     hasActiveSubscription,
     canAccessContent,
+    canAccessFeature,
+    isLimitedAccess,
+    FREE_FEATURES,
+    PREMIUM_FEATURES,
+    FEATURES,
     getUserType,
     showWelcomeVideo,
     closeWelcomeVideo,
