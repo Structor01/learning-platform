@@ -3,15 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import testService from "@/services/testService"; // Fallback para API antiga
 import discApiService from "@/services/discApi"; // Nova API DISC
-import { ArrowLeft, Calendar, Download } from "lucide-react";
+import { ArrowLeft, Calendar, Download, Lock } from "lucide-react";
 import { RelatorioCompleto } from '../components/ui/RelatorioCompleto';
 import PremiumFeature from '@/components/ui/PremiumFeature';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useNotification } from '@/components/ui/Notification';
 
 
 const DISCProfilePage = () => {
   const { user, PREMIUM_FEATURES, canAccessFeature } = useAuth();
+  const { showNotification, NotificationComponent } = useNotification();
   const navigate = useNavigate();
   const [disc, setDiscProfile] = useState(null);
   const [inteligenciaEmocional, setInteligenciaEmocional] = useState(null);
@@ -1186,11 +1188,32 @@ const DISCProfilePage = () => {
 
             {selectedTestId && (
               <button
-                onClick={handleDownloadPDF}
-                className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                onClick={() => {
+                  if (!canAccessFeature(PREMIUM_FEATURES.DISC_RELATORIO)) {
+                    showNotification({
+                      type: 'warning',
+                      title: 'Recurso Premium',
+                      message: 'O download de PDF está disponível apenas para assinantes Premium. Faça upgrade para desbloquear este e outros recursos exclusivos!',
+                      duration: 5000
+                    });
+                    return;
+                  }
+                  handleDownloadPDF();
+                }}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                  canAccessFeature(PREMIUM_FEATURES.DISC_RELATORIO)
+                    ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg'
+                    : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md hover:shadow-lg relative overflow-hidden'
+                }`}
+                title={!canAccessFeature(PREMIUM_FEATURES.DISC_RELATORIO) ? 'Recurso Premium - Clique para saber mais' : 'Baixar PDF do relatório'}
               >
+                {!canAccessFeature(PREMIUM_FEATURES.DISC_RELATORIO) && (
+                  <Lock className="w-4 h-4 animate-pulse" />
+                )}
                 <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Baixar PDF</span>
+                <span className="hidden sm:inline">
+                  {canAccessFeature(PREMIUM_FEATURES.DISC_RELATORIO) ? 'Baixar PDF' : 'PDF Premium'}
+                </span>
               </button>
             )}
 
@@ -1381,6 +1404,9 @@ const DISCProfilePage = () => {
           </div>
         )}
       </div>
+
+      {/* Notificações */}
+      {NotificationComponent}
     </div>
   );
 };
