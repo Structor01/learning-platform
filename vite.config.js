@@ -8,6 +8,7 @@ import { fileURLToPath, URL } from "node:url";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/',
   resolve: {
     alias: {
       // <-- CORREÇÃO APLICADA AQUI
@@ -19,16 +20,33 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
-    allowedHosts: "all",
+    strictPort: false,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
       }
+    },
+    hmr: {
+      clientPort: 5173,
+    },
+    headers: {
+      'Cache-Control': 'no-store',
     }
+  },
+  preview: {
+    host: "0.0.0.0",
+    port: 5173,
   },
   css: {
     postcss: "./postcss.config.js",
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
   },
 });

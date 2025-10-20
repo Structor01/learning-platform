@@ -220,7 +220,7 @@ const InterviewModal = ({
     if (!jobId) return;
 
     try {
-      const response = await fetch(`${API_URL}/interviews/status/${jobId}`, {
+      const response = await fetch(`${API_URL}/api/interviews/status/${jobId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'

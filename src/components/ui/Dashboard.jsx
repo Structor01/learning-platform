@@ -497,7 +497,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
         // Verificar se já completou entrevista simulada via API
         try {
-          const response = await fetch(`${API_URL}/api/interviews/user/${user.id}/status`, {
+          const response = await fetch(`${API_URL}/api/interviews/user/${user.id}`, {
             headers: {
               'Authorization': `Bearer ${accessToken}`,
               'Content-Type': 'application/json'
@@ -507,13 +507,17 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           if (response.ok) {
             const data = await response.json();
             // Se tem entrevistas completadas, não mostrar o modal
-            if (data.hasCompletedInterviews || data.totalInterviews > 0) {
-              setHasCompletedInterview(true);
-              localStorage.setItem(`interview_completed_${user.id}`, 'true');
-              return;
+            if (Array.isArray(data) && data.length > 0) {
+              const hasCompleted = data.some(interview => interview.status === 'completed');
+              if (hasCompleted) {
+                setHasCompletedInterview(true);
+                localStorage.setItem(`interview_completed_${user.id}`, 'true');
+                return;
+              }
             }
           }
         } catch (apiError) {
+          console.warn('Erro ao verificar entrevistas do usuário:', apiError);
           // Se a API falhar, verificar localStorage como fallback
           const completedInterview = localStorage.getItem(`interview_completed_${user.id}`);
           if (completedInterview === 'true') {

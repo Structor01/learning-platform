@@ -221,13 +221,10 @@ function AppContent() {
 export function Router() {
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/">
       <Routes>
         {/* Página inicial = Login */}
         <Route path="/" element={<LoginPage />} />
-
-        {/* Página de testes de entrevista */}
-        <Route path="/entrevista-simulada" element={<EntrevistaSimuladaPage />} />
 
         {/* Página de notícias */}
         <Route path="/news" element={<NewsPage />} />
@@ -238,11 +235,8 @@ export function Router() {
         {/* Página de Perfil */}
         <Route path="/profile" element={<UserProfile />} />
 
-        {/* Página de detatlhes das vagas */}
+        {/* Página de detalhes das vagas */}
         <Route path="/vagas/:vagaId" element={<DetalhesVaga />} />
-
-        {/* Página de Perfil */}
-        <Route path="/profile" element={<UserProfile />} />
 
         {/* Página de Empresas */}
         <Route path="/empresa/:id" element={<CompanyPage />} />
@@ -262,7 +256,7 @@ export function Router() {
         {/* Página de Entrevista */}
         <Route path="/entrevista" element={<PrivateRoute><InterviewPage /></PrivateRoute>} />
 
-        {/* Página de Candidatura */}
+        {/* Página de Login Modal */}
         <Route path="/LoginModal" element={<LoginModal />} />
 
         {/* Página de cadastro */}
@@ -277,9 +271,9 @@ export function Router() {
         {/* Página da trilha */}
         <Route path="/trilha/:id" element={<PrivateRoute><TrilhaPage /></PrivateRoute>} />
 
-        {/* Páginas dos Aplicativos */}
-        <Route path="/cartao-virtual" element={<PrivateRoute><CartaoVirtualPage /> </PrivateRoute>} />
-        <Route path="/agenda-eventos" element={<PrivateRoute> <AgendaEventosPage /> </PrivateRoute>} />
+        {/* Páginas dos Aplicativos - TODAS PROTEGIDAS */}
+        <Route path="/cartao-virtual" element={<PrivateRoute><CartaoVirtualPage /></PrivateRoute>} />
+        <Route path="/agenda-eventos" element={<PrivateRoute><AgendaEventosPage /></PrivateRoute>} />
         <Route path="/entrevista-simulada" element={<PrivateRoute><EntrevistaSimuladaPage /></PrivateRoute>} />
         <Route path="/video-pitch" element={<PrivateRoute><VideoPitchPage /></PrivateRoute>} />
         <Route path="/meus-testes" element={<PrivateRoute><MeusTestesPage /></PrivateRoute>} />
