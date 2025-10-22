@@ -1,5 +1,5 @@
 // src/components/ui/PremiumFeature.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Lock, Crown, Sparkles } from 'lucide-react';
 import { Button } from './button';
@@ -24,10 +24,47 @@ const PremiumFeature = ({
   upgradeMessage = 'Assine para ter acesso completo a esta funcionalidade',
   mode = 'block'
 }) => {
-  const { canAccessFeature, hasActiveSubscription } = useAuth();
+  const { canAccessFeatureAsync, FREE_FEATURES } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [hasAccess, setHasAccess] = useState(null); // null = carregando
+  const [isChecking, setIsChecking] = useState(true);
 
-  const hasAccess = canAccessFeature(feature);
+  // Verificar acesso via API
+  useEffect(() => {
+    const checkAccess = async () => {
+      console.log('🔐 PremiumFeature - Verificando acesso para feature:', feature);
+
+      // Features gratuitas têm acesso imediato
+      if (Object.values(FREE_FEATURES).includes(feature)) {
+        console.log('✅ PremiumFeature - Feature gratuita, acesso liberado');
+        setHasAccess(true);
+        setIsChecking(false);
+        return;
+      }
+
+      try {
+        const access = await canAccessFeatureAsync(feature);
+        console.log('✅ PremiumFeature - Resultado da verificação:', access);
+        setHasAccess(access);
+      } catch (error) {
+        console.error('❌ PremiumFeature - Erro ao verificar acesso:', error);
+        setHasAccess(false);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkAccess();
+  }, [feature, canAccessFeatureAsync, FREE_FEATURES]);
+
+  // Enquanto está verificando, mostra loading
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   // Se tem acesso, renderiza normalmente
   if (hasAccess) {

@@ -73,21 +73,28 @@ export const AuthProvider = ({ children }) => {
   };
 
   const saveAuthData = (userData, accessToken, refreshToken) => {
+    console.log("💾 SALVANDO AUTH DATA - userData:", userData);
+
     setUser(userData);
     setAccessToken(accessToken);
 
-    localStorage.setItem("user", JSON.stringify(userData));
+    // Salvar apenas dados essenciais no localStorage
+    localStorage.setItem("userId", userData.id);
+    localStorage.setItem("user", JSON.stringify(userData)); // Manter por compatibilidade
     localStorage.setItem("accessToken", accessToken);
 
     if (refreshToken) {
       localStorage.setItem("refreshToken", refreshToken);
     }
+
+    console.log("💾 SALVO - userId:", userData.id);
   };
 
   const login = async (email, password) => {
     setIsLoading(true);
 
     try {
+      console.log("🌐 URL de login:", `${API_URL}/api/auth/login`);
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -102,6 +109,7 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
       console.log("🔍 Resposta do login:", data);
       console.log("🔍 User retornado:", data.user);
+      console.log("🔍 Subscription do backend:", data.user?.subscription);
 
       saveAuthData(data.user, data.access_token, data.refresh_token);
 
@@ -243,8 +251,44 @@ export const AuthProvider = ({ children }) => {
       setShowWelcomeVideo(true);
     }
   };
+  // Verificação de acesso premium via API em tempo real
+  const canAccessPremium = async () => {
+    const userId = localStorage.getItem("userId");
 
-  const hasActiveSubscription = () => user?.subscription?.status === "active";
+    if (!userId) {
+      console.log("🔍 PREMIUM CHECK - Sem userId no localStorage");
+      return false;
+    }
+
+    try {
+      console.log("🔍 PREMIUM CHECK - Verificando userId:", userId);
+      const response = await fetch(`${API_URL}/api/subscriptions/verify/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken || localStorage.getItem("accessToken")}`
+        }
+      });
+
+      if (!response.ok) {
+        console.log("❌ PREMIUM CHECK - Erro na API:", response.status);
+        return false;
+      }
+
+      const data = await response.json();
+      console.log("✅ PREMIUM CHECK - Resposta da API:", data);
+      return data.hasAccess;
+    } catch (error) {
+      console.error("❌ PREMIUM CHECK - Erro:", error);
+      return false;
+    }
+  };
+
+  // Versão síncrona (fallback) - verifica cache local
+  const hasActiveSubscription = () => {
+    // Retorna true temporariamente para não quebrar componentes síncronos
+    // Use canAccessPremium() para verificação real
+    return user?.subscription?.status === "active";
+  };
+
   const canAccessContent = () => hasActiveSubscription();
 
   const getUserType = () => user?.userType || user?.type || null;
@@ -273,19 +317,35 @@ export const AuthProvider = ({ children }) => {
 
   const FEATURES = { ...FREE_FEATURES, ...PREMIUM_FEATURES };
 
-  // Verificar se usuário tem acesso a uma feature específica
+  // Verificar se usuário tem acesso a uma feature específica (versão async)
+  const canAccessFeatureAsync = async (featureName) => {
+    // Features gratuitas são sempre acessíveis
+    if (Object.values(FREE_FEATURES).includes(featureName)) {
+      return true;
+    }
+
+    // Features premium requerem verificação via API
+    if (Object.values(PREMIUM_FEATURES).includes(featureName)) {
+      return await canAccessPremium();
+    }
+
+    // Por padrão, se não estiver na lista, requer verificação via API
+    return await canAccessPremium();
+  };
+
+  // Verificar se usuário tem acesso a uma feature específica (versão síncrona - DEPRECATED)
   const canAccessFeature = (featureName) => {
     // Features gratuitas são sempre acessíveis
     if (Object.values(FREE_FEATURES).includes(featureName)) {
       return true;
     }
 
-    // Features premium requerem assinatura ativa
+    // Features premium - usar canAccessFeatureAsync para verificação real
+    // Esta função retorna fallback baseado em cache
     if (Object.values(PREMIUM_FEATURES).includes(featureName)) {
       return hasActiveSubscription();
     }
 
-    // Por padrão, se não estiver na lista, requer assinatura
     return hasActiveSubscription();
   };
 
@@ -309,7 +369,9 @@ export const AuthProvider = ({ children }) => {
     updateSubscription,
     hasActiveSubscription,
     canAccessContent,
-    canAccessFeature,
+    canAccessFeature, // Versão síncrona (fallback)
+    canAccessFeatureAsync, // Versão async com verificação via API
+    canAccessPremium, // Nova função para verificação via API
     isLimitedAccess,
     FREE_FEATURES,
     PREMIUM_FEATURES,
