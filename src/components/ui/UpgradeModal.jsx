@@ -3,9 +3,11 @@ import React from 'react';
 import { X, Crown, Check, Sparkles, Zap, TrendingUp } from 'lucide-react';
 import { Button } from './button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const UpgradeModal = ({ isOpen, onClose, feature }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   if (!isOpen) return null;
 
@@ -21,11 +23,10 @@ const UpgradeModal = ({ isOpen, onClose, feature }) => {
   ];
 
   const handleUpgrade = () => {
-    // Aqui você pode redirecionar para página de pagamento/checkout
-    // Por enquanto, vamos apenas fechar o modal
     onClose();
-    // navigate('/checkout'); // Descomente quando tiver página de checkout
-    alert('Redirecionando para página de assinatura...');
+    const userId = user?.id || localStorage.getItem('userId');
+    sessionStorage.setItem('checkout_user_id', userId);
+    window.location.href = '/index.html';
   };
 
   return (
