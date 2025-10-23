@@ -11,9 +11,8 @@ export const getApiUrl = () => {
         return 'https://learning-platform-backend-2x39.onrender.com';
     }
 
-    // Em desenvolvimento, usar VITE_API_URL ou proxy do Vite
-    const url = import.meta.env.VITE_API_URL || '';
-    return url;
+    // Em desenvolvimento, usar VITE_API_URL ou fallback para localhost
+    return import.meta.env.VITE_API_URL || 'http://localhost:3001';
 };
 
 export const API_URL = getApiUrl();
