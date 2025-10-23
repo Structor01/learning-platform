@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@radix-ui/react-progress";
 import axios from "axios";
 import { API_URL } from "@/components/utils/api"; // certifique-se de que este caminho está correto
-import { MapPin, Briefcase, Building2 } from "lucide-react";
+import { MapPin, Briefcase, Building2, Newspaper } from "lucide-react";
 import api from "@/services/api.js";
 import InterviewPromptModal from "@/components/ui/InterviewPromptModal.jsx";
 // testService já está sendo importado na linha 2
@@ -32,6 +32,8 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [vagasRecentes, setVagasRecentes] = useState([]);
   const [empresas, setEmpresas] = useState([]);
   const [loadingVagas, setLoadingVagas] = useState(true);
+  const [noticiasRecentes, setNoticiasRecentes] = useState([]);
+  const [loadingNoticias, setLoadingNoticias] = useState(true);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [showInterviewPrompt, setShowInterviewPrompt] = useState(false);
   const [hasCompletedInterview, setHasCompletedInterview] = useState(false);
@@ -111,38 +113,6 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           console.warn('API principal falhou, tentando alternativa:', apiError.message);
         }
 
-        // Se não conseguiu dados, usar dados mock
-        if (!vagasData || vagasData.length === 0) {
-          vagasData = [
-            {
-              id: 1,
-              title: "Desenvolvedor Frontend React",
-              company: "TechCorp",
-              location: "São Paulo, SP",
-              type: "CLT",
-              salary: "R$ 8.000 - R$ 12.000",
-              createdAt: new Date().toISOString()
-            },
-            {
-              id: 2,
-              title: "Analista de Dados Sênior",
-              company: "DataAnalytics",
-              location: "Rio de Janeiro, RJ",
-              type: "PJ",
-              salary: "R$ 10.000 - R$ 15.000",
-              createdAt: new Date(Date.now() - 86400000).toISOString() // 1 day ago
-            },
-            {
-              id: 3,
-              title: "Product Manager",
-              company: "StartupXYZ",
-              location: "Remoto",
-              type: "CLT",
-              salary: "R$ 12.000 - R$ 18.000",
-              createdAt: new Date(Date.now() - 172800000).toISOString() // 2 days ago
-            }
-          ];
-        }
 
         // Pegar apenas as 5 últimas vagas
         const ultimasVagas = Array.isArray(vagasData)
@@ -184,13 +154,54 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     return () => clearTimeout(timeoutId);
   }, [accessToken]);
 
+  // Buscar notícias
+  useEffect(() => {
+    const fetchNoticiasRecentes = async () => {
+      try {
+        setLoadingNoticias(true);
+        setNoticiasRecentes([]);
+
+        const response = await axios.get(`${API_URL}/api/news`, {
+          params: {
+            page: 1,
+            limit: 6
+          }
+        });
+
+        // A API retorna: { data: [...], total: X, page: Y, totalPages: Z }
+        if (response.data.data && Array.isArray(response.data.data)) {
+          // Normalizar os campos da API
+          const normalizedNews = response.data.data.map(item => ({
+            ...item,
+            titulo: item.titulo || item.summary || 'Sem título',
+            descricao: item.descricao || item.summary || '',
+            imagemUrl: item.imagemUrl || item.apiImage || '',
+            dataPublicacao: item.dataPublicacao || item.dateNews || item.createdAt,
+            fonteSite: item.fonteSite || 'Desconhecida'
+          }));
+
+          setNoticiasRecentes(normalizedNews);
+        } else if (Array.isArray(response.data)) {
+          setNoticiasRecentes(response.data);
+        }
+      } catch (error) {
+        console.warn('Erro ao buscar notícias:', error.message);
+        setNoticiasRecentes([]);
+      } finally {
+        setLoadingNoticias(false);
+      }
+    };
+
+    // Delay para evitar chamadas simultâneas
+    const timeoutId = setTimeout(fetchNoticiasRecentes, 200);
+    return () => clearTimeout(timeoutId);
+  }, [accessToken]);
+
   useEffect(() => {
     const fetchDiscProfile = async () => {
       if (!user?.id || !accessToken) return;
 
       try {
-
-
         // Primeiro tentar buscar usando a nova API DISC
         try {
           const discProfile = await discApiService.getUserDiscProfile(user.id);
@@ -1738,6 +1749,104 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   onClick={() => navigate("/vagas")}
                 >
                   Explorar Vagas
+                </Button>
+              </div>
+            )}
+
+          </section>
+
+          {/* Noticias */}
+          <section className="mb-12 noticias-section">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-black">
+                Últimas Notícias
+              </h2>
+              <Button
+                variant="ghost"
+                className="text-gray-800 hover:text-black"
+                onClick={() => navigate("/news")}
+              >
+                Ver todas as notícias
+              </Button>
+            </div>
+
+            {loadingNoticias ? (
+              <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
+                {[...Array(6)].map((_, index) => (
+                  <Card
+                    key={index}
+                    className="bg-white border-gray-200 animate-pulse"
+                  >
+                    <CardContent className="p-6">
+                      <div className="w-full h-40 bg-gray-200 rounded-lg mb-4"></div>
+                      <div className="h-5 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : noticiasRecentes.filter(n => n.fonteSite !== 'Desconhecida' && n.titulo !== 'Sem título').length > 0 ? (
+              <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
+                {noticiasRecentes
+                  .filter(n => n.fonteSite !== 'Desconhecida' && n.titulo !== 'Sem título')
+                  .map((noticia) => (
+                    <Card
+                      key={noticia.id}
+                      onClick={() => noticia.link && window.open(noticia.link, '_blank')}
+                      className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer overflow-hidden flex flex-col h-[500px]"
+                    >
+                      {noticia.imagemUrl && (
+                        <div className="w-full h-40 bg-gray-200 overflow-hidden">
+                          <img
+                            src={noticia.imagemUrl}
+                            alt={noticia.titulo}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      <CardContent className="p-6 flex flex-col flex-grow">
+                        <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mb-4">
+                          <Newspaper className="w-6 h-6 text-white" />
+                        </div>
+
+                        <h3 className="text-lg font-semibold text-black mb-2 line-clamp-2">
+                          {noticia.titulo}
+                        </h3>
+
+                        <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-grow">
+                          {noticia.descricao}
+                        </p>
+
+                        <div className="space-y-2 mt-auto">
+                          {noticia.dataPublicacao && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <Clock className="w-3 h-3" />
+                              <span>
+                                {new Date(noticia.dataPublicacao).toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                <Newspaper className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600">
+                  Nenhuma notícia disponível no momento
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-4 bg-blue-600 hover:bg-blue-700"
+                  onClick={() => navigate("/news-page")}
+                >
+                  Explorar Notícias
                 </Button>
               </div>
             )}
