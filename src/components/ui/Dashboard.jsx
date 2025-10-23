@@ -1844,7 +1844,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 <Button
                   size="sm"
                   className="mt-4 bg-blue-600 hover:bg-blue-700"
-                  onClick={() => navigate("/news-page")}
+                  onClick={() => navigate("/news")}
                 >
                   Explorar Notícias
                 </Button>

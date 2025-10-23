@@ -162,9 +162,21 @@ export const PremiumButton = ({
   className = '',
   ...props
 }) => {
-  const { canAccessFeature } = useAuth();
+  const { canAccessFeatureAsync, FREE_FEATURES } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const hasAccess = canAccessFeature(feature);
+  const [hasAccess, setHasAccess] = useState(null);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (Object.values(FREE_FEATURES).includes(feature)) {
+        setHasAccess(true);
+        return;
+      }
+      const access = await canAccessFeatureAsync(feature);
+      setHasAccess(access);
+    };
+    checkAccess();
+  }, [feature, canAccessFeatureAsync, FREE_FEATURES]);
 
   const handleClick = (e) => {
     if (!hasAccess) {
