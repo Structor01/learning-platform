@@ -1,5 +1,4 @@
 export const getApiUrl = () => {
-
     // Verificar se está em desenvolvimento (localhost, 127.0.0.1, ou qualquer IP local)
     const isLocalDevelopment = window.location.hostname === 'localhost' ||
         window.location.hostname === '127.0.0.1' ||
@@ -8,10 +7,11 @@ export const getApiUrl = () => {
         import.meta.env.MODE === 'development';
 
     if (!isLocalDevelopment) {
+        // Em produção, sempre usar a URL correta do backend
         return 'https://learning-platform-backend-2x39.onrender.com';
     }
 
-    // Em desenvolvimento, usar proxy do Vite (sem especificar URL completa)
+    // Em desenvolvimento, usar VITE_API_URL ou proxy do Vite
     const url = import.meta.env.VITE_API_URL || '';
     return url;
 };

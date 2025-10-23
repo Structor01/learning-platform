@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL
+  // Usar o API_URL importado de @/components/utils/api, não redefini-lo
   const isAuthenticated = !!user && !!accessToken;
 
   // Helper para limpar dados grandes antes de salvar no sessionStorage
