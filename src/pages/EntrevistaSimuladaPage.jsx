@@ -177,17 +177,90 @@ const RelatorioModal = ({ isOpen, onClose, relatorioData, carregando }) => {
             <p className="text-gray-300 leading-relaxed">{report.summary}</p>
           </div>
 
-          {/* Análise Detalhada */}
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-              🔍 Análise Detalhada
-            </h3>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <pre className="text-gray-300 whitespace-pre-wrap font-sans leading-relaxed">
-                {report.detailedAnalysis}
-              </pre>
+          {/* Análise por Pergunta */}
+          {report.questions && report.questions.length > 0 && (
+            <div className="bg-gray-800 rounded-xl p-6">
+              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+                🔍 Análise Detalhada por Pergunta
+              </h3>
+              <div className="space-y-6">
+                {report.questions.map((q, index) => (
+                  <div key={index} className="border border-gray-600 rounded-lg p-4 bg-gray-700/50">
+                    {/* Pergunta */}
+                    <div className="mb-4 pb-4 border-b border-gray-600">
+                      <h4 className="text-lg font-semibold text-purple-300">
+                        Pergunta {index + 1}
+                      </h4>
+                      <p className="text-gray-200 mt-2 italic">{q.question}</p>
+                    </div>
+
+                    {/* Grid com Resposta e Análise */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      {/* Coluna Esquerda: Resposta */}
+                      <div>
+                        <h5 className="text-sm font-semibold text-green-400 mb-2">📝 Resposta do Candidato</h5>
+                        <p className="text-gray-300 text-sm leading-relaxed bg-gray-800/50 p-3 rounded border border-gray-600">
+                          {q.transcription}
+                        </p>
+                      </div>
+
+                      {/* Coluna Direita: Análise */}
+                      <div>
+                        <h5 className="text-sm font-semibold text-blue-400 mb-2">🧠 Análise da IA</h5>
+                        <div className="space-y-3 text-sm">
+                          {/* Score */}
+                          <div className="bg-gray-800/50 p-3 rounded border border-gray-600">
+                            <p className="text-gray-400">Score:</p>
+                            <p className={`text-2xl font-bold ${q.analysis?.score >= 8 ? 'text-green-400' : q.analysis?.score >= 6 ? 'text-yellow-400' : 'text-red-400'}`}>
+                              {q.analysis?.score || 0}/10
+                            </p>
+                          </div>
+
+                          {/* Recomendação */}
+                          <div className="bg-gray-800/50 p-3 rounded border border-gray-600">
+                            <p className="text-gray-400 text-xs">Recomendação:</p>
+                            <p className="text-white font-semibold">{q.analysis?.recommendation || 'N/A'}</p>
+                          </div>
+
+                          {/* Job Fit */}
+                          <div className="bg-gray-800/50 p-3 rounded border border-gray-600">
+                            <p className="text-gray-400 text-xs">Adequação à Vaga:</p>
+                            <p className="text-white font-semibold">{q.analysis?.jobFit || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Análise Completa */}
+                    {q.analysis?.fullAnalysis && (
+                      <div className="mt-4 pt-4 border-t border-gray-600">
+                        <h5 className="text-sm font-semibold text-cyan-400 mb-2">📊 Análise Completa</h5>
+                        <div className="bg-gray-800/50 p-3 rounded border border-gray-600 max-h-64 overflow-y-auto">
+                          <pre className="text-gray-300 whitespace-pre-wrap font-sans text-xs leading-relaxed">
+                            {q.analysis.fullAnalysis}
+                          </pre>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Análise Detalhada Geral */}
+          {report.detailedAnalysis && (
+            <div className="bg-gray-800 rounded-xl p-6">
+              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+                📋 Parecer Geral
+              </h3>
+              <div className="bg-gray-700 rounded-lg p-4">
+                <pre className="text-gray-300 whitespace-pre-wrap font-sans leading-relaxed">
+                  {report.detailedAnalysis}
+                </pre>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -214,6 +287,7 @@ const EntrevistaSimuladaPage = () => {
   const [answers, setAnswers] = useState([]);
   const [vagasTeste, setVagasTeste] = useState([]);
   const [minhasEntrevistas, setMinhasEntrevistas] = useState([]); // Entrevistas já realizadas
+  const [currentVagaId, setCurrentVagaId] = useState(null); // Rastrear qual vaga está sendo feita
   const [loading, setLoading] = useState(false);
   const [user] = useState({ id: 1, name: 'João Silva' }); // Mock user - substituir pela autenticação real
   const [isRecording, setIsRecording] = useState(false);
@@ -226,6 +300,29 @@ const EntrevistaSimuladaPage = () => {
   const [currentFaceData, setCurrentFaceData] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
   const [isUploadingResponse, setIsUploadingResponse] = useState(false);
+
+  // Estado para transcrição ao vivo
+  const [liveTranscription, setLiveTranscription] = useState('');
+
+  // Estado para rastrear entrevistas concluídas (persistido no localStorage)
+  const [completedInterviews, setCompletedInterviews] = useState(() => {
+    try {
+      const saved = localStorage.getItem('completedInterviews');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  // Estado para armazenar relatórios salvos por vaga (persistido no localStorage)
+  const [savedReports, setSavedReports] = useState(() => {
+    try {
+      const saved = localStorage.getItem('savedReports');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
 
   // Estados para Toast
   const [toast, setToast] = useState({ message: '', type: '', isVisible: false });
@@ -293,45 +390,22 @@ const EntrevistaSimuladaPage = () => {
     try {
       setLoading(true);
 
-      // Primeiro cria uma candidatura automática
-      const candidaturaResponse = await fetch(`${API_URL}/api/mock-interviews/candidatura`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          usuarioId: user.id,
-          vagaTesteId: vaga.id,
-          mensagem: 'Candidatura automática para entrevista simulada'
-        })
-      });
+      // Gerar ID da entrevista usando timestamp
+      const novoInterviewId = Date.now();
 
-      const candidaturaData = await candidaturaResponse.json();
-
-      if (!candidaturaResponse.ok) {
-        throw new Error(candidaturaData.message || 'Erro ao criar candidatura');
-      }
-
-      // Depois cria a entrevista
-      const entrevistaResponse = await fetch(`${API_URL}/api/mock-interviews/candidatura/${candidaturaData.data.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          candidate_name: user.name,
-          user_id: user.id
-        })
-      });
-
-      const entrevistaData = await entrevistaResponse.json();
-
-      if (!entrevistaResponse.ok) {
-        throw new Error(entrevistaData.message || 'Erro ao criar entrevista');
-      }
-
-      setInterviewId(entrevistaData.data.id);
+      setInterviewId(novoInterviewId);
       setSelectedVaga(vaga);
+      setCurrentVagaId(vaga.id); // Salvar o ID da vaga
       setCurrentStep('interview');
+      setCurrentQuestion(0);
+      setAnswers([]);
+      setVideoUrl(null);
+      setRecordingTime(0);
+      setRecordedChunks([]);
+      setLiveTranscription('');
 
       showToast('Entrevista iniciada com sucesso!', 'success');
-      return entrevistaData.data;
+      return { id: novoInterviewId };
     } catch (error) {
       console.error('Erro ao iniciar entrevista:', error);
       showToast(error.message, 'error');
@@ -358,6 +432,26 @@ const EntrevistaSimuladaPage = () => {
 
       // Gerar relatório automaticamente após finalizar
       await gerarRelatorio(interviewId);
+
+      // Marcar como concluída usando o ID salvo
+      if (currentVagaId) {
+        console.log('✅ Marcando vaga como concluída:', currentVagaId);
+        setCompletedInterviews(prev => ({
+          ...prev,
+          [currentVagaId]: true
+        }));
+
+        // Salvar o relatório para essa vaga
+        if (relatorioData) {
+          setSavedReports(prev => ({
+            ...prev,
+            [currentVagaId]: relatorioData
+          }));
+        }
+      }
+
+      // Atualizar lista de entrevistas para refletir a conclusão
+      await fetchMinhasEntrevistas();
 
       // Após gerar o relatório, mostrar toast de conclusão
       showToast('🎉 Entrevista concluída!\n\nSeu relatório está disponível na seção "Suas Entrevistas".', 'success', 8000);
@@ -577,6 +671,16 @@ const EntrevistaSimuladaPage = () => {
     }
   }, [stream, cameraEnabled]);
 
+  // Salvar completedInterviews no localStorage
+  useEffect(() => {
+    localStorage.setItem('completedInterviews', JSON.stringify(completedInterviews));
+  }, [completedInterviews]);
+
+  // Salvar savedReports no localStorage
+  useEffect(() => {
+    localStorage.setItem('savedReports', JSON.stringify(savedReports));
+  }, [savedReports]);
+
   // Cleanup ao desmontar componente
   useEffect(() => {
     return () => {
@@ -769,6 +873,11 @@ const EntrevistaSimuladaPage = () => {
 
   const currentQuestions = getQuestionsForVaga(selectedVaga);
 
+  // Função para verificar se existe uma entrevista completa para uma vaga
+  const hasCompletedInterview = (vagaId) => {
+    return completedInterviews[vagaId] === true;
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Navbar />
@@ -793,6 +902,9 @@ const EntrevistaSimuladaPage = () => {
             setModalRelatorioOpen(false);
             setCarregandoRelatorio(false);
             setRelatorioData(null);
+            setCurrentStep('vagas');
+            // Recarregar a página inteira para garantir atualização
+            window.location.reload();
           }}
           relatorioData={relatorioData}
           carregando={carregandoRelatorio}
@@ -879,12 +991,48 @@ const EntrevistaSimuladaPage = () => {
                       </div>
 
                       <button
-                        onClick={() => iniciarEntrevistaVaga(vaga)}
+                        onClick={() => {
+                          if (hasCompletedInterview(vaga.id)) {
+                            // Ver relatório da entrevista concluída
+                            console.log('Abrindo relatório para vaga:', vaga.id);
+                            if (savedReports[vaga.id]) {
+                              setRelatorioData(savedReports[vaga.id]);
+                              setModalRelatorioOpen(true);
+                              showToast('Relatório carregado!', 'success');
+                            } else {
+                              showToast('Relatório não encontrado. Tente novamente.', 'error');
+                            }
+                          } else {
+                            // Iniciar nova entrevista
+                            iniciarEntrevistaVaga(vaga);
+                          }
+                        }}
                         disabled={loading}
-                        className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+                        className={`w-full px-4 py-3 rounded-lg transition-colors font-medium ${hasCompletedInterview(vaga.id)
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                          : 'bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white'
+                          }`}
                       >
-                        {loading ? 'Iniciando...' : 'Fazer Entrevista'}
+                        {hasCompletedInterview(vaga.id)
+                          ? '✅ Entrevista Realizada - Ver Relatório'
+                          : loading
+                            ? 'Iniciando...'
+                            : 'Fazer Entrevista'
+                        }
                       </button>
+                      {hasCompletedInterview(vaga.id) && (
+                        <button
+                          onClick={() => {
+                            if (savedReports[vaga.id]) {
+                              setRelatorioData(savedReports[vaga.id]);
+                              setModalRelatorioOpen(true);
+                            }
+                          }}
+                          className="mt-2 w-full px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                        >
+                          📊 Ver Relatório
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -1223,7 +1371,7 @@ const EntrevistaSimuladaPage = () => {
                   <button
                     onClick={async () => {
                       await finalizarEntrevista();
-                      voltarParaInicio(); // Volta para a tela principal após finalizar
+                      // Não volta para início - deixa o modal aberto para ver o relatório
                     }}
                     disabled={carregandoRelatorio}
                     className="px-8 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center"

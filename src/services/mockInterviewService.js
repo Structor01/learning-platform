@@ -178,11 +178,14 @@ class MockInterviewService {
   /**
    * 7. Upload de vídeo com análise facial
    */
-  async uploadVideoResponse(interviewId, questionNumber, videoBlob, faceAnalysisData = []) {
+  async uploadVideoResponse(interviewId, questionNumber, videoBlob, faceAnalysisData = [], userId = null, liveTranscription = null) {
     try {
-      console.log(`📤 Iniciando upload - Entrevista: ${interviewId}, Pergunta: ${questionNumber}`);
+      console.log(`📤 Iniciando upload - Entrevista: ${interviewId}, Pergunta: ${questionNumber}, Usuário: ${userId}`);
       console.log(`📦 VideoBlob - Tamanho: ${videoBlob.size} bytes, Tipo: ${videoBlob.type}`);
       console.log(`🧠 Face Analysis Data: ${faceAnalysisData.length} pontos`);
+      if (liveTranscription) {
+        console.log(`📝 Transcrição ao vivo: ${liveTranscription.substring(0, 50)}...`);
+      }
 
       // Validações
       if (!interviewId) {
@@ -214,6 +217,12 @@ class MockInterviewService {
       formData.append('video', videoBlob, fileName);
       formData.append('questionNumber', questionNumber.toString());
       formData.append('faceAnalysisData', JSON.stringify(faceAnalysisData));
+      if (userId) {
+        formData.append('userId', userId.toString());
+      }
+      if (liveTranscription) {
+        formData.append('liveTranscription', liveTranscription);
+      }
 
       console.log(`📁 Arquivo: ${fileName}`);
       console.log(`🔢 Número da pergunta: ${questionNumber}`);
