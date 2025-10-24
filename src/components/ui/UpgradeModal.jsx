@@ -22,11 +22,75 @@ const UpgradeModal = ({ isOpen, onClose, feature }) => {
     'Suporte prioritário',
   ];
 
+//Exemplo de usuário
+
+// {
+//     "id": 1917,
+//     "email": "artfbgyn@gmail.com",
+//     "phone": null,
+//     "name": "Arthur Barros",
+//     "userType": "candidate",
+//     "role": "admin",
+//     "linkedin": "https://www.linkedin.com/in/arthur-barros-a8251baa/",
+//     "experience_level": null,
+//     "education_level": null,
+//     "preferred_job_type": null,
+//     "skills": null,
+//     "current_position": null,
+//     "bio": null,
+//     "companyId": null,
+//     "company": null,
+//     "collected_data": null,
+//     "createdAt": null,
+//     "updatedAt": "2025-09-26T11:52:31.000Z"
+// }
+
+
+
+
+
   const handleUpgrade = () => {
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = 'https://tc.intermediador.yapay.com.br/payment/transaction';
+
+    const tokenAccount = createHiddenInput('token_account', 'f3665ddb23ccb04');
+    form.appendChild(tokenAccount);
+
+    form.appendChild(createHiddenInput('url_notification', 'http://190.115.85.73:3001/api/api/subscriptions/vindi'));
+    form.appendChild(createHiddenInput('url_success', 'http://190.115.85.73:3001/api/api/subscriptions/vindi'));
+
+    form.appendChild(createHiddenInput('transaction_product[][description]', 'Plano Premium AgroSkills'));
+    form.appendChild(createHiddenInput('transaction_product[][quantity]', '1'));
+    form.appendChild(createHiddenInput('transaction_product[][price_unit]', '18.90'));
+    form.appendChild(createHiddenInput('transaction_product[][code]', `PROD-${user.id}`));
+
+    if (user) {
+      form.appendChild(createHiddenInput('customer[name]', user.name));
+      form.appendChild(createHiddenInput('customer[email]', user.email));
+      
+      // Contato do cliente (se disponível)
+      if (user.phone) {
+        form.appendChild(createHiddenInput('customer[contacts][][type_contact]', 'H'));
+        form.appendChild(createHiddenInput('customer[contacts][][number_contact]', user.phone));
+      }
+    }
+
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+    
     onClose();
-    const userId = user?.id || localStorage.getItem('userId');
-    sessionStorage.setItem('checkout_user_id', userId);
-    window.location.href = '/index.html';
+  };
+
+  // Função auxiliar para criar inputs hidden
+  const createHiddenInput = (name, value) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    return input;
   };
 
   return (
