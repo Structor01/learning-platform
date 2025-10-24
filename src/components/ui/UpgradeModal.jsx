@@ -60,7 +60,7 @@ const UpgradeModal = ({ isOpen, onClose, feature }) => {
     form.appendChild(createHiddenInput('url_notification', 'http://190.115.85.73:3001/api/api/subscriptions/vindi'));
     form.appendChild(createHiddenInput('url_success', 'http://190.115.85.73:3001/api/api/subscriptions/vindi'));
 
-    form.appendChild(createHiddenInput('transaction_product[][description]', 'Plano Premium AgroSkills'));
+    form.appendChild(createHiddenInput('transaction_product[][description]', `Plano Premium - Usuário ${user.id}`));
     form.appendChild(createHiddenInput('transaction_product[][quantity]', '1'));
     form.appendChild(createHiddenInput('transaction_product[][price_unit]', '18.90'));
     form.appendChild(createHiddenInput('transaction_product[][code]', `PROD-${user.id}`));
