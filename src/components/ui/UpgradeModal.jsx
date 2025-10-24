@@ -58,7 +58,7 @@ const UpgradeModal = ({ isOpen, onClose, feature }) => {
     form.appendChild(tokenAccount);
 
     form.appendChild(createHiddenInput('url_notification', 'http://190.115.85.73:3001/api/api/subscriptions/vindi'));
-    form.appendChild(createHiddenInput('url_success', 'http://190.115.85.73:3001/api/api/subscriptions/vindi'));
+    form.appendChild(createHiddenInput('url_success', 'https://gskills.web.app/dashboard?message=subscription_success'));
 
     form.appendChild(createHiddenInput('transaction_product[][description]', `Plano Premium - Usuário ${user.id}`));
     form.appendChild(createHiddenInput('transaction_product[][quantity]', '1'));
