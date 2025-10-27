@@ -769,7 +769,7 @@ const EntrevistaSimuladaPage = () => {
           questionText,
           videoUploaded: true,
           responseId: result.responseId,
-          faceAnalysis: faceAnalysisData
+          // faceAnalysis: faceAnalysisData
         };
         setAnswers(newAnswers);
 
