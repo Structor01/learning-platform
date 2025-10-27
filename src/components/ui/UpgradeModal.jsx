@@ -39,7 +39,7 @@ const UpgradeModal = ({ isOpen, onClose, feature }) => {
 
     form.appendChild(createHiddenInput('transaction_product[][description]', `Plano Premium - Usuário ${user.id}`));
     form.appendChild(createHiddenInput('transaction_product[][quantity]', '1'));
-    form.appendChild(createHiddenInput('transaction_product[][price_unit]', '1'));
+    form.appendChild(createHiddenInput('transaction_product[][price_unit]', '18.90'));
     form.appendChild(createHiddenInput('transaction_product[][extra]', `${user.id}`));
     form.appendChild(createHiddenInput('transaction_product[][code]', `PROD-${user.id}`));
 
