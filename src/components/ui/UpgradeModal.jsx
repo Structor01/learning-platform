@@ -1,121 +1,161 @@
 // src/components/ui/UpgradeModal.jsx
-import React, { useState } from 'react';
-import { X, Crown, Check, Sparkles, Zap } from 'lucide-react';
+import React from 'react';
+import { X, Crown, Check, Sparkles, Zap, TrendingUp } from 'lucide-react';
 import { Button } from './button';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const UpgradeModal = ({ isOpen, onClose, feature }) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const [selectedPaymentOption, setSelectedPaymentOption] = useState('monthly');
 
   if (!isOpen) return null;
 
-  const paymentOptions = {
-    monthly: {
-      id: 'monthly',
-      label: 'Pagamento Mensal',
-      price: '18,90',
-      period: '/mês',
-      description: 'Assine e cancele quando quiser',
-      link: 'https://pagar.vindi.com.br/23a2a1448002368061c6beff8a4834a3cbb83dff',
-      highlighted: false,
-    },
-    fullPayment: {
-      id: 'fullPayment',
-      label: 'Pagamento Único (Anual)',
-      price: '189,00',
-      period: 'por ano',
-      description: 'Economize 11% com pagamento anual',
-      link: 'https://pagar.vindi.com.br/1592b497b70963bbf57f46141ab1279f124ae313',
-      highlighted: true,
-    },
-  };
+  const benefits = [
+    'Acesso a todas as trilhas de aprendizado',
+    'Certificados profissionais',
+    'Entrevistas simuladas ilimitadas',
+    'Relatórios completos de perfil DISC',
+    'Vídeo Pitch profissional',
+    'Agenda de eventos exclusivos',
+    'Conteúdo atualizado semanalmente',
+    'Suporte prioritário',
+  ];
+
+
+
 
 
   const handleUpgrade = () => {
-    // Redirecionar para o link de pagamento Vindi selecionado
-    const selectedOption = paymentOptions[selectedPaymentOption];
-    window.location.href = selectedOption.link;
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = 'https://tc.intermediador.yapay.com.br/payment/transaction';
+
+    const tokenAccount = createHiddenInput('token_account', 'f3665ddb23ccb04');
+    form.appendChild(tokenAccount);
+
+    form.appendChild(createHiddenInput('url_notification', 'https://learning-platform-backend-2x39.onrender.com/api/api/subscriptions/vindi'));
+    form.appendChild(createHiddenInput('url_success', 'https://gskills.web.app/dashboard?message=subscription_success'));
+
+    form.appendChild(createHiddenInput('transaction_product[][description]', `Plano Premium - Usuário ${user.id}`));
+    form.appendChild(createHiddenInput('transaction_product[][quantity]', '1'));
+    form.appendChild(createHiddenInput('transaction_product[][price_unit]', '1'));
+    form.appendChild(createHiddenInput('transaction_product[][extra]', `${user.id}`));
+    form.appendChild(createHiddenInput('transaction_product[][code]', `PROD-${user.id}`));
+
+
+    if (user) {
+      form.appendChild(createHiddenInput('customer[name]', user.name));
+      form.appendChild(createHiddenInput('customer[email]', user.email));
+      
+      // Contato do cliente (se disponível)
+      if (user.phone) {
+        form.appendChild(createHiddenInput('customer[contacts][][type_contact]', 'H'));
+        form.appendChild(createHiddenInput('customer[contacts][][number_contact]', user.phone));
+      }
+    }
+
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+    
     onClose();
   };
 
+  // Função auxiliar para criar inputs hidden
+  const createHiddenInput = (name, value) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = name;
+    input.value = value;
+    return input;
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl animate-in zoom-in duration-300 max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+      <div className="relative w-full max-w-2xl bg-gradient-to-br from-gray-900 to-black border border-gray-800 rounded-2xl shadow-2xl animate-in zoom-in duration-300">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 sm:top-4 right-3 sm:right-4 p-2 rounded-full hover:bg-green-50 transition-colors text-gray-400 hover:text-green-600 z-10"
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-800 transition-colors text-gray-400 hover:text-white"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
-        <div className="p-2 sm:p-4 md:p-6 text-center bg-gradient-to-br from-green-50 to-white sticky top-0">
-          <div className="inline-flex items-center justify-center w-12 sm:w-16 h-12 sm:h-16 rounded-full bg-gradient-to-br from-green-400 to-green-600 mb-2 sm:mb-3">
-            <Crown className="w-6 sm:w-8 h-6 sm:h-8 text-white" />
+        <div className="p-8 text-center border-b border-gray-800">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 mb-4">
+            <Crown className="w-10 h-10 text-white" />
           </div>
-          <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-0.5 sm:mb-1 leading-tight">
-            Desbloqueie o Potencial
+          <h2 className="text-3xl font-bold text-white mb-2">
+            Desbloqueie Todo o Potencial
           </h2>
-          <p className="text-xs sm:text-sm text-gray-600 leading-tight">
-            Acesso ilimitado a todas as funcionalidades
+          <p className="text-gray-400">
+            Tenha acesso ilimitado a todas as funcionalidades premium do AgroSkills
           </p>
         </div>
 
         {/* Content */}
-        <div className="p-2 sm:p-4 md:p-6 max-h-[calc(90vh-150px)] sm:max-h-[calc(100vh-200px)] overflow-y-auto">
-          {/* Payment Options */}
-          <div className="mb-4 sm:mb-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3">
-              {Object.entries(paymentOptions).map(([key, option]) => (
-                <div
-                  key={key}
-                  onClick={() => setSelectedPaymentOption(key)}
-                  className={`p-3 sm:p-4 rounded-lg cursor-pointer transition-all duration-300 ${selectedPaymentOption === key
-                    ? 'bg-gradient-to-br from-green-50 to-green-100 ring-2 ring-green-400'
-                    : 'bg-white'
-                    } ${option.highlighted ? 'ring-2 ring-green-400/50 shadow-md' : 'shadow-sm'}`}
-                >
-                  {option.highlighted && (
-                    <div className="inline-block px-2 py-1 rounded-full bg-gradient-to-r from-green-400 to-green-600 text-white text-xs font-semibold mb-2">
-                      Mais Popular
-                    </div>
-                  )}
-                  <h4 className="text-gray-900 font-semibold text-sm sm:text-base mb-2">{option.label}</h4>
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-2xl sm:text-3xl font-bold text-black">R$ {option.price}</span>
-                    <span className="text-xs text-gray-600">{option.period}</span>
+        <div className="p-8">
+          {/* Pricing */}
+          <div className="mb-8 p-6 rounded-xl bg-gradient-to-r from-yellow-400/10 to-orange-500/10 border border-yellow-400/20">
+            <div className="flex items-baseline justify-center gap-2 mb-2">
+              <span className="text-5xl font-bold text-white">R$ 18,90</span>
+              <span className="text-gray-400">/mês</span>
+            </div>
+            <p className="text-center text-sm text-gray-400">
+              Cancele quando quiser • Sem contratos
+            </p>
+          </div>
+
+          {/* Benefits list */}
+          <div className="space-y-3 mb-8">
+            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-yellow-400" />
+              O que está incluso:
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {benefits.map((benefit, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center mt-0.5">
+                    <Check className="w-3 h-3 text-green-500" />
                   </div>
-                  <p className="text-xs text-gray-600 mb-2">{option.description}</p>
-                  {selectedPaymentOption === key && (
-                    <div className="flex items-center gap-1 text-green-600 text-xs font-semibold">
-                      <Check className="w-4 h-4" />
-                      Selecionado
-                    </div>
-                  )}
+                  <span className="text-gray-300 text-sm">{benefit}</span>
                 </div>
               ))}
             </div>
           </div>
 
-
-
           {/* CTA Buttons */}
-          <div className="space-y-1 sm:space-y-2">
+          <div className="space-y-3">
             <Button
               onClick={handleUpgrade}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600  hover:to-green-700 text-white font-bold py-2.5 sm:py-4 text-xs sm:text-sm shadow-lg shadow-green-500/20 transition-all active:scale-95"
+              className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold py-6 text-lg shadow-lg shadow-orange-500/20"
             >
-              <Zap className="w-3 sm:w-4 h-3 sm:h-4 mr-1.5" />
+              <Zap className="w-5 h-5 mr-2" />
               Começar Agora
             </Button>
             <button
               onClick={onClose}
-              className="w-full text-gray-600 hover:text-gray-900 transition-colors text-xs py-1"
+              className="w-full text-gray-400 hover:text-white transition-colors text-sm"
             >
-              Continuar grátis
+              Continuar com plano gratuito
             </button>
+          </div>
+
+          {/* Trust badges */}
+          <div className="mt-6 pt-6 border-t border-gray-800">
+            <div className="flex items-center justify-center gap-6 text-xs text-gray-500">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                Pagamento seguro
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                Garantia de 7 dias
+              </div>
+            </div>
           </div>
         </div>
       </div>
