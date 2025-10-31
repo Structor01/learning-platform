@@ -519,16 +519,16 @@ const TrilhaPage = () => {
         upgradeMessage="Faça upgrade para Premium e tenha acesso completo a todas as trilhas de aprendizado"
         mode="block"
       >
-        <div className="min-h-screen bg-black text-white pt-24 pb-12">
+        <div className="min-h-screen bg-white text-white pt-24 pb-12">
           <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Barra de Progresso */}
             {user && (
-              <div className="mb-6 bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div className="mb-6 bg-white rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold text-gray-300">Progresso do Curso</h3>
+                  <h3 className="text-sm font-semibold text-black">Progresso do Curso</h3>
                   <span className="text-sm font-bold text-green-500">{courseProgress}%</span>
                 </div>
-                <div className="w-full bg-gray-800 rounded-full h-2.5">
+                <div className="w-full bg-green-600 rounded-full h-2.5">
                   <div
                     className="bg-green-600 h-2.5 rounded-full transition-all duration-300"
                     style={{ width: `${courseProgress}%` }}
@@ -559,9 +559,9 @@ const TrilhaPage = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* --- INÍCIO DA COLUNA ESQUERDA: PLAYER DE VÍDEO E CONTEÚDO --- */}
               <div className="lg:col-span-2">
-                <Card className="bg-gray-900 border-gray-800 overflow-hidden">
+                <Card className="bg-white overflow-hidden">
                   <CardContent className="p-0">
-                    <div className="relative aspect-video bg-black group">
+                    <div className="relative aspect-video bg-white group">
                       {selectedLesson?.videoUrl ? (
                         selectedLesson.videoUrl.includes('iframe.mediadelivery.net') ? (
                           // Player Bunny.net (iframe)
@@ -638,7 +638,7 @@ const TrilhaPage = () => {
                   <h1 className="text-2xl lg:text-3xl font-bold text-white">
                     {selectedLesson?.title || "Bem-vindo!"}
                   </h1>
-                  <p className="text-gray-400 mt-4 leading-relaxed">
+                  <p className="text-black mt-4 leading-relaxed">
                     {selectedLesson?.description ||
                       "Escolha um módulo e uma aula na lista abaixo para iniciar seus estudos."}
                   </p>
@@ -648,10 +648,10 @@ const TrilhaPage = () => {
 
               {/* --- INÍCIO DA COLUNA DIREITA: SIDEBAR DE MÓDULOS --- */}
               <div className="lg:col-span-1">
-                <Card className="bg-gray-900 border-gray-800">
+                <Card className="bg-white">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-gray-100 text-lg font-semibold">
+                      <h2 className="text-black text-lg font-semibold">
                         Módulos
                       </h2>
                       {/* Botão de configurações - apenas para administradores */}
@@ -660,7 +660,7 @@ const TrilhaPage = () => {
                           onClick={() => setShowEditModules(true)}
                           className="p-2 rounded hover:bg-gray-800"
                         >
-                          <Settings className="w-5 h-5 text-gray-400 hover:text-green-500" />
+                          <Settings className="w-5 h-5 text-black hover:text-green-500" />
                         </button>
                       )}
                     </div>
@@ -669,19 +669,19 @@ const TrilhaPage = () => {
                       {modules.map((module) => (
                         <div
                           key={module.id}
-                          className="bg-gray-800/50 border border-gray-800 rounded-lg overflow-hidden"
+                          className="bg-white border border-b-gray-200 rounded-lg overflow-hidden"
                         >
                           <button
                             onClick={() => toggleModule(module.id)}
-                            className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-700/50"
+                            className="w-full flex items-center justify-between p-3 text-left hover:bg-green-100"
                           >
-                            <span className="text-gray-300 font-medium">
+                            <span className="text-black font-normal">
                               {module.title}
                             </span>
                             {expandedModules.includes(module.id) ? (
-                              <ChevronDown className="w-5 h-5 text-gray-400" />
+                              <ChevronDown className="w-5 h-5 text-black" />
                             ) : (
-                              <ChevronRight className="w-5 h-5 text-gray-400" />
+                              <ChevronRight className="w-5 h-5 text-black" />
                             )}
                           </button>
 
@@ -689,7 +689,7 @@ const TrilhaPage = () => {
                             <motion.div
                               initial={{ height: 0 }}
                               animate={{ height: "auto" }}
-                              className="border-t border-gray-700/50"
+                              className="border-t border-gray-200"
                             >
                               {module.lessons?.length > 0 ? (
                                 module.lessons.map((lesson) => (
@@ -698,11 +698,11 @@ const TrilhaPage = () => {
                                     {user && (
                                       <button
                                         onClick={() => toggleLessonCompletion(lesson.id)}
-                                        className="p-2 ml-2 text-gray-400 hover:text-green-400 transition-colors"
+                                        className="p-2 ml-2 text-black hover:text-green-400 transition-colors"
                                         title={completedLessons.includes(lesson.id) ? "Marcar como não concluída" : "Marcar como concluída"}
                                       >
                                         {completedLessons.includes(lesson.id) ? (
-                                          <CheckCircle className="w-5 h-5 text-green-500" />
+                                          <CheckCircle className="w-5 h-5 text-green-100" />
                                         ) : (
                                           <Circle className="w-5 h-5" />
                                         )}
@@ -713,8 +713,8 @@ const TrilhaPage = () => {
                                     <button
                                       onClick={() => selectLesson(lesson)}
                                       className={`flex-1 flex items-center gap-3 p-3 pl-3 text-left transition-colors ${selectedLesson?.id === lesson.id
-                                        ? "bg-green-600/20 text-green-400"
-                                        : "hover:bg-gray-700/50 text-gray-300"
+                                        ? "bg-green-600/20 text-green-800/90"
+                                        : "hover:bg-green-100 text-black"
                                         }`}
                                     >
                                       <Play

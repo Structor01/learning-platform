@@ -160,35 +160,35 @@ export const Certificate = ({ userName, courseName, completionDate, trilhaId, co
   };
 
   return (
-    <Card className="bg-gray-900 border-gray-800">
+    <Card className="bg-white border-gray-200 hover:animate-pulse">
       <CardContent className="p-6">
         <div className="flex flex-col items-center text-center">
           <div className="mb-4">
             <Award className="w-16 h-16 text-green-500" />
           </div>
 
-          <h3 className="text-2xl font-bold text-white mb-2">
+          <h3 className="text-2xl font-bold text-black mb-2">
             Parabéns! Curso Concluído
           </h3>
 
-          <p className="text-gray-400 mb-6 max-w-md">
+          <p className="text-black mb-6 max-w-md">
             Você completou todas as aulas. Seu certificado está pronto para download.
           </p>
 
           <div className="flex items-center gap-6 mb-6 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-gray-400">100% Concluído</span>
+              <span className="text-gray-600">100% Concluído</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-gray-400">Carga horária: {hours}h</span>
+              <span className="text-gray-600">Carga horária: {hours}h</span>
             </div>
           </div>
 
           <Button
             onClick={generatePDF}
-            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors"
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4 mr-2" />
             Baixar Certificado
