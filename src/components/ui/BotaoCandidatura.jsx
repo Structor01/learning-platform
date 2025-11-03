@@ -19,6 +19,9 @@ export default function BotaoCandidatura({
                     if (jaCandidatou || isSubmitting) return;
                     if (!isAuthenticated) {
                         navigate("/");
+                    } else if (vaga.external_url) {
+                        // Abrir URL externa se existir
+                        window.open(vaga.external_url, '_blank');
                     } else {
                         handleCandidatar(vaga);
                     }
@@ -27,8 +30,8 @@ export default function BotaoCandidatura({
                 className={`w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 ${jaCandidatou
                     ? "bg-green-600 cursor-default text-white"
                     : isSubmitting
-                        ? "bg-gray-600 cursor-not-allowed text-gray-300"
-                        : "bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 hover:-translate-y-0.5"
+                        ? "bg-gray-400 cursor-not-allowed text-white"
+                        : "bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-700 hover:to-green-600 hover:-translate-y-0.5"
                     }`}
             >
                 {!isAuthenticated ? (
@@ -51,7 +54,7 @@ export default function BotaoCandidatura({
                 ) : (
                     <>
                         <ExternalLink className="w-5 h-5" />
-                        Candidatar-se
+                        Ir para vaga
                     </>
                 )}
             </button>

@@ -739,7 +739,7 @@ const MinhasCandidaturasPage = () => {
   // Mostrar loading durante verificação de autenticação
   if (isLoading || loading) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-white">
         <Navbar
           currentView="candidaturas"
           onViewChange={(view) => console.log("View changed:", view)}
@@ -748,16 +748,16 @@ const MinhasCandidaturasPage = () => {
         <div className="pt-16 min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="relative mx-auto mb-8 w-16 h-16">
-              <div className="w-16 h-16 border-4 border-gray-700 border-t-orange-600 rounded-full animate-spin"></div>
+              <div className="w-16 h-16 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin"></div>
               <div
-                className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-red-500 rounded-full animate-spin"
+                className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-green-500 rounded-full animate-spin"
                 style={{ animationDirection: "reverse" }}
               ></div>
             </div>
-            <h3 className="text-xl font-semibold text-white mb-2">
+            <h3 className="text-xl font-semibold text-black mb-2">
               Carregando candidaturas
             </h3>
-            <p className="text-gray-400">Buscando suas candidaturas...</p>
+            <p className="text-gray-600">Buscando suas candidaturas...</p>
           </div>
         </div>
       </div>
@@ -765,7 +765,7 @@ const MinhasCandidaturasPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-white">
       {/* Navbar */}
       <Navbar
         currentView="candidaturas"
@@ -776,40 +776,40 @@ const MinhasCandidaturasPage = () => {
       {/* Content */}
       <div className="pt-16">
         {/* Header */}
-        <div className="bg-gray-900/80 backdrop-blur border-gray-800 shadow-lg border-b sticky top-16 z-40">
+        <div className="bg-gray-50/80 backdrop-blur border-gray-200 shadow-lg border-b sticky top-16 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => navigate("/vagas")}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-300 hover:text-white transition-colors bg-white/5 backdrop-blur-sm rounded-xl border border-white/10"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-black transition-colors bg-gray-100 backdrop-blur-sm rounded-xl border border-gray-200"
                 >
                   <ArrowLeft className="w-5 h-5" />
                   Voltar
                 </button>
 
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl">
+                  <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-600 to-green-500 rounded-xl">
                     <Briefcase className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-2xl lg:text-3xl font-bold text-white">
+                    <h1 className="text-2xl lg:text-3xl font-bold text-black">
                       Minhas Candidaturas
                     </h1>
-                    <p className="text-gray-400 text-sm lg:text-base">
+                    <p className="text-gray-600 text-sm lg:text-base">
                       Acompanhe o status das suas candidaturas
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 bg-white/5 backdrop-blur-sm rounded-full px-4 py-2 border border-white/10">
-                <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+              <div className="flex items-center gap-3 bg-gray-100 backdrop-blur-sm rounded-full px-4 py-2 border border-gray-200">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-green-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-semibold">
                     {user?.name?.charAt(0)?.toUpperCase() || "U"}
                   </span>
                 </div>
-                <span className="text-white font-medium">
+                <span className="text-black font-medium">
                   {user?.name || "Usuário"}
                 </span>
               </div>
@@ -820,26 +820,26 @@ const MinhasCandidaturasPage = () => {
         {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {error && (
-            <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg mb-6">
+            <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-6">
               {error}
             </div>
           )}
 
           {candidaturas.length === 0 ? (
             <div className="text-center py-20">
-              <div className="w-24 h-24 bg-gray-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-24 h-24 bg-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
                 <Briefcase className="w-12 h-12 text-gray-400" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">
+              <h3 className="text-2xl font-bold text-black mb-4">
                 Nenhuma candidatura encontrada
               </h3>
-              <p className="text-gray-400 max-w-md mx-auto mb-8">
+              <p className="text-gray-600 max-w-md mx-auto mb-8">
                 Você ainda não se candidatou a nenhuma vaga. Explore as
                 oportunidades disponíveis e encontre a vaga ideal para você!
               </p>
               <button
                 onClick={() => navigate("/vagas")}
-                className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium"
               >
                 Ver Vagas Disponíveis
               </button>
@@ -847,7 +847,7 @@ const MinhasCandidaturasPage = () => {
           ) : (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-white">
+                <h2 className="text-xl font-semibold text-black">
                   {candidaturas.length} candidatura
                   {candidaturas.length !== 1 ? "s" : ""} encontrada
                   {candidaturas.length !== 1 ? "s" : ""}
@@ -858,32 +858,32 @@ const MinhasCandidaturasPage = () => {
                 {candidaturas.map((candidatura) => (
                   <div
                     key={candidatura.id}
-                    className="bg-gray-900/80 backdrop-blur border-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border hover:border-gray-700 overflow-hidden"
+                    className="bg-white border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border hover:border-gray-300 overflow-hidden"
                   >
                     <div className="p-6">
                       {/* Header da candidatura */}
                       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 mb-4">
                         <div className="flex-1">
                           <div className="flex items-start gap-4">
-                            <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex-shrink-0">
+                            <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-600 to-green-500 rounded-xl flex-shrink-0">
                               <Building2 className="w-6 h-6 text-white" />
                             </div>
                             <div className="flex-1">
-                              <h3 className="text-xl font-bold text-white mb-1">
+                              <h3 className="text-xl font-bold text-black mb-1">
                                 {candidatura.vaga?.title}
                               </h3>
-                              <p className="text-lg text-orange-400 font-semibold mb-2">
+                              <p className="text-lg text-green-600 font-semibold mb-2">
                                 {candidatura.vaga?.company}
                               </p>
-                              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
+                              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                                 <div className="flex items-center gap-2">
-                                  <MapPin className="w-4 h-4 text-orange-500" />
+                                  <MapPin className="w-4 h-4 text-green-600" />
                                   <span>
                                     {candidatura.vaga?.location}-{candidatura.vaga?.state}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Clock className="w-4 h-4 text-blue-500" />
+                                  <Clock className="w-4 h-4 text-blue-600" />
                                   <span>
                                     {candidatura.vaga?.modalidade || "CLT"}
                                   </span>
@@ -891,7 +891,7 @@ const MinhasCandidaturasPage = () => {
                                 {/* Remuneração */}
                                 {candidatura.vaga?.salary_range && (
                                   <div className="flex items-center gap-2">
-                                    <div className="inline-block bg-green-900/30 border border-green-700/50 text-green-300 px-3 py-1 rounded-full text-sm font-medium">
+                                    <div className="inline-block bg-green-100 border border-green-300 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
                                       💰 {candidatura.vaga.salary_range}
                                     </div>
                                   </div>
@@ -905,7 +905,7 @@ const MinhasCandidaturasPage = () => {
                       {/* Descrição da vaga */}
                       {candidatura.vaga?.description && (
                         <div className="m-3">
-                          <p className="text-gray-300 text-sm leading-relaxed">
+                          <p className="text-gray-700 text-sm leading-relaxed">
                             {candidatura.vaga.description.length > 200
                               ? `${candidatura.vaga.description.substring(
                                 0,
@@ -917,7 +917,7 @@ const MinhasCandidaturasPage = () => {
                       )}
 
                       {/* Footer com ações */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-800">
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
                         <div className="flex items-center gap-4">
                           <div className="text-sm text-gray-500">
                             ID da candidatura: #{candidatura.id}
@@ -925,7 +925,7 @@ const MinhasCandidaturasPage = () => {
 
                           <button
                             onClick={() => buscarEmpresa(candidatura)}
-                            className="flex items-center gap-2 px-4 py-2 text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 rounded-lg transition-all duration-200"
+                            className="flex items-center gap-2 px-4 py-2 text-green-600 hover:text-green-700 hover:bg-green-100 rounded-lg transition-all duration-200"
                           >
                             <Eye className="w-4 h-4" />
                             Ver empresa
@@ -1001,22 +1001,22 @@ const MinhasCandidaturasPage = () => {
       {/* Card de Confirmação de Entrevista Finalizada */}
       {showSuccessCard && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 rounded-2xl w-full max-w-md border border-white/10 shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-md border border-gray-200 shadow-2xl">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center gap-3">
-                <div className={`p-3 rounded-lg ${successMessage.includes('Erro') ? 'bg-red-500/20' : 'bg-green-500/20'}`}>
+                <div className={`p-3 rounded-lg ${successMessage.includes('Erro') ? 'bg-red-100' : 'bg-green-100'}`}>
                   {successMessage.includes('Erro') ? (
-                    <XCircle className="w-6 h-6 text-red-400" />
+                    <XCircle className="w-6 h-6 text-red-600" />
                   ) : (
-                    <CheckCircle className="w-6 h-6 text-green-400" />
+                    <CheckCircle className="w-6 h-6 text-green-600" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-black">
                     {successMessage.includes('Erro') ? 'Erro na Entrevista' : 'Entrevista Finalizada'}
                   </h3>
-                  <p className="text-gray-400 text-sm">
+                  <p className="text-gray-600 text-sm">
                     {successMessage.includes('Erro') ? 'Ocorreu um problema' : 'Processo concluído com sucesso'}
                   </p>
                 </div>
@@ -1026,19 +1026,19 @@ const MinhasCandidaturasPage = () => {
                   setShowSuccessCard(false);
                   setSuccessMessage("");
                 }}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <X className="w-5 h-5 text-gray-400" />
+                <X className="w-5 h-5 text-gray-600" />
               </button>
             </div>
 
             {/* Conteúdo */}
             <div className="p-6">
               <div className={`p-4 rounded-lg border ${successMessage.includes('Erro')
-                ? 'bg-red-500/10 border-red-500/20'
-                : 'bg-green-500/10 border-green-500/20'
+                ? 'bg-red-50 border-red-300'
+                : 'bg-green-50 border-green-300'
                 }`}>
-                <p className={`text-sm ${successMessage.includes('Erro') ? 'text-red-300' : 'text-green-300'
+                <p className={`text-sm ${successMessage.includes('Erro') ? 'text-red-700' : 'text-green-700'
                   }`}>
                   {successMessage}
                 </p>
@@ -1046,11 +1046,11 @@ const MinhasCandidaturasPage = () => {
 
               {!successMessage.includes('Erro') && (
                 <div className="mt-4 text-center">
-                  <div className="text-gray-400 text-sm mb-3">
+                  <div className="text-gray-600 text-sm mb-3">
                     Suas respostas estão sendo processadas e analisadas por IA.
                     O status da sua candidatura será atualizado em breve.
                   </div>
-                  <div className="flex items-center justify-center gap-2 text-blue-400 text-xs">
+                  <div className="flex items-center justify-center gap-2 text-blue-600 text-xs">
                     <Loader className="w-3 h-3 animate-spin" />
                     <span>Processando análise...</span>
                   </div>

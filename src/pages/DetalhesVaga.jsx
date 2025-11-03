@@ -179,19 +179,19 @@ const DetalhesVaga = () => {
     // Mostrar loading enquanto verifica autenticação ou carrega vaga
     if (isLoading || !vaga) {
         return (
-            <div className="min-h-screen bg-black text-white flex items-center justify-center">
+            <div className="min-h-screen bg-white text-black flex items-center justify-center">
                 <div className="text-center">
                     <div className="relative mx-auto mb-4 w-12 h-12">
-                        <div className="w-12 h-12 border-4 border-gray-700 border-t-orange-600 rounded-full animate-spin"></div>
+                        <div className="w-12 h-12 border-4 border-gray-300 border-t-green-600 rounded-full animate-spin"></div>
                     </div>
-                    <p className="text-gray-400">Carregando detalhes da vaga...</p>
+                    <p className="text-gray-600">Carregando detalhes da vaga...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen bg-white text-black">
             <Navbar
                 currentView="vaga"
                 onViewChange={() => { }}
@@ -202,76 +202,103 @@ const DetalhesVaga = () => {
                 {/* Botão Voltar */}
                 <button
                     onClick={() => navigate(-1)}
-                    className="mb-8 group flex items-center gap-3 text-gray-300 hover:text-white transition-all duration-300 bg-white/5 backdrop-blur rounded-xl px-4 py-2 hover:bg-white/10 border border-white/10"
+                    className="mb-8 group flex items-center gap-3 text-gray-700 hover:text-black transition-all duration-300 bg-gray-100/50 backdrop-blur rounded-xl px-4 py-2 hover:bg-gray-200 border border-gray-200"
                 >
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
                     Voltar
                 </button>
 
                 {/* Título */}
-                <h1 className="text-3xl sm:text-4xl font-bold mb-4">
+                <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-black">
                     {vaga.title || vaga.nome}
                 </h1>
 
                 {/* Informações rápidas */}
-                <div className="flex flex-wrap gap-4 mb-8 text-gray-400">
+                <div className="flex flex-wrap gap-4 mb-8 text-gray-700">
                     <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-orange-500" />
+                        <MapPin className="w-4 h-4 text-green-600" />
                         {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
                     </div>
                     <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-blue-500" />
+                        <Clock className="w-4 h-4 text-green-600" />
                         {vaga.job_type || vaga.modalidade}
                     </div>
                     <div className="flex items-center gap-2">
-                        <Building2 className="w-4 h-4 text-green-500" />
+                        <Building2 className="w-4 h-4 text-green-600" />
                         {vaga.company || vaga.local}
                     </div>
                 </div>
 
                 {/* Descrição */}
                 {(vaga.description || vaga.descricao) && (
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-2">Descrição</h2>
-                        <p className="text-gray-300 leading-relaxed text-justify">{vaga.description || vaga.descricao}</p>
+                    <section className="mb-8 bg-white border border-gray-200 rounded-xl p-6">
+                        <h2 className="text-xl font-semibold mb-4 text-black flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                            Descrição
+                        </h2>
+                        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{(vaga.description || vaga.descricao).replace(/\\n/g, '\n')}</p>
                     </section>
                 )}
 
                 {/* Requisitos */}
                 {(vaga.requirements || vaga.criterios) && (
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-2">Requisitos</h2>
-                        <p className="text-gray-300 leading-relaxed text-justify">{vaga.requirements || vaga.criterios}</p>
+                    <section className="mb-8 bg-white border border-gray-200 rounded-xl p-6">
+                        <h2 className="text-xl font-semibold mb-4 text-black flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                            Requisitos
+                        </h2>
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap space-y-2">
+                            {(vaga.requirements || vaga.criterios).replace(/\\n/g, '\n').split('\n').map((linha, idx) =>
+                                linha.trim() ? (
+                                    <div key={idx} className="flex gap-3">
+                                        <span className="text-green-600 font-bold flex-shrink-0">•</span>
+                                        <span>{linha.trim()}</span>
+                                    </div>
+                                ) : null
+                            )}
+                        </div>
                     </section>
                 )}
 
                 {/* Benefícios */}
                 {(vaga.benefits || vaga.beneficios) && (
-                    <section className="mb-8">
-                        <h2 className="text-xl font-semibold mb-2">Benefícios</h2>
-                        <p className="text-gray-300 leading-relaxed text-justify">{vaga.benefits || vaga.beneficios}</p>
+                    <section className="mb-8 bg-white border border-gray-200 rounded-xl p-6">
+                        <h2 className="text-xl font-semibold mb-4 text-black flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                            Benefícios
+                        </h2>
+                        <div className="text-gray-700 leading-relaxed whitespace-pre-wrap space-y-2">
+                            {(vaga.benefits || vaga.beneficios).replace(/\\n/g, '\n').split('\n').map((linha, idx) =>
+                                linha.trim() ? (
+                                    <div key={idx} className="flex gap-3">
+                                        <span className="text-green-600 font-bold flex-shrink-0">✓</span>
+                                        <span>{linha.trim()}</span>
+                                    </div>
+                                ) : null
+                            )}
+                        </div>
                     </section>
                 )}
 
                 {/* Resumo */}
                 {vaga.summary && (
-                    <section className="mb-8 bg-blue-900/30 border border-blue-700/50 rounded-xl p-4">
-                        <h2 className="text-blue-400 font-semibold mb-2 flex items-center gap-2">
-                            <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                    <section className="mb-8 bg-green-50 border border-green-200 rounded-xl p-4">
+                        <h2 className="text-green-700 font-semibold mb-2 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-600 rounded-full"></span>
                             Resumo
                         </h2>
-                        <p className="text-blue-300">{vaga.summary}</p>
+                        <p className="text-green-800 whitespace-pre-wrap">{vaga.summary.replace(/\\n/g, '\n')}</p>
                     </section>
                 )}
 
                 {/* Remuneração */}
                 {(vaga.salary_range || vaga.remuneracao) && (
-                    <section className="mb-8 bg-green-900/30 border border-green-700/50 rounded-xl p-4">
-                        <h2 className="text-green-400 font-semibold mb-2 flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                    <section className="mb-8 bg-green-50 border border-green-200 rounded-xl p-4">
+                        <h2 className="text-green-700 font-semibold mb-2 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-600 rounded-full"></span>
                             Remuneração
                         </h2>
-                        <p className="text-green-300">{vaga.salary_range || vaga.remuneracao}</p>
+                        <p className="text-green-800 whitespace-pre-wrap">{(vaga.salary_range || vaga.remuneracao).replace(/\\n/g, '\n')}</p>
                     </section>
                 )}
 

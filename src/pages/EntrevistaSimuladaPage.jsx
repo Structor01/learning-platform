@@ -27,15 +27,15 @@ const Toast = ({ message, type, isVisible, onClose }) => {
   const getToastStyles = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-900 border-green-700 text-green-100';
+        return 'bg-brand-primary-50 border-brand-primary-200 text-brand-primary-800';
       case 'error':
-        return 'bg-red-900 border-red-700 text-red-100';
+        return 'bg-red-50 border-brand-status-error/30 text-brand-status-error';
       case 'warning':
-        return 'bg-yellow-900 border-yellow-700 text-yellow-100';
+        return 'bg-brand-status-warning/10 border-brand-status-warning/30 text-brand-status-warning';
       case 'info':
-        return 'bg-blue-900 border-blue-700 text-blue-100';
+        return 'bg-brand-status-info/10 border-brand-status-info/30 text-brand-status-info';
       default:
-        return 'bg-gray-900 border-gray-700 text-gray-100';
+        return 'bg-brand-neutral-100 border-brand-neutral-300 text-brand-neutral-800';
     }
   };
 
@@ -64,7 +64,7 @@ const Toast = ({ message, type, isVisible, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 flex-shrink-0 text-lg font-bold transition-colors hover:bg-gray-700 rounded-full w-6 h-6 flex items-center justify-center"
+            className="text-brand-neutral-600 hover:text-brand-neutral-800 flex-shrink-0 text-lg font-bold transition-colors hover:bg-brand-neutral-200 rounded-full w-6 h-6 flex items-center justify-center"
           >
             ×
           </button>
@@ -81,10 +81,10 @@ const RelatorioModal = ({ isOpen, onClose, relatorioData, carregando }) => {
   if (carregando) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-        <div className="bg-gray-900 rounded-2xl p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-white text-lg">Gerando relatório com IA...</p>
-          <p className="text-gray-400 text-sm mt-2">Isso pode levar alguns segundos</p>
+        <div className="bg-white rounded-2xl p-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary-600 mx-auto mb-4"></div>
+          <p className="text-brand-text text-lg">Gerando relatório com IA...</p>
+          <p className="text-brand-neutral-600 text-sm mt-2">Isso pode levar alguns segundos</p>
         </div>
       </div>
     );
@@ -96,35 +96,35 @@ const RelatorioModal = ({ isOpen, onClose, relatorioData, carregando }) => {
 
   const getRecommendationColor = (recommendation) => {
     switch (recommendation?.toLowerCase()) {
-      case 'contratar': return 'bg-green-500';
-      case 'avaliar': return 'bg-yellow-500';
-      case 'não contratar': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case 'contratar': return 'bg-brand-primary-500';
+      case 'avaliar': return 'bg-brand-status-warning';
+      case 'não contratar': return 'bg-brand-status-error';
+      default: return 'bg-brand-neutral-500';
     }
   };
 
   const getScoreColor = (score) => {
-    if (score >= 8) return 'text-green-400';
-    if (score >= 6) return 'text-yellow-400';
-    return 'text-red-400';
+    if (score >= 8) return 'text-brand-primary-600';
+    if (score >= 6) return 'text-brand-status-warning';
+    return 'text-brand-status-error';
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-700">
+        <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-2xl font-bold text-white flex items-center">
+            <h2 className="text-2xl font-bold text-black flex items-center">
               📊 Relatório da Mock Interview
             </h2>
-            <p className="text-gray-400 mt-1">
+            <p className="text-gray-600 mt-1">
               Gerado em {new Date(report.timestamp).toLocaleString('pt-BR')}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white text-3xl font-bold transition-colors"
+            className="text-gray-600 hover:text-black text-3xl font-bold transition-colors"
           >
             ×
           </button>
@@ -132,25 +132,25 @@ const RelatorioModal = ({ isOpen, onClose, relatorioData, carregando }) => {
 
         <div className="p-6 space-y-6">
           {/* Informações Gerais */}
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+          <div className="bg-gray-50 rounded-xl p-6">
+            <h3 className="text-xl font-semibold text-black mb-4 flex items-center">
               📋 Informações Gerais
             </h3>
-            <div className="grid md:grid-cols-2 gap-4 text-gray-300">
+            <div className="grid md:grid-cols-2 gap-4 text-gray-700">
               <div>
-                <p><strong className="text-purple-400">Vaga:</strong> {vaga?.nome}</p>
-                <p><strong className="text-purple-400">Empresa:</strong> {vaga?.empresa}</p>
+                <p><strong className="text-green-600">Vaga:</strong> {vaga?.nome}</p>
+                <p><strong className="text-green-600">Empresa:</strong> {vaga?.empresa}</p>
               </div>
               <div>
-                <p><strong className="text-purple-400">Candidato:</strong> {report.candidateName}</p>
-                <p><strong className="text-purple-400">Perguntas:</strong> {report.completedQuestions}</p>
+                <p><strong className="text-green-600">Candidato:</strong> {report.candidateName}</p>
+                <p><strong className="text-green-600">Perguntas:</strong> {report.completedQuestions}</p>
               </div>
             </div>
           </div>
 
           {/* Pontuação */}
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+          <div className="bg-gray-50 rounded-xl p-6">
+            <h3 className="text-xl font-semibold text-black mb-4 flex items-center">
               🎯 Performance
             </h3>
             <div className="flex items-center justify-center space-x-8">
@@ -158,74 +158,74 @@ const RelatorioModal = ({ isOpen, onClose, relatorioData, carregando }) => {
                 <div className={`text-6xl font-bold ${getScoreColor(report.overallScore)}`}>
                   {report.overallScore}
                 </div>
-                <p className="text-gray-400 mt-2">Nota Geral</p>
+                <p className="text-gray-600 mt-2">Nota Geral</p>
               </div>
               <div className="text-center">
                 <div className={`${getRecommendationColor(report.recommendation)} text-white px-6 py-3 rounded-full font-bold text-lg`}>
                   {report.recommendation}
                 </div>
-                <p className="text-gray-400 mt-2">Recomendação</p>
+                <p className="text-gray-600 mt-2">Recomendação</p>
               </div>
             </div>
           </div>
 
           {/* Resumo */}
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+          <div className="bg-gray-50 rounded-xl p-6">
+            <h3 className="text-xl font-semibold text-black mb-4 flex items-center">
               📝 Resumo Executivo
             </h3>
-            <p className="text-gray-300 leading-relaxed">{report.summary}</p>
+            <p className="text-gray-700 leading-relaxed">{report.summary}</p>
           </div>
 
           {/* Análise por Pergunta */}
           {report.questions && report.questions.length > 0 && (
-            <div className="bg-gray-800 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-6 flex items-center">
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="text-xl font-semibold text-black mb-6 flex items-center">
                 🔍 Análise Detalhada por Pergunta
               </h3>
               <div className="space-y-6">
                 {report.questions.map((q, index) => (
-                  <div key={index} className="border border-gray-600 rounded-lg p-4 bg-gray-700/50">
+                  <div key={index} className="border border-gray-300 rounded-lg p-4 bg-gray-50">
                     {/* Pergunta */}
-                    <div className="mb-4 pb-4 border-b border-gray-600">
-                      <h4 className="text-lg font-semibold text-purple-300">
+                    <div className="mb-4 pb-4 border-b border-gray-300">
+                      <h4 className="text-lg font-semibold text-green-700">
                         Pergunta {index + 1}
                       </h4>
-                      <p className="text-gray-200 mt-2 italic">{q.question}</p>
+                      <p className="text-gray-800 mt-2 italic">{q.question}</p>
                     </div>
 
                     {/* Grid com Resposta e Análise */}
                     <div className="grid md:grid-cols-2 gap-4">
                       {/* Coluna Esquerda: Resposta */}
                       <div>
-                        <h5 className="text-sm font-semibold text-green-400 mb-2">📝 Resposta do Candidato</h5>
-                        <p className="text-gray-300 text-sm leading-relaxed bg-gray-800/50 p-3 rounded border border-gray-600">
+                        <h5 className="text-sm font-semibold text-green-600 mb-2">📝 Resposta do Candidato</h5>
+                        <p className="text-gray-700 text-sm leading-relaxed bg-white p-3 rounded border border-gray-300">
                           {q.transcription}
                         </p>
                       </div>
 
                       {/* Coluna Direita: Análise */}
                       <div>
-                        <h5 className="text-sm font-semibold text-blue-400 mb-2">🧠 Análise da IA</h5>
+                        <h5 className="text-sm font-semibold text-blue-600 mb-2">🧠 Análise da IA</h5>
                         <div className="space-y-3 text-sm">
                           {/* Score */}
-                          <div className="bg-gray-800/50 p-3 rounded border border-gray-600">
-                            <p className="text-gray-400">Score:</p>
-                            <p className={`text-2xl font-bold ${q.analysis?.score >= 8 ? 'text-green-400' : q.analysis?.score >= 6 ? 'text-yellow-400' : 'text-red-400'}`}>
+                          <div className="bg-white p-3 rounded border border-gray-300">
+                            <p className="text-gray-600">Score:</p>
+                            <p className={`text-2xl font-bold ${q.analysis?.score >= 8 ? 'text-green-600' : q.analysis?.score >= 6 ? 'text-yellow-600' : 'text-red-600'}`}>
                               {q.analysis?.score || 0}/10
                             </p>
                           </div>
 
                           {/* Recomendação */}
-                          <div className="bg-gray-800/50 p-3 rounded border border-gray-600">
-                            <p className="text-gray-400 text-xs">Recomendação:</p>
-                            <p className="text-white font-semibold">{q.analysis?.recommendation || 'N/A'}</p>
+                          <div className="bg-white p-3 rounded border border-gray-300">
+                            <p className="text-gray-600 text-xs">Recomendação:</p>
+                            <p className="text-black font-semibold">{q.analysis?.recommendation || 'N/A'}</p>
                           </div>
 
                           {/* Job Fit */}
-                          <div className="bg-gray-800/50 p-3 rounded border border-gray-600">
-                            <p className="text-gray-400 text-xs">Adequação à Vaga:</p>
-                            <p className="text-white font-semibold">{q.analysis?.jobFit || 'N/A'}</p>
+                          <div className="bg-white p-3 rounded border border-gray-300">
+                            <p className="text-gray-600 text-xs">Adequação à Vaga:</p>
+                            <p className="text-black font-semibold">{q.analysis?.jobFit || 'N/A'}</p>
                           </div>
                         </div>
                       </div>
@@ -233,10 +233,10 @@ const RelatorioModal = ({ isOpen, onClose, relatorioData, carregando }) => {
 
                     {/* Análise Completa */}
                     {q.analysis?.fullAnalysis && (
-                      <div className="mt-4 pt-4 border-t border-gray-600">
-                        <h5 className="text-sm font-semibold text-cyan-400 mb-2">📊 Análise Completa</h5>
-                        <div className="bg-gray-800/50 p-3 rounded border border-gray-600 max-h-64 overflow-y-auto">
-                          <pre className="text-gray-300 whitespace-pre-wrap font-sans text-xs leading-relaxed">
+                      <div className="mt-4 pt-4 border-t border-gray-300">
+                        <h5 className="text-sm font-semibold text-blue-700 mb-2">📊 Análise Completa</h5>
+                        <div className="bg-white p-3 rounded border border-gray-300 max-h-64 overflow-y-auto">
+                          <pre className="text-gray-700 whitespace-pre-wrap font-sans text-xs leading-relaxed">
                             {q.analysis.fullAnalysis}
                           </pre>
                         </div>
@@ -250,12 +250,12 @@ const RelatorioModal = ({ isOpen, onClose, relatorioData, carregando }) => {
 
           {/* Análise Detalhada Geral */}
           {report.detailedAnalysis && (
-            <div className="bg-gray-800 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
+            <div className="bg-gray-50 rounded-xl p-6">
+              <h3 className="text-xl font-semibold text-black mb-4 flex items-center">
                 📋 Parecer Geral
               </h3>
-              <div className="bg-gray-700 rounded-lg p-4">
-                <pre className="text-gray-300 whitespace-pre-wrap font-sans leading-relaxed">
+              <div className="bg-white rounded-lg p-4 border border-gray-300">
+                <pre className="text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
                   {report.detailedAnalysis}
                 </pre>
               </div>
@@ -264,10 +264,10 @@ const RelatorioModal = ({ isOpen, onClose, relatorioData, carregando }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-center p-6 border-t border-gray-700">
+        <div className="flex justify-center p-6 border-t border-gray-200">
           <button
             onClick={onClose}
-            className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl transition-colors"
+            className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors"
           >
             Fechar Relatório
           </button>
@@ -879,7 +879,7 @@ const EntrevistaSimuladaPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-white text-black">
       <Navbar />
       {/* <PremiumFeature
         feature={PREMIUM_FEATURES.ENTREVISTA_SIMULADA}
@@ -913,7 +913,7 @@ const EntrevistaSimuladaPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 mt-14">
           {/* Header */}
           <div className="text-center mb-8 sm:mb-12">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
               <Video className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Entrevista Simulada</h1>
@@ -963,28 +963,28 @@ const EntrevistaSimuladaPage = () => {
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {vagasTeste.map((vaga) => (
-                    <div key={vaga.id} className="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-gray-700 transition-colors">
+                    <div key={vaga.id} className="bg-white rounded-xl p-6 border border-gray-300 hover:border-gray-200 transition-colors">
                       <div className="mb-4">
                         <h3 className="text-xl font-semibold mb-2">{vaga.nome}</h3>
-                        <p className="text-purple-400 font-medium mb-1">{vaga.empresa}</p>
-                        <p className="text-gray-400 text-sm">{vaga.cidade}/{vaga.uf}</p>
+                        <p className="text-green-900 font-black mb-1">{vaga.empresa}</p>
+                        <p className="text-gray-700 text-sm">{vaga.cidade}/{vaga.uf}</p>
                       </div>
 
                       <div className="mb-6">
-                        <p className="text-gray-300 text-sm mb-4 line-clamp-3">{vaga.descricao}</p>
+                        <p className="text-gray-500 text-sm mb-4 line-clamp-3">{vaga.descricao}</p>
 
                         <div className="space-y-2">
                           {vaga.remuneracao && (
-                            <div className="flex items-center justify-between py-2 px-3 bg-gray-800 rounded-lg">
-                              <span className="text-sm text-gray-400">Remuneração:</span>
-                              <span className="text-green-400 font-medium text-sm">{vaga.remuneracao}</span>
+                            <div className="flex items-center justify-between py-2 px-3 bg-white rounded-lg">
+                              <span className="text-sm text-gray-900">Remuneração:</span>
+                              <span className="text-green-700 font-bold text-sm">{vaga.remuneracao}</span>
                             </div>
                           )}
 
                           {vaga.beneficios && (
-                            <div className="py-2 px-3 bg-gray-800 rounded-lg">
-                              <span className="text-sm text-gray-400">Benefícios:</span>
-                              <p className="text-gray-300 text-sm mt-1">{vaga.beneficios}</p>
+                            <div className="py-2 px-3 bg-white rounded-lg">
+                              <span className="text-sm text-black">Benefícios:</span>
+                              <p className="text-gray-600 text-sm mt-1">{vaga.beneficios}</p>
                             </div>
                           )}
                         </div>
@@ -1010,7 +1010,7 @@ const EntrevistaSimuladaPage = () => {
                         disabled={loading}
                         className={`w-full px-4 py-3 rounded-lg transition-colors font-medium ${hasCompletedInterview(vaga.id)
                           ? 'bg-green-600 hover:bg-green-700 text-white'
-                          : 'bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white'
+                          : 'bg-green-800 disabled:bg-gray-600 text-white cursor-pointer'
                           }`}
                       >
                         {hasCompletedInterview(vaga.id)

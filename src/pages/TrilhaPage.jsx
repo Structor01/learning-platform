@@ -519,7 +519,7 @@ const TrilhaPage = () => {
         upgradeMessage="Faça upgrade para Premium e tenha acesso completo a todas as trilhas de aprendizado"
         mode="block"
       >
-        <div className="min-h-screen bg-white text-white pt-24 pb-12">
+        <div className="min-h-screen bg-white text-black pt-24 pb-12">
           <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Barra de Progresso */}
             {user && (
@@ -528,7 +528,7 @@ const TrilhaPage = () => {
                   <h3 className="text-sm font-semibold text-black">Progresso do Curso</h3>
                   <span className="text-sm font-bold text-green-500">{courseProgress}%</span>
                 </div>
-                <div className="w-full bg-green-600 rounded-full h-2.5">
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
                     className="bg-green-600 h-2.5 rounded-full transition-all duration-300"
                     style={{ width: `${courseProgress}%` }}
@@ -623,7 +623,7 @@ const TrilhaPage = () => {
                           </>
                         )
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
                           <p className="text-gray-500">
                             Selecione uma aula para começar a assistir.
                           </p>
@@ -634,14 +634,25 @@ const TrilhaPage = () => {
                 </Card>
 
                 {/* Informações da Aula */}
-                <div className="mt-6 px-1">
-                  <h1 className="text-2xl lg:text-3xl font-bold text-white">
+                <div className="mt-6 px-1 bg-white border border-gray-200 rounded-xl p-6">
+                  <h1 className="text-2xl lg:text-3xl font-bold text-black">
                     {selectedLesson?.title || "Bem-vindo!"}
                   </h1>
-                  <p className="text-black mt-4 leading-relaxed">
-                    {selectedLesson?.description ||
-                      "Escolha um módulo e uma aula na lista abaixo para iniciar seus estudos."}
-                  </p>
+                  <div className="text-black mt-4 leading-relaxed whitespace-pre-wrap space-y-3">
+                    {selectedLesson?.description ? (
+                      selectedLesson.description.replace(/\\n/g, '\n').split('\n').map((line, idx) =>
+                        line.trim() ? (
+                          <p key={idx} className="text-gray-700">
+                            {line.trim()}
+                          </p>
+                        ) : null
+                      )
+                    ) : (
+                      <p className="text-gray-600 italic">
+                        Escolha um módulo e uma aula na lista abaixo para iniciar seus estudos.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
               {/* --- FIM DA COLUNA ESQUERDA --- */}
@@ -658,9 +669,9 @@ const TrilhaPage = () => {
                       {isAdmin && (
                         <button
                           onClick={() => setShowEditModules(true)}
-                          className="p-2 rounded hover:bg-gray-800"
+                          className="p-2 rounded hover:bg-gray-100"
                         >
-                          <Settings className="w-5 h-5 text-black hover:text-green-500" />
+                          <Settings className="w-5 h-5 text-black hover:text-green-600" />
                         </button>
                       )}
                     </div>
@@ -733,7 +744,7 @@ const TrilhaPage = () => {
                                       <>
                                         <button
                                           onClick={() => handleEditLesson(lesson)}
-                                          className="p-2 mr-1 text-gray-400 hover:text-blue-400 transition-colors"
+                                          className="p-2 mr-1 text-gray-400 hover:text-green-600 transition-colors"
                                           title="Editar aula"
                                         >
                                           <Edit2 className="w-4 h-4" />
@@ -741,7 +752,7 @@ const TrilhaPage = () => {
 
                                         <button
                                           onClick={() => handleDeleteLesson(lesson)}
-                                          className="p-2 mr-2 text-gray-400 hover:text-red-400 transition-colors"
+                                          className="p-2 mr-2 text-gray-400 hover:text-green-600 transition-colors"
                                           title="Deletar aula"
                                         >
                                           <Trash className="w-4 h-4" />

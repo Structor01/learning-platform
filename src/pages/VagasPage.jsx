@@ -366,7 +366,7 @@ const VagasPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-white">
         <Navbar
           currentView="vagas"
           onViewChange={(view) => console.log("View changed:", view)}
@@ -377,16 +377,16 @@ const VagasPage = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
             <div className="text-center">
               <div className="relative mx-auto mb-8 w-16 h-16">
-                <div className="w-16 h-16 border-4 border-gray-700 border-t-orange-600 rounded-full animate-spin"></div>
+                <div className="w-16 h-16 border-4 border-gray-300 border-t-green-600 rounded-full animate-spin"></div>
                 <div
-                  className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-red-500 rounded-full animate-spin"
+                  className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-green-500 rounded-full animate-spin"
                   style={{ animationDirection: "reverse" }}
                 ></div>
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className="text-xl font-semibold text-black mb-2">
                 Carregando vagas
               </h3>
-              <p className="text-gray-400">
+              <p className="text-gray-600">
                 Buscando todas as oportunidades disponíveis...
               </p>
             </div>
@@ -397,7 +397,7 @@ const VagasPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-white">
       <Navbar
         currentView="vagas"
         onViewChange={(view) => console.log("View changed:", view)}
@@ -407,31 +407,31 @@ const VagasPage = () => {
       <main className="pt-16">
         {/* Hero Section */}
         <section className="relative overflow-hidden">
-          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black relative">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-l from-purple-500/10 to-blue-500/10 rounded-full blur-3xl"></div>
+          <div className="bg-gradient-to-br from-gray-50 via-gray-100 to-white relative">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-r from-green-500/10 to-green-400/10 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-l from-green-500/5 to-green-400/5 rounded-full blur-3xl"></div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 relative z-10">
               <div className="text-center space-y-6 lg:space-y-8 mb-12">
                 <div className="space-y-4">
-                  <div className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm rounded-full px-4 py-2 border border-orange-500/20">
-                    <Briefcase className="w-5 h-5 text-orange-400" />
-                    <span className="text-orange-200 font-medium text-sm">
+                  <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-500/10 to-green-400/10 backdrop-blur-sm rounded-full px-4 py-2 border border-green-500/30">
+                    <Briefcase className="w-5 h-5 text-green-600" />
+                    <span className="text-green-700 font-medium text-sm">
                       Oportunidades de Carreira
                     </span>
                   </div>
 
-                  <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-black leading-tight">
                     Todas as Vagas
                   </h1>
 
-                  <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
+                  <p className="text-lg sm:text-xl text-gray-700 leading-relaxed max-w-3xl mx-auto">
                     Explore todas as oportunidades disponíveis e encontre a vaga
                     ideal para sua carreira no agronegócio
                   </p>
                 </div>
 
-                <div className="bg-orange-600/20 text-orange-400 px-6 py-3 rounded-full border border-orange-600/30 inline-flex items-center gap-2">
+                <div className="bg-green-500/10 text-green-700 px-6 py-3 rounded-full border border-green-500/30 inline-flex items-center gap-2">
                   <Briefcase className="w-5 h-5" />
                   <span className="font-semibold">
                     {vagasFiltradas.length} vaga
@@ -446,16 +446,16 @@ const VagasPage = () => {
 
         {/* Filtros e Busca */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-gray-900/80 backdrop-blur border-gray-800 rounded-2xl shadow-lg p-6 border">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-lg p-6">
             {/* Barra de busca */}
             <div className="relative mb-6">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
               <input
                 type="text"
                 placeholder="Buscar por título, descrição ou empresa..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-300 rounded-xl text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
 
@@ -463,7 +463,7 @@ const VagasPage = () => {
             <div className="flex items-center justify-between mb-4">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-black rounded-lg hover:bg-gray-200 transition-colors"
               >
                 <Filter className="w-4 h-4" />
                 Filtros
@@ -478,7 +478,7 @@ const VagasPage = () => {
               {(selectedEmpresa || selectedCidade || selectedModalidade) && (
                 <button
                   onClick={clearFilters}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-black transition-colors"
                 >
                   <X className="w-4 h-4" />
                   Limpar filtros
@@ -488,15 +488,15 @@ const VagasPage = () => {
 
             {/* Filtros expandidos */}
             {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-800">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     Empresa
                   </label>
                   <select
                     value={selectedEmpresa}
                     onChange={(e) => setSelectedEmpresa(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     <option value="">Todas as empresas</option>
                     {empresas.map((empresa) => (
@@ -508,13 +508,13 @@ const VagasPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     Cidade
                   </label>
                   <select
                     value={selectedCidade}
                     onChange={(e) => setSelectedCidade(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     <option value="">Todas as cidades</option>
                     {cidades.map((cidade) => (
@@ -526,13 +526,13 @@ const VagasPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-black mb-2">
                     Modalidade
                   </label>
                   <select
                     value={selectedModalidade}
                     onChange={(e) => setSelectedModalidade(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     <option value="">Todas as modalidades</option>
                     {modalidades.map((modalidade) => (
@@ -555,7 +555,7 @@ const VagasPage = () => {
           {/* Informações da página atual */}
           {vagasFiltradas.length > 0 && (
             <div className="mb-6 text-center">
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-600 text-sm">
                 Mostrando {indiceInicial + 1} -{" "}
                 {Math.min(indiceFinal, vagasFiltradas.length)} de{" "}
                 {vagasFiltradas.length} vagas
@@ -574,38 +574,38 @@ const VagasPage = () => {
                 {vagasPaginadas.map((vaga) => (
                   <article
                     key={vaga.id}
-                    className="bg-gray-900/80 backdrop-blur border-gray-800 rounded-2xl sm:rounded-3xl shadow-lg p-6 sm:p-8 hover:bg-gray-800/80 transition-all duration-300 border hover:border-gray-700"
+                    className="bg-white border border-gray-200 rounded-2xl sm:rounded-3xl shadow-lg p-6 sm:p-8 hover:bg-gray-50 transition-all duration-300 hover:border-gray-300"
                   >
                     <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
                       <div className="flex-1 min-w-0">
                         <header className="mb-6">
                           <div className="flex items-start justify-between gap-4 mb-4">
-                            <h3 className="text-xl sm:text-2xl font-bold text-white line-clamp-2 flex-1">
+                            <h3 className="text-xl sm:text-2xl font-bold text-black line-clamp-2 flex-1">
                               {vaga.title || vaga.nome}
                             </h3>
                             <button
                               onClick={() =>
                                 navigate(`/empresa/${vaga.empresa_id}`)
                               }
-                              className="bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-300 px-3 py-1 rounded-full text-sm font-medium hover:from-orange-500/30 hover:to-red-500/30 transition-all duration-200 border border-orange-500/20 hover:border-orange-500/30 flex-shrink-0"
+                              className="bg-gradient-to-r from-green-500/10 to-green-400/10 text-green-700 px-3 py-1 rounded-full text-sm font-medium hover:from-green-500/20 hover:to-green-400/20 transition-all duration-200 border border-green-500/30 hover:border-green-500/40 flex-shrink-0"
                             >
                               {getEmpresaName(vaga.empresa_id)}
                             </button>
                           </div>
 
                           <div className="flex flex-wrap gap-3 sm:gap-4">
-                            <div className="flex items-center gap-2 text-sm text-gray-400">
-                              <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                              <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
                               <span>
                                 {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
                               </span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-400">
-                              <Clock className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                              <Clock className="w-4 h-4 text-green-600 flex-shrink-0" />
                               <span>{vaga.job_type || vaga.modalidade}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-gray-400">
-                              <Building2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                              <Building2 className="w-4 h-4 text-green-600 flex-shrink-0" />
                               <span>{vaga.company || vaga.local}</span>
                             </div>
                           </div>
@@ -614,7 +614,7 @@ const VagasPage = () => {
                         {/* Prévia da descrição */}
                         {(vaga.description || vaga.descricao) && (
                           <div className="mb-4">
-                            <p className="text-gray-300 leading-relaxed line-clamp-3">
+                            <p className="text-gray-700 leading-relaxed line-clamp-3">
                               {vaga.description || vaga.descricao}
                             </p>
                           </div>
@@ -652,7 +652,7 @@ const VagasPage = () => {
                         {/* Botão de detalhes - Sempre aparece */}
                         <button
                           onClick={() => navigate(`/vagas/${vaga.id}`)}
-                          className="w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:-translate-y-0.5"
+                          className="w-full px-6 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center justify-center gap-2 bg-gradient-to-r from-green-600 to-green-500 text-white hover:from-green-700 hover:to-green-600 hover:-translate-y-0.5"
                         >
                           <ExternalLink className="w-5 h-5" />
                           Detalhes
@@ -674,8 +674,8 @@ const VagasPage = () => {
                       disabled={currentPage === 1}
                       className={`p-2 rounded-lg transition-all duration-200 ${
                         currentPage === 1
-                          ? "text-gray-600 cursor-not-allowed"
-                          : "text-gray-400 hover:text-white hover:bg-gray-800"
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-gray-600 hover:text-black hover:bg-gray-200"
                       }`}
                     >
                       <ChevronLeft className="w-5 h-5" />
@@ -692,8 +692,8 @@ const VagasPage = () => {
                               onClick={() => handlePageChange(pageNum)}
                               className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                                 currentPage === pageNum
-                                  ? "bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg"
-                                  : "text-gray-400 hover:text-white hover:bg-gray-800"
+                                  ? "bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg"
+                                  : "text-gray-600 hover:text-black hover:bg-gray-200"
                               }`}
                             >
                               {pageNum}
@@ -709,8 +709,8 @@ const VagasPage = () => {
                       disabled={currentPage === totalPaginas}
                       className={`p-2 rounded-lg transition-all duration-200 ${
                         currentPage === totalPaginas
-                          ? "text-gray-600 cursor-not-allowed"
-                          : "text-gray-400 hover:text-white hover:bg-gray-800"
+                          ? "text-gray-400 cursor-not-allowed"
+                          : "text-gray-600 hover:text-black hover:bg-gray-200"
                       }`}
                     >
                       <ChevronRight className="w-5 h-5" />
@@ -718,7 +718,7 @@ const VagasPage = () => {
                   </div>
 
                   {/* Navegação rápida */}
-                  <div className="flex items-center space-x-4 text-sm text-gray-400">
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <span>Ir para página:</span>
                     <div className="flex items-center space-x-2">
                       <input
@@ -732,7 +732,7 @@ const VagasPage = () => {
                             handlePageChange(pagina);
                           }
                         }}
-                        className="w-16 px-2 py-1 bg-gray-800 border border-gray-700 rounded text-white text-center focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        className="w-16 px-2 py-1 bg-gray-50 border border-gray-300 rounded text-black text-center focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
                       <span className="text-gray-500">de {totalPaginas}</span>
                     </div>
@@ -742,10 +742,10 @@ const VagasPage = () => {
             </>
           ) : (
             <div className="text-center py-16 sm:py-20">
-              <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-800 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <Briefcase className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400" />
+              <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-200 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto mb-6">
+                <Briefcase className="w-8 h-8 sm:w-12 sm:h-12 text-gray-500" />
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold text-white mb-4">
+              <h3 className="text-xl sm:text-2xl font-bold text-black mb-4">
                 {searchTerm ||
                 selectedEmpresa ||
                 selectedCidade ||
@@ -753,7 +753,7 @@ const VagasPage = () => {
                   ? "Nenhuma vaga encontrada"
                   : "Nenhuma vaga disponível"}
               </h3>
-              <p className="text-gray-400 max-w-md mx-auto mb-8 px-4">
+              <p className="text-gray-700 max-w-md mx-auto mb-8 px-4">
                 {searchTerm ||
                 selectedEmpresa ||
                 selectedCidade ||
@@ -767,7 +767,7 @@ const VagasPage = () => {
                 selectedModalidade) && (
                 <button
                   onClick={clearFilters}
-                  className="px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium flex items-center gap-2 mx-auto"
+                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium flex items-center gap-2 mx-auto"
                 >
                   <X className="w-4 h-4" />
                   Limpar filtros

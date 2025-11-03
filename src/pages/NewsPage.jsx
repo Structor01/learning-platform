@@ -370,25 +370,25 @@ const NewsPage = () => {
 
                     {/* Paginação */}
                     {totalPages > 1 && (
-                        <div className="mt-12 flex flex-col items-center space-y-4">
-                            <div className="flex items-center justify-center space-x-2">
+                        <div className="mt-8 sm:mt-12 flex flex-col items-center space-y-3 sm:space-y-4 px-4 sm:px-0">
+                            <div className="flex items-center justify-center space-x-1 sm:space-x-2 overflow-x-auto pb-2 sm:pb-0">
                                 <button
                                     onClick={handlePreviousPage}
                                     disabled={currentPage === 1}
-                                    className={`p-2 rounded-lg transition-all duration-200 ${currentPage === 1
+                                    className={`p-2 rounded-lg transition-all duration-200 flex-shrink-0 ${currentPage === 1
                                         ? 'text-gray-400 cursor-not-allowed'
                                         : 'text-gray-700 hover:text-green-600 hover:bg-green-50'
                                         }`}
                                 >
-                                    <ChevronLeft className="w-5 h-5" />
+                                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                                 </button>
 
-                                <div className="flex items-center space-x-1">
-                                    {Array.from({ length: Math.min(10, totalPages) }, (_, i) => i + 1).map((pageNum) => (
+                                <div className="flex items-center space-x-0.5 sm:space-x-1 flex-shrink-0">
+                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => i + 1).map((pageNum) => (
                                         <button
                                             key={pageNum}
                                             onClick={() => handlePageChange(pageNum)}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${currentPage === pageNum
+                                            className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex-shrink-0 ${currentPage === pageNum
                                                 ? 'bg-green-600 text-white shadow-lg'
                                                 : 'text-gray-700 hover:text-green-600 hover:bg-green-50'
                                                 }`}
@@ -396,21 +396,35 @@ const NewsPage = () => {
                                             {pageNum}
                                         </button>
                                     ))}
+                                    {totalPages > 5 && (
+                                        <span className="text-gray-500 text-xs sm:text-sm flex-shrink-0 px-1">...</span>
+                                    )}
+                                    {totalPages > 5 && (
+                                        <button
+                                            onClick={() => handlePageChange(totalPages)}
+                                            className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 flex-shrink-0 ${currentPage === totalPages
+                                                ? 'bg-green-600 text-white shadow-lg'
+                                                : 'text-gray-700 hover:text-green-600 hover:bg-green-50'
+                                                }`}
+                                        >
+                                            {totalPages}
+                                        </button>
+                                    )}
                                 </div>
 
                                 <button
                                     onClick={handleNextPage}
                                     disabled={currentPage === totalPages}
-                                    className={`p-2 rounded-lg transition-all duration-200 ${currentPage === totalPages
+                                    className={`p-2 rounded-lg transition-all duration-200 flex-shrink-0 ${currentPage === totalPages
                                         ? 'text-gray-400 cursor-not-allowed'
                                         : 'text-gray-700 hover:text-green-600 hover:bg-green-50'
                                         }`}
                                 >
-                                    <ChevronRight className="w-5 h-5" />
+                                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                                 </button>
                             </div>
 
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">
                                 Página {currentPage} de {totalPages}
                             </p>
                         </div>

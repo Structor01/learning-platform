@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Video, 
-  VideoOff, 
-  Mic, 
-  MicOff, 
-  Play, 
-  Square, 
+import {
+  Video,
+  VideoOff,
+  Mic,
+  MicOff,
+  Play,
+  Square,
   Download,
   Camera,
   Settings,
@@ -22,7 +22,7 @@ const EntrevistaSimuladaPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
-  
+
   // Estados para gravação de vídeo
   const [stream, setStream] = useState(null);
   const [mediaRecorder, setMediaRecorder] = useState(null);
@@ -32,7 +32,7 @@ const EntrevistaSimuladaPage = () => {
   const [micEnabled, setMicEnabled] = useState(true);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isPreparingCamera, setIsPreparingCamera] = useState(false);
-  
+
   const videoRef = useRef(null);
   const recordingInterval = useRef(null);
 
@@ -101,10 +101,10 @@ const EntrevistaSimuladaPage = () => {
         },
         audio: micEnabled
       });
-      
+
       setStream(mediaStream);
       setCameraEnabled(true);
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
@@ -174,7 +174,7 @@ const EntrevistaSimuladaPage = () => {
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop();
       setIsRecording(false);
-      
+
       if (recordingInterval.current) {
         clearInterval(recordingInterval.current);
       }
@@ -258,7 +258,7 @@ const EntrevistaSimuladaPage = () => {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-black text-white pt-20">
+      <div className="min-h-screen bg-white text-white pt-20">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
           <motion.div
@@ -284,7 +284,7 @@ const EntrevistaSimuladaPage = () => {
             >
               <div className="bg-gray-900 rounded-2xl p-8">
                 <h2 className="text-2xl font-bold mb-8 text-center">Configure sua Entrevista</h2>
-                
+
                 {/* Area Selection */}
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold mb-4">Escolha a Área:</h3>
@@ -293,11 +293,10 @@ const EntrevistaSimuladaPage = () => {
                       <button
                         key={area.id}
                         onClick={() => setSelectedArea(area.id)}
-                        className={`p-4 rounded-xl border-2 transition-all duration-300 ${
-                          selectedArea === area.id
+                        className={`p-4 rounded-xl border-2 transition-all duration-300 ${selectedArea === area.id
                             ? 'border-purple-500 bg-purple-500/20'
                             : 'border-gray-700 hover:border-gray-600'
-                        }`}
+                          }`}
                       >
                         <div className="text-3xl mb-2">{area.icon}</div>
                         <div className="font-semibold">{area.name}</div>
@@ -314,11 +313,10 @@ const EntrevistaSimuladaPage = () => {
                       <button
                         key={level.id}
                         onClick={() => setSelectedLevel(level.id)}
-                        className={`p-4 rounded-xl border-2 text-left transition-all duration-300 ${
-                          selectedLevel === level.id
+                        className={`p-4 rounded-xl border-2 text-left transition-all duration-300 ${selectedLevel === level.id
                             ? 'border-purple-500 bg-purple-500/20'
                             : 'border-gray-700 hover:border-gray-600'
-                        }`}
+                          }`}
                       >
                         <div className="font-semibold mb-1">{level.name}</div>
                         <div className="text-sm text-gray-400">{level.description}</div>
@@ -332,11 +330,10 @@ const EntrevistaSimuladaPage = () => {
                   <button
                     onClick={startInterview}
                     disabled={!selectedArea || !selectedLevel}
-                    className={`px-8 py-4 rounded-xl font-semibold transition-all duration-300 ${
-                      selectedArea && selectedLevel
+                    className={`px-8 py-4 rounded-xl font-semibold transition-all duration-300 ${selectedArea && selectedLevel
                         ? 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white'
                         : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                    }`}
+                      }`}
                   >
                     🎬 Iniciar Entrevista
                   </button>
@@ -364,7 +361,7 @@ const EntrevistaSimuladaPage = () => {
                     </span>
                   </div>
                   <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div 
+                    <div
                       className="bg-purple-500 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${((currentQuestion + 1) / currentQuestions.length) * 100}%` }}
                     ></div>
@@ -376,7 +373,7 @@ const EntrevistaSimuladaPage = () => {
                   <h3 className="text-2xl font-semibold mb-6">
                     {currentQuestions[currentQuestion]}
                   </h3>
-                  
+
                   {/* Video Recording Section */}
                   <div className="grid lg:grid-cols-2 gap-6 mb-6">
                     {/* Camera Preview */}
@@ -411,7 +408,7 @@ const EntrevistaSimuladaPage = () => {
                             </div>
                           </div>
                         )}
-                        
+
                         {/* Recording Indicator */}
                         {isRecording && (
                           <div className="absolute top-4 left-4 flex items-center bg-red-600 px-3 py-1 rounded-full">
@@ -419,7 +416,7 @@ const EntrevistaSimuladaPage = () => {
                             <span className="text-white text-sm font-medium">REC</span>
                           </div>
                         )}
-                        
+
                         {/* Recording Time */}
                         {isRecording && (
                           <div className="absolute top-4 right-4 bg-black bg-opacity-50 px-3 py-1 rounded-lg">
@@ -430,34 +427,32 @@ const EntrevistaSimuladaPage = () => {
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Camera Controls */}
                       <div className="flex justify-center space-x-4">
                         <button
                           onClick={toggleMic}
-                          className={`p-3 rounded-full transition-colors ${
-                            micEnabled 
-                              ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                          className={`p-3 rounded-full transition-colors ${micEnabled
+                              ? 'bg-gray-700 hover:bg-gray-600 text-white'
                               : 'bg-red-600 hover:bg-red-700 text-white'
-                          }`}
+                            }`}
                           disabled={!cameraEnabled}
                         >
                           {micEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
                         </button>
-                        
+
                         <button
                           onClick={cameraEnabled ? stopCamera : initializeCamera}
-                          className={`p-3 rounded-full transition-colors ${
-                            cameraEnabled 
-                              ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                          className={`p-3 rounded-full transition-colors ${cameraEnabled
+                              ? 'bg-gray-700 hover:bg-gray-600 text-white'
                               : 'bg-purple-600 hover:bg-purple-700 text-white'
-                          }`}
+                            }`}
                         >
                           {cameraEnabled ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
                         </button>
                       </div>
                     </div>
-                    
+
                     {/* Recording Controls and Playback */}
                     <div className="bg-gray-800 rounded-xl p-4">
                       <div className="text-center mb-4">
@@ -466,19 +461,18 @@ const EntrevistaSimuladaPage = () => {
                           {isRecording ? 'Gravando sua resposta...' : 'Clique para começar a gravar'}
                         </p>
                       </div>
-                      
+
                       {/* Main Recording Button */}
                       <div className="flex justify-center mb-6">
                         <button
                           onClick={isRecording ? stopRecording : startRecording}
                           disabled={!cameraEnabled}
-                          className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${
-                            isRecording 
-                              ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+                          className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${isRecording
+                              ? 'bg-red-500 hover:bg-red-600 animate-pulse'
                               : cameraEnabled
                                 ? 'bg-purple-500 hover:bg-purple-600'
                                 : 'bg-gray-600 cursor-not-allowed'
-                          }`}
+                            }`}
                         >
                           {isRecording ? (
                             <Square className="h-8 w-8 text-white" />
@@ -487,7 +481,7 @@ const EntrevistaSimuladaPage = () => {
                           )}
                         </button>
                       </div>
-                      
+
                       {/* Recording Status */}
                       {isRecording && (
                         <div className="text-center mb-4">
@@ -495,7 +489,7 @@ const EntrevistaSimuladaPage = () => {
                             {formatTime(recordingTime)}
                           </div>
                           <div className="w-full bg-gray-700 rounded-full h-2">
-                            <div 
+                            <div
                               className="bg-red-500 h-2 rounded-full transition-all duration-1000"
                               style={{ width: `${Math.min((recordingTime / 120) * 100, 100)}%` }}
                             ></div>
@@ -503,7 +497,7 @@ const EntrevistaSimuladaPage = () => {
                           <p className="text-xs text-gray-400 mt-1">Máximo: 2 minutos</p>
                         </div>
                       )}
-                      
+
                       {/* Video Playback */}
                       {videoUrl && !isRecording && (
                         <div className="mb-4">
