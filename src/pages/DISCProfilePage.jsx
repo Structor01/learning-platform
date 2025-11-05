@@ -12,7 +12,7 @@ import { useNotification } from '@/components/ui/Notification';
 
 
 const DISCProfilePage = () => {
-  const { user, PREMIUM_FEATURES, canAccessFeature } = useAuth();
+  const { user, PREMIUM_FEATURES, canAccessFeatureAsync } = useAuth();
   const { showNotification, NotificationComponent } = useNotification();
   const navigate = useNavigate();
   const [disc, setDiscProfile] = useState(null);
@@ -24,6 +24,7 @@ const DISCProfilePage = () => {
   const [tests, setTests] = useState([]); // Lista de testes do usuário
   const [selectedTestId, setSelectedTestId] = useState(null); // Teste selecionado
   const [showReport, setShowReport] = useState(false); // Só mostra relatório se teste selecionado
+  const [hasPremiumAccess, setHasPremiumAccess] = useState(false); // Verificar acesso premium em tempo real
 
   // Funções auxiliares para DISC (mantidas do seu código original)
   const getDiscName = (type) => {
@@ -854,6 +855,16 @@ const DISCProfilePage = () => {
     loadUserTests();
   }, [user?.id]);
 
+  // Verificar acesso premium em tempo real
+  useEffect(() => {
+    const checkPremiumAccess = async () => {
+      const hasAccess = await canAccessFeatureAsync(PREMIUM_FEATURES.DISC_RELATORIO);
+      setHasPremiumAccess(hasAccess);
+    };
+
+    checkPremiumAccess();
+  }, [canAccessFeatureAsync, PREMIUM_FEATURES]);
+
   // Método auxiliar para extrair tipo DISC do perfil textual
   const extractDiscType = (perfilDisc) => {
     if (!perfilDisc) return 'D';
@@ -1189,7 +1200,7 @@ const DISCProfilePage = () => {
             {selectedTestId && (
               <button
                 onClick={() => {
-                  if (!canAccessFeature(PREMIUM_FEATURES.DISC_RELATORIO)) {
+                  if (!hasPremiumAccess) {
                     showNotification({
                       type: 'warning',
                       title: 'Recurso Premium',
@@ -1201,18 +1212,18 @@ const DISCProfilePage = () => {
                   handleDownloadPDF();
                 }}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                  canAccessFeature(PREMIUM_FEATURES.DISC_RELATORIO)
+                  hasPremiumAccess
                     ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg'
                     : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md hover:shadow-lg relative overflow-hidden'
                 }`}
-                title={!canAccessFeature(PREMIUM_FEATURES.DISC_RELATORIO) ? 'Recurso Premium - Clique para saber mais' : 'Baixar PDF do relatório'}
+                title={!hasPremiumAccess ? 'Recurso Premium - Clique para saber mais' : 'Baixar PDF do relatório'}
               >
-                {!canAccessFeature(PREMIUM_FEATURES.DISC_RELATORIO) && (
+                {!hasPremiumAccess && (
                   <Lock className="w-4 h-4 animate-pulse" />
                 )}
                 <Download className="w-4 h-4" />
                 <span className="hidden sm:inline">
-                  {canAccessFeature(PREMIUM_FEATURES.DISC_RELATORIO) ? 'Baixar PDF' : 'PDF Premium'}
+                  {hasPremiumAccess ? 'Baixar PDF' : 'PDF Premium'}
                 </span>
               </button>
             )}

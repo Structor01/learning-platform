@@ -8,6 +8,7 @@ import Navbar from '../components/ui/Navbar';
 import BotaoCandidatura from '../components/ui/BotaoCandidatura';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../components/ui/Notification';
+import { decodeVaga } from '../components/utils/htmlDecode';
 
 // Função helper para obter o token
 const getAuthHeader = () => {
@@ -31,10 +32,12 @@ const DetalhesVaga = () => {
             try {
                 console.log('🔍 Buscando detalhes da vaga:', vagaId);
                 console.log('🌐 URL:', `${API_URL}/api/recruitment/jobs/${vagaId}`);
-                
+
                 const response = await axios.get(`${API_URL}/api/recruitment/jobs/${vagaId}`);
                 console.log('✅ Vaga carregada:', response.data);
-                setVaga(response.data);
+                // Decodificar HTML entities na vaga
+                const vagaDecodificada = decodeVaga(response.data);
+                setVaga(vagaDecodificada);
             } catch (error) {
                 console.error('❌ Erro ao buscar detalhes da vaga:', error);
                 console.error('📡 Status:', error.response?.status);

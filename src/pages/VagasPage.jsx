@@ -24,6 +24,7 @@ import { useNotification } from "../components/ui/Notification";
 import BotaoCandidatura from "../components/ui/BotaoCandidatura";
 import BotaoInteresse from "../components/ui/BotaoInteresse";
 import { Heart } from "lucide-react"; // Adicione o Heart nos imports do lucide-react
+import { decodeVagas } from "../components/utils/htmlDecode";
 
 const VagasPage = () => {
   const navigate = useNavigate();
@@ -67,7 +68,9 @@ const VagasPage = () => {
           `${API_URL}/api/recruitment/jobs`
         );
         console.log("✅ Vagas carregadas:", vagasResponse.data);
-        setVagas(vagasResponse.data);
+        // Decodificar HTML entities nas vagas
+        const vagasDecodificadas = decodeVagas(vagasResponse.data);
+        setVagas(vagasDecodificadas);
 
         // Buscar todas as empresas
         console.log("🏢 Buscando empresas:", `${API_URL}/api/companies`);

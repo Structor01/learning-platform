@@ -3,12 +3,12 @@ import { Heart } from 'lucide-react';
 import axios from 'axios';
 import { API_URL } from '../utils/api';
 
-const BotaoInteresse = ({ 
-    vaga, 
-    isAuthenticated, 
+const BotaoInteresse = ({
+    vaga,
+    isAuthenticated,
     user,
     onLoginRequired,
-    showNotification 
+    showNotification
 }) => {
     const [temInteresse, setTemInteresse] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +55,7 @@ const BotaoInteresse = ({
                         headers: { Authorization: `Bearer ${token}` }
                     }
                 );
-                
+
                 setTemInteresse(false);
                 showNotification({
                     type: 'success',
@@ -72,7 +72,7 @@ const BotaoInteresse = ({
                         headers: { Authorization: `Bearer ${token}` }
                     }
                 );
-                
+
                 setTemInteresse(true);
                 showNotification({
                     type: 'success',
@@ -83,7 +83,7 @@ const BotaoInteresse = ({
             }
         } catch (error) {
             console.error('Erro ao toggle interesse:', error);
-            
+
             if (error.response?.status === 400) {
                 showNotification({
                     type: 'error',
@@ -123,31 +123,31 @@ const BotaoInteresse = ({
             disabled={isLoading}
             className={`
                 group relative p-3 rounded-xl transition-all duration-300 
-                ${temInteresse 
-                    ? 'bg-red-500/20 hover:bg-red-500/30 border border-red-500/30' 
-                    : 'bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700'
+                ${temInteresse
+                    ? 'bg-green-500 hover:bg-red-500/30 border border-red-500/30'
+                    : 'bg-white hover:bg-green-700/50 border border-gray-700'
                 }
                 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
             `}
             title={temInteresse ? 'Remover dos interesses' : 'Adicionar aos interesses'}
         >
-            <Heart 
+            <Heart
                 className={`
                     w-6 h-6 transition-all duration-300
-                    ${temInteresse 
-                        ? 'text-red-500 fill-red-500 scale-110' 
-                        : 'text-gray-400 group-hover:text-red-400 group-hover:scale-110'
+                    ${temInteresse
+                        ? 'text-white fill-green-500 scale-110'
+                        : 'text-gray-400 group-hover:text-red-600 group-hover:scale-110'
                     }
                 `}
             />
-            
+
             {/* Tooltip */}
             <span className={`
                 absolute -top-10 left-1/2 -translate-x-1/2 
                 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg
                 opacity-0 group-hover:opacity-100 transition-opacity duration-200
                 pointer-events-none whitespace-nowrap z-10
-                ${temInteresse ? 'bg-red-900' : ''}
+                ${temInteresse ? 'bg-red-700' : ''}
             `}>
                 {temInteresse ? 'Remover interesse' : 'Salvar vaga'}
             </span>

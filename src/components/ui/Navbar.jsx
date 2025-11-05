@@ -67,7 +67,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
   const predominant = userData.discProfile?.predominant ?? "—";
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black text-white shadow-lg">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-green-700 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -277,7 +277,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
 
         {/* Menu Mobile - Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-700 bg-black">
+          <div className="md:hidden border-t border-white bg-green-700">
             <div className="px-2 pt-2 pb-3 space-y-1">
               <a
                 href="/dashboard"
@@ -325,7 +325,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                     className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Meus interesses
+                    Minhas Vagas
                   </a>
                   <a
                     href="/entrevista-simulada"
