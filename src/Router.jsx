@@ -36,6 +36,7 @@ import TrilhaPreviewModal from "./components/ui/TrilhaPreviewModal";
 import TrilhasForm from "./components/ui/TrilhasForm";
 import VideoUpload from "./components/ui/VideoUpload";
 import NewsPage from "./pages/NewsPage";
+import EventosPage from "./pages/EventosPage"
 
 const getApiUrl = () => {
   // Se estiver em produção (hostname não é localhost)
@@ -228,6 +229,8 @@ export function Router() {
 
         {/* Página de notícias */}
         <Route path="/news" element={<NewsPage />} />
+
+        <Route path="/eventos" element={<EventosPage />} />
 
         {/* Página pública do chat */}
         <Route path="/chat" element={<PublicChatPage />} />
