@@ -2077,7 +2077,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
               {/* Agenda de Eventos */}
               <Card
-                onClick={() => handleAppClick("Agenda de Eventos")}
+                onClick={() => navigate("/eventos")}
                 className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer"
               >
                 <CardContent className="p-4 text-center">
