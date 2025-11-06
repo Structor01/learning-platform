@@ -152,11 +152,11 @@ const LoginPage = () => {
           <CardContent className="p-6 sm:p-8">
             {/* Cabeçalho */}
             <div className="text-center mb-10">
-              <div className="w-20 h-20 bg-gradient-to-br from-white to-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+              <div className="w-30 h-30 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
                 <img
-                  src="/1.png"
+                  src="/logo re.png"
                   alt="Logo da empresa"
-                  className="w-12 h-12 object-contain"
+                  className="w-56 h-56 object-contain"
                 />
               </div>
               <h1 className="text-3xl font-bold text-white mb-3 tracking-tight">AgroSkills</h1>
