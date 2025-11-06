@@ -220,7 +220,10 @@ const DetalhesVaga = () => {
                 <div className="flex flex-wrap gap-4 mb-8 text-gray-700">
                     <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-green-600" />
-                        {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
+                        <span>
+                            {vaga.location ||
+                                (vaga.cidade && vaga.uf ? `${vaga.cidade}, ${vaga.uf}` : vaga.local || 'Não informado')}
+                        </span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-green-600" />
