@@ -19,12 +19,6 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Debug logs
-  console.log("🔍 NAVBAR - user:", user);
-  console.log("🔍 NAVBAR - getUserType():", getUserType());
-  console.log("🔍 NAVBAR - isCompany():", isCompany());
-  console.log("🔍 NAVBAR - isCandidate():", isCandidate());
-
   // Dados padrão para quando user for undefined
   const userData = user || {
     name: "Usuário Não Logado",
@@ -119,7 +113,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
             <div className="items-center space-x-4" style={{ display: window.innerWidth >= 768 ? 'flex' : 'none' }}>
               <a
                 href="/dashboard"
-                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                className="text-white hover:text-white transition-colors text-sm font-medium"
               >
                 Dashboard
               </a>
@@ -149,27 +143,33 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                 <>
                   <a
                     href="/vagas"
-                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                    className="text-white hover:text-white transition-colors text-sm font-medium"
                   >
                     Vagas
                   </a>
                   <a
                     href="/meus-interesses"
-                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                    className="text-white hover:text-white transition-colors text-sm font-medium"
                   >
                     Meus interesses
                   </a>
                   <a
                     href="/entrevista-simulada"
-                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium section-entrevista"
+                    className="text-white hover:text-white transition-colors text-sm font-medium section-entrevista"
                   >
                     Entrevistas Simuladas
                   </a>
                   <a
                     href="/news"
-                    className="text-gray-300 hover:text-white transition-colors text-sm font-medium section-entrevista"
+                    className="text-white hover:text-white transition-colors text-sm font-medium section-entrevista"
                   >
                     Notícias do Agro
+                  </a>
+                  <a
+                    href="/eventos"
+                    className="text-white hover:text-white transition-colors text-sm font-medium section-entrevista"
+                  >
+                    Eventos
                   </a>
                 </>
               )}
@@ -183,7 +183,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="text-gray-300 hover:text-white transition-colors text-sm px-3 py-2"
+                      className="text-white hover:text-white transition-colors text-sm px-3 py-2"
                     >
                       <Settings className="mr-2 h-4 w-4" />
                       Administrador
