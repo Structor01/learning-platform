@@ -471,9 +471,8 @@ const VagasPage = () => {
                 <Filter className="w-4 h-4" />
                 Filtros
                 <ChevronDown
-                  className={`w-4 h-4 transition-transform ${
-                    showFilters ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 
@@ -600,15 +599,17 @@ const VagasPage = () => {
                             <div className="flex items-center gap-2 text-sm text-gray-700">
                               <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
                               <span>
-                                {vaga.location || `${vaga.cidade}, ${vaga.uf}`}
+                                {vaga.location ||
+                                  (vaga.cidade && vaga.uf ? `${vaga.cidade}, ${vaga.uf}` : vaga.local || 'Local não informado')}
                               </span>
+
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-700">
                               <Clock className="w-4 h-4 text-green-600 flex-shrink-0" />
                               <span>{vaga.job_type || vaga.modalidade}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-700">
-                              <Building2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                              <Building2 className="w-4 h-4 text-red-500 flex-shrink-0" />
                               <span>{vaga.company || vaga.local}</span>
                             </div>
                           </div>
@@ -675,11 +676,10 @@ const VagasPage = () => {
                     <button
                       onClick={handlePreviousPage}
                       disabled={currentPage === 1}
-                      className={`p-2 rounded-lg transition-all duration-200 ${
-                        currentPage === 1
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-gray-600 hover:text-black hover:bg-gray-200"
-                      }`}
+                      className={`p-2 rounded-lg transition-all duration-200 ${currentPage === 1
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-600 hover:text-black hover:bg-gray-200"
+                        }`}
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
@@ -693,11 +693,10 @@ const VagasPage = () => {
                           ) : (
                             <button
                               onClick={() => handlePageChange(pageNum)}
-                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                currentPage === pageNum
-                                  ? "bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg"
-                                  : "text-gray-600 hover:text-black hover:bg-gray-200"
-                              }`}
+                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${currentPage === pageNum
+                                ? "bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg"
+                                : "text-gray-600 hover:text-black hover:bg-gray-200"
+                                }`}
                             >
                               {pageNum}
                             </button>
@@ -710,11 +709,10 @@ const VagasPage = () => {
                     <button
                       onClick={handleNextPage}
                       disabled={currentPage === totalPaginas}
-                      className={`p-2 rounded-lg transition-all duration-200 ${
-                        currentPage === totalPaginas
-                          ? "text-gray-400 cursor-not-allowed"
-                          : "text-gray-600 hover:text-black hover:bg-gray-200"
-                      }`}
+                      className={`p-2 rounded-lg transition-all duration-200 ${currentPage === totalPaginas
+                        ? "text-gray-400 cursor-not-allowed"
+                        : "text-gray-600 hover:text-black hover:bg-gray-200"
+                        }`}
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
@@ -750,17 +748,17 @@ const VagasPage = () => {
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-black mb-4">
                 {searchTerm ||
-                selectedEmpresa ||
-                selectedCidade ||
-                selectedModalidade
+                  selectedEmpresa ||
+                  selectedCidade ||
+                  selectedModalidade
                   ? "Nenhuma vaga encontrada"
                   : "Nenhuma vaga disponível"}
               </h3>
               <p className="text-gray-700 max-w-md mx-auto mb-8 px-4">
                 {searchTerm ||
-                selectedEmpresa ||
-                selectedCidade ||
-                selectedModalidade
+                  selectedEmpresa ||
+                  selectedCidade ||
+                  selectedModalidade
                   ? "Tente ajustar os filtros ou buscar por outros termos."
                   : "Não há vagas cadastradas no momento. Volte em breve para verificar novas oportunidades."}
               </p>
@@ -768,14 +766,14 @@ const VagasPage = () => {
                 selectedEmpresa ||
                 selectedCidade ||
                 selectedModalidade) && (
-                <button
-                  onClick={clearFilters}
-                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium flex items-center gap-2 mx-auto"
-                >
-                  <X className="w-4 h-4" />
-                  Limpar filtros
-                </button>
-              )}
+                  <button
+                    onClick={clearFilters}
+                    className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium flex items-center gap-2 mx-auto"
+                  >
+                    <X className="w-4 h-4" />
+                    Limpar filtros
+                  </button>
+                )}
             </div>
           )}
         </section>
