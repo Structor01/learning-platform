@@ -271,7 +271,8 @@ export function Router() {
         {/* Dashboard da empresa */}
         <Route path="/dashboard-empresa" element={<PrivateRoute><CompanyDashboard /></PrivateRoute>} />
 
-        {/* Página da trilha */}
+        {/* Página da trilha - Trilha 3 (Autoconhecimento) é gratuita */}
+        <Route path="/trilha/3" element={<TrilhaPage />} />
         <Route path="/trilha/:id" element={<PrivateRoute><TrilhaPage /></PrivateRoute>} />
 
         {/* Páginas dos Aplicativos - TODAS PROTEGIDAS */}

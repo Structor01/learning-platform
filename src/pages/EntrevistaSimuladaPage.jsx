@@ -881,11 +881,11 @@ const EntrevistaSimuladaPage = () => {
   return (
     <div className="min-h-screen bg-white text-black">
       <Navbar />
-      {/* <PremiumFeature
+      <PremiumFeature
         feature={PREMIUM_FEATURES.ENTREVISTA_SIMULADA}
         upgradeMessage="Faça upgrade para Premium e tenha acesso ilimitado a entrevistas simuladas"
         mode="block"
-      > */}
+      >
       <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         {/* Toast de Notificação */}
         <Toast
@@ -1391,7 +1391,7 @@ const EntrevistaSimuladaPage = () => {
           )}
         </div>
       </div>
-      {/* </PremiumFeature> */}
+      </PremiumFeature>
     </div >
   );
 };

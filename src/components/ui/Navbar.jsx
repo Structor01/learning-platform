@@ -14,10 +14,18 @@ import { Search, User, LogOut, Settings, Briefcase, Menu, X } from "lucide-react
 import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
-  const { user, logout, isAuthenticated, getUserType, isCandidate, isCompany } = useAuth();
+  const { user, logout, isAuthenticated, getUserType, isCandidate, isCompany, isPremium } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleEntrevistaClick = (e) => {
+    if (!isPremium()) {
+      e.preventDefault();
+      navigate("/entrevista-simulada");
+      return;
+    }
+  };
 
   // Dados padrão para quando user for undefined
   const userData = user || {
@@ -62,16 +70,16 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-green-700 text-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 p-2">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <button
             onClick={handleLogoClick}
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+            <div className="w-20 h-20 bg-green-700 rounded-full flex items-center justify-center">
               <img
-                src="/2.png"
+                src="/5.png"
                 alt="Logo da empresa"
                 className="w-full h-full object-contain"
               />
@@ -155,6 +163,7 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                   </a>
                   <a
                     href="/entrevista-simulada"
+                    onClick={handleEntrevistaClick}
                     className="text-white hover:text-white transition-colors text-sm font-medium section-entrevista"
                   >
                     Entrevistas Simuladas
@@ -330,7 +339,12 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                   <a
                     href="/entrevista-simulada"
                     className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={(e) => {
+                      handleEntrevistaClick(e);
+                      if (!e.defaultPrevented) {
+                        setMobileMenuOpen(false);
+                      }
+                    }}
                   >
                     Entrevistas Simuladas
                   </a>
@@ -340,6 +354,13 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Notícias do Agro
+                  </a>
+                  <a
+                    href="/eventos"
+                    className="text-gray-300 hover:text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Eventos
                   </a>
                 </>
               )}

@@ -34,6 +34,8 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   const [loadingVagas, setLoadingVagas] = useState(true);
   const [noticiasRecentes, setNoticiasRecentes] = useState([]);
   const [loadingNoticias, setLoadingNoticias] = useState(true);
+  const [eventosRecentes, setEventosRecentes] = useState([]);
+  const [loadingEventos, setLoadingEventos] = useState(true);
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   const [showInterviewPrompt, setShowInterviewPrompt] = useState(false);
   const [hasCompletedInterview, setHasCompletedInterview] = useState(false);
@@ -192,8 +194,82 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       }
     };
 
+    const fetchEventosRecentes = async () => {
+      try {
+        setLoadingEventos(true);
+        setEventosRecentes([]);
+
+        const response = await axios.get(`${API_URL}/api/events`, {
+          params: {
+            page: 1,
+            limit: 6
+          }
+        });
+
+        // A API retorna um array direto de eventos
+        if (Array.isArray(response.data)) {
+          // Normalizar os campos da API
+          const normalizedEventos = response.data.map(item => ({
+            ...item,
+            titulo: item.nome || item.title || 'Sem título',
+            descricao: item.descricao || item.description || '',
+            imagemUrl: item.imagem || item.imagemUrl || item.image || '',
+            dataEvento: item.data || item.dataEvento || item.date || item.createdAt,
+            horario: item.horario || item.time || '',
+            local: item.local || item.location || '',
+            tipo: item.tipo || item.type || 'Geral',
+            link: item.link || ''
+          }));
+
+          // Ordenar por data (futuros primeiro)
+          const eventosOrdenados = normalizedEventos.sort((a, b) => {
+            const dataA = new Date(a.dataEvento || 0);
+            const dataB = new Date(b.dataEvento || 0);
+            const agora = new Date();
+
+            const aEFuturo = dataA >= agora;
+            const bEFuturo = dataB >= agora;
+
+            if (aEFuturo !== bEFuturo) {
+              return aEFuturo ? -1 : 1;
+            }
+
+            if (aEFuturo && bEFuturo) {
+              return dataA - dataB;
+            }
+
+            return dataB - dataA;
+          });
+
+          setEventosRecentes(eventosOrdenados);
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          const normalizedEventos = response.data.data.map(item => ({
+            ...item,
+            titulo: item.nome || item.title || 'Sem título',
+            descricao: item.descricao || item.description || '',
+            imagemUrl: item.imagem || item.imagemUrl || item.image || '',
+            dataEvento: item.data || item.dataEvento || item.date || item.createdAt,
+            horario: item.horario || item.time || '',
+            local: item.local || item.location || '',
+            tipo: item.tipo || item.type || 'Geral',
+            link: item.link || ''
+          }));
+
+          setEventosRecentes(normalizedEventos);
+        }
+      } catch (error) {
+        console.warn('Erro ao buscar eventos:', error.message);
+        setEventosRecentes([]);
+      } finally {
+        setLoadingEventos(false);
+      }
+    };
+
     // Delay para evitar chamadas simultâneas
-    const timeoutId = setTimeout(fetchNoticiasRecentes, 200);
+    const timeoutId = setTimeout(() => {
+      fetchNoticiasRecentes();
+      fetchEventosRecentes();
+    }, 200);
     return () => clearTimeout(timeoutId);
   }, [accessToken]);
 
@@ -1847,6 +1923,115 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                   onClick={() => navigate("/news")}
                 >
                   Explorar Notícias
+                </Button>
+              </div>
+            )}
+
+          </section>
+
+          {/* Eventos */}
+          <section className="mb-12 eventos-section">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-black">
+                Próximos Eventos
+              </h2>
+              <Button
+                variant="ghost"
+                className="text-gray-800 hover:text-black"
+                onClick={() => navigate("/eventos")}
+              >
+                Ver todos os eventos
+              </Button>
+            </div>
+
+            {loadingEventos ? (
+              <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
+                {[...Array(5)].map((_, index) => (
+                  <Card
+                    key={index}
+                    className="bg-white border-gray-200 animate-pulse"
+                  >
+                    <CardContent className="p-6">
+                      <div className="w-full h-40 bg-gray-200 rounded-lg mb-4"></div>
+                      <div className="h-5 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-3"></div>
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : eventosRecentes.filter(e => e.titulo !== 'Sem título').length > 0 ? (
+              <div className="grid grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3 xl:!grid-cols-5 gap-4">
+                {eventosRecentes
+                  .filter(e => e.titulo !== 'Sem título')
+                  .slice(0, 5)
+                  .map((evento) => (
+                    <Card
+                      key={evento.id}
+                      onClick={() => evento.link && window.open(evento.link, '_blank')}
+                      className="bg-white border-gray-200 hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 cursor-pointer overflow-hidden flex flex-col h-[500px]"
+                    >
+                      {evento.imagemUrl && (
+                        <div className="w-full h-40 bg-gray-200 overflow-hidden">
+                          <img
+                            src={evento.imagemUrl}
+                            alt={evento.titulo}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      <CardContent className="p-6 flex flex-col flex-grow">
+                        <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg mb-4">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+
+                        <h3 className="text-lg font-semibold text-black mb-2 line-clamp-2">
+                          {evento.titulo}
+                        </h3>
+
+                        <p className="text-gray-600 text-sm mb-3 line-clamp-2 flex-grow">
+                          {evento.descricao}
+                        </p>
+
+                        <div className="space-y-2 mt-auto">
+                          {evento.dataEvento && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <Clock className="w-3 h-3" />
+                              <span>
+                                {new Date(evento.dataEvento).toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
+                          )}
+                          {evento.local && (
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate">{evento.local}</span>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p className="text-gray-600">
+                  Nenhum evento disponível no momento
+                </p>
+                <Button
+                  size="sm"
+                  className="mt-4 bg-green-600 hover:bg-green-700"
+                  onClick={() => navigate("/eventos")}
+                >
+                  Explorar Eventos
                 </Button>
               </div>
             )}
