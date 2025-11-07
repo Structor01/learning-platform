@@ -2,14 +2,19 @@
 import { useState, useCallback } from 'react';
 import discApiService from '@/services/discApi';
 import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/lib/api';
+
 
 export interface DiscQuestion {
   id: number;
-  text: string;
-  options: {
-    id: string;
-    text: string;
-  }[];
+  question_number: number;
+  question_text: string;
+  question_type: string;
+  dimension: string;
+  options: Record<string, string>;
+  scoring_weights: Record<string, Record<string, number>>;
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface DiscAnswer {
@@ -23,23 +28,47 @@ export const useDiscTest = () => {
   const [error, setError] = useState<string | null>(null);
 
   const getQuestions = useCallback(async (): Promise<DiscQuestion[]> => {
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    setLoading(true);
+    setError(null);
 
-      const questions = await discApiService.getQuestions();
-      console.log('✅ Perguntas do DISC carregadas:', questions);
+    const response = await api("api/tests/questions");
 
-      return questions;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar perguntas';
-      console.error('❌ Erro ao carregar perguntas:', err);
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    return response;  
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar perguntas';
+    console.error('❌ Erro ao carregar perguntas:', err);
+    setError(errorMessage);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
+
+const saveTestAnswers = useCallback(async (testResultData: any) => {
+  try {
+    setLoading(true);
+    setError(null);
+
+    console.log('🔍 Salvando resultado completo do teste:', testResultData);
+    
+    const response = await api("api/tests/results", {  
+      method: 'POST',
+      body: JSON.stringify(testResultData),
+    });
+
+    console.log('✅ Resultado salvo com sucesso:', response);
+    return response;
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Erro ao salvar resultado';
+    console.error('❌ Erro ao salvar resultado:', err);
+    setError(errorMessage);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const submitTest = useCallback(async (answers: DiscAnswer[]) => {
     if (!user?.id) {
@@ -121,6 +150,7 @@ export const useDiscTest = () => {
   return {
     getQuestions,
     submitTest,
+    saveTestAnswers,
     getUserResult,
     checkCompletion,
     loading,

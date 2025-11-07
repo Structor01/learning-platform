@@ -1,3 +1,5 @@
+// avaliar porque praticamente nada aki vai ser usado
+
 import { API_URL } from '@/components/utils/api';
 
 class DiscApiService {
@@ -6,7 +8,6 @@ class DiscApiService {
   constructor() {
     this.baseURL = `${API_URL}/api/disc`;
     console.log(`[DiscApiService] API_URL: ${API_URL}`);
-    console.log(`[DiscApiService] BaseURL: ${this.baseURL}`);
   }
 
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -21,7 +22,6 @@ class DiscApiService {
 
     console.log(`[DiscApiService] Fazendo requisição para: ${url}`);
     console.log(`[DiscApiService] Method: ${config.method || 'GET'}`);
-    console.log(`[DiscApiService] BaseURL: ${this.baseURL}`);
     const response = await fetch(url, config);
 
     if (!response.ok) {
