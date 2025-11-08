@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import testService from '@/services/testService';
+import testService from '@/services/testDiscService/testService';
 
 /**
  * Hook personalizado para validar se o usuário pode realizar entrevista

@@ -1,6 +1,7 @@
 // avaliar porque praticamente nada aki vai ser usado
 
 import { API_URL } from '@/components/utils/api';
+import { api } from '@/lib/api';
 
 class DiscApiService {
   private baseURL: string;
@@ -81,7 +82,7 @@ class DiscApiService {
    */
   async getUserDISCTests(userId: number): Promise<any[]> {
     try {
-      return await this.makeRequest<any[]>(`/user/${userId}/tests`);
+      return await api(`/api/tests/results/user/${userId}`);
     } catch (error) {
       console.error('Erro ao buscar testes DISC:', error);
       return [];

@@ -1,6 +1,6 @@
 // src/hooks/useDiscTest.ts
 import { useState, useCallback } from 'react';
-import discApiService from '@/services/discApi';
+import discApiService from '@/services/testDiscService/discApi';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 

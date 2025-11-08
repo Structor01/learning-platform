@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import testService from "@/services/testService";
-import discApiService from "@/services/discApi";
+import testService from "@/services/testDiscService/testService";
+import discApiService from "@/services/testDiscService/discApi";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

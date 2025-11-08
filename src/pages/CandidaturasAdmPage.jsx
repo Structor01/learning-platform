@@ -33,7 +33,7 @@ import {
 import { API_URL } from "../components/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "../components/ui/Navbar";
-import testService from "../services/testService";
+import testService from "../services/testDiscService/testService";
 import CandidaturasPorVaga from '../components/ui/CandidaturasPorVaga';
 import InterviewDetailsModal from "../components/ui/InterviewDetailsModal";
 import CandidateDetailsModal from "../components/ui/CandidateDetailsModal";

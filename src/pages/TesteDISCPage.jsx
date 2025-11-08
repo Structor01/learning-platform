@@ -239,7 +239,7 @@ const TesteDISCPage = () => {
         
         // Tentar salvar via testService como fallback
         try {
-          const { default: testService } = await import('@/services/testService');
+          const { default: testService } = await import('@/services/testDiscService/testService');
           await testService.saveTestResult(testResultData);
           console.log('✅ Dados salvos via testService (fallback)');
         } catch (fallbackError) {

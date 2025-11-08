@@ -1,6 +1,6 @@
 // src/hooks/useDiscResults.ts
 import { useState, useCallback, useEffect } from 'react';
-import discApiService from '@/services/discApi';
+import discApiService from '@/services/testDiscService/discApi';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface DiscProfile {

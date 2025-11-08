@@ -31,7 +31,7 @@ import {
   Camera,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import testService from "../services/testService";
+import testService from "../services/testDiscService/testService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 

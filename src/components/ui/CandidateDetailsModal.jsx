@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { API_URL } from '../utils/api';
 import { useAuth } from '@/contexts/AuthContext';
-import testService from '../../services/testService';
+import testService from '../../services/testDiscService/testService';
 
 const discConfig = {
     D: { name: "Dominância", color: "from-red-500 to-red-600", description: "Pessoa direta, assertiva e orientada a resultados" },

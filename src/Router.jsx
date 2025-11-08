@@ -19,7 +19,7 @@ import AgendaEventosPage from "./pages/AgendaEventosPage";
 import VideoPitchPage from "./pages/VideoPitchPage";
 import MeusTestesPage from "./components/ui/MeusTestesPage";
 import TesteDISCPage from "./pages/TesteDISCPage";
-import DISCProfilePage from "./pages/DISCProfilePage";
+import DISCProfilePage from "./pages/discProfile";
 import CRMPage from "./pages/CRMPage";
 import RecrutamentoPage from "./pages/RecrutamentoPage";
 import ForgotPassword from "./pages/ForgotPassword";
