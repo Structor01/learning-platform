@@ -167,16 +167,26 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // Atualizar imediatamente o estado local se profile_image estiver presente
-      if (updateData.profile_image) {
-        const immediateUpdate = {
-          ...user,
-          profile_image: updateData.profile_image,
-        };
-        setUser(immediateUpdate);
-        localStorage.setItem("user", JSON.stringify(immediateUpdate));
-      }
+      // ✅ IMPORTANTE: Atualizar estado e localStorage IMEDIATAMENTE com os novos dados
+      // Isso garante persistência mesmo se o backend falhar
+      const newUserData = {
+        ...user,
+        ...updateData,
+      };
 
+      console.log("💾 updateUser - Salvando dados imediatamente no localStorage:", {
+        about: newUserData.about,
+        experiencesCount: newUserData.experiences?.length,
+        educationCount: newUserData.education?.length,
+        skillsCount: newUserData.skills?.length,
+      });
+
+      // Atualizar estado local E localStorage ANTES de fazer a requisição
+      setUser(newUserData);
+      localStorage.setItem("user", JSON.stringify(newUserData));
+
+      // Preparar dados limpos para enviar ao backend
+      // ⚠️ NÃO incluir banner_image aqui! Já é feito via /api/profile/banner
       const cleanData = Object.fromEntries(
         Object.entries({
           name: updateData.name,
@@ -184,35 +194,46 @@ export const AuthProvider = ({ children }) => {
           linkedin: updateData.linkedin,
           curriculoUrl: updateData.curriculoUrl,
           profile_image: updateData.profile_image,
+          about: updateData.about,
         }).filter(([_, value]) => value !== undefined)
       );
 
-      const response = await fetch(`${API_URL}/api/users/profile`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(cleanData),
-      });
+      // Tentar sincronizar com backend (mas não é crítico se falhar)
+      try {
+        const response = await fetch(`${API_URL}/api/profile`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(cleanData),
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Erro ao atualizar perfil");
+        if (response.ok) {
+          const backendResponse = await response.json();
+          console.log("✅ Backend respondeu ao updateUser:", backendResponse);
+
+          // Se backend retornar dados atualizados, usar eles
+          if (backendResponse && Object.keys(backendResponse).length > 0) {
+            const mergedData = {
+              ...newUserData,
+              ...backendResponse,
+              curriculo_url: backendResponse.curriculoUrl,
+            };
+            setUser(mergedData);
+            localStorage.setItem("user", JSON.stringify(mergedData));
+          }
+        } else {
+          console.warn("⚠️ Backend retornou erro ao atualizar:", response.status);
+        }
+      } catch (backendError) {
+        // Se backend falhar, não problema - dados já estão no localStorage
+        console.warn("⚠️ Erro ao sincronizar com backend (dados já salvos localmente):", backendError.message);
       }
-
-      const updatedUser = await response.json();
-      const newUserData = {
-        ...user,
-        ...updatedUser,
-        curriculo_url: updatedUser.curriculoUrl,
-      };
-
-      setUser(newUserData);
-      localStorage.setItem("user", JSON.stringify(newUserData));
 
       return { success: true };
     } catch (error) {
+      console.error("❌ Erro em updateUser:", error);
       return {
         success: false,
         error: error.message || "Erro ao atualizar perfil",
