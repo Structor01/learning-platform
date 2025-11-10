@@ -89,6 +89,61 @@ const ProfilePage = () => {
 
 
     // ✅ Upload de imagem -> usa PATCH /banner
+    const handleBannerUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Formato de arquivo não suportado. Use JPEG, PNG ou GIF.');
+            return;
+        }
+
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('Arquivo muito grande. Máximo: 5MB.');
+            return;
+        }
+
+        try {
+            setIsUploadingImage(true);
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const base64Image = e.target.result;
+
+                    const updatedUser = { ...user, banner_image: base64Image };
+                    console.log("🖼️ Salvando banner no localStorage");
+                    await updateUser(updatedUser);
+
+                    try {
+                        await patchProfile("/banner", {
+                            banner_image: base64Image,
+                        });
+                        console.log("✅ PATCH /banner bem-sucedido");
+                    } catch (backendError) {
+                        console.warn("⚠️ Backend falhou:", backendError);
+                    }
+
+                    alert("Banner atualizado!");
+                } catch (error) {
+                    console.error("Erro ao fazer upload:", error);
+                    alert("Erro ao atualizar banner.");
+                }
+            };
+
+            reader.readAsDataURL(file);
+        } catch (error) {
+            console.error("Erro ao fazer upload:", error);
+            alert("Erro ao atualizar banner.");
+        } finally {
+            setIsUploadingImage(false);
+        }
+    };
+
+
+    // FOTO DE PERFIL
     const handleImageUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
@@ -113,22 +168,17 @@ const ProfilePage = () => {
                 try {
                     const base64Image = e.target.result;
 
-                    // 1. Atualizar o estado local imediatamente (otimista)
-                    // Não mexer no profileData, apenas na imagem
-
-                    // 2. Sincronizar com o context do usuário PRIMEIRO (isso salva no localStorage)
-                    const updatedUser = { ...user, banner_image: base64Image };
-                    console.log("🖼️ Salvando user com nova imagem no localStorage");
+                    const updatedUser = { ...user, profile_image: base64Image };
+                    console.log("👤 Salvando foto de perfil no localStorage");
                     await updateUser(updatedUser);
 
-                    // 3. Fazer a requisição ao backend (tenta persistir no BD)
                     try {
-                        await patchProfile("/banner", {
-                            banner_image: base64Image,
+                        await patchProfile("/profile-image", {
+                            profile_image: base64Image,
                         });
-                        console.log("✅ PATCH /banner bem-sucedido");
+                        console.log("✅ PATCH /profile-image bem-sucedido");
                     } catch (backendError) {
-                        console.warn("⚠️ Backend falhou, mas imagem está salva localmente:", backendError);
+                        console.warn("⚠️ Backend falhou:", backendError);
                     }
 
                     alert("Foto de perfil atualizada!");
@@ -309,27 +359,29 @@ const ProfilePage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             <Navbar />
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 md:py-8 pt-20 md:pt-24">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
 
-                    <div className="lg:col-span-8 space-y-4">
+                    <div className="lg:col-span-8 space-y-4 md:space-y-6">
                         <ProfileHeader
                             user={user}
                             onUpdateUser={updateUser}
                             onImageUpload={handleImageUpload}
                             onDeleteImage={handleDeleteImage}
                             isUploadingImage={isUploadingImage}
+                            onBannerUpload={handleBannerUpload}        // ← Banner
+                            onProfileImageUpload={handleImageUpload}
                         />
 
                         <ProfileAbout about={profileData.about} onUpdate={handleUpdateAbout} />
 
 
-                        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-4">Atividade</h2>
-                            <p className="text-gray-600">Ainda não há atividades para mostrar</p>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 hover:shadow-md transition-shadow">
+                            <h2 className="text-lg md:text-xl font-semibold text-gray-900 mb-4">Atividade</h2>
+                            <p className="text-gray-600 text-sm md:text-base">Ainda não há atividades para mostrar</p>
                         </div>
 
                         <ProfileExperience experiences={profileData.experiences} onUpdate={handleUpdateExperiences} />

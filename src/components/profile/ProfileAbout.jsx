@@ -18,10 +18,10 @@ const ProfileAbout = ({ about, onUpdate }) => {
     };
 
     return (
-        <Card className="bg-white border-gray-200">
+        <Card className="bg-white border-gray-200 rounded-xl hover:shadow-md transition-shadow">
             <CardHeader>
-                <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl font-semibold text-gray-900">
+                <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-lg md:text-xl font-semibold text-gray-900">
                         Sobre
                     </CardTitle>
                     {!isEditing && (
@@ -29,7 +29,7 @@ const ProfileAbout = ({ about, onUpdate }) => {
                             variant="ghost"
                             size="sm"
                             onClick={() => setIsEditing(true)}
-                            className="text-gray-600 hover:bg-gray-100"
+                            className="text-gray-600 hover:bg-green-50 hover:text-green-600 transition-colors"
                         >
                             <Edit2 className="w-4 h-4" />
                         </Button>
@@ -43,12 +43,12 @@ const ProfileAbout = ({ about, onUpdate }) => {
                             value={aboutText}
                             onChange={(e) => setAboutText(e.target.value)}
                             placeholder="Conte sua história profissional..."
-                            className="w-full min-h-[150px] p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                            className="w-full min-h-[120px] md:min-h-[150px] p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none text-sm md:text-base"
                         />
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                             <Button
                                 onClick={handleSave}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                className="bg-green-600 hover:bg-green-700 text-white transition-colors flex-1 sm:flex-none"
                             >
                                 Salvar
                             </Button>
@@ -58,13 +58,14 @@ const ProfileAbout = ({ about, onUpdate }) => {
                                     setAboutText(about || "");
                                     setIsEditing(false);
                                 }}
+                                className="flex-1 sm:flex-none"
                             >
                                 Cancelar
                             </Button>
                         </div>
                     </div>
                 ) : (
-                    <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    <div className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm md:text-base">
                         {aboutText || (
                             <p className="text-gray-400 italic">
                                 Adicione uma descrição sobre sua experiência profissional e objetivos de carreira...
