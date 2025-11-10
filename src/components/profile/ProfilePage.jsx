@@ -89,58 +89,69 @@ const ProfilePage = () => {
 
 
     // ✅ Upload de imagem -> usa PATCH /banner
-    const handleBannerUpload = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
+    // ✅ Upload de imagem -> usa PATCH /banner
+    // const handleBannerUpload = async (event) => {
+    //     const file = event.target.files[0];
+    //     if (!file) return;
 
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-        if (!allowedTypes.includes(file.type)) {
-            alert('Formato de arquivo não suportado. Use JPEG, PNG ou GIF.');
-            return;
-        }
+    //     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    //     if (!allowedTypes.includes(file.type)) {
+    //         alert('Formato de arquivo não suportado. Use JPEG, PNG ou GIF.');
+    //         return;
+    //     }
 
-        const maxSize = 5 * 1024 * 1024;
-        if (file.size > maxSize) {
-            alert('Arquivo muito grande. Máximo: 5MB.');
-            return;
-        }
+    //     const maxSize = 5 * 1024 * 1024;
+    //     if (file.size > maxSize) {
+    //         alert('Arquivo muito grande. Máximo: 5MB.');
+    //         return;
+    //     }
 
-        try {
-            setIsUploadingImage(true);
+    //     try {
+    //         setIsUploadingImage(true);
 
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const base64Image = e.target.result;
+    //         const reader = new FileReader();
+    //         reader.onload = async (e) => {
+    //             const base64Image = e.target.result;
 
-                    const updatedUser = { ...user, banner_image: base64Image };
-                    console.log("🖼️ Salvando banner no localStorage");
-                    await updateUser(updatedUser);
+    //             try {
+    //                 // ✅ envia base64 ao backend
+    //                 const response = await patchProfile("/banner", {
+    //                     banner_image: base64Image,
+    //                 });
 
-                    try {
-                        await patchProfile("/banner", {
-                            banner_image: base64Image,
-                        });
-                        console.log("✅ PATCH /banner bem-sucedido");
-                    } catch (backendError) {
-                        console.warn("⚠️ Backend falhou:", backendError);
-                    }
+    //                 console.log("✅ PATCH /banner bem-sucedido");
 
-                    alert("Banner atualizado!");
-                } catch (error) {
-                    console.error("Erro ao fazer upload:", error);
-                    alert("Erro ao atualizar banner.");
-                }
-            };
+    //                 // ✅ backend deve retornar a URL final da imagem
+    //                 const bannerUrl =
+    //                     response?.banner_image ||
+    //                     response?.banner_url ||
+    //                     response?.image_url;
 
-            reader.readAsDataURL(file);
-        } catch (error) {
-            console.error("Erro ao fazer upload:", error);
-            alert("Erro ao atualizar banner.");
-        } finally {
-            setIsUploadingImage(false);
-        }
-    };
+    //                 if (!bannerUrl) {
+    //                     console.warn("Backend não retornou URL");
+    //                 }
+
+    //                 // ✅ ATUALIZA o localStorage apenas com a URL
+    //                 const updatedUser = {
+    //                     ...user,
+    //                     banner_image: bannerUrl
+    //                 };
+
+    //                 await updateUser(updatedUser);
+
+    //                 alert("Banner atualizado!");
+    //             } catch (backendError) {
+    //                 console.warn("⚠️ Backend falhou:", backendError);
+    //                 alert("Erro ao enviar imagem.");
+    //             }
+    //         };
+
+    //         reader.readAsDataURL(file);
+    //     } catch (error) {
+    //         console.error("Erro ao fazer upload:", error);
+    //         alert("Erro ao atualizar banner.");
+    //     }
+    // };
 
 
     // FOTO DE PERFIL
@@ -165,26 +176,29 @@ const ProfilePage = () => {
 
             const reader = new FileReader();
             reader.onload = async (e) => {
+                const base64Image = e.target.result;
+
                 try {
-                    const base64Image = e.target.result;
+                    // ✅ Envia apenas ao backend
+                    const response = await patchProfile("/profile-image", {
+                        profile_image: base64Image,
+                    });
 
-                    const updatedUser = { ...user, profile_image: base64Image };
-                    console.log("👤 Salvando foto de perfil no localStorage");
-                    await updateUser(updatedUser);
+                    // ✅ Pega apenas a URL retornada
+                    const imageUrl =
+                        response?.profile_image ||
+                        response?.profile_url ||
+                        response?.image_url;
 
-                    try {
-                        await patchProfile("/profile-image", {
-                            profile_image: base64Image,
-                        });
-                        console.log("✅ PATCH /profile-image bem-sucedido");
-                    } catch (backendError) {
-                        console.warn("⚠️ Backend falhou:", backendError);
+                    // ✅ Agora sim atualiza o localStorage
+                    if (imageUrl) {
+                        const updatedUser = { ...user, profile_image: imageUrl };
+                        await updateUser(updatedUser);
                     }
 
                     alert("Foto de perfil atualizada!");
-                } catch (error) {
-                    console.error("Erro ao fazer upload:", error);
-                    alert("Erro ao atualizar foto.");
+                } catch (backendError) {
+                    console.warn("⚠️ Backend falhou:", backendError);
                 }
             };
 
@@ -196,6 +210,7 @@ const ProfilePage = () => {
             setIsUploadingImage(false);
         }
     };
+
 
     // ✅ Deletar imagem de perfil
     const handleDeleteImage = async () => {
@@ -372,7 +387,7 @@ const ProfilePage = () => {
                             onImageUpload={handleImageUpload}
                             onDeleteImage={handleDeleteImage}
                             isUploadingImage={isUploadingImage}
-                            onBannerUpload={handleBannerUpload}        // ← Banner
+                            // onBannerUpload={handleBannerUpload}        // ← Banner
                             onProfileImageUpload={handleImageUpload}
                         />
 

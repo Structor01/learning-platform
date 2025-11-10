@@ -79,9 +79,9 @@ export const AuthProvider = ({ children }) => {
     setAccessToken(accessToken);
 
     // Salvar apenas dados essenciais no localStorage
-    localStorage.setItem("userId", userData.id);
-    localStorage.setItem("user", JSON.stringify(userData)); // Manter por compatibilidade
-    localStorage.setItem("accessToken", accessToken);
+    // localStorage.setItem("userId", userData.id);
+    // localStorage.setItem("user", JSON.stringify(userData)); // Manter por compatibilidade
+    // localStorage.setItem("accessToken", accessToken);
 
     if (refreshToken) {
       localStorage.setItem("refreshToken", refreshToken);
