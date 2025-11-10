@@ -37,6 +37,7 @@ import TrilhasForm from "./components/ui/TrilhasForm";
 import VideoUpload from "./components/ui/VideoUpload";
 import NewsPage from "./pages/NewsPage";
 import EventosPage from "./pages/EventosPage"
+import ProfilePage from "./components/profile/ProfilePage";
 
 const getApiUrl = () => {
   // Se estiver em produção (hostname não é localhost)
@@ -236,7 +237,7 @@ export function Router() {
         <Route path="/chat" element={<PublicChatPage />} />
 
         {/* Página de Perfil */}
-        <Route path="/profile" element={<UserProfile />} />
+        <Route path="/perfil" element={<ProfilePage />} />
 
         {/* Página de detalhes das vagas */}
         <Route path="/vagas/:vagaId" element={<DetalhesVaga />} />
