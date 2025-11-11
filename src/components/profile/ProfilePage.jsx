@@ -7,7 +7,7 @@ import ProfileAbout from "./ProfileAbout";
 import ProfileExperience from "./ProfileExperience";
 import ProfileEducation from "./ProfileEducation";
 import ProfileSkills from "./ProfileSkills";
-import { uploadToCloudinary } from '@/lib/cloudinary';
+import { uploadImage } from '@/lib/upload';
 import { toast } from 'sonner';
 
 // ✅ Patch genérico para qualquer endpoint de profile (usando o helper api())
@@ -30,6 +30,8 @@ const patchProfile = async (path, data = {}) => {
 const ProfilePage = () => {
     const { user, updateUser, isLoading } = useAuth();
     const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const [hasLoadedProfile, setHasLoadedProfile] = useState(false); // ← ADICIONA
+
 
     const [profileData, setProfileData] = useState({
         about: "",
@@ -41,15 +43,11 @@ const ProfilePage = () => {
     // ✅ Carregar dados iniciais do usuário e sincronizar quando mudarem
     useEffect(() => {
         const loadProfileData = async () => {
-            if (!user) return;
+            if (!user || hasLoadedProfile) return; // ← JÁ TEM
 
             try {
-                // Buscar dados do backend
                 const profile = await api('/api/profile', { method: 'GET' });
 
-                console.log("📋 ProfilePage - Dados do backend:", profile);
-
-                // Parse se necessário
                 const parseJsonField = (field) => {
                     if (!field) return [];
                     if (typeof field === 'string') {
@@ -72,10 +70,10 @@ const ProfilePage = () => {
 
                 console.log("✅ ProfilePage - Dados normalizados:", normalized);
                 setProfileData(normalized);
+                setHasLoadedProfile(true); // ✅ ADICIONA ISSO
 
             } catch (error) {
                 console.error("❌ Erro ao carregar perfil:", error);
-                // Fallback: usar dados do localStorage se houver
                 setProfileData({
                     about: user.about || "",
                     experiences: user.experiences || [],
@@ -86,38 +84,8 @@ const ProfilePage = () => {
         };
 
         loadProfileData();
-    }, [user]);
+    }, [user, hasLoadedProfile]); // ✅ ADICIONA hasLoadedProfile AQUI
 
-    // ⚠️ Parse strings JSON para arrays se necessário
-    const parseJsonField = (field) => {
-        if (!field) return [];
-
-        let parsed = field;
-
-        // Parse se for string
-        if (typeof field === 'string') {
-            try {
-                parsed = JSON.parse(field);
-            } catch {
-                return [];
-            }
-        }
-
-        if (!Array.isArray(parsed)) return [];
-
-        // ✅ Remove arrays vazios e objetos sem dados relevantes
-        return parsed.filter(item => {
-            if (Array.isArray(item)) return item.length > 0;
-            if (!item || typeof item !== 'object') return false;
-
-            // Verifica se tem pelo menos um campo preenchido (além de 'id')
-            return Object.keys(item).some(key =>
-                key !== 'id' && item[key] !== '' && item[key] !== null && item[key] !== undefined
-            );
-        });
-    };
-
-    // ✅ Upload de imagem -> usa PATCH /banner
     // ✅ Upload de imagem -> usa PATCH /banner
     const handleBannerUpload = async (event) => {
         const file = event.target.files[0];
@@ -137,11 +105,7 @@ const ProfilePage = () => {
 
         try {
             setIsUploadingImage(true);
-
-            // Upload direto pro Cloudinary
-            console.log('📤 Fazendo upload do banner para Cloudinary...');
-            const imageUrl = await uploadToCloudinary(file, 'banners');
-            console.log('✅ Upload concluído:', imageUrl);
+            const imageUrl = await uploadImage(file, 'banners'); // ✅ NOVO
 
             // Salvar URL no localStorage
             const updatedUser = { ...user, banner_image: imageUrl };
@@ -187,9 +151,8 @@ const ProfilePage = () => {
             setIsUploadingImage(true);
 
             // Upload direto pro Cloudinary
-            console.log('📤 Fazendo upload da foto de perfil para Cloudinary...');
-            const imageUrl = await uploadToCloudinary(file, 'profile_images');
-            console.log('✅ Upload concluído:', imageUrl);
+
+            const imageUrl = await uploadImage(file, 'profile_images');
 
             // Salvar URL no localStorage
             const updatedUser = { ...user, profile_image: imageUrl };
@@ -278,29 +241,25 @@ const ProfilePage = () => {
     // ✅ Atualizar EXPERIÊNCIAS -> PATCH /experiences
     const handleUpdateExperiences = async (experiences) => {
         try {
-            // 1. Atualizar o estado local imediatamente (otimista)
+            console.log('💼 Atualizando com', experiences.length, 'experiências');
+
+            // ✅ Atualiza estado local PRIMEIRO
             setProfileData(prev => ({ ...prev, experiences }));
 
-            // 2. Sincronizar com o context do usuário PRIMEIRO (isso salva no localStorage)
             const updatedUser = { ...user, experiences };
-            console.log("💼 Salvando user com experiências no localStorage");
             await updateUser(updatedUser);
 
-            // 3. Fazer a requisição ao backend (tenta persistir no BD)
             try {
-                await patchProfile("/experiences", { experiences: updatedUser.experiences });
-                console.log("✅ POST /experiences bem-sucedido");
+                await patchProfile("/experiences", { experiences });
+                console.log("✅ PATCH /experiences bem-sucedido");
             } catch (backendError) {
-                console.warn("⚠️ Backend falhou, mas dados estão salvos localmente:", backendError);
+                console.warn("⚠️ Backend falhou:", backendError);
             }
 
-            console.log("✅ Usuário context atualizado");
-
         } catch (error) {
-            console.error("❌ Erro ao atualizar experiências:", error);
-            // Reverter o estado local em caso de erro
+            console.error("❌ Erro:", error);
+            // Reverte em caso de erro
             setProfileData(prev => ({ ...prev, experiences: user?.experiences || [] }));
-
         }
     };
 

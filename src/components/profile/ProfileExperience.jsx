@@ -12,8 +12,9 @@ const ProfileExperience = ({ experiences = [], onUpdate }) => {
         company: "",
         employmentType: "",
         location: "",
-        start: "",
-        end: "",
+        startDate: "",           // ✅ CORRETO
+        endDate: "",             // ✅ CORRETO
+        currentlyWorking: false, // ✅ ADICIONA ISSO
         description: "",
     });
 
@@ -55,10 +56,28 @@ const ProfileExperience = ({ experiences = [], onUpdate }) => {
         resetForm();
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
+        console.log('🔴 handleDelete CHAMADO com id:', id);
+        console.log('🔴 Lista ANTES do delete:', experiencesList);
+
+        if (!window.confirm('Tem certeza que deseja deletar esta experiência?')) {
+            console.log('🔴 Usuário cancelou');
+            return;
+        }
+
+        console.log('🔴 Usuário confirmou, deletando...');
+
         const updated = experiencesList.filter(exp => exp.id !== id);
+
+        console.log('🔴 Lista DEPOIS do filter:', updated);
+        console.log('🔴 Chamando setExperiencesList...');
+
         setExperiencesList(updated);
-        onUpdate(updated); // ← SEM convertToText
+
+        console.log('🔴 Chamando onUpdate...');
+        await onUpdate(updated);
+
+        console.log('🔴 Delete concluído!');
     };
 
     const resetForm = () => {
@@ -67,8 +86,9 @@ const ProfileExperience = ({ experiences = [], onUpdate }) => {
             company: "",
             employmentType: "",
             location: "",
-            start: "",
-            end: "",
+            startDate: "",           // ✅ CORRETO
+            endDate: "",             // ✅ CORRETO
+            currentlyWorking: false, // ✅ ADICIONA ISSO
             description: "",
         });
         setIsAdding(false);

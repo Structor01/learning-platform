@@ -117,23 +117,39 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      console.log("🔍 Resposta do login:", data);
-      console.log("🔍 User retornado:", data.user);
-      console.log("🔍 Subscription do backend:", data.user?.subscription);
+
+      // ✅ Buscar perfil
+      try {
+        const profileResponse = await fetch(`${API_URL}/api/profile`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${data.access_token}`,
+          },
+        });
+
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+
+          // Merge profile com user
+          data.user.profile_image = profileData.profile_image;
+          data.user.banner_image = profileData.banner_image;
+        }
+      } catch (profileError) {
+        console.warn('⚠️ Erro ao buscar perfil:', profileError);
+      }
 
       saveAuthData(data.user, data.access_token, data.refresh_token);
 
-      // Verificar se é o primeiro login do usuário
+      // Verificar vídeo de boas-vindas
       const hasSeenWelcomeVideo = localStorage.getItem(`welcomeVideo_${data.user.id}`);
       const neverShowAgain = localStorage.getItem('welcomeVideo_neverShow');
-      console.log('🎥 AuthContext - userId:', data.user.id, 'hasSeenWelcomeVideo:', hasSeenWelcomeVideo, 'neverShowAgain:', neverShowAgain);
 
       if (!hasSeenWelcomeVideo && !neverShowAgain) {
-        console.log('🎥 AuthContext - Mostrando vídeo de boas-vindas');
         setShowWelcomeVideo(true);
       }
 
       return data.user;
+
     } catch (error) {
       const errorMessage = error.message || "Erro inesperado no login";
       throw new Error(errorMessage);
@@ -177,23 +193,16 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      // ✅ IMPORTANTE: Atualizar estado e localStorage IMEDIATAMENTE com os novos dados
-      // Isso garante persistência mesmo se o backend falhar
       const newUserData = {
         ...user,
         ...updateData,
       };
 
-      console.log("💾 updateUser - Salvando dados imediatamente no localStorage:", {
-        about: newUserData.about,
-        experiencesCount: newUserData.experiences?.length,
-        educationCount: newUserData.education?.length,
-        skillsCount: newUserData.skills?.length,
-      });
+      console.log("💾 updateUser - Salvando dados no localStorage");
 
-      // Atualizar estado local E localStorage ANTES de fazer a requisição
+      // Atualizar estado local E localStorage
       setUser(newUserData);
-      // localStorage.setItem("user", JSON.stringify(newUserData));
+
       const lightUserData = {
         id: newUserData.id,
         name: newUserData.name,
@@ -205,22 +214,39 @@ export const AuthProvider = ({ children }) => {
       };
       localStorage.setItem("user", JSON.stringify(lightUserData));
 
-      // Preparar dados limpos para enviar ao backend
-      // ⚠️ NÃO incluir banner_image aqui! Já é feito via /api/profile/banner
+      // ✅ SE FOR DADOS DE PERFIL, NÃO ENVIAR PARA O BACKEND
+      // Esses dados são enviados via patchProfile no ProfilePage
+      const isProfileData =
+        updateData.experiences ||
+        updateData.education ||
+        updateData.skills ||
+        updateData.about ||
+        updateData.profile_image ||
+        updateData.banner_image;
+
+      if (isProfileData) {
+        console.log("✅ Dados de perfil salvos APENAS no localStorage (backend via patchProfile)");
+        return { success: true };
+      }
+
+      // Apenas para dados de usuário básico (name, role, linkedin, curriculoUrl)
       const cleanData = Object.fromEntries(
         Object.entries({
           name: updateData.name,
           role: updateData.role,
           linkedin: updateData.linkedin,
           curriculoUrl: updateData.curriculoUrl,
-          profile_image: updateData.profile_image,
-          about: updateData.about,
         }).filter(([_, value]) => value !== undefined)
       );
 
-      // Tentar sincronizar com backend (mas não é crítico se falhar)
+      // Se não há dados para enviar, retorna
+      if (Object.keys(cleanData).length === 0) {
+        return { success: true };
+      }
+
+      // Tentar sincronizar com backend
       try {
-        const response = await fetch(`${API_URL}/api/profile`, {
+        const response = await fetch(`${API_URL}/api/users/profile`, { // ← /users/profile
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -231,24 +257,21 @@ export const AuthProvider = ({ children }) => {
 
         if (response.ok) {
           const backendResponse = await response.json();
-          console.log("✅ Backend respondeu ao updateUser:", backendResponse);
+          console.log("✅ Backend respondeu:", backendResponse);
 
-          // Se backend retornar dados atualizados, usar eles
           if (backendResponse && Object.keys(backendResponse).length > 0) {
             const mergedData = {
               ...newUserData,
               ...backendResponse,
-              curriculo_url: backendResponse.curriculoUrl,
             };
             setUser(mergedData);
-            localStorage.setItem("user", JSON.stringify(mergedData));
+            localStorage.setItem("user", JSON.stringify(lightUserData));
           }
         } else {
-          console.warn("⚠️ Backend retornou erro ao atualizar:", response.status);
+          console.warn("⚠️ Backend retornou erro:", response.status);
         }
       } catch (backendError) {
-        // Se backend falhar, não problema - dados já estão no localStorage
-        console.warn("⚠️ Erro ao sincronizar com backend (dados já salvos localmente):", backendError.message);
+        console.warn("⚠️ Erro ao sincronizar com backend:", backendError.message);
       }
 
       return { success: true };
