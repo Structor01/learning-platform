@@ -79,15 +79,25 @@ export const AuthProvider = ({ children }) => {
     setAccessToken(accessToken);
 
     // Salvar apenas dados essenciais no localStorage
+    const lightUserData = {
+      id: userData.id,
+      name: userData.name,
+      email: userData.email,
+      profile_image: userData.profile_image,
+      banner_image: userData.banner_image,
+      userType: userData.userType,
+      type: userData.type,
+      subscription: userData.subscription,
+      // NÃO salvar: experiences, education, skills
+    };
+
     localStorage.setItem("userId", userData.id);
-    localStorage.setItem("user", JSON.stringify(userData)); // Manter por compatibilidade
+    localStorage.setItem("user", JSON.stringify(lightUserData)); // ← SÓ DADOS LEVES
     localStorage.setItem("accessToken", accessToken);
 
     if (refreshToken) {
       localStorage.setItem("refreshToken", refreshToken);
     }
-
-    console.log("💾 SALVO - userId:", userData.id);
   };
 
   const login = async (email, password) => {
@@ -183,7 +193,17 @@ export const AuthProvider = ({ children }) => {
 
       // Atualizar estado local E localStorage ANTES de fazer a requisição
       setUser(newUserData);
-      localStorage.setItem("user", JSON.stringify(newUserData));
+      // localStorage.setItem("user", JSON.stringify(newUserData));
+      const lightUserData = {
+        id: newUserData.id,
+        name: newUserData.name,
+        email: newUserData.email,
+        profile_image: newUserData.profile_image,
+        banner_image: newUserData.banner_image,
+        userType: newUserData.userType,
+        subscription: newUserData.subscription,
+      };
+      localStorage.setItem("user", JSON.stringify(lightUserData));
 
       // Preparar dados limpos para enviar ao backend
       // ⚠️ NÃO incluir banner_image aqui! Já é feito via /api/profile/banner

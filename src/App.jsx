@@ -4,6 +4,7 @@ import { ChatBotProvider } from "./components/bot/ChatBotProvider";
 import { CustomTourProvider } from "./contexts/TourProvider";
 import "./App.css";
 import { Router } from "./Router";
+import { Toaster } from 'sonner';
 
 // Componente principal com roteamento
 function App() {
@@ -11,6 +12,7 @@ function App() {
     <AuthProvider>
       <CustomTourProvider>
         <ChatBotProvider>
+          <Toaster position="top-right" richColors />
           <Router />
         </ChatBotProvider>
       </CustomTourProvider>

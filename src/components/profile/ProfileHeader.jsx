@@ -3,42 +3,15 @@ import { Camera, MapPin, Briefcase, Edit2, X, Check } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
-const ProfileHeader = ({ user, onUpdateUser, onImageUpload, isUploadingImage, onDeleteImage }) => {
-    const [isEditingBanner, setIsEditingBanner] = useState(false);
-    const [bannerImage, setBannerImage] = useState(user?.banner_image || "");
-
-    // Sincronizar quando a imagem do usuário mudar
-    useEffect(() => {
-        if (user?.banner_image) {
-            setBannerImage(user.banner_image);
-        }
-    }, [user?.banner_image]);
-
-    const handleBannerUpload = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            // Lógica de upload do banner (similar à foto de perfil)
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setBannerImage(e.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleDeleteImage = () => {
-        if (onDeleteImage) {
-            onDeleteImage();
-        }
-    };
+const ProfileHeader = ({ user, onUpdateUser, onImageUpload, onBannerUpload, isUploadingImage, onDeleteImage }) => {
 
     return (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
             {/* Banner */}
             <div className="relative h-32 sm:h-40 md:h-48 bg-gradient-to-r from-green-600 to-green-500">
-                {bannerImage && (
+                {user?.banner_image && (
                     <img
-                        src={bannerImage}
+                        src={user.banner_image}
                         alt="Banner"
                         className="w-full h-full object-cover"
                     />
@@ -56,7 +29,7 @@ const ProfileHeader = ({ user, onUpdateUser, onImageUpload, isUploadingImage, on
                     id="banner-upload"
                     type="file"
                     accept="image/*"
-                    onChange={handleBannerUpload}
+                    onChange={onBannerUpload}
                     className="hidden"
                 />
             </div>
@@ -98,11 +71,9 @@ const ProfileHeader = ({ user, onUpdateUser, onImageUpload, isUploadingImage, on
                         />
 
                         {/* Botão deletar foto */}
-                        {bannerImage && (
+                        {user?.banner_image && (
                             <button
-                                onClick={handleDeleteImage}
-                                className="absolute bottom-0 left-0 w-8 sm:w-10 h-8 sm:h-10 bg-red-500 hover:bg-red-600 border-2 border-white rounded-full flex items-center justify-center cursor-pointer shadow-md transition-colors"
-                                title="Deletar foto de perfil"
+                                onClick={onDeleteImage}
                             >
                                 <X className="w-3 sm:w-4 h-3 sm:h-4 text-white" />
                             </button>
