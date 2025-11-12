@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import discApiService from "@/services/testDiscService/discApi"; 
 import aiReportService from "@/services/testDiscService/aiReportService";
 import { useAuth } from "@/contexts/AuthContext";
+import './print.css';
 
-// Importar componentes modulares
 import {
   Header,
   TestSelector,
@@ -18,7 +18,6 @@ import {
   WorkEnvironmentSection,
   BigFiveChart,
   EmotionalIntelligenceChart,
-  CareerRecommendationsSection,
   ActionButtons,
   DetailedAIReport
 } from './components';
@@ -153,26 +152,94 @@ const DISCProfilePage = () => {
     return { howYouCommunicate: [], howOthersShouldCommunicate: [] };
   };
 
-  // Função para obter ambiente de trabalho ideal por perfil (100% IA)
+  // Função para obter ambiente de trabalho ideal por perfil
   const getIdealWorkEnvironment = () => {
     // Retorna dados da IA se disponível
     if (aiReport?.structuredData?.ambiente?.ideal?.length > 0) {
       return aiReport.structuredData.ambiente;
     }
 
-    // Se não tiver IA, retorna estrutura vazia
-    return { ideal: [], avoid: [] };
-  };
-
-  // Função para obter recomendações de carreira por perfil (100% IA)
-  const getCareerRecommendations = () => {
-    // Retorna dados da IA se disponível
-    if (aiReport?.structuredData?.carreira?.length > 0) {
-      return aiReport.structuredData.carreira;
+    // Se não tiver IA, retorna ambiente baseado no perfil dominante
+    if (selectedTest?.dominantProfile) {
+      const profile = selectedTest.dominantProfile;
+      const environments = {
+        'D': {
+          ideal: [
+            'Ambiente dinâmico com desafios constantes',
+            'Autonomia para tomar decisões rápidas',
+            'Metas claras e resultados mensuráveis',
+            'Oportunidades de liderança e comando',
+            'Pouca burocracia e processos ágeis',
+            'Competição saudável e reconhecimento por performance'
+          ],
+          avoid: [
+            'Ambientes com excesso de regras e burocracia',
+            'Trabalhos repetitivos sem desafios',
+            'Microgerenciamento e supervisão constante',
+            'Processos lentos e decisões por consenso',
+            'Ambientes onde não há espaço para iniciativa',
+            'Culturas organizacionais muito conservadoras'
+          ]
+        },
+        'I': {
+          ideal: [
+            'Ambiente social e colaborativo',
+            'Oportunidades de interação com pessoas',
+            'Cultura organizacional positiva e inspiradora',
+            'Flexibilidade e variedade nas atividades',
+            'Reconhecimento público e feedback positivo',
+            'Espaço para criatividade e inovação'
+          ],
+          avoid: [
+            'Trabalho isolado ou sem interação social',
+            'Ambientes muito formais e rígidos',
+            'Tarefas extremamente detalhadas e técnicas',
+            'Cultura organizacional negativa ou pessimista',
+            'Falta de reconhecimento e feedback',
+            'Rotinas monótonas sem variedade'
+          ]
+        },
+        'S': {
+          ideal: [
+            'Ambiente estável e previsível',
+            'Equipe colaborativa e harmoniosa',
+            'Processos bem definidos e claros',
+            'Tempo adequado para adaptação a mudanças',
+            'Segurança e benefícios a longo prazo',
+            'Cultura de respeito e consideração'
+          ],
+          avoid: [
+            'Mudanças frequentes e imprevisíveis',
+            'Ambientes competitivos e agressivos',
+            'Pressão excessiva por resultados imediatos',
+            'Conflitos interpessoais constantes',
+            'Instabilidade organizacional',
+            'Falta de processos e diretrizes claras'
+          ]
+        },
+        'C': {
+          ideal: [
+            'Ambiente organizado e estruturado',
+            'Padrões de qualidade bem definidos',
+            'Tempo para análise e pesquisa detalhada',
+            'Processos claros e documentados',
+            'Expectativas precisas e mensuráveis',
+            'Reconhecimento por qualidade e precisão'
+          ],
+          avoid: [
+            'Ambientes caóticos e desorganizados',
+            'Pressão por decisões sem dados suficientes',
+            'Falta de padrões e diretrizes claras',
+            'Mudanças frequentes sem justificativa',
+            'Expectativas vagas ou ambíguas',
+            'Cultura que prioriza velocidade sobre qualidade'
+          ]
+        }
+      };
+      return environments[profile] || { ideal: [], avoid: [] };
     }
 
-    // Se não tiver IA, retorna array vazio
-    return [];
+    return { ideal: [], avoid: [] };
   };
 
   // Função para gerar relatório com IA
@@ -198,6 +265,11 @@ const DISCProfilePage = () => {
     }
   };
 
+  // Função para imprimir 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -212,23 +284,29 @@ const DISCProfilePage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Header */}
-      <Header onBack={() => navigate('/dashboard')} />
+      <div className="no-print">
+        <Header onBack={() => navigate('/dashboard')} />
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Seletor de teste */}
-        <TestSelector 
-          tests={tests}
-          selectedTestId={selectedTestId}
-          onTestSelection={handleTestSelection}
-          loading={loading}
-        />
+        <div className="no-print">
+          <TestSelector 
+            tests={tests}
+            selectedTestId={selectedTestId}
+            onTestSelection={handleTestSelection}
+            loading={loading}
+          />
+        </div>
 
         {/* Indicador de Geração de Relatório IA */}
-        {generatingReport && <LoadingIndicator />}
+        <div className="no-print">
+          {generatingReport && <LoadingIndicator />}
+        </div>
 
         {/* Resultados do teste selecionado */}
         {selectedTest ? (
-          <div className="space-y-1">
+          <div className="space-y-1 print-content">
             {/* Cabeçalho do Relatório */}
             <ReportHeader 
               selectedTest={selectedTest}
@@ -284,20 +362,16 @@ const DISCProfilePage = () => {
               generatingReport={generatingReport}
             />
 
-            {/* Recomendações de Carreira */}
-            <CareerRecommendationsSection 
-              careerRecommendations={getCareerRecommendations()}
-              aiReport={aiReport}
-              generatingReport={generatingReport}
-            />
-
             {/* Botões de Ação */}
-            <ActionButtons 
-              aiReport={aiReport}
-              generatingReport={generatingReport}
-              onGenerateReport={generateAIReport}
-              onNewTest={() => navigate('/teste-disc')}
-            />
+            <div className="no-print">
+              <ActionButtons 
+                aiReport={aiReport}
+                generatingReport={generatingReport}
+                onGenerateReport={generateAIReport}
+                onNewTest={() => navigate('/teste-disc')}
+                onPrint={handlePrint}
+              />
+            </div>
 
             {/* Relatório IA Detalhado */}
             <DetailedAIReport aiReport={aiReport} />

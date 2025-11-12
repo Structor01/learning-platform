@@ -1,0 +1,127 @@
+/* Estilos de impressão para o relatório DISC */
+@media print {
+  /* Ocultar elementos não relacionados ao relatório */
+  header,
+  nav,
+  .no-print,
+  button,
+  .test-selector,
+  .action-buttons {
+    display: none !important;
+  }
+
+  /* Ocultar o botão de voltar e seletor de teste */
+  [class*="Header"],
+  [class*="TestSelector"] {
+    display: none !important;
+  }
+
+  /* Ajustes gerais para impressão */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+  }
+
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Garantir que o conteúdo fique bem formatado */
+  .page-break {
+    page-break-before: always;
+  }
+
+  /* Ajustar padding e margens para impressão */
+  .print-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Garantir que cores sejam impressas */
+  .bg-red-500,
+  .bg-yellow-500,
+  .bg-green-500,
+  .bg-blue-500 {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Ajustar gradientes para cores sólidas na impressão */
+  .bg-gradient-to-r,
+  .bg-gradient-to-br {
+    background: white !important;
+    border: 1px solid #e5e7eb;
+  }
+
+  /* Garantir que textos brancos em fundo escuro fiquem legíveis */
+  .bg-gray-800 {
+    background: #1f2937 !important;
+    color: white !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Evitar quebras de página no meio do conteúdo */
+  .bg-white {
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+
+  /* Ajustar gráficos para impressão */
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Garantir que os gráficos sejam visíveis */
+  .bg-gradient-to-t,
+  .bg-indigo-600,
+  .bg-orange-400,
+  .bg-orange-600 {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Simplificar elementos posicionados absolutamente para impressão */
+  [style*="position: absolute"] {
+    position: relative !important;
+    display: inline-block !important;
+    margin: 2px !important;
+  }
+
+  /* Garantir visibilidade dos charts */
+  .chart-container,
+  .flex.items-end.justify-center {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Forçar cores nos gradientes dos gráficos Big Five especificamente */
+  .bg-gradient-to-t.from-orange-400.to-orange-600 {
+    background: #f97316 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .bg-indigo-600 {
+    background: #4f46e5 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Garantir que circles e elementos visuais apareçam */
+  .rounded-full {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Remover backgrounds de gradientes genéricos nos cards */
+  .bg-gradient-to-r,
+  .bg-gradient-to-br,
+  .bg-gradient-to-l {
+    background: white !important;
+  }
+}

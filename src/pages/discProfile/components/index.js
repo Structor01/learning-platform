@@ -15,7 +15,6 @@ export { default as WorkEnvironmentSection } from './WorkEnvironmentSection';
 // Gráficos e análises
 export { default as BigFiveChart } from './BigFiveChart';
 export { default as EmotionalIntelligenceChart } from './EmotionalIntelligenceChart';
-export { default as CareerRecommendationsSection } from './CareerRecommendationsSection';
 
 // Componentes de ação
 export { default as ActionButtons } from './ActionButtons';
