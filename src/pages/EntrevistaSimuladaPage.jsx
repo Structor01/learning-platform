@@ -435,7 +435,7 @@ const EntrevistaSimuladaPage = () => {
 
       // Marcar como concluída usando o ID salvo
       if (currentVagaId) {
-        console.log('✅ Marcando vaga como concluída:', currentVagaId);
+        ('✅ Marcando vaga como concluída:', currentVagaId);
         setCompletedInterviews(prev => ({
           ...prev,
           [currentVagaId]: true
@@ -808,7 +808,7 @@ const EntrevistaSimuladaPage = () => {
         expressions: currentFaceData.expressions
       } : null;
 
-      console.log('📤 Enviando resposta:', {
+      ('📤 Enviando resposta:', {
         interviewId,
         questionNumber: currentQuestion + 1,
         questionText,
@@ -886,511 +886,511 @@ const EntrevistaSimuladaPage = () => {
         upgradeMessage="Faça upgrade para Premium e tenha acesso ilimitado a entrevistas simuladas"
         mode="block"
       >
-      <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-        {/* Toast de Notificação */}
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          isVisible={toast.isVisible}
-          onClose={hideToast}
-        />
+        <div className="pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+          {/* Toast de Notificação */}
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            isVisible={toast.isVisible}
+            onClose={hideToast}
+          />
 
-        {/* Modal do Relatório - Global */}
-        <RelatorioModal
-          isOpen={modalRelatorioOpen}
-          onClose={() => {
-            setModalRelatorioOpen(false);
-            setCarregandoRelatorio(false);
-            setRelatorioData(null);
-            setCurrentStep('vagas');
-            // Recarregar a página inteira para garantir atualização
-            window.location.reload();
-          }}
-          relatorioData={relatorioData}
-          carregando={carregandoRelatorio}
-        />
+          {/* Modal do Relatório - Global */}
+          <RelatorioModal
+            isOpen={modalRelatorioOpen}
+            onClose={() => {
+              setModalRelatorioOpen(false);
+              setCarregandoRelatorio(false);
+              setRelatorioData(null);
+              setCurrentStep('vagas');
+              // Recarregar a página inteira para garantir atualização
+              window.location.reload();
+            }}
+            relatorioData={relatorioData}
+            carregando={carregandoRelatorio}
+          />
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 mt-14">
-          {/* Header */}
-          <div className="text-center mb-8 sm:mb-12">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
-              <Video className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Entrevista Simulada</h1>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto px-4 mb-4">
-              Pratique suas habilidades de entrevista com gravação de vídeo e feedback personalizado
-            </p>
-
-          </div>
-
-          {/* Vagas de Teste */}
-          {currentStep === 'vagas' && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-w-6xl mx-auto"
-            >
-              {/* Entrevistas Realizadas */}
-              {minhasEntrevistas.length > 0 ? (
-                <div className="mb-12">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-semibold mb-2">Suas Entrevistas</h2>
-                      <p className="text-gray-400 text-sm sm:text-base">Acesse os relatórios das suas entrevistas concluídas</p>
-                    </div>
-                    <div className="text-left sm:text-right">
-                      <div className="text-xl sm:text-2xl font-bold text-purple-400">{minhasEntrevistas.length}</div>
-                      <div className="text-xs sm:text-sm text-gray-400">Total</div>
-                    </div>
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="mb-6 sm:mb-8">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-semibold mb-2">Vagas Disponíveis para Entrevista</h2>
-                    <p className="text-gray-400 text-sm sm:text-base">Escolha uma vaga e comece sua entrevista simulada agora mesmo</p>
-                  </div>
-                </div>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 mt-14">
+            {/* Header */}
+            <div className="text-center mb-8 sm:mb-12">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-green-600 rounded-xl flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <Video className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Entrevista Simulada</h1>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto px-4 mb-4">
+                Pratique suas habilidades de entrevista com gravação de vídeo e feedback personalizado
+              </p>
 
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                  <p className="text-gray-400">Carregando vagas...</p>
-                </div>
-              ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {vagasTeste.map((vaga) => (
-                    <div key={vaga.id} className="bg-white rounded-xl p-6 border border-gray-300 hover:border-gray-200 transition-colors">
-                      <div className="mb-4">
-                        <h3 className="text-xl font-semibold mb-2">{vaga.nome}</h3>
-                        <p className="text-green-900 font-black mb-1">{vaga.empresa}</p>
-                        <p className="text-gray-700 text-sm">{vaga.cidade}/{vaga.uf}</p>
+            </div>
+
+            {/* Vagas de Teste */}
+            {currentStep === 'vagas' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-6xl mx-auto"
+              >
+                {/* Entrevistas Realizadas */}
+                {minhasEntrevistas.length > 0 ? (
+                  <div className="mb-12">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                      <div>
+                        <h2 className="text-xl sm:text-2xl font-semibold mb-2">Suas Entrevistas</h2>
+                        <p className="text-gray-400 text-sm sm:text-base">Acesse os relatórios das suas entrevistas concluídas</p>
                       </div>
+                      <div className="text-left sm:text-right">
+                        <div className="text-xl sm:text-2xl font-bold text-purple-400">{minhasEntrevistas.length}</div>
+                        <div className="text-xs sm:text-sm text-gray-400">Total</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
 
-                      <div className="mb-6">
-                        <p className="text-gray-500 text-sm mb-4 line-clamp-3">{vaga.descricao}</p>
+                <div className="mb-6 sm:mb-8">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-semibold mb-2">Vagas Disponíveis para Entrevista</h2>
+                      <p className="text-gray-400 text-sm sm:text-base">Escolha uma vaga e comece sua entrevista simulada agora mesmo</p>
+                    </div>
+                  </div>
+                </div>
 
-                        <div className="space-y-2">
-                          {vaga.remuneracao && (
-                            <div className="flex items-center justify-between py-2 px-3 bg-white rounded-lg">
-                              <span className="text-sm text-gray-900">Remuneração:</span>
-                              <span className="text-green-700 font-bold text-sm">{vaga.remuneracao}</span>
+                {loading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+                    <p className="text-gray-400">Carregando vagas...</p>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {vagasTeste.map((vaga) => (
+                      <div key={vaga.id} className="bg-white rounded-xl p-6 border border-gray-300 hover:border-gray-200 transition-colors">
+                        <div className="mb-4">
+                          <h3 className="text-xl font-semibold mb-2">{vaga.nome}</h3>
+                          <p className="text-green-900 font-black mb-1">{vaga.empresa}</p>
+                          <p className="text-gray-700 text-sm">{vaga.cidade}/{vaga.uf}</p>
+                        </div>
+
+                        <div className="mb-6">
+                          <p className="text-gray-500 text-sm mb-4 line-clamp-3">{vaga.descricao}</p>
+
+                          <div className="space-y-2">
+                            {vaga.remuneracao && (
+                              <div className="flex items-center justify-between py-2 px-3 bg-white rounded-lg">
+                                <span className="text-sm text-gray-900">Remuneração:</span>
+                                <span className="text-green-700 font-bold text-sm">{vaga.remuneracao}</span>
+                              </div>
+                            )}
+
+                            {vaga.beneficios && (
+                              <div className="py-2 px-3 bg-white rounded-lg">
+                                <span className="text-sm text-black">Benefícios:</span>
+                                <p className="text-gray-600 text-sm mt-1">{vaga.beneficios}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            if (hasCompletedInterview(vaga.id)) {
+                              // Ver relatório da entrevista concluída
+                              ('Abrindo relatório para vaga:', vaga.id);
+                              if (savedReports[vaga.id]) {
+                                setRelatorioData(savedReports[vaga.id]);
+                                setModalRelatorioOpen(true);
+                                showToast('Relatório carregado!', 'success');
+                              } else {
+                                showToast('Relatório não encontrado. Tente novamente.', 'error');
+                              }
+                            } else {
+                              // Iniciar nova entrevista
+                              iniciarEntrevistaVaga(vaga);
+                            }
+                          }}
+                          disabled={loading}
+                          className={`w-full px-4 py-3 rounded-lg transition-colors font-medium ${hasCompletedInterview(vaga.id)
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : 'bg-green-800 disabled:bg-gray-600 text-white cursor-pointer'
+                            }`}
+                        >
+                          {hasCompletedInterview(vaga.id)
+                            ? '✅ Entrevista Realizada - Ver Relatório'
+                            : loading
+                              ? 'Iniciando...'
+                              : 'Fazer Entrevista'
+                          }
+                        </button>
+                        {hasCompletedInterview(vaga.id) && (
+                          <button
+                            onClick={() => {
+                              if (savedReports[vaga.id]) {
+                                setRelatorioData(savedReports[vaga.id]);
+                                setModalRelatorioOpen(true);
+                              }
+                            }}
+                            className="mt-2 w-full px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                          >
+                            📊 Ver Relatório
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!loading && vagasTeste.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-400 mb-4">Nenhuma vaga de teste disponível no momento.</p>
+                    <button
+                      onClick={fetchVagasTeste}
+                      className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
+                    >
+                      Recarregar
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+
+            {/* Interview */}
+            {currentStep === 'interview' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-6xl mx-auto"
+              >
+                <div className="bg-gray-900 rounded-2xl p-8">
+                  {/* Progress */}
+                  <div className="mb-8">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-sm text-gray-400">
+                        Pergunta {currentQuestion + 1} de {currentQuestions.length}
+                      </span>
+                      <span className="text-sm text-gray-400">
+                        {selectedVaga?.empresa} - {selectedVaga?.nome}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2">
+                      <div
+                        className="bg-purple-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${((currentQuestion + 1) / currentQuestions.length) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Question Card with Integrated Video */}
+                  <div className="mb-8">
+                    <div className="bg-gray-800 rounded-xl overflow-hidden shadow-2xl">
+                      {/* Video Section - Full Width */}
+                      <div className="relative">
+                        <div className="aspect-video bg-gray-900 relative overflow-hidden">
+                          {isPreparingCamera ? (
+                            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                              <div className="text-center">
+                                <Camera className="h-16 w-16 text-gray-400 mx-auto mb-4 animate-pulse" />
+                                <p className="text-gray-300 text-lg">Preparando câmera...</p>
+                                <div className="mt-4">
+                                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                                </div>
+                              </div>
+                            </div>
+                          ) : cameraEnabled ? (
+                            <>
+                              <video
+                                ref={videoRef}
+                                autoPlay
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover"
+                                onLoadedMetadata={() => {
+                                  if (videoRef.current) {
+                                    videoRef.current.play().catch(console.error);
+                                  }
+                                }}
+                                onCanPlay={() => {
+                                  if (videoRef.current) {
+                                    videoRef.current.play().catch(console.error);
+                                  }
+                                }}
+                              />
+
+                              {/* Question Overlay - Always visible during interview */}
+                              <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/90 via-black/50 to-transparent p-6">
+                                <h3 className="text-white text-xl font-semibold text-center leading-relaxed">
+                                  {currentQuestions[currentQuestion]}
+                                </h3>
+                              </div>
+
+                              {/* Recording Status Overlay */}
+                              {isRecording && (
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                                  <div className="flex items-center justify-center space-x-4">
+                                    <div className="flex items-center bg-red-600 px-4 py-2 rounded-full shadow-lg">
+                                      <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
+                                      <span className="text-white text-sm font-bold">GRAVANDO</span>
+                                    </div>
+                                    <div className="bg-black/75 px-4 py-2 rounded-full">
+                                      <span className="text-white font-mono text-sm flex items-center">
+                                        <Clock className="h-4 w-4 mr-2" />
+                                        {formatTime(recordingTime)} / 2:00
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                              <div className="text-center">
+                                <VideoOff className="h-20 w-20 text-gray-400 mx-auto mb-6" />
+                                <h3 className="text-white text-2xl font-semibold mb-4">
+                                  {currentQuestions[currentQuestion]}
+                                </h3>
+                                <p className="text-gray-300 text-lg mb-6">Ative sua câmera para começar a gravação</p>
+                                <button
+                                  onClick={initializeCamera}
+                                  className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-colors font-semibold text-lg shadow-lg"
+                                >
+                                  <Camera className="h-6 w-6 inline mr-3" />
+                                  Ligar Câmera
+                                </button>
+                              </div>
                             </div>
                           )}
 
-                          {vaga.beneficios && (
-                            <div className="py-2 px-3 bg-white rounded-lg">
-                              <span className="text-sm text-black">Benefícios:</span>
-                              <p className="text-gray-600 text-sm mt-1">{vaga.beneficios}</p>
+                          {/* Progress Bar when Recording */}
+                          {isRecording && (
+                            <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-800">
+                              <div
+                                className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-1000 shadow-lg"
+                                style={{ width: `${Math.min((recordingTime / 120) * 100, 100)}%` }}
+                              ></div>
                             </div>
                           )}
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => {
-                          if (hasCompletedInterview(vaga.id)) {
-                            // Ver relatório da entrevista concluída
-                            console.log('Abrindo relatório para vaga:', vaga.id);
-                            if (savedReports[vaga.id]) {
-                              setRelatorioData(savedReports[vaga.id]);
-                              setModalRelatorioOpen(true);
-                              showToast('Relatório carregado!', 'success');
-                            } else {
-                              showToast('Relatório não encontrado. Tente novamente.', 'error');
-                            }
-                          } else {
-                            // Iniciar nova entrevista
-                            iniciarEntrevistaVaga(vaga);
-                          }
-                        }}
-                        disabled={loading}
-                        className={`w-full px-4 py-3 rounded-lg transition-colors font-medium ${hasCompletedInterview(vaga.id)
-                          ? 'bg-green-600 hover:bg-green-700 text-white'
-                          : 'bg-green-800 disabled:bg-gray-600 text-white cursor-pointer'
-                          }`}
-                      >
-                        {hasCompletedInterview(vaga.id)
-                          ? '✅ Entrevista Realizada - Ver Relatório'
-                          : loading
-                            ? 'Iniciando...'
-                            : 'Fazer Entrevista'
-                        }
-                      </button>
-                      {hasCompletedInterview(vaga.id) && (
-                        <button
-                          onClick={() => {
-                            if (savedReports[vaga.id]) {
-                              setRelatorioData(savedReports[vaga.id]);
-                              setModalRelatorioOpen(true);
-                            }
-                          }}
-                          className="mt-2 w-full px-4 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                        >
-                          📊 Ver Relatório
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                      {/* Controls Section */}
+                      <div className="p-6 bg-gray-800">
+                        <div className="flex justify-center items-center space-x-6">
+                          {/* Mic Control */}
+                          <button
+                            onClick={toggleMic}
+                            className={`p-4 rounded-full transition-all duration-300 shadow-lg ${micEnabled
+                              ? 'bg-gray-700 hover:bg-gray-600 text-white hover:scale-105'
+                              : 'bg-red-600 hover:bg-red-700 text-white scale-105'
+                              }`}
+                            disabled={!cameraEnabled}
+                            title={micEnabled ? 'Desligar microfone' : 'Ligar microfone'}
+                          >
+                            {micEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
+                          </button>
 
-              {!loading && vagasTeste.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-400 mb-4">Nenhuma vaga de teste disponível no momento.</p>
-                  <button
-                    onClick={fetchVagasTeste}
-                    className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-700"
-                  >
-                    Recarregar
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          )}
-
-
-          {/* Interview */}
-          {currentStep === 'interview' && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-w-6xl mx-auto"
-            >
-              <div className="bg-gray-900 rounded-2xl p-8">
-                {/* Progress */}
-                <div className="mb-8">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm text-gray-400">
-                      Pergunta {currentQuestion + 1} de {currentQuestions.length}
-                    </span>
-                    <span className="text-sm text-gray-400">
-                      {selectedVaga?.empresa} - {selectedVaga?.nome}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2">
-                    <div
-                      className="bg-purple-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${((currentQuestion + 1) / currentQuestions.length) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Question Card with Integrated Video */}
-                <div className="mb-8">
-                  <div className="bg-gray-800 rounded-xl overflow-hidden shadow-2xl">
-                    {/* Video Section - Full Width */}
-                    <div className="relative">
-                      <div className="aspect-video bg-gray-900 relative overflow-hidden">
-                        {isPreparingCamera ? (
-                          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                            <div className="text-center">
-                              <Camera className="h-16 w-16 text-gray-400 mx-auto mb-4 animate-pulse" />
-                              <p className="text-gray-300 text-lg">Preparando câmera...</p>
-                              <div className="mt-4">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
-                              </div>
-                            </div>
-                          </div>
-                        ) : cameraEnabled ? (
-                          <>
-                            <video
-                              ref={videoRef}
-                              autoPlay
-                              muted
-                              playsInline
-                              className="w-full h-full object-cover"
-                              onLoadedMetadata={() => {
-                                if (videoRef.current) {
-                                  videoRef.current.play().catch(console.error);
-                                }
-                              }}
-                              onCanPlay={() => {
-                                if (videoRef.current) {
-                                  videoRef.current.play().catch(console.error);
-                                }
-                              }}
-                            />
-
-                            {/* Question Overlay - Always visible during interview */}
-                            <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/90 via-black/50 to-transparent p-6">
-                              <h3 className="text-white text-xl font-semibold text-center leading-relaxed">
-                                {currentQuestions[currentQuestion]}
-                              </h3>
-                            </div>
-
-                            {/* Recording Status Overlay */}
-                            {isRecording && (
-                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
-                                <div className="flex items-center justify-center space-x-4">
-                                  <div className="flex items-center bg-red-600 px-4 py-2 rounded-full shadow-lg">
-                                    <div className="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
-                                    <span className="text-white text-sm font-bold">GRAVANDO</span>
-                                  </div>
-                                  <div className="bg-black/75 px-4 py-2 rounded-full">
-                                    <span className="text-white font-mono text-sm flex items-center">
-                                      <Clock className="h-4 w-4 mr-2" />
-                                      {formatTime(recordingTime)} / 2:00
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
+                          {/* Main Recording Button */}
+                          <button
+                            onClick={isRecording ? stopRecording : startRecording}
+                            disabled={!cameraEnabled}
+                            className={`px-10 py-5 rounded-xl font-bold text-xl transition-all duration-300 flex items-center shadow-xl ${isRecording
+                              ? 'bg-red-600 hover:bg-red-700 text-white scale-105 animate-pulse'
+                              : 'bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-600 disabled:cursor-not-allowed hover:scale-105'
+                              }`}
+                          >
+                            {isRecording ? (
+                              <>
+                                <Square className="h-7 w-7 mr-3" />
+                                Parar Gravação
+                              </>
+                            ) : (
+                              <>
+                                <Play className="h-7 w-7 mr-3" />
+                                Iniciar Gravação
+                              </>
                             )}
-                          </>
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                            <div className="text-center">
-                              <VideoOff className="h-20 w-20 text-gray-400 mx-auto mb-6" />
-                              <h3 className="text-white text-2xl font-semibold mb-4">
-                                {currentQuestions[currentQuestion]}
-                              </h3>
-                              <p className="text-gray-300 text-lg mb-6">Ative sua câmera para começar a gravação</p>
-                              <button
-                                onClick={initializeCamera}
-                                className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl transition-colors font-semibold text-lg shadow-lg"
-                              >
-                                <Camera className="h-6 w-6 inline mr-3" />
-                                Ligar Câmera
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                          </button>
 
-                        {/* Progress Bar when Recording */}
-                        {isRecording && (
-                          <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-800">
-                            <div
-                              className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-1000 shadow-lg"
-                              style={{ width: `${Math.min((recordingTime / 120) * 100, 100)}%` }}
-                            ></div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                          {/* Camera Control */}
+                          <button
+                            onClick={cameraEnabled ? stopCamera : initializeCamera}
+                            className={`p-4 rounded-full transition-all duration-300 shadow-lg ${cameraEnabled
+                              ? 'bg-gray-700 hover:bg-gray-600 text-white hover:scale-105'
+                              : 'bg-purple-600 hover:bg-purple-700 text-white hover:scale-105'
+                              }`}
+                            title={cameraEnabled ? 'Desligar câmera' : 'Ligar câmera'}
+                          >
+                            {cameraEnabled ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
+                          </button>
+                        </div>
 
-                    {/* Controls Section */}
-                    <div className="p-6 bg-gray-800">
-                      <div className="flex justify-center items-center space-x-6">
-                        {/* Mic Control */}
-                        <button
-                          onClick={toggleMic}
-                          className={`p-4 rounded-full transition-all duration-300 shadow-lg ${micEnabled
-                            ? 'bg-gray-700 hover:bg-gray-600 text-white hover:scale-105'
-                            : 'bg-red-600 hover:bg-red-700 text-white scale-105'
-                            }`}
-                          disabled={!cameraEnabled}
-                          title={micEnabled ? 'Desligar microfone' : 'Ligar microfone'}
-                        >
-                          {micEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
-                        </button>
-
-                        {/* Main Recording Button */}
-                        <button
-                          onClick={isRecording ? stopRecording : startRecording}
-                          disabled={!cameraEnabled}
-                          className={`px-10 py-5 rounded-xl font-bold text-xl transition-all duration-300 flex items-center shadow-xl ${isRecording
-                            ? 'bg-red-600 hover:bg-red-700 text-white scale-105 animate-pulse'
-                            : 'bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-600 disabled:cursor-not-allowed hover:scale-105'
-                            }`}
-                        >
-                          {isRecording ? (
-                            <>
-                              <Square className="h-7 w-7 mr-3" />
-                              Parar Gravação
-                            </>
-                          ) : (
-                            <>
-                              <Play className="h-7 w-7 mr-3" />
-                              Iniciar Gravação
-                            </>
-                          )}
-                        </button>
-
-                        {/* Camera Control */}
-                        <button
-                          onClick={cameraEnabled ? stopCamera : initializeCamera}
-                          className={`p-4 rounded-full transition-all duration-300 shadow-lg ${cameraEnabled
-                            ? 'bg-gray-700 hover:bg-gray-600 text-white hover:scale-105'
-                            : 'bg-purple-600 hover:bg-purple-700 text-white hover:scale-105'
-                            }`}
-                          title={cameraEnabled ? 'Desligar câmera' : 'Ligar câmera'}
-                        >
-                          {cameraEnabled ? <VideoOff className="h-6 w-6" /> : <Video className="h-6 w-6" />}
-                        </button>
-                      </div>
-
-                      {/* Instructions */}
-                      <div className="mt-6 text-center">
-                        <p className="text-gray-400">
-                          {!cameraEnabled ? 'Ative sua câmera para começar a gravação da entrevista' :
-                            !isRecording ? 'Clique em "Iniciar Gravação" quando estiver pronto para responder' :
-                              'Responda à pergunta olhando diretamente para a câmera. Você tem até 2 minutos.'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Face Analysis */}
-                {cameraEnabled && (
-                  <div className="mb-6">
-                    <FaceAnalysis
-                      videoRef={videoRef}
-                      isActive={cameraEnabled && !isRecording}
-                      onFaceDataChange={setCurrentFaceData}
-                    />
-                  </div>
-                )}
-
-                {/* Video Playback */}
-                {videoUrl && !isRecording && (
-                  <div className="mb-6">
-                    <div className="bg-gray-800 rounded-xl p-4">
-                      <h4 className="text-lg font-medium mb-4">Sua Resposta Gravada:</h4>
-                      <div className="aspect-video bg-gray-900 rounded-lg mb-4">
-                        <video
-                          src={videoUrl}
-                          controls
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      </div>
-                      <div className="flex justify-center space-x-4">
-                        <button
-                          onClick={downloadVideo}
-                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center"
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </button>
-                        <button
-                          onClick={() => {
-                            setVideoUrl(null);
-                            setRecordingTime(0);
-                          }}
-                          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-                        >
-                          Nova Gravação
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Navigation */}
-                <div className="flex justify-between items-center">
-                  <button
-                    onClick={restartInterview}
-                    className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                  >
-                    ← Recomeçar
-                  </button>
-
-                  <button
-                    onClick={nextQuestion}
-                    disabled={carregandoRelatorio || isUploadingResponse}
-                    className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg transition-colors flex items-center"
-                  >
-                    {isUploadingResponse ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Enviando Resposta...
-                      </>
-                    ) : carregandoRelatorio ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Gerando Relatório...
-                      </>
-                    ) : (
-                      <>
-                        {currentQuestion < currentQuestions.length - 1 ? 'Próxima Pergunta' : 'Concluir Perguntas'} →
-                      </>
-                    )}
-                  </button>
-
-
-                </div>
-
-              </div>
-            </motion.div>
-          )}
-
-          {/* Feedback */}
-          {currentStep === 'feedback' && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-w-4xl mx-auto"
-            >
-              <div className="bg-gray-900 rounded-2xl p-8 text-center">
-                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
-                <h2 className="text-3xl font-bold mb-4">Todas as Perguntas Respondidas!</h2>
-                <p className="text-gray-400 mb-8">
-                  Você respondeu todas as perguntas da entrevista simulada. Agora você pode finalizar para gerar seu relatório ou recomeçar se quiser refazer.
-                </p>
-
-                <div className="grid md:grid-cols-2 gap-8 mb-8">
-                  <div className="bg-gray-800 rounded-xl p-6">
-                    <h3 className="text-xl font-semibold mb-4">Estatísticas</h3>
-                    <div className="space-y-2 text-left">
-                      <div className="flex justify-between">
-                        <span>Vaga:</span>
-                        <span>{selectedVaga?.nome}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Empresa:</span>
-                        <span>{selectedVaga?.empresa}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Perguntas:</span>
-                        <span>{currentQuestions.length}</span>
+                        {/* Instructions */}
+                        <div className="mt-6 text-center">
+                          <p className="text-gray-400">
+                            {!cameraEnabled ? 'Ative sua câmera para começar a gravação da entrevista' :
+                              !isRecording ? 'Clique em "Iniciar Gravação" quando estiver pronto para responder' :
+                                'Responda à pergunta olhando diretamente para a câmera. Você tem até 2 minutos.'}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-gray-800 rounded-xl p-6">
-                    <h3 className="text-xl font-semibold mb-4">O que acontece agora?</h3>
-                    <ul className="text-left space-y-2 text-gray-300 text-sm">
-                      <li>• <strong>Finalizar:</strong> Gera relatório com feedback de IA</li>
-                      <li>• <strong>Recomeçar:</strong> Refaz a entrevista do início</li>
-                      <li>• O relatório ficará disponível em "Suas Entrevistas"</li>
-                      <li>• Você pode fazer outras entrevistas depois</li>
-                    </ul>
+                  {/* Face Analysis */}
+                  {cameraEnabled && (
+                    <div className="mb-6">
+                      <FaceAnalysis
+                        videoRef={videoRef}
+                        isActive={cameraEnabled && !isRecording}
+                        onFaceDataChange={setCurrentFaceData}
+                      />
+                    </div>
+                  )}
+
+                  {/* Video Playback */}
+                  {videoUrl && !isRecording && (
+                    <div className="mb-6">
+                      <div className="bg-gray-800 rounded-xl p-4">
+                        <h4 className="text-lg font-medium mb-4">Sua Resposta Gravada:</h4>
+                        <div className="aspect-video bg-gray-900 rounded-lg mb-4">
+                          <video
+                            src={videoUrl}
+                            controls
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+                        <div className="flex justify-center space-x-4">
+                          <button
+                            onClick={downloadVideo}
+                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center"
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                          </button>
+                          <button
+                            onClick={() => {
+                              setVideoUrl(null);
+                              setRecordingTime(0);
+                            }}
+                            className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                          >
+                            Nova Gravação
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Navigation */}
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={restartInterview}
+                      className="px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                    >
+                      ← Recomeçar
+                    </button>
+
+                    <button
+                      onClick={nextQuestion}
+                      disabled={carregandoRelatorio || isUploadingResponse}
+                      className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white rounded-lg transition-colors flex items-center"
+                    >
+                      {isUploadingResponse ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Enviando Resposta...
+                        </>
+                      ) : carregandoRelatorio ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Gerando Relatório...
+                        </>
+                      ) : (
+                        <>
+                          {currentQuestion < currentQuestions.length - 1 ? 'Próxima Pergunta' : 'Concluir Perguntas'} →
+                        </>
+                      )}
+                    </button>
+
+
+                  </div>
+
+                </div>
+              </motion.div>
+            )}
+
+            {/* Feedback */}
+            {currentStep === 'feedback' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-4xl mx-auto"
+              >
+                <div className="bg-gray-900 rounded-2xl p-8 text-center">
+                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
+                  <h2 className="text-3xl font-bold mb-4">Todas as Perguntas Respondidas!</h2>
+                  <p className="text-gray-400 mb-8">
+                    Você respondeu todas as perguntas da entrevista simulada. Agora você pode finalizar para gerar seu relatório ou recomeçar se quiser refazer.
+                  </p>
+
+                  <div className="grid md:grid-cols-2 gap-8 mb-8">
+                    <div className="bg-gray-800 rounded-xl p-6">
+                      <h3 className="text-xl font-semibold mb-4">Estatísticas</h3>
+                      <div className="space-y-2 text-left">
+                        <div className="flex justify-between">
+                          <span>Vaga:</span>
+                          <span>{selectedVaga?.nome}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Empresa:</span>
+                          <span>{selectedVaga?.empresa}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Perguntas:</span>
+                          <span>{currentQuestions.length}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-800 rounded-xl p-6">
+                      <h3 className="text-xl font-semibold mb-4">O que acontece agora?</h3>
+                      <ul className="text-left space-y-2 text-gray-300 text-sm">
+                        <li>• <strong>Finalizar:</strong> Gera relatório com feedback de IA</li>
+                        <li>• <strong>Recomeçar:</strong> Refaz a entrevista do início</li>
+                        <li>• O relatório ficará disponível em "Suas Entrevistas"</li>
+                        <li>• Você pode fazer outras entrevistas depois</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button
+                      onClick={restartInterview}
+                      className="px-8 py-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-xl transition-colors"
+                    >
+                      🔄 Recomeçar Entrevista
+                    </button>
+                    <button
+                      onClick={async () => {
+                        await finalizarEntrevista();
+                        // Não volta para início - deixa o modal aberto para ver o relatório
+                      }}
+                      disabled={carregandoRelatorio}
+                      className="px-8 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center"
+                    >
+                      {carregandoRelatorio ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Finalizando...
+                        </>
+                      ) : (
+                        '✅ Finalizar e Gerar Relatório'
+                      )}
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button
-                    onClick={restartInterview}
-                    className="px-8 py-4 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-xl transition-colors"
-                  >
-                    🔄 Recomeçar Entrevista
-                  </button>
-                  <button
-                    onClick={async () => {
-                      await finalizarEntrevista();
-                      // Não volta para início - deixa o modal aberto para ver o relatório
-                    }}
-                    disabled={carregandoRelatorio}
-                    className="px-8 py-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center"
-                  >
-                    {carregandoRelatorio ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Finalizando...
-                      </>
-                    ) : (
-                      '✅ Finalizar e Gerar Relatório'
-                    )}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+          </div>
         </div>
-      </div>
       </PremiumFeature>
     </div >
   );

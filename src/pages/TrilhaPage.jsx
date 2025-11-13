@@ -128,21 +128,21 @@ const TrilhaPage = () => {
   useEffect(() => {
     const loadProgress = async () => {
       if (!user?.id || !trilhaId) {
-        console.log('⚠️ Usuário ou trilha não disponível:', { userId: user?.id, trilhaId });
+        ('⚠️ Usuário ou trilha não disponível:', { userId: user?.id, trilhaId });
         return;
       }
 
-      console.log('🔄 Carregando progresso...', { userId: user.id, trilhaId });
+      ('🔄 Carregando progresso...', { userId: user.id, trilhaId });
 
       try {
         const progress = await courseProgressService.getProgressByTrilha(user.id, trilhaId);
-        console.log('✅ Progresso recebido do backend:', progress);
+        ('✅ Progresso recebido do backend:', progress);
         setCompletedLessons(progress.completedLessons || []);
       } catch (error) {
         console.error('❌ Erro ao carregar progresso:', error);
         // Fallback para localStorage
         const localProgress = courseProgressService.getLocalProgress(user.id, trilhaId);
-        console.log('📦 Carregando do localStorage:', localProgress);
+        ('📦 Carregando do localStorage:', localProgress);
         setCompletedLessons(localProgress);
       }
     };
@@ -194,7 +194,7 @@ const TrilhaPage = () => {
           }))
         );
 
-        console.log('Aula editada com sucesso!');
+        ('Aula editada com sucesso!');
       } catch (error) {
         console.error('Erro ao editar aula:', error);
         alert('Erro ao editar aula');
@@ -221,7 +221,7 @@ const TrilhaPage = () => {
           setSelectedLesson(null);
         }
 
-        console.log('Aula deletada com sucesso!');
+        ('Aula deletada com sucesso!');
       } catch (error) {
         console.error('Erro ao deletar aula:', error);
         alert('Erro ao deletar aula');
@@ -252,7 +252,7 @@ const TrilhaPage = () => {
       if (response.status === 200) {
         // Atualizar estado local com a nova ordem
         setModules(reorderedModules);
-        console.log('Ordem atualizada com sucesso!');
+        ('Ordem atualizada com sucesso!');
       } else {
         throw new Error('Falha na resposta da API');
       }
@@ -271,7 +271,7 @@ const TrilhaPage = () => {
   // No TrilhaPage.jsx - handleSaveNewLesson atualizado:
 
   const handleSaveNewLesson = async (data) => {
-    console.log("🚀 FUNÇÃO INICIADA - data recebida:", data);
+    ("🚀 FUNÇÃO INICIADA - data recebida:", data);
     try {
       let response;
 
@@ -299,19 +299,19 @@ const TrilhaPage = () => {
       };
 
 
-      console.log("🔍 Testando detecções:");
-      console.log("É FormData?", data instanceof FormData);
-      console.log("Tem videoUrl?", !!data.videoUrl);
+      ("🔍 Testando detecções:");
+      ("É FormData?", data instanceof FormData);
+      ("Tem videoUrl?", !!data.videoUrl);
 
       if (data.videoUrl) {
-        console.log("Texto começa com <iframe?", data.videoUrl.trim().startsWith('<iframe'));
-        console.log("Contém youtube.com/embed?", data.videoUrl.includes('youtube.com/embed'));
-        console.log("isYouTubeIframe resultado:", isYouTubeIframe(data.videoUrl));
+        ("Texto começa com <iframe?", data.videoUrl.trim().startsWith('<iframe'));
+        ("Contém youtube.com/embed?", data.videoUrl.includes('youtube.com/embed'));
+        ("isYouTubeIframe resultado:", isYouTubeIframe(data.videoUrl));
       }
 
       // Se recebeu FormData (upload de arquivo)
       if (data instanceof FormData) {
-        console.log('>>> ENVIANDO FORMDATA (COM ARQUIVO)');
+        ('>>> ENVIANDO FORMDATA (COM ARQUIVO)');
         response = await axios.post(`${API_URL}/api/videos`, data, {
           headers: {
             'Content-Type': 'multipart/form-data'
@@ -320,10 +320,10 @@ const TrilhaPage = () => {
       }
       // Se recebeu iframe do YouTube
       else if (data.videoUrl && isYouTubeIframe(data.videoUrl)) {
-        console.log('>>> PROCESSANDO IFRAME DO YOUTUBE');
+        ('>>> PROCESSANDO IFRAME DO YOUTUBE');
 
         const youtubeData = extractFromYouTubeIframe(data.videoUrl);
-        console.log('>>> Dados extraídos:', youtubeData);
+        ('>>> Dados extraídos:', youtubeData);
 
         if (youtubeData) {
           const finalData = {
@@ -335,7 +335,7 @@ const TrilhaPage = () => {
             thumbnailUrl: `https://img.youtube.com/vi/${youtubeData.videoId}/maxresdefault.jpg`
           };
 
-          console.log('>>> Enviando para API:', finalData);
+          ('>>> Enviando para API:', finalData);
 
           response = await axios.post(`${API_URL}/api/videos`, finalData, {
             headers: {
@@ -348,7 +348,7 @@ const TrilhaPage = () => {
       }
       // Se recebeu URL do YouTube
       else if (data.videoUrl && isYouTubeURL(data.videoUrl)) {
-        console.log('>>> ENVIANDO VÍDEO DO YOUTUBE');
+        ('>>> ENVIANDO VÍDEO DO YOUTUBE');
 
         const youtubeData = extractYouTubeData(data.videoUrl);
 
@@ -368,7 +368,7 @@ const TrilhaPage = () => {
       }
       // Se recebeu objeto JSON (URL comum)
       else {
-        console.log('>>> ENVIANDO JSON (URL COMUM)');
+        ('>>> ENVIANDO JSON (URL COMUM)');
         response = await axios.post(`${API_URL}/api/videos`, data, {
           headers: {
             'Content-Type': 'application/json'
@@ -394,7 +394,7 @@ const TrilhaPage = () => {
       );
 
       setIsAddLessonModalOpen(false);
-      console.log("Aula salva com sucesso!");
+      ("Aula salva com sucesso!");
 
     } catch (error) {
       console.error("=== ERRO DETALHADO ===");
@@ -419,7 +419,7 @@ const TrilhaPage = () => {
         )
       );
 
-      console.log('Módulo editado com sucesso!');
+      ('Módulo editado com sucesso!');
     } catch (error) {
       console.error('Erro ao editar módulo:', error);
       alert('Erro ao editar módulo');

@@ -28,19 +28,19 @@ const CompanyPage = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                console.log('🔍 Carregando dados da empresa:', companyId);
+                ('🔍 Carregando dados da empresa:', companyId);
 
                 // Buscar dados da empresa
-                console.log('🏢 Buscando empresa:', `${API_URL}/api/companies/${companyId}`);
+                ('🏢 Buscando empresa:', `${API_URL}/api/companies/${companyId}`);
                 const companyResponse = await axios.get(`${API_URL}/api/companies/${companyId}`);
-                console.log('✅ Empresa carregada:', companyResponse.data);
+                ('✅ Empresa carregada:', companyResponse.data);
                 setCompany(companyResponse.data);
 
                 // Buscar vagas da empresa
-                console.log('💼 Buscando vagas:', `${API_URL}/api/recruitment/jobs/company/${companyId}`);
+                ('💼 Buscando vagas:', `${API_URL}/api/recruitment/jobs/company/${companyId}`);
                 const vagasResponse = await axios.get(`${API_URL}/api/recruitment/jobs/company/${companyId}`);
-                console.log('✅ Vagas carregadas:', vagasResponse.data);
-                console.log('📊 Total de vagas encontradas:', vagasResponse.data.length);
+                ('✅ Vagas carregadas:', vagasResponse.data);
+                ('📊 Total de vagas encontradas:', vagasResponse.data.length);
                 setVagas(vagasResponse.data);
 
             } catch (error) {
@@ -64,12 +64,12 @@ const CompanyPage = () => {
 
             if (isAuthenticated && user?.id) {
                 try {
-                    console.log('🔍 Buscando candidaturas para usuário:', user.id);
-                    console.log('🌐 URL:', `${API_URL}/api/candidaturas/usuario/${user.id}`);
+                    ('🔍 Buscando candidaturas para usuário:', user.id);
+                    ('🌐 URL:', `${API_URL}/api/candidaturas/usuario/${user.id}`);
 
                     const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${user.id}`);
                     setUserCandidaturas(response.data);
-                    console.log('✅ Candidaturas carregadas:', response.data);
+                    ('✅ Candidaturas carregadas:', response.data);
                 } catch (error) {
                     console.error('❌ Erro ao buscar candidaturas:', error);
                 }
@@ -85,7 +85,7 @@ const CompanyPage = () => {
         try {
             await login(loginData.email, loginData.password);
             setShowLoginModal(false);
-            console.log('✅ Login realizado via AuthContext');
+            ('✅ Login realizado via AuthContext');
         } catch (error) {
             console.error('Erro detalhado:', error);
             alert(`❌ Erro no login: ${error.message}`);
@@ -100,7 +100,7 @@ const CompanyPage = () => {
                 password: signupData.password
             });
             setShowLoginModal(false);
-            console.log('✅ Cadastro realizado via AuthContext');
+            ('✅ Cadastro realizado via AuthContext');
         } catch (error) {
             console.error('Erro no cadastro:', error);
             alert(`❌ Erro no cadastro: ${error.message}`);
@@ -109,13 +109,13 @@ const CompanyPage = () => {
 
     const handleEnviarCandidatura = async (vaga) => {
         if (isSubmitting) {
-            console.log('⏳ Já enviando candidatura, ignorando clique...');
+            ('⏳ Já enviando candidatura, ignorando clique...');
             return;
         }
         setIsSubmitting(true);
 
         try {
-            console.log('🔄 Enviando candidatura:', {
+            ('🔄 Enviando candidatura:', {
                 usuario_id: user.id,
                 vaga_id: vaga.id,
                 vaga_nome: vaga.nome,
@@ -127,7 +127,7 @@ const CompanyPage = () => {
                 mensagem: `Candidatura para a vaga: ${vaga.nome}`
             });
 
-            console.log('✅ Candidatura enviada:', response.data);
+            ('✅ Candidatura enviada:', response.data);
 
             // Adicionar na lista local
             setUserCandidaturas(prev => [...prev, response.data]);
@@ -161,7 +161,7 @@ const CompanyPage = () => {
                             try {
                                 const response = await axios.get(`${API_URL}/api/candidaturas/usuario/${user.id}`);
                                 setUserCandidaturas(response.data);
-                                console.log('🔄 Candidaturas recarregadas:', response.data);
+                                ('🔄 Candidaturas recarregadas:', response.data);
                             } catch (reloadError) {
                                 console.error('Erro ao recarregar candidaturas:', reloadError);
                             }
@@ -224,7 +224,7 @@ const CompanyPage = () => {
                 parseInt(candidaturaVagaId) === vagaIdNum;
         });
 
-        console.log(`🔍 Verificando candidatura para vaga ${vagaId}:`, {
+        (`🔍 Verificando candidatura para vaga ${vagaId}:`, {
             resultado,
             candidaturas: userCandidaturas.length
         });
@@ -237,8 +237,8 @@ const CompanyPage = () => {
             <div className="min-h-screen bg-white">
                 <Navbar
                     currentView="empresa"
-                    onViewChange={(view) => console.log('View changed:', view)}
-                    onAddTrilha={() => console.log('Add trilha')}
+                    onViewChange={(view) => ('View changed:', view)}
+                    onAddTrilha={() => ('Add trilha')}
                 />
 
                 <main className="pt-16">
@@ -261,8 +261,8 @@ const CompanyPage = () => {
         <div className="min-h-screen bg-white">
             <Navbar
                 currentView="empresa"
-                onViewChange={(view) => console.log('View changed:', view)}
-                onAddTrilha={() => console.log('Add trilha')}
+                onViewChange={(view) => ('View changed:', view)}
+                onAddTrilha={() => ('Add trilha')}
             />
 
             <main className="pt-16">

@@ -62,7 +62,7 @@ const InterviewModal = ({
         await faceapi.nets.ageGenderNet.loadFromUri('/models');
         await faceapi.nets.faceExpressionNet.loadFromUri('/models');
         setModelsLoaded(true);
-        console.log('✅ Modelos Face API carregados');
+        ('✅ Modelos Face API carregados');
       } catch (error) {
         console.warn('⚠️ Modelos Face API não carregados:', error);
       }
@@ -87,7 +87,7 @@ const InterviewModal = ({
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
         const audioDevices = devices.filter(device => device.kind === 'audioinput');
 
-        console.log('📱 Dispositivos encontrados:', {
+        ('📱 Dispositivos encontrados:', {
           cameras: videoDevices.length,
           microphones: audioDevices.length
         });
@@ -109,7 +109,7 @@ const InterviewModal = ({
       }
 
       const supportedMimeType = getSupportedMimeType();
-      console.log('🎬 Compatibilidade verificada:', {
+      ('🎬 Compatibilidade verificada:', {
         getUserMedia: !!navigator.mediaDevices.getUserMedia,
         MediaRecorder: !!window.MediaRecorder,
         supportedCodec: supportedMimeType || 'padrão do navegador'
@@ -125,18 +125,18 @@ const InterviewModal = ({
   // Inicializar câmera ao abrir modal
   useEffect(() => {
     if (isOpen) {
-      console.log('🎬 Modal aberto, tentando inicializar câmera...');
-      console.log('📊 Estados atuais:', { cameraEnabled, cameraError });
+      ('🎬 Modal aberto, tentando inicializar câmera...');
+      ('📊 Estados atuais:', { cameraEnabled, cameraError });
 
       if (!cameraEnabled && !cameraError) {
-        console.log('🚀 Iniciando câmera...');
+        ('🚀 Iniciando câmera...');
         initializeCamera();
       }
     }
 
     return () => {
       if (isOpen) {
-        console.log('🧹 Modal fechando, limpando recursos...');
+        ('🧹 Modal fechando, limpando recursos...');
         cleanup();
       }
     };
@@ -212,7 +212,7 @@ const InterviewModal = ({
   const resetQuestionCounter = () => {
     questionCounterRef.current = 0;
     isProcessingRef.current = false;
-    console.log('🔄 Contador resetado para início da entrevista');
+    ('🔄 Contador resetado para início da entrevista');
   };
 
   // Função para buscar status da entrevista do banco de dados
@@ -229,7 +229,7 @@ const InterviewModal = ({
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Status da entrevista:', data.status);
+        ('Status da entrevista:', data.status);
         setInterviewStatus(data.status);
       }
     } catch (error) {
@@ -239,7 +239,7 @@ const InterviewModal = ({
 
   // ✅ Inicializar câmera com estratégias robustas
   const initializeCamera = async () => {
-    console.log('📹 Inicializando câmera...');
+    ('📹 Inicializando câmera...');
     setCameraError(null);
 
     try {
@@ -293,7 +293,7 @@ const InterviewModal = ({
       for (let i = 0; i < constraints.length; i++) {
         const constraint = constraints[i];
         try {
-          console.log(`🔍 Tentativa ${i + 1}/${constraints.length} - Configuração:`,
+          (`🔍 Tentativa ${i + 1}/${constraints.length} - Configuração:`,
             typeof constraint.video === 'boolean' ? 'básica' : constraint.video);
 
           // Timeout mais longo para dar tempo da permissão
@@ -302,19 +302,19 @@ const InterviewModal = ({
             setTimeout(() => reject(new Error('Timeout aguardando permissão')), 15000)
           );
 
-          console.log(`⏳ Aguardando permissão de câmera/microfone...`);
+          (`⏳ Aguardando permissão de câmera/microfone...`);
           mediaStream = await Promise.race([streamPromise, timeoutPromise]);
 
-          console.log(`✅ Câmera inicializada com sucesso!`);
-          console.log(`📊 Video tracks: ${mediaStream.getVideoTracks().length}`);
-          console.log(`🎵 Audio tracks: ${mediaStream.getAudioTracks().length}`);
+          (`✅ Câmera inicializada com sucesso!`);
+          (`📊 Video tracks: ${mediaStream.getVideoTracks().length}`);
+          (`🎵 Audio tracks: ${mediaStream.getAudioTracks().length}`);
 
           // Verificar se as tracks estão funcionando
           const videoTrack = mediaStream.getVideoTracks()[0];
           const audioTrack = mediaStream.getAudioTracks()[0];
 
-          console.log(`📹 Video track status: ${videoTrack ? videoTrack.readyState : 'não encontrado'}`);
-          console.log(`🎤 Audio track status: ${audioTrack ? audioTrack.readyState : 'não encontrado'}`);
+          (`📹 Video track status: ${videoTrack ? videoTrack.readyState : 'não encontrado'}`);
+          (`🎤 Audio track status: ${audioTrack ? audioTrack.readyState : 'não encontrado'}`);
 
           break;
 
@@ -340,13 +340,13 @@ const InterviewModal = ({
       setCameraEnabled(true);
 
       // Aguardar elemento de vídeo estar disponível
-      console.log('🎬 Configurando elemento de vídeo...');
+      ('🎬 Configurando elemento de vídeo...');
 
       const configureVideo = () => {
         if (videoRef.current && mediaStream) {
           const videoElement = videoRef.current;
 
-          console.log('📹 Elemento de vídeo encontrado, configurando...');
+          ('📹 Elemento de vídeo encontrado, configurando...');
 
           // Configurar stream
           videoElement.srcObject = mediaStream;
@@ -358,11 +358,11 @@ const InterviewModal = ({
 
           // Event listeners
           videoElement.onloadedmetadata = () => {
-            console.log('📹 Metadata carregada, iniciando reprodução...');
+            ('📹 Metadata carregada, iniciando reprodução...');
             videoElement.play()
               .then(() => {
-                console.log('✅ Vídeo reproduzindo com sucesso');
-                console.log(`📐 Dimensões: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
+                ('✅ Vídeo reproduzindo com sucesso');
+                (`📐 Dimensões: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
               })
               .catch(err => {
                 console.warn('⚠️ Erro ao reproduzir vídeo:', err);
@@ -371,7 +371,7 @@ const InterviewModal = ({
           };
 
           videoElement.oncanplay = () => {
-            console.log('▶️ Vídeo pronto para reproduzir');
+            ('▶️ Vídeo pronto para reproduzir');
           };
 
           videoElement.onerror = (error) => {
@@ -387,7 +387,7 @@ const InterviewModal = ({
       // Tentar configurar imediatamente
       if (!configureVideo()) {
         // Se não conseguir, aguardar um pouco e tentar novamente
-        console.log('⏳ Elemento de vídeo não disponível, aguardando...');
+        ('⏳ Elemento de vídeo não disponível, aguardando...');
         setTimeout(() => {
           if (!configureVideo()) {
             console.warn('⚠️ Elemento videoRef não está disponível após timeout');
@@ -427,12 +427,12 @@ const InterviewModal = ({
     if (stream) {
       const videoTracks = stream.getVideoTracks();
       if (videoTracks.length === 0 || !videoTracks[0] || videoTracks[0].readyState !== 'live') {
-        console.log('🔄 Stream inativo, reinicializando câmera...');
+        ('🔄 Stream inativo, reinicializando câmera...');
         await initializeCamera();
       }
     }
 
-    console.log(`🎬 Iniciando entrevista com ${questions.length} perguntas`);
+    (`🎬 Iniciando entrevista com ${questions.length} perguntas`);
     resetQuestionCounter();
     setInterviewStarted(true);
     setCurrentQuestion(0);
@@ -454,7 +454,7 @@ const InterviewModal = ({
 
     for (const type of possibleTypes) {
       if (MediaRecorder.isTypeSupported(type)) {
-        console.log(`✅ Usando codec: ${type}`);
+        (`✅ Usando codec: ${type}`);
         return type;
       }
     }
@@ -487,12 +487,12 @@ const InterviewModal = ({
     }
 
     if (questionIndex >= questions.length) {
-      console.log(`🛑 Tentativa de gravar pergunta ${questionIndex + 1}, mas só temos ${questions.length}`);
+      (`🛑 Tentativa de gravar pergunta ${questionIndex + 1}, mas só temos ${questions.length}`);
       return;
     }
 
     if (isProcessingRef.current) {
-      console.log(`🛑 Já processando, ignorando nova gravação`);
+      (`🛑 Já processando, ignorando nova gravação`);
       return;
     }
 
@@ -500,7 +500,7 @@ const InterviewModal = ({
     questionCounterRef.current = questionIndex;
     setCurrentQuestion(questionIndex);
 
-    console.log(`🔴 Iniciando gravação - Pergunta ${questionIndex + 1}/${questions.length}`);
+    (`🔴 Iniciando gravação - Pergunta ${questionIndex + 1}/${questions.length}`);
 
     try {
       const supportedMimeType = getSupportedMimeType();
@@ -517,10 +517,10 @@ const InterviewModal = ({
       };
 
       recorder.onstop = () => {
-        console.log(`⏹️ Gravação finalizada - Pergunta ${questionIndex + 1}`);
+        (`⏹️ Gravação finalizada - Pergunta ${questionIndex + 1}`);
         const mimeType = supportedMimeType || 'video/webm';
         const videoBlob = new Blob(chunks, { type: mimeType });
-        console.log(`📦 Blob criado com tipo: ${mimeType}, tamanho: ${videoBlob.size} bytes`);
+        (`📦 Blob criado com tipo: ${mimeType}, tamanho: ${videoBlob.size} bytes`);
         handleVideoCompleteWithCounter(videoBlob, questionIndex);
         setRecordedChunks([]);
       };
@@ -538,7 +538,7 @@ const InterviewModal = ({
 
       // Tentar fallback sem especificar mimeType
       try {
-        console.log('🔄 Tentando gravação sem codec específico...');
+        ('🔄 Tentando gravação sem codec específico...');
         const recorder = new MediaRecorder(stream);
         const chunks = [];
 
@@ -549,9 +549,9 @@ const InterviewModal = ({
         };
 
         recorder.onstop = () => {
-          console.log(`⏹️ Gravação finalizada (fallback) - Pergunta ${questionIndex + 1}`);
+          (`⏹️ Gravação finalizada (fallback) - Pergunta ${questionIndex + 1}`);
           const videoBlob = new Blob(chunks, { type: 'video/webm' });
-          console.log(`📦 Blob fallback criado, tamanho: ${videoBlob.size} bytes`);
+          (`📦 Blob fallback criado, tamanho: ${videoBlob.size} bytes`);
           handleVideoCompleteWithCounter(videoBlob, questionIndex);
           setRecordedChunks([]);
         };
@@ -563,7 +563,7 @@ const InterviewModal = ({
         setRecordingTime(0);
         setFaceAnalysisData([]);
 
-        console.log('✅ Gravação iniciada com fallback');
+        ('✅ Gravação iniciada com fallback');
 
       } catch (fallbackError) {
         console.error('❌ Erro também no fallback:', fallbackError);
@@ -577,14 +577,14 @@ const InterviewModal = ({
   const handleVideoCompleteWithCounter = async (videoBlob, questionIndex) => {
     const isLastQuestion = questionIndex >= questions.length - 1;
 
-    console.log(`🎬 Processando pergunta ${questionIndex + 1}/${questions.length}`);
+    (`🎬 Processando pergunta ${questionIndex + 1}/${questions.length}`);
     setProcessingQuestions(prev => new Set([...prev, questionIndex]));
     setIsRecording(false);
 
     try {
       await onVideoResponse(videoBlob, questionIndex, faceAnalysisData);
 
-      console.log(`✅ Pergunta ${questionIndex + 1} processada com sucesso`);
+      (`✅ Pergunta ${questionIndex + 1} processada com sucesso`);
       questions[questionIndex].answered = true;
 
       setProcessingQuestions(prev => {
@@ -603,7 +603,7 @@ const InterviewModal = ({
           startRecordingWithCounter(nextQuestionIndex);
         }, 500);
       } else {
-        console.log(`🏁 Última pergunta finalizada!`);
+        (`🏁 Última pergunta finalizada!`);
         setInterviewStarted(false);
         setCurrentQuestion(questions.length - 1);
       }
@@ -633,7 +633,7 @@ const InterviewModal = ({
 
   const handleSendResponse = () => {
     if (mediaRecorder && isRecording) {
-      console.log(`📤 Enviando resposta da pergunta ${questionCounterRef.current + 1}`);
+      (`📤 Enviando resposta da pergunta ${questionCounterRef.current + 1}`);
       if (typeof mediaRecorder.stop === 'function') {
         mediaRecorder.stop();
       }
@@ -647,7 +647,7 @@ const InterviewModal = ({
 
   const skipQuestion = () => {
     if (isRecording) {
-      console.log(`⏭️ Pulando pergunta ${currentQuestion + 1}`);
+      (`⏭️ Pulando pergunta ${currentQuestion + 1}`);
       handleSendResponse();
     }
   };
@@ -660,7 +660,7 @@ const InterviewModal = ({
       if (stream) {
         const videoTracks = stream.getVideoTracks();
         if (videoTracks.length === 0 || !videoTracks[0] || videoTracks[0].readyState !== 'live') {
-          console.log('🔄 Stream inativo, reinicializando câmera antes de continuar...');
+          ('🔄 Stream inativo, reinicializando câmera antes de continuar...');
           await initializeCamera();
         }
       }
@@ -676,14 +676,14 @@ const InterviewModal = ({
 
   // ✅ Cleanup completo
   const cleanup = () => {
-    console.log('🧹 Limpando recursos da entrevista...');
+    ('🧹 Limpando recursos da entrevista...');
 
     isProcessingRef.current = false;
     questionCounterRef.current = 0;
 
     if (stream) {
       stream.getTracks().forEach(track => {
-        console.log(`🛑 Parando track: ${track.kind}`);
+        (`🛑 Parando track: ${track.kind}`);
         track.stop();
       });
     }
@@ -716,7 +716,7 @@ const InterviewModal = ({
     setRecordedChunks([]);
     setCameraError(null);
 
-    console.log('✅ Limpeza concluída');
+    ('✅ Limpeza concluída');
   };
 
   const formatTime = (seconds) => {
@@ -852,7 +852,7 @@ const InterviewModal = ({
                       <div className="space-y-3">
                         <Button
                           onClick={() => {
-                            console.log('🔄 Botão "Tentar Novamente" clicado');
+                            ('🔄 Botão "Tentar Novamente" clicado');
                             setCameraError(null);
                             setCameraEnabled(false);
                             initializeCamera();

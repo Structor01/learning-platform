@@ -1,5 +1,5 @@
 // src/components/ui/ForgotPassword.jsx - VERSÃO SIMPLES QUE DEVE FUNCIONAR
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { API_URL } from "../components/utils/api";
 
 export default function ForgotPassword() {
@@ -8,10 +8,10 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-      const emailSaved = localStorage.getItem('email');
-      if (emailSaved && emailSaved.trim() !== '') {
-          setEmail(emailSaved);
-      }
+    const emailSaved = localStorage.getItem('email');
+    if (emailSaved && emailSaved.trim() !== '') {
+      setEmail(emailSaved);
+    }
   }, []);
 
   const handleSubmit = async (e) => {
@@ -20,12 +20,12 @@ export default function ForgotPassword() {
     setMensagem("");
 
     try {
-      console.log("🔄 Enviando forgot password...");
-      console.log("📧 Email:", email);
-      console.log("🌐 API_URL:", API_URL);
+      ("🔄 Enviando forgot password...");
+      ("📧 Email:", email);
+      ("🌐 API_URL:", API_URL);
 
       const url = `${API_URL}/api/auth/forgot-password`;
-      console.log("🔗 URL:", url);
+      ("🔗 URL:", url);
 
       const response = await fetch(url, {
         method: "POST", // ✅ Método correto
@@ -35,15 +35,15 @@ export default function ForgotPassword() {
         body: JSON.stringify({ email }), // ✅ Payload correto
       });
 
-      console.log("📡 Status:", response.status);
+      ("📡 Status:", response.status);
 
       if (response.ok) {
         const data = await response.json();
-        console.log("✅ Sucesso:", data);
+        ("✅ Sucesso:", data);
         setMensagem(`✅ ${data.message}`);
       } else {
         const errorData = await response.json();
-        console.log("❌ Erro:", errorData);
+        ("❌ Erro:", errorData);
         setMensagem(`❌ ${errorData.message || 'Erro ao enviar e-mail'}`);
       }
 
@@ -82,8 +82,8 @@ export default function ForgotPassword() {
               type="submit"
               disabled={loading || !email.trim()}
               className={`w-full font-medium py-3 rounded transition-all ${loading
-                  ? "bg-gray-600 cursor-not-allowed text-gray-300"
-                  : "bg-white text-black hover:bg-white/90"
+                ? "bg-gray-600 cursor-not-allowed text-gray-300"
+                : "bg-white text-black hover:bg-white/90"
                 }`}
             >
               {loading ? (
@@ -99,8 +99,8 @@ export default function ForgotPassword() {
 
           {mensagem && (
             <div className={`mt-4 p-3 rounded text-center text-sm ${mensagem.includes('✅')
-                ? 'bg-green-900/30 text-green-300 border border-green-700/50'
-                : 'bg-red-900/30 text-red-300 border border-red-700/50'
+              ? 'bg-green-900/30 text-green-300 border border-green-700/50'
+              : 'bg-red-900/30 text-red-300 border border-red-700/50'
               }`}>
               {mensagem}
             </div>

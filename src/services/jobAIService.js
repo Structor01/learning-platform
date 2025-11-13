@@ -7,7 +7,7 @@ class JobAIService {
   // Gerar vaga com IA
   async generateJobWithAI(promptData) {
     try {
-      console.log('🤖 Gerando vaga com IA...', promptData);
+      ('🤖 Gerando vaga com IA...', promptData);
 
       const response = await fetch(`${this.apiBaseUrl}/api/recruitment/jobs/generate-with-ai`, {
         method: 'POST',
@@ -23,9 +23,9 @@ class JobAIService {
       }
 
       const result = await response.json();
-      
-      console.log('✅ Vaga gerada com sucesso:', result);
-      
+
+      ('✅ Vaga gerada com sucesso:', result);
+
       return {
         success: true,
         data: result,
@@ -38,7 +38,7 @@ class JobAIService {
 
     } catch (error) {
       console.error('❌ Erro ao gerar vaga com IA:', error);
-      
+
       // Fallback local para demonstração
       return this.generateJobFallback(promptData);
     }
@@ -47,7 +47,7 @@ class JobAIService {
   // Sugerir melhorias para vaga existente
   async suggestJobImprovements(jobId, options = {}) {
     try {
-      console.log(`🔍 Sugerindo melhorias para vaga ${jobId}...`);
+      (`🔍 Sugerindo melhorias para vaga ${jobId}...`);
 
       const response = await fetch(`${this.apiBaseUrl}/api/recruitment/jobs/${jobId}/suggest-improvements`, {
         method: 'POST',
@@ -62,9 +62,9 @@ class JobAIService {
       }
 
       const result = await response.json();
-      
-      console.log('✅ Melhorias sugeridas:', result);
-      
+
+      ('✅ Melhorias sugeridas:', result);
+
       return {
         success: true,
         data: result
@@ -82,7 +82,7 @@ class JobAIService {
   // Gerar perguntas customizadas para vaga
   async generateJobQuestions(jobId) {
     try {
-      console.log(`❓ Gerando perguntas para vaga ${jobId}...`);
+      (`❓ Gerando perguntas para vaga ${jobId}...`);
 
       const response = await fetch(`${this.apiBaseUrl}/api/recruitment/jobs/${jobId}/questions`);
 
@@ -91,9 +91,9 @@ class JobAIService {
       }
 
       const result = await response.json();
-      
-      console.log('✅ Perguntas geradas:', result);
-      
+
+      ('✅ Perguntas geradas:', result);
+
       return {
         success: true,
         data: result
@@ -111,7 +111,7 @@ class JobAIService {
   // Analisar adequação candidato-vaga
   async analyzeCandidateFit(jobId, candidateData) {
     try {
-      console.log(`🎯 Analisando adequação candidato-vaga ${jobId}...`);
+      (`🎯 Analisando adequação candidato-vaga ${jobId}...`);
 
       const response = await fetch(`${this.apiBaseUrl}/api/recruitment/jobs/${jobId}/analyze-candidate-fit`, {
         method: 'POST',
@@ -126,9 +126,9 @@ class JobAIService {
       }
 
       const result = await response.json();
-      
-      console.log('✅ Análise de adequação concluída:', result);
-      
+
+      ('✅ Análise de adequação concluída:', result);
+
       return {
         success: true,
         data: result
@@ -146,7 +146,7 @@ class JobAIService {
   // Otimizar descrição da vaga
   async optimizeJobDescription(jobId, options = {}) {
     try {
-      console.log(`📝 Otimizando descrição da vaga ${jobId}...`);
+      (`📝 Otimizando descrição da vaga ${jobId}...`);
 
       const response = await fetch(`${this.apiBaseUrl}/api/recruitment/jobs/${jobId}/optimize-description`, {
         method: 'POST',
@@ -161,9 +161,9 @@ class JobAIService {
       }
 
       const result = await response.json();
-      
-      console.log('✅ Descrição otimizada:', result);
-      
+
+      ('✅ Descrição otimizada:', result);
+
       return {
         success: true,
         data: result
@@ -180,11 +180,11 @@ class JobAIService {
 
   // Fallback local quando API não está disponível
   generateJobFallback(promptData) {
-    console.log('⚠️ Usando fallback local para geração de vaga');
+    ('⚠️ Usando fallback local para geração de vaga');
 
     const keywords = this.extractKeywords(promptData.prompt);
     const title = this.generateTitleFromPrompt(promptData.prompt);
-    
+
     const fallbackJob = {
       id: Date.now(),
       title: title,

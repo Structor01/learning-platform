@@ -29,7 +29,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
       if (isLoginMode) {
         // Login
         await login(formData.email, formData.password);
-        console.log("Login realizado com sucesso!");
+        ("Login realizado com sucesso!");
 
         // Fechar modal após login bem-sucedido
         onClose();
@@ -46,7 +46,7 @@ const LoginModal = ({ isOpen, onClose, onLogin, onSignup }) => {
           email: formData.email,
           password: formData.password,
         });
-        console.log("Cadastro realizado com sucesso!");
+        ("Cadastro realizado com sucesso!");
 
         // Fechar modal após cadastro bem-sucedido
         onClose();

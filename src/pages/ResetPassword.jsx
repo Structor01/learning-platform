@@ -17,14 +17,14 @@ export default function ResetPassword() {
   // Verificar se token existe ao carregar
   useEffect(() => {
     if (!token) {
-      console.log('❌ Token não encontrado na URL');
+      ('❌ Token não encontrado na URL');
       setMensagem("❌ Link inválido. Token não encontrado.");
     } else {
-      console.log('✅ Token encontrado:', token.substring(0, 10) + '...');
-      console.log('✅ Token length:', token.length);
-      console.log('✅ Token type:', typeof token);
-      console.log('✅ Token tem espaços?', token.includes(' '));
-      console.log('✅ Token decodificado:', decodeURIComponent(token));
+      ('✅ Token encontrado:', token.substring(0, 10) + '...');
+      ('✅ Token length:', token.length);
+      ('✅ Token type:', typeof token);
+      ('✅ Token tem espaços?', token.includes(' '));
+      ('✅ Token decodificado:', decodeURIComponent(token));
     }
   }, [token]);
 
@@ -51,13 +51,13 @@ export default function ResetPassword() {
     setMensagem("");
 
     try {
-      console.log("🔄 Enviando reset password...");
-      console.log("🔑 Token:", token.substring(0, 10) + '...');
-      console.log("🔑 Token completo:", token);
+      ("🔄 Enviando reset password...");
+      ("🔑 Token:", token.substring(0, 10) + '...');
+      ("🔑 Token completo:", token);
 
       // ✅ CORREÇÕES:
       const url = `${API_URL}/api/auth/reset-password`; // ✅ API_URL + /api/
-      console.log("🔗 URL:", url);
+      ("🔗 URL:", url);
 
       // Tentar múltiplos formatos de payload que o backend pode aceitar
       const payload = {
@@ -68,7 +68,7 @@ export default function ResetPassword() {
         confirmPassword: confirmPassword, // Alguns backends exigem confirmação
         password_confirmation: confirmPassword // Laravel/Rails style
       };
-      console.log("📦 Payload:", payload);
+      ("📦 Payload:", payload);
 
       const response = await fetch(url, {
         method: "POST",
@@ -76,26 +76,26 @@ export default function ResetPassword() {
         body: JSON.stringify(payload),
       });
 
-      console.log("📡 Status:", response.status);
-      console.log("📡 Response headers:", [...response.headers.entries()]);
+      ("📡 Status:", response.status);
+      ("📡 Response headers:", [...response.headers.entries()]);
 
       if (response.ok) {
         const data = await response.json();
-        console.log("✅ Sucesso:", data);
+        ("✅ Sucesso:", data);
 
         setMensagem("✅ " + (data.message || "Senha atualizada com sucesso!"));
 
         // ✅ REDIRECIONAR para login após 3 segundos
         setTimeout(() => {
-          console.log("🔄 Redirecionando para login...");
+          ("🔄 Redirecionando para login...");
           navigate("/"); // ou navigate("/login")
         }, 3000);
 
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
-        console.log("❌ Erro completo:", errorData);
-        console.log("❌ Erro message:", errorData.message);
-        console.log("❌ Erro error:", errorData.error);
+        ("❌ Erro completo:", errorData);
+        ("❌ Erro message:", errorData.message);
+        ("❌ Erro error:", errorData.error);
 
         if (response.status === 400) {
           setMensagem("❌ " + (errorData.message || errorData.error || "Token inválido ou expirado. Solicite um novo link de recuperação."));

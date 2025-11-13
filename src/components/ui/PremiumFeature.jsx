@@ -32,11 +32,11 @@ const PremiumFeature = ({
   // Verificar acesso via API
   useEffect(() => {
     const checkAccess = async () => {
-      console.log('🔐 PremiumFeature - Verificando acesso para feature:', feature);
+      ('🔐 PremiumFeature - Verificando acesso para feature:', feature);
 
       // Features gratuitas têm acesso imediato
       if (Object.values(FREE_FEATURES).includes(feature)) {
-        console.log('✅ PremiumFeature - Feature gratuita, acesso liberado');
+        ('✅ PremiumFeature - Feature gratuita, acesso liberado');
         setHasAccess(true);
         setIsChecking(false);
         return;
@@ -44,7 +44,7 @@ const PremiumFeature = ({
 
       try {
         const access = await canAccessFeatureAsync(feature);
-        console.log('✅ PremiumFeature - Resultado da verificação:', access);
+        ('✅ PremiumFeature - Resultado da verificação:', access);
         setHasAccess(access);
       } catch (error) {
         console.error('❌ PremiumFeature - Erro ao verificar acesso:', error);

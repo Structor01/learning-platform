@@ -42,17 +42,39 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const initializeAuth = () => {
+  const initializeAuth = async () => {
     try {
-      const savedUser = localStorage.getItem("user");
       const savedAccessToken = localStorage.getItem("accessToken");
+      const savedUserId = localStorage.getItem("userId");
 
-      if (savedUser) {
+      if (savedAccessToken && savedUserId) {
+        setAccessToken(savedAccessToken);
+
+        // ✅ Busca dados do usuário da API
         try {
-          const parsedUser = JSON.parse(savedUser);
-          setUser(parsedUser);
-          setAccessToken(savedAccessToken);
-        } catch (parseError) {
+          const userResponse = await fetch(`${API_URL}/api/profile`, {
+            headers: {
+              'Authorization': `Bearer ${savedAccessToken}`,
+            },
+          });
+
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            setUser({
+              id: parseInt(savedUserId),
+              name: userData.name,
+              email: userData.email || '',
+              role: userData.role,
+              location: userData.location,
+              profile_image: userData.profile_image,
+              banner_image: userData.banner_image,
+              userType: 'candidate', // Ajusta conforme necessário
+            });
+          } else {
+            clearAuthData();
+          }
+        } catch (apiError) {
+          console.error("Erro ao carregar usuário:", apiError);
           clearAuthData();
         }
       } else {
@@ -70,41 +92,30 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("email");
   };
 
   const saveAuthData = (userData, accessToken, refreshToken) => {
-    console.log("💾 SALVANDO AUTH DATA - userData:", userData);
 
     setUser(userData);
     setAccessToken(accessToken);
 
-    // Salvar apenas dados essenciais no localStorage
-    const lightUserData = {
-      id: userData.id,
-      name: userData.name,
-      email: userData.email,
-      profile_image: userData.profile_image,
-      banner_image: userData.banner_image,
-      userType: userData.userType,
-      type: userData.type,
-      subscription: userData.subscription,
-      // NÃO salvar: experiences, education, skills
-    };
-
+    // ✅ localStorage: APENAS tokens e ID
     localStorage.setItem("userId", userData.id);
-    localStorage.setItem("user", JSON.stringify(lightUserData)); // ← SÓ DADOS LEVES
     localStorage.setItem("accessToken", accessToken);
 
     if (refreshToken) {
       localStorage.setItem("refreshToken", refreshToken);
     }
+
   };
 
   const login = async (email, password) => {
     setIsLoading(true);
 
     try {
-      console.log("🌐 URL de login:", `${API_URL}/api/auth/login`);
+      ("🌐 URL de login:", `${API_URL}/api/auth/login`);
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -162,7 +173,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
 
     try {
-      console.log("🔍 Dados sendo enviados para signup:", signupData);
+      ("🔍 Dados sendo enviados para signup:", signupData);
 
       const response = await fetch(`${API_URL}/api/auth/signup`, {
         method: "POST",
@@ -188,6 +199,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = async (updateData) => {
+
     if (!accessToken) {
       throw new Error("Usuário não autenticado");
     }
@@ -198,23 +210,9 @@ export const AuthProvider = ({ children }) => {
         ...updateData,
       };
 
-      console.log("💾 updateUser - Salvando dados no localStorage");
-
       // Atualizar estado local E localStorage
       setUser(newUserData);
 
-      const lightUserData = {
-        id: newUserData.id,
-        name: newUserData.name,
-        email: newUserData.email,
-        profile_image: newUserData.profile_image,
-        banner_image: newUserData.banner_image,
-        userType: newUserData.userType,
-        subscription: newUserData.subscription,
-      };
-      localStorage.setItem("user", JSON.stringify(lightUserData));
-
-      // ✅ SE FOR DADOS DE PERFIL, NÃO ENVIAR PARA O BACKEND
       // Esses dados são enviados via patchProfile no ProfilePage
       const isProfileData =
         updateData.experiences ||
@@ -225,9 +223,16 @@ export const AuthProvider = ({ children }) => {
         updateData.banner_image;
 
       if (isProfileData) {
-        console.log("✅ Dados de perfil salvos APENAS no localStorage (backend via patchProfile)");
+        ("✅ Dados de perfil salvos APENAS no localStorage (backend via patchProfile)");
         return { success: true };
       }
+
+      // ✅ Atualiza APENAS o estado React, SEM tocar no localStorage
+      const setUserData = (data) => {
+        setUser(prev => ({ ...prev, ...data }));
+      };
+
+
 
       // Apenas para dados de usuário básico (name, role, linkedin, curriculoUrl)
       const cleanData = Object.fromEntries(
@@ -246,7 +251,7 @@ export const AuthProvider = ({ children }) => {
 
       // Tentar sincronizar com backend
       try {
-        const response = await fetch(`${API_URL}/api/users/profile`, { // ← /users/profile
+        const response = await fetch(`${API_URL}/api/profile/basic-info`, { // ← /users/profile
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -257,15 +262,33 @@ export const AuthProvider = ({ children }) => {
 
         if (response.ok) {
           const backendResponse = await response.json();
-          console.log("✅ Backend respondeu:", backendResponse);
 
+          // ✅ VALIDAÇÃO DE SEGURANÇA
           if (backendResponse && Object.keys(backendResponse).length > 0) {
+
+            // ⚠️ CRÍTICO: Verifica se o backend retornou o usuário CORRETO
+            if (backendResponse.id !== newUserData.id) {
+
+
+              // NÃO mescla! Mantém apenas os dados locais
+              return { success: true, warning: "Dados salvos localmente, mas backend retornou erro" };
+            }
+
+            // ✅ Se o ID está correto, agora sim pode mesclar
             const mergedData = {
               ...newUserData,
               ...backendResponse,
             };
             setUser(mergedData);
-            localStorage.setItem("user", JSON.stringify(lightUserData));
+            localStorage.setItem("user", JSON.stringify({
+              id: mergedData.id,
+              name: mergedData.name,
+              email: mergedData.email,
+              profile_image: mergedData.profile_image,
+              banner_image: mergedData.banner_image,
+              userType: mergedData.userType,
+              subscription: mergedData.subscription,
+            }));
           }
         } else {
           console.warn("⚠️ Backend retornou erro:", response.status);
@@ -299,6 +322,11 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     clearAuthData();
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('profile_')) {
+        sessionStorage.removeItem(key);
+      }
+    });
   };
 
   // Funções para controlar o vídeo de boas-vindas
@@ -320,12 +348,12 @@ export const AuthProvider = ({ children }) => {
     const userId = localStorage.getItem("userId");
 
     if (!userId) {
-      console.log("🔍 PREMIUM CHECK - Sem userId no localStorage");
+      ("🔍 PREMIUM CHECK - Sem userId no localStorage");
       return false;
     }
 
     try {
-      console.log("🔍 PREMIUM CHECK - Verificando userId:", userId);
+      ("🔍 PREMIUM CHECK - Verificando userId:", userId);
       const response = await fetch(`${API_URL}/api/subscriptions/verify/${userId}`, {
         headers: {
           Authorization: `Bearer ${accessToken || localStorage.getItem("accessToken")}`
@@ -333,12 +361,12 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        console.log("❌ PREMIUM CHECK - Erro na API:", response.status);
+        ("❌ PREMIUM CHECK - Erro na API:", response.status);
         return false;
       }
 
       const data = await response.json();
-      console.log("✅ PREMIUM CHECK - Resposta da API:", data);
+      ("✅ PREMIUM CHECK - Resposta da API:", data);
       return data.hasAccess;
     } catch (error) {
       console.error("❌ PREMIUM CHECK - Erro:", error);
@@ -358,6 +386,16 @@ export const AuthProvider = ({ children }) => {
   const getUserType = () => user?.userType || user?.type || null;
   const isCompany = () => getUserType() === USER_TYPES.COMPANY;
   const isCandidate = () => getUserType() === USER_TYPES.CANDIDATE;
+
+  const setUserData = (data) => {
+
+    const sanitized = {
+      name: typeof data.name === 'string' ? data.name.slice(0, 100) : undefined,
+      role: typeof data.role === 'string' ? data.role.slice(0, 200) : undefined,
+      location: typeof data.location === 'string' ? data.location.slice(0, 100) : undefined,
+    };
+    setUser(prev => ({ ...prev, ...data }));
+  };
 
   // Definição de features gratuitas e pagas
   const FREE_FEATURES = {
@@ -447,6 +485,7 @@ export const AuthProvider = ({ children }) => {
     isCompany,
     isCandidate,
     USER_TYPES,
+    setUserData
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

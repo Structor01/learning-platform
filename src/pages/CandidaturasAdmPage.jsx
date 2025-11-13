@@ -68,7 +68,7 @@ const CandidaturasAdmPage = () => {
 
     // Carregar dados da API
     useEffect(() => {
-        console.log("Auth State:", { isLoading, isAuthenticated, userEmail: user?.email, isAdmin });
+        ("Auth State:", { isLoading, isAuthenticated, userEmail: user?.email, isAdmin });
         if (!isLoading && isAuthenticated && isAdmin) {
             fetchTodasCandidaturas();
         } else if (!isLoading && isAuthenticated && !isAdmin) {
@@ -109,7 +109,7 @@ const CandidaturasAdmPage = () => {
     const handleViewInterviewDetails = async (interview) => {
         try {
             setLoading(true);
-            console.log('🔍 Iniciando busca de detalhes da entrevista:', {
+            ('🔍 Iniciando busca de detalhes da entrevista:', {
                 interviewId: interview.id,
                 status: interview.status,
                 candidato: interview.candidato?.nome || interview.candidato?.name
@@ -121,7 +121,7 @@ const CandidaturasAdmPage = () => {
                 throw new Error('❌ Token de acesso não encontrado. Faça login novamente.');
             }
 
-            console.log('🔐 Token encontrado, fazendo requisição...');
+            ('🔐 Token encontrado, fazendo requisição...');
 
             // Tentar buscar detalhes completos primeiro
             let response = await fetch(`${API_URL}/api/interviews/${interview.id}/details`, {
@@ -134,7 +134,7 @@ const CandidaturasAdmPage = () => {
 
             // Se endpoint /details não existir, usar método alternativo
             if (!response.ok && response.status === 404) {
-                console.log('📋 Endpoint /details não encontrado, usando método alternativo...');
+                ('📋 Endpoint /details não encontrado, usando método alternativo...');
                 return await handleViewInterviewDetailsAlternative(interview.id, token);
             }
 
@@ -149,14 +149,14 @@ const CandidaturasAdmPage = () => {
             }
 
             const result = await response.json();
-            console.log('✅ Detalhes da entrevista carregados:', {
+            ('✅ Detalhes da entrevista carregados:', {
                 id: result.id,
                 questionsCount: result.questions?.length || 0,
                 status: result.status
             });
 
             // Resultado processado - aqui poderia abrir modal específico de detalhes da entrevista
-            console.log('Detalhes da entrevista carregados:', result);
+            ('Detalhes da entrevista carregados:', result);
 
         } catch (error) {
             console.error('❌ Erro completo ao buscar detalhes da entrevista:', {
@@ -172,10 +172,10 @@ const CandidaturasAdmPage = () => {
     // Método alternativo para buscar detalhes da entrevista
     const handleViewInterviewDetailsAlternative = async (interviewId, token) => {
         try {
-            console.log('🔄 Usando método alternativo para buscar detalhes...');
+            ('🔄 Usando método alternativo para buscar detalhes...');
 
             // Buscar entrevista básica
-            console.log(`📋 Buscando entrevista básica: ${API_URL}/api/interviews/${interviewId}`);
+            (`📋 Buscando entrevista básica: ${API_URL}/api/interviews/${interviewId}`);
             const interviewResponse = await fetch(`${API_URL}/api/interviews/${interviewId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -193,14 +193,14 @@ const CandidaturasAdmPage = () => {
             }
 
             const interview = await interviewResponse.json();
-            console.log('✅ Entrevista básica carregada:', {
+            ('✅ Entrevista básica carregada:', {
                 id: interview.id,
                 status: interview.status,
                 candidate_name: interview.candidate_name
             });
 
             // Buscar respostas
-            console.log(`📋 Buscando respostas: ${API_URL}/api/interviews/${interviewId}/responses`);
+            (`📋 Buscando respostas: ${API_URL}/api/interviews/${interviewId}/responses`);
             const responsesResponse = await fetch(`${API_URL}/api/interviews/${interviewId}/responses`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -211,7 +211,7 @@ const CandidaturasAdmPage = () => {
             let responses = [];
             if (responsesResponse.ok) {
                 responses = await responsesResponse.json();
-                console.log('✅ Respostas carregadas:', {
+                ('✅ Respostas carregadas:', {
                     count: responses.length,
                     ids: responses.map(r => r.id)
                 });
@@ -233,14 +233,14 @@ const CandidaturasAdmPage = () => {
                 }
             };
 
-            console.log('✅ Dados estruturados para modal:', {
+            ('✅ Dados estruturados para modal:', {
                 id: detailedInterview.id,
                 questionsCount: detailedInterview.questions.length,
                 userName: detailedInterview.user?.name
             });
 
             // Dados estruturados processados - aqui poderia abrir modal específico
-            console.log('Dados da entrevista processados:', detailedInterview);
+            ('Dados da entrevista processados:', detailedInterview);
 
         } catch (error) {
             console.error('❌ Erro no método alternativo:', error);
@@ -279,8 +279,8 @@ const CandidaturasAdmPage = () => {
 
     // 1. Função para buscar currículo de um candidato específico
     const handleViewCurriculoCandidato = async (usuarioId, nomeUsuario) => {
-        console.log("🚀 INICIANDO handleViewCurriculoCandidato");
-        console.log("📋 Parâmetros recebidos:", { usuarioId, nomeUsuario });
+        ("🚀 INICIANDO handleViewCurriculoCandidato");
+        ("📋 Parâmetros recebidos:", { usuarioId, nomeUsuario });
 
         try {
             // 1. VERIFICAR TOKEN
@@ -294,10 +294,10 @@ const CandidaturasAdmPage = () => {
 
             // 2. CONSTRUIR URL
             const url = `${API_URL}/api/users/${usuarioId}/curriculo`;
-            console.log("🌐 URL da requisição:", url);
-            console.log("🌐 API_URL:", API_URL);
+            ("🌐 URL da requisição:", url);
+            ("🌐 API_URL:", API_URL);
 
-            console.log("📡 Fazendo requisição...");
+            ("📡 Fazendo requisição...");
 
             // 3. FAZER REQUISIÇÃO
             const response = await fetch(url, {
@@ -307,10 +307,10 @@ const CandidaturasAdmPage = () => {
                 },
             });
 
-            console.log("📨 Resposta recebida:");
-            console.log("   - Status:", response.status);
-            console.log("   - StatusText:", response.statusText);
-            console.log("   - OK:", response.ok);
+            ("📨 Resposta recebida:");
+            ("   - Status:", response.status);
+            ("   - StatusText:", response.statusText);
+            ("   - OK:", response.ok);
 
             // 4. VERIFICAR STATUS
             if (!response.ok) {
@@ -329,13 +329,13 @@ const CandidaturasAdmPage = () => {
                 return;
             }
 
-            console.log("✅ Resposta OK, processando blob...");
+            ("✅ Resposta OK, processando blob...");
 
             // 5. PROCESSAR BLOB
             const blob = await response.blob();
-            console.log("📄 Blob criado:");
-            console.log("   - Tamanho:", blob.size, "bytes");
-            console.log("   - Tipo:", blob.type);
+            ("📄 Blob criado:");
+            ("   - Tamanho:", blob.size, "bytes");
+            ("   - Tipo:", blob.type);
 
             if (blob.size === 0) {
                 console.error("❌ ERRO: Blob vazio");
@@ -345,21 +345,21 @@ const CandidaturasAdmPage = () => {
 
             // 6. CRIAR URL DO BLOB
             const blobUrl = window.URL.createObjectURL(blob);
-            console.log("🔗 URL do blob criada:", blobUrl);
+            ("🔗 URL do blob criada:", blobUrl);
 
             // 7. ABRIR MODAL
-            console.log("🎬 Abrindo modal...");
+            ("🎬 Abrindo modal...");
             setModalCurriculo({
                 isOpen: true,
                 url: blobUrl,
                 nome: nomeUsuario || 'Usuário'
             });
 
-            console.log("✅ Modal aberto com sucesso!");
+            ("✅ Modal aberto com sucesso!");
 
             // 8. LIMPAR MEMORIA
             setTimeout(() => {
-                console.log("🧹 Limpando URL do blob...");
+                ("🧹 Limpando URL do blob...");
                 window.URL.revokeObjectURL(blobUrl);
             }, 60000);
 
@@ -395,14 +395,14 @@ const CandidaturasAdmPage = () => {
             let candidaturas = response.data || [];
 
             if (candidaturas.length > 0) {
-                console.log('🚀 Processando candidaturas com dados completos do LEFT JOIN otimizado...');
+                ('🚀 Processando candidaturas com dados completos do LEFT JOIN otimizado...');
 
                 // VERIFICAR SE O BACKEND JÁ RETORNOU DADOS DISC
                 const precisaBuscarDisc = candidaturas.some(c => !c.usuario?.perfil_disc && !c.usuario?.disc_data);
                 let usuariosData = {};
 
                 if (precisaBuscarDisc) {
-                    console.log('⚠️ Dados DISC não vieram do backend, fazendo busca em paralelo...');
+                    ('⚠️ Dados DISC não vieram do backend, fazendo busca em paralelo...');
                     const usuarioIdsUnicos = [...new Set(candidaturas.map(c => c.usuario_id))];
 
                     // BUSCAR DADOS DISC EM PARALELO apenas se necessário
@@ -438,7 +438,7 @@ const CandidaturasAdmPage = () => {
                         }
                     });
                 } else {
-                    console.log('✅ Dados DISC já vieram do backend via LEFT JOIN!');
+                    ('✅ Dados DISC já vieram do backend via LEFT JOIN!');
                 }
 
                 // MAPEAR DADOS OTIMIZADOS (entrevistas já incluídas via LEFT JOIN)
@@ -473,7 +473,7 @@ const CandidaturasAdmPage = () => {
 
                     // Log de debug
                     if (entrevistasOrdenadas.length > 0 || candidatura.interview_id) {
-                        console.log(`📋 Candidatura ${candidatura.id}:`, {
+                        (`📋 Candidatura ${candidatura.id}:`, {
                             interview_id: candidatura.interview_id,
                             entrevistas_encontradas: entrevistasOrdenadas.length,
                             entrevistas_ids: entrevistasOrdenadas.map(e => `#${e.id} (${e.status})`),
@@ -494,11 +494,11 @@ const CandidaturasAdmPage = () => {
                     };
                 });
 
-                console.log(`✅ Processamento concluído: ${candidaturas.length} candidaturas com dados otimizados`);
+                (`✅ Processamento concluído: ${candidaturas.length} candidaturas com dados otimizados`);
             }
 
             // Log de debug final das candidaturas processadas
-            console.log('📊 Resumo final das candidaturas processadas:', candidaturas.map(c => ({
+            ('📊 Resumo final das candidaturas processadas:', candidaturas.map(c => ({
                 candidaturaId: c.id,
                 usuarioNome: c.usuario?.nome || c.usuario?.name,
                 totalEntrevistas: c.usuario?.entrevistas?.length || 0,

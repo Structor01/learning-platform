@@ -75,13 +75,13 @@ const MeusInteresses = () => {
         }
       );
 
-      console.log("Interesses carregados:", interessesResponse.data);
+      ("Interesses carregados:", interessesResponse.data);
       setInteresses(interessesResponse.data);
 
       // Buscar empresas para fazer o mapeamento correto
       try {
         const empresasResponse = await axios.get(`${API_URL}/api/companies`);
-        console.log("✅ Empresas carregadas:", empresasResponse.data);
+        ("✅ Empresas carregadas:", empresasResponse.data);
         setEmpresas(empresasResponse.data);
       } catch (empresasError) {
         console.error("Erro ao carregar empresas:", empresasError);
@@ -203,7 +203,7 @@ const MeusInteresses = () => {
       <div className="min-h-screen bg-white">
         <Navbar
           currentView="interesses"
-          onViewChange={(view) => console.log("View changed:", view)}
+          onViewChange={(view) => ("View changed:", view)}
         />
 
         <main className="pt-16">
@@ -233,7 +233,7 @@ const MeusInteresses = () => {
     <div className="min-h-screen bg-white">
       <Navbar
         currentView="interesses"
-        onViewChange={(view) => console.log("View changed:", view)}
+        onViewChange={(view) => ("View changed:", view)}
       />
 
       <main className="pt-16">

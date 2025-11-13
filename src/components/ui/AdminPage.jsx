@@ -31,18 +31,18 @@ const AdminPage = () => {
   // Auto-refresh das entrevistas a cada 30 segundos quando na aba de entrevistas
   useEffect(() => {
     let intervalId;
-    
+
     if (activeTab === 'interviews') {
-      console.log('🔄 Iniciando auto-refresh das entrevistas...');
+      ('🔄 Iniciando auto-refresh das entrevistas...');
       intervalId = setInterval(() => {
-        console.log('🔄 Auto-refresh das entrevistas');
+        ('🔄 Auto-refresh das entrevistas');
         loadInterviews();
       }, 30000); // 30 segundos
     }
-    
+
     return () => {
       if (intervalId) {
-        console.log('🛑 Parando auto-refresh das entrevistas');
+        ('🛑 Parando auto-refresh das entrevistas');
         clearInterval(intervalId);
       }
     };
@@ -199,7 +199,7 @@ const AdminPage = () => {
         <div className="filters">
           <button
             onClick={() => {
-              console.log('🔄 Forçando refresh das entrevistas...');
+              ('🔄 Forçando refresh das entrevistas...');
               loadInterviews();
             }}
             disabled={loading}
@@ -450,7 +450,7 @@ const AdminPage = () => {
                 <div className="detail-item">
                   <span className="label">Taxa de Conclusão:</span>
                   <span className="value">
-                    {questions.length > 0 
+                    {questions.length > 0
                       ? Math.round((questions.filter(q => q.answers && q.answers.length > 0).length / questions.length) * 100)
                       : 0}%
                   </span>
@@ -468,7 +468,7 @@ const AdminPage = () => {
                 {questions.map(question => {
                   const hasAnswers = question.answers && question.answers.length > 0;
                   const firstAnswer = hasAnswers ? question.answers[0] : null;
-                  
+
                   return (
                     <div key={question.id} className="question-item">
                       <div className="question-header">
@@ -516,7 +516,7 @@ const AdminPage = () => {
                           )}
 
                           <div className="answer-meta" style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
-                            Processamento: {firstAnswer.processing_status} | 
+                            Processamento: {firstAnswer.processing_status} |
                             Tamanho: {Math.round(parseInt(firstAnswer.video_size_bytes || 0) / 1024)}KB
                           </div>
                         </div>

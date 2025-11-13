@@ -27,7 +27,7 @@ const PublicChatPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-  
+
   // Focar no input quando o carregamento terminar
   useEffect(() => {
     if (!isLoading && chatInputRef.current?.focus) {
@@ -42,7 +42,7 @@ const PublicChatPage = () => {
   useEffect(() => {
     const initializeChat = async () => {
       try {
-        
+
         // Verificar se existe uma sessão armazenada e se ainda é válida
         let sessionData;
         try {
@@ -51,22 +51,22 @@ const PublicChatPage = () => {
           // Se houver erro ao fazer parse do JSON, sessionData será null
           sessionData = null;
         }
-        
+
         let guestSessionId;
-        
+
         if (sessionData && new Date(sessionData.expiresAt) > new Date()) {
           // Sessão ainda é válida
           guestSessionId = sessionData.id;
-          console.log('🔄 Usando sessão existente:', guestSessionId);
+          ('🔄 Usando sessão existente:', guestSessionId);
         } else {
           // Criar nova sessão com timestamp
           guestSessionId = `agroskill_${Date.now()}`;
-          console.log('🆕 Criando nova sessão:', guestSessionId);
-          
+          ('🆕 Criando nova sessão:', guestSessionId);
+
           // Calcular data de expiração
           const expiresAt = new Date();
           expiresAt.setHours(expiresAt.getHours() + expirationHours);
-          
+
           // Salvar no localStorage com data de expiração
           localStorage.setItem('agroskills:guestSession', JSON.stringify({
             id: guestSessionId,
@@ -76,34 +76,34 @@ const PublicChatPage = () => {
         }
 
         setSessionId(guestSessionId);
-        
+
         // Determinar se é uma sessão existente (para mensagem de boas-vindas)
         let isReturningUser = sessionData && sessionData.id === guestSessionId;
-        
+
         // Aguardar resposta do bot para mostrar como primeira mensagem
         try {
           setIsLoading(true);
-          const initialResponse = await botService.sendMessageRecrutamento(guestSessionId, 
+          const initialResponse = await botService.sendMessageRecrutamento(guestSessionId,
             "oi");
-          
-          console.log('🔍 Resposta inicial recebida:', initialResponse);
-          console.log('📝 Conteúdo da mensagem:', initialResponse.message);
-          
+
+          ('🔍 Resposta inicial recebida:', initialResponse);
+          ('📝 Conteúdo da mensagem:', initialResponse.message);
+
           // Primeira tentativa: usar a mensagem diretamente (sem JSON)
           let messageContent = initialResponse.message;
           let options = null;
-          
+
           // Segunda tentativa: verificar se há opções via actionCommands
           if (initialResponse.actionCommands) {
             const optionsCommand = initialResponse.actionCommands.find(cmd => cmd.name === 'send-options');
             if (optionsCommand && optionsCommand.data && optionsCommand.data.options) {
               options = optionsCommand.data.options;
-              console.log('✅ Opções encontradas via actionCommands:', options);
+              ('✅ Opções encontradas via actionCommands:', options);
             }
           }
-          
-         
-          
+
+
+
           // Adicionar resposta do bot como primeira mensagem
           const botMessage = {
             id: Date.now(),
@@ -112,37 +112,37 @@ const PublicChatPage = () => {
             isBot: true,
             timestamp: new Date()
           };
-          
+
           setMessages([botMessage]);
-          
+
           // Verificar se há actionCommands na resposta inicial
-          if(initialResponse.actionCommands){
+          if (initialResponse.actionCommands) {
             const sendCvCommand = initialResponse.actionCommands.find(cmd => cmd.name === 'send-cv');
             const sendBooleanCommand = initialResponse.actionCommands.find(cmd => cmd.name === 'send-boolean');
 
-            if(sendCvCommand){
+            if (sendCvCommand) {
               setActionCommand('send-cv');
             }
 
-            if(sendBooleanCommand){
+            if (sendBooleanCommand) {
               setActionCommand('send-boolean');
             }
           }
         } catch (error) {
           console.error("Erro ao obter saudação inicial:", error);
-          
+
           // Se falhar, usar mensagem padrão
           let content = isReturningUser
             ? "Olá, prazer em vê-lo novamente! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?"
             : "Olá! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?"
-          
+
           const welcomeMessage = {
             id: Date.now(),
             content: content,
             isBot: true,
             timestamp: new Date()
           };
-          
+
           setMessages([welcomeMessage]);
         } finally {
           setIsLoading(false);
@@ -178,22 +178,22 @@ const PublicChatPage = () => {
       // Enviar mensagem para o bot (sem autenticação)
       const response = await botService.sendMessageRecrutamento(sessionId, content);
 
-      console.log('Resposta do bot:', response);
-      
-     
+      ('Resposta do bot:', response);
+
+
       let messageContent = response.message;
       let options = null;
-      
+
       // Verifica se a Action Command de opções está presente
       if (response.actionCommands) {
         const optionsCommand = response.actionCommands.find(cmd => cmd.name === 'send-options');
         if (optionsCommand && optionsCommand.data && optionsCommand.data.options) {
           options = optionsCommand.data.options;
-          console.log('✅ Opções encontradas via actionCommands:', options);
+          ('✅ Opções encontradas via actionCommands:', options);
         }
       }
-      
-      
+
+
       // Adicionar resposta do bot
       const botMessage = {
         id: Date.now() + 1,
@@ -205,22 +205,22 @@ const PublicChatPage = () => {
 
       setMessages(prev => [...prev, botMessage]);
 
-      if(response.actionCommands){
+      if (response.actionCommands) {
         const sendCvCommand = response.actionCommands.find(cmd => cmd.name === 'send-cv');
         const sendBooleanCommand = response.actionCommands.find(cmd => cmd.name === 'send-boolean');
 
-        if(sendCvCommand){
+        if (sendCvCommand) {
           setActionCommand('send-cv');
         }
 
-        if(sendBooleanCommand){
+        if (sendBooleanCommand) {
           setActionCommand('send-boolean');
         }
       }
 
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
-      
+
       // Mensagem de erro
       const errorMessage = {
         id: Date.now() + 1,
@@ -253,21 +253,21 @@ const PublicChatPage = () => {
         isBot: false,
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, userMessage]);
-      
+
       // Criar um objeto FormData para enviar o arquivo
       const formData = new FormData();
       formData.append('file', file);
       formData.append('sessionId', sessionId);
       formData.append('type', 'cv');
 
-     
-      
+
+
       // Simular um atraso
       // vou add o currriculo aki onde o arthur quiser
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Adicionar resposta do bot confirmando recebimento do CV
       const confirmationMessage = {
         id: Date.now() + 1,
@@ -277,32 +277,32 @@ const PublicChatPage = () => {
       };
 
       setMessages(prev => [...prev, confirmationMessage]);
-      
+
       // Enviar mensagem por baixo dos panos 
       const hiddenResponse = await botService.sendMessageRecrutamento(
-        sessionId, 
+        sessionId,
         "SISTEMA: Currículo enviado pelo usuário. Continue a conversa analisando o perfil e oferecendo opções relevantes."
       );
-      
+
       // Adicionar a resposta real do bot após a análise
       const analysisMessage = {
         id: Date.now() + 2,
-        content: hiddenResponse.message ,
+        content: hiddenResponse.message,
         isBot: true,
         timestamp: new Date(Date.now() + 1000) // Timestamp ligeiramente posterior para garantir ordem
       };
-      
+
       // Adicionar uma pequena pausa entre as mensagens para simular análise
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       setMessages(prev => [...prev, analysisMessage]);
-      
+
       // Limpar o comando após o upload ser concluído
       setActionCommand(null);
 
     } catch (error) {
       console.error('Erro ao enviar arquivo:', error);
-      
+
       // Mensagem de erro
       const errorMessage = {
         id: Date.now() + 1,
@@ -326,7 +326,7 @@ const PublicChatPage = () => {
             Chat AgroSkills
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Converse com nosso assistente virtual e descubra como podemos ajudar 
+            Converse com nosso assistente virtual e descubra como podemos ajudar
             a acelerar sua carreira no agronegócio
           </p>
         </div>
@@ -339,9 +339,9 @@ const PublicChatPage = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-full overflow-hidden">
-                    <img 
-                      src="/avatar.jpeg" 
-                      alt="Avatar do Assistente" 
+                    <img
+                      src="/avatar.jpeg"
+                      alt="Avatar do Assistente"
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -350,7 +350,7 @@ const PublicChatPage = () => {
                     <p className="text-sm opacity-90">Online agora</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="ghost"
@@ -379,7 +379,7 @@ const PublicChatPage = () => {
                       disabled={isLoading}
                     />
                   ))}
-                  
+
                   {isLoading && (
                     <div className="flex justify-start">
                       <div className="bg-white rounded-lg p-3 shadow-sm max-w-xs">
@@ -416,13 +416,13 @@ const PublicChatPage = () => {
             Gostou da conversa? Crie sua conta para ter acesso completo à plataforma!
           </p>
           <div className="space-x-4">
-            <Button 
+            <Button
               className="bg-green-600 hover:bg-green-700"
               onClick={() => window.location.href = '/register'}
             >
               Criar Conta
             </Button>
-            <Button 
+            <Button
               variant="outline"
               onClick={() => window.location.href = '/login'}
             >

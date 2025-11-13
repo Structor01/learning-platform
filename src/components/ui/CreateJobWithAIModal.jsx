@@ -311,8 +311,8 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
     setStep(2);
     try {
       const API = import.meta.env.VITE_API_URL || 'https://learning-platform-backend-2x39.onrender.com';
-      console.log('🔍 Gerando vaga com IA...');
-      console.log('📊 Dados enviados:', { prompt: prompt.trim(), ...formData });
+      ('🔍 Gerando vaga com IA...');
+      ('📊 Dados enviados:', { prompt: prompt.trim(), ...formData });
 
       const res = await fetch(`${API}/api/recruitment/generate-job-ai`, {
         method: 'POST',
@@ -320,18 +320,18 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
         body: JSON.stringify({ prompt: prompt.trim(), ...formData })
       });
 
-      console.log('📡 Status da resposta:', res.status);
+      ('📡 Status da resposta:', res.status);
 
       if (!res.ok) throw new Error(`Erro ${res.status}`);
       const data = await res.json();
 
-      console.log('✅ Dados recebidos da API:', data);
-      console.log('🔍 Estrutura custom_questions:', data.custom_questions);
-      console.log('🔍 Tipo custom_questions:', typeof data.custom_questions);
-      console.log('🔍 É array?', Array.isArray(data.custom_questions));
-      console.log('🔍 Estrutura market_insights:', data.suggestions?.market_insights);
-      console.log('🔍 Tipo market_insights:', typeof data.suggestions?.market_insights);
-      console.log('🔍 É array?', Array.isArray(data.suggestions?.market_insights));
+      ('✅ Dados recebidos da API:', data);
+      ('🔍 Estrutura custom_questions:', data.custom_questions);
+      ('🔍 Tipo custom_questions:', typeof data.custom_questions);
+      ('🔍 É array?', Array.isArray(data.custom_questions));
+      ('🔍 Estrutura market_insights:', data.suggestions?.market_insights);
+      ('🔍 Tipo market_insights:', typeof data.suggestions?.market_insights);
+      ('🔍 É array?', Array.isArray(data.suggestions?.market_insights));
 
       setGeneratedJob(data);
       setStep(3);
@@ -359,7 +359,7 @@ const CreateJobWithAIModal = ({ isOpen, onClose, onJobCreated }) => {
 
   // Função para salvar edições
   const handleSaveEdit = async (editedData) => {
-    console.log('💾 Salvando edições da vaga:', editedData);
+    ('💾 Salvando edições da vaga:', editedData);
 
     // Criar objeto de vaga editada
     const editedJobData = {

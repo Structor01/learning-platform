@@ -43,7 +43,7 @@ const NewsPage = () => {
     const fetchNews = async () => {
         try {
             setLoading(true);
-            console.log('📰 Buscando notícias...');
+            ('📰 Buscando notícias...');
 
             const response = await axios.get(`${API_URL}/api/news`, {
                 params: {
@@ -52,7 +52,7 @@ const NewsPage = () => {
                 }
             });
 
-            console.log('✅ Notícias carregadas:', response.data);
+            ('✅ Notícias carregadas:', response.data);
 
             // A API retorna: { data: [...], total: X, page: Y, totalPages: Z }
             if (response.data.data && Array.isArray(response.data.data)) {

@@ -15,7 +15,7 @@ class TestService {
       ...options
     };
 
-    console.log(`[TestService] ${config.method || 'GET'} ${url}`);
+    (`[TestService] ${config.method || 'GET'} ${url}`);
 
     try {
       const response = await fetch(url, config);
@@ -25,7 +25,7 @@ class TestService {
         throw new Error(`Erro ${response.status}: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log(`[TestService] Resposta:`, data);
+      (`[TestService] Resposta:`, data);
       return data;
     } catch (error) {
       console.error(`[TestService] Erro na requisição para ${url}:`, error);
@@ -36,7 +36,7 @@ class TestService {
   // ===== TESTE PSICOLÓGICO UNIFICADO =====
 
   async createPsychologicalTest(testData) {
-    console.log('🔍 TestService - Criando teste psicológico:', testData);
+    ('🔍 TestService - Criando teste psicológico:', testData);
 
     return this.makeRequest('/psychological', {
       method: 'POST',
@@ -79,8 +79,8 @@ class TestService {
   }
 
   async saveTestResponses(testId, responses) {
-    console.log('🔍 TestService - Salvando respostas para teste:', testId);
-    console.log('🔍 TestService - Dados das respostas:', responses);
+    ('🔍 TestService - Salvando respostas para teste:', testId);
+    ('🔍 TestService - Dados das respostas:', responses);
 
     // Validar e formatar dados antes de enviar
     const formattedResponses = responses.map((response, index) => ({
@@ -90,7 +90,7 @@ class TestService {
       response_text: response.response_text || '' // Opcional
     }));
 
-    console.log('🔍 TestService - Respostas formatadas:', formattedResponses);
+    ('🔍 TestService - Respostas formatadas:', formattedResponses);
 
     return this.makeRequest(`/psychological/${testId}/responses`, {
       method: 'POST',
@@ -101,7 +101,7 @@ class TestService {
   }
 
   async updateTestStatus(testId, status) {
-    console.log('🔍 TestService - Atualizando status do teste:', testId, 'para:', status);
+    ('🔍 TestService - Atualizando status do teste:', testId, 'para:', status);
 
     return this.makeRequest(`/psychological/${testId}/status`, {
       method: 'PUT',
@@ -120,7 +120,7 @@ class TestService {
   }
 
   async getPsychologicalTestResult(testId) {
-    console.log('🔍 TestService - Buscando resultado do teste:', testId);
+    ('🔍 TestService - Buscando resultado do teste:', testId);
     return this.makeRequest(`/psychological/${testId}`);
   }
 
@@ -252,7 +252,7 @@ class TestService {
   // ===== MÉTODOS PARA DEBUG =====
 
   logTestState(testId, state, additionalData = {}) {
-    console.log(`[TestService] Estado do teste ${testId}:`, state, additionalData);
+    (`[TestService] Estado do teste ${testId}:`, state, additionalData);
   }
 
   validateTestData(testData) {

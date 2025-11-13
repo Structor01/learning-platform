@@ -28,18 +28,17 @@ const Navbar = ({ currentView, onViewChange, onAddTrilha, onSearch }) => {
   };
 
   // Dados padrão para quando user for undefined
-  const userData = user || {
+  const userData = user?.name ? user : {
     name: "Usuário Não Logado",
     email: "Faça Login corretamente",
     discProfile: { predominant: "Conforme" },
   };
-
   const handleSearch = (e) => {
     e.preventDefault();
     if (onSearch) {
       onSearch(searchQuery);
     }
-    console.log("Searching for:", searchQuery);
+    ("Searching for:", searchQuery);
   };
 
   const handleLogoClick = () => navigate("/dashboard");

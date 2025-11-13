@@ -60,22 +60,22 @@ const VagasPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        console.log("🔍 Carregando todas as vagas e empresas");
+        ("🔍 Carregando todas as vagas e empresas");
 
         // Buscar todas as vagas
-        console.log("💼 Buscando vagas:", `${API_URL}/api/recruitment/jobs`);
+        ("💼 Buscando vagas:", `${API_URL}/api/recruitment/jobs`);
         const vagasResponse = await axios.get(
           `${API_URL}/api/recruitment/jobs`
         );
-        console.log("✅ Vagas carregadas:", vagasResponse.data);
+        ("✅ Vagas carregadas:", vagasResponse.data);
         // Decodificar HTML entities nas vagas
         const vagasDecodificadas = decodeVagas(vagasResponse.data);
         setVagas(vagasDecodificadas);
 
         // Buscar todas as empresas
-        console.log("🏢 Buscando empresas:", `${API_URL}/api/companies`);
+        ("🏢 Buscando empresas:", `${API_URL}/api/companies`);
         const empresasResponse = await axios.get(`${API_URL}/api/companies`);
-        console.log("✅ Empresas carregadas:", empresasResponse.data);
+        ("✅ Empresas carregadas:", empresasResponse.data);
         setEmpresas(empresasResponse.data);
 
         // Extrair opções únicas para filtros
@@ -113,12 +113,12 @@ const VagasPage = () => {
     const fetchUserCandidaturas = async () => {
       if (isAuthenticated && user?.id) {
         try {
-          console.log("🔍 Buscando candidaturas para usuário:", user.id);
+          ("🔍 Buscando candidaturas para usuário:", user.id);
           const response = await axios.get(
             `${API_URL}/api/candidaturas/usuario/${user.id}`
           );
           setUserCandidaturas(response.data);
-          console.log("✅ Candidaturas carregadas:", response.data);
+          ("✅ Candidaturas carregadas:", response.data);
         } catch (error) {
           console.error("❌ Erro ao buscar candidaturas:", error);
         }
@@ -170,7 +170,7 @@ const VagasPage = () => {
     try {
       await login(loginData.email, loginData.password);
       setShowLoginModal(false);
-      console.log("✅ Login realizado via AuthContext");
+      ("✅ Login realizado via AuthContext");
     } catch (error) {
       console.error("Erro detalhado:", error);
       alert(`❌ Erro no login: ${error.message}`);
@@ -185,7 +185,7 @@ const VagasPage = () => {
         password: signupData.password,
       });
       setShowLoginModal(false);
-      console.log("✅ Cadastro realizado via AuthContext");
+      ("✅ Cadastro realizado via AuthContext");
     } catch (error) {
       console.error("Erro no cadastro:", error);
       alert(`❌ Erro no cadastro: ${error.message}`);
@@ -195,13 +195,13 @@ const VagasPage = () => {
   // Handler para candidatura
   const handleEnviarCandidatura = async (vaga) => {
     if (isSubmitting) {
-      console.log("⏳ Já enviando candidatura, ignorando clique...");
+      ("⏳ Já enviando candidatura, ignorando clique...");
       return;
     }
     setIsSubmitting(true);
 
     try {
-      console.log("🔄 Enviando candidatura:", {
+      ("🔄 Enviando candidatura:", {
         usuario_id: user.id,
         vaga_id: vaga.id,
         vaga_nome: vaga.nome,
@@ -213,7 +213,7 @@ const VagasPage = () => {
         mensagem: `Candidatura para a vaga: ${vaga.nome}`,
       });
 
-      console.log("✅ Candidatura enviada:", response.data);
+      ("✅ Candidatura enviada:", response.data);
       setUserCandidaturas((prev) => [...prev, response.data]);
 
       showNotification({
@@ -372,8 +372,8 @@ const VagasPage = () => {
       <div className="min-h-screen bg-white">
         <Navbar
           currentView="vagas"
-          onViewChange={(view) => console.log("View changed:", view)}
-          onAddTrilha={() => console.log("Add trilha")}
+          onViewChange={(view) => ("View changed:", view)}
+          onAddTrilha={() => ("Add trilha")}
         />
 
         <main className="pt-16">
@@ -403,8 +403,8 @@ const VagasPage = () => {
     <div className="min-h-screen bg-white">
       <Navbar
         currentView="vagas"
-        onViewChange={(view) => console.log("View changed:", view)}
-        onAddTrilha={() => console.log("Add trilha")}
+        onViewChange={(view) => ("View changed:", view)}
+        onAddTrilha={() => ("Add trilha")}
       />
 
       <main className="pt-16">

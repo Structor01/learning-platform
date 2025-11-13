@@ -1,9 +1,28 @@
 import { useState, useEffect } from "react";
-import { Camera, MapPin, Briefcase, Edit2, X, Check } from "lucide-react";
+import { Camera, MapPin, Briefcase, Edit2, X, Check, Trophy } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import EditProfileModal from "../ui/EditProfileModal"
+import { useNavigate } from "react-router-dom"; // ✅ Adiciona
+import { useAuth } from "@/contexts/AuthContext"; // ✅ ADICIONA ESSA LINHA
+import UpgradeModal from "@/components/ui/UpgradeModal"; // ✅ ADICIONA
+
+
 
 const ProfileHeader = ({ user, onUpdateUser, onImageUpload, onBannerUpload, isUploadingImage, onDeleteImage }) => {
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const { hasActiveSubscription } = useAuth(); // ✅ Pega do context
+    const isPremium = hasActiveSubscription();
+    const navigate = useNavigate();
+    const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false); // ✅ ADICIONA
+
+
+    const handlePremiumClick = () => {
+        if (!isPremium) {
+            setIsUpgradeModalOpen(true); // ✅ Abre modal
+        }
+    };
 
     return (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
@@ -83,24 +102,49 @@ const ProfileHeader = ({ user, onUpdateUser, onImageUpload, onBannerUpload, isUp
 
                 {/* Informações do usuário */}
                 <div className="space-y-2">
-                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-                        {user?.name || "Nome do Usuário"}
-                    </h1>
-
-                    {/* <p className="text-base sm:text-lg text-gray-700">
-                        {user?.role || "Cargo na Empresa"}
-                    </p> */}
-
-                    {/* <div className="flex flex-col sm:flex-row sm:gap-4 gap-2 text-xs sm:text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{user?.location || "Localização"}</span>
+                    <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">  {/* ✅ ADICIONA min-w-0 */}
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+                                {user?.name || "Nome do Usuário"}
+                            </h1>
+                            {user?.role && (
+                                <p className="text-base sm:text-lg text-gray-700 mt-1 break-words max-w-full">
+                                    {user.role}
+                                </p>
+                            )}
+                            {user?.location && (
+                                <div className="flex items-start gap-1 mt-3 text-gray-600">
+                                    <Briefcase className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                    <span className="break-words">{user.location}</span>
+                                </div>
+                            )}
                         </div>
-                        <div className="flex items-center gap-1">
-                            <Briefcase className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{user?.company || "Empresa"}</span>
-                        </div>
-                    </div> */}
+
+                        <button
+                            onClick={handlePremiumClick}
+                            className={`p-2 rounded-full transition-colors flex-shrink-0 ${isPremium
+                                ? 'bg-yellow-50 cursor-default'
+                                : 'hover:bg-gray-100 cursor-pointer'
+                                }`}
+                            title={isPremium ? "Usuário Premium ✨" : "Assinar Premium"}
+                        >
+                            <Trophy className={`w-5 h-5 ${isPremium
+                                ? 'text-yellow-500'
+                                : 'text-gray-400 hover:text-yellow-500'
+                                }`} />
+                        </button>
+
+
+                        <button
+                            onClick={() => setIsEditModalOpen(true)}
+                            className="p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                            title="Editar perfil"
+                        >
+                            <Edit2 className="w-5 h-5 text-gray-600" />
+                        </button>
+
+
+                    </div>
                 </div>
 
                 {/* Botões de ação
@@ -116,6 +160,19 @@ const ProfileHeader = ({ user, onUpdateUser, onImageUpload, onBannerUpload, isUp
                     </Button>
                 </div> */}
             </div>
+            {/* Modal */}
+            <EditProfileModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                user={user}
+                onUpdateUser={onUpdateUser}
+            />
+
+            {/* Modal de Upgrade Premium */}
+            <UpgradeModal
+                isOpen={isUpgradeModalOpen}
+                onClose={() => setIsUpgradeModalOpen(false)}
+            />
         </div>
     );
 };

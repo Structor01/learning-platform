@@ -8,7 +8,7 @@ class DiscApiService {
 
   constructor() {
     this.baseURL = `${API_URL}/api/disc`;
-    console.log(`[DiscApiService] API_URL: ${API_URL}`);
+    (`[DiscApiService] API_URL: ${API_URL}`);
   }
 
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -21,8 +21,8 @@ class DiscApiService {
       ...options
     };
 
-    console.log(`[DiscApiService] Fazendo requisição para: ${url}`);
-    console.log(`[DiscApiService] Method: ${config.method || 'GET'}`);
+    (`[DiscApiService] Fazendo requisição para: ${url}`);
+    (`[DiscApiService] Method: ${config.method || 'GET'}`);
     const response = await fetch(url, config);
 
     if (!response.ok) {
@@ -32,7 +32,7 @@ class DiscApiService {
     }
 
     const data = await response.json();
-    console.log(`[DiscApiService] Resposta:`, data);
+    (`[DiscApiService] Resposta:`, data);
     return data;
   }
 
@@ -129,19 +129,19 @@ class DiscApiService {
    * Converte dados da API para o formato do perfil local
    */
   convertApiDataToProfile(apiData: any): any {
-    console.log('🔍 [convertApiDataToProfile] Dados recebidos:', apiData);
+    ('🔍 [convertApiDataToProfile] Dados recebidos:', apiData);
 
     if (!apiData) {
-      console.log('❌ [convertApiDataToProfile] Nenhum dado recebido, usando perfil padrão');
+      ('❌ [convertApiDataToProfile] Nenhum dado recebido, usando perfil padrão');
       return this.getDefaultProfile();
     }
 
     // Formato novo da API DISC: {testId, result: {disc: {counts, perfil}}}
     if (apiData.result?.disc?.perfil) {
-      console.log('✅ [convertApiDataToProfile] Encontrou formato novo da API DISC');
+      ('✅ [convertApiDataToProfile] Encontrou formato novo da API DISC');
       const type = apiData.result.disc.perfil;
       const counts = apiData.result.disc.counts;
-      console.log('🔍 [convertApiDataToProfile] Tipo:', type, 'Counts:', counts);
+      ('🔍 [convertApiDataToProfile] Tipo:', type, 'Counts:', counts);
 
       const totalAnswers = Object.values(counts as Record<string, number>).reduce((sum: number, count: number) => sum + count, 0);
       const percentage = totalAnswers > 0 ? Math.round(((counts as any)[type] / totalAnswers) * 100) : 75;
@@ -157,13 +157,13 @@ class DiscApiService {
         improvements: this.getDiscImprovements(type)
       };
 
-      console.log('✅ [convertApiDataToProfile] Perfil convertido:', profile);
+      ('✅ [convertApiDataToProfile] Perfil convertido:', profile);
       return profile;
     }
 
     // Se tem disc_scores direto (formato antigo)
     if (apiData.disc_scores) {
-      console.log('✅ [convertApiDataToProfile] Encontrou formato antigo (disc_scores)');
+      ('✅ [convertApiDataToProfile] Encontrou formato antigo (disc_scores)');
       const type = apiData.disc_scores.type;
       const percentage = apiData.disc_scores.percentage || 75;
 
@@ -178,8 +178,8 @@ class DiscApiService {
       };
     }
 
-    console.log('❌ [convertApiDataToProfile] Nenhum formato reconhecido, usando perfil padrão');
-    console.log('🔍 [convertApiDataToProfile] Estrutura dos dados:', Object.keys(apiData));
+    ('❌ [convertApiDataToProfile] Nenhum formato reconhecido, usando perfil padrão');
+    ('🔍 [convertApiDataToProfile] Estrutura dos dados:', Object.keys(apiData));
     return this.getDefaultProfile();
   }
 

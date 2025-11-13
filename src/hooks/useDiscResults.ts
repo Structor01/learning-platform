@@ -29,16 +29,16 @@ export const useDiscResults = () => {
       setLoading(true);
       setError(null);
 
-      console.log('🔍 Carregando perfil DISC para usuário:', user.id);
+      ('🔍 Carregando perfil DISC para usuário:', user.id);
 
       const result = await discApiService.getUserDiscResult(user.id);
 
       if (result) {
         const convertedProfile = discApiService.convertApiDataToProfile(result);
-        console.log('✅ Perfil DISC carregado:', convertedProfile);
+        ('✅ Perfil DISC carregado:', convertedProfile);
         setProfile(convertedProfile);
       } else {
-        console.log('ℹ️ Nenhum perfil DISC encontrado para o usuário');
+        ('ℹ️ Nenhum perfil DISC encontrado para o usuário');
         setProfile(null);
       }
     } catch (err) {
@@ -86,7 +86,7 @@ export const useDiscResults = () => {
   useEffect(() => {
     const handleTestCompleted = () => {
       if (user?.id) {
-        console.log('🔄 Teste DISC completado, recarregando perfil...');
+        ('🔄 Teste DISC completado, recarregando perfil...');
         loadProfile();
       }
     };

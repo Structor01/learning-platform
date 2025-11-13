@@ -8,7 +8,7 @@ const AppAccessModal = ({ isOpen, onClose, appName }) => {
 
   const handleUpgrade = () => {
     // Aqui você pode adicionar lógica para processar o pagamento
-    console.log('Iniciando processo de upgrade...');
+    ('Iniciando processo de upgrade...');
     // Por enquanto, apenas fecha o modal
     onClose();
   };
@@ -50,13 +50,13 @@ const AppAccessModal = ({ isOpen, onClose, appName }) => {
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Star className="w-8 h-8 text-white" />
               </div>
-              
+
               <h3 className="text-lg font-semibold text-white mb-2">
                 {appName ? `Acesse ${appName}` : 'Acesse os Aplicativos'}
               </h3>
-              
+
               <p className="text-gray-300 text-sm leading-relaxed mb-4">
-                Para acessar todos os aplicativos da biblioteca, você precisa iniciar o 
+                Para acessar todos os aplicativos da biblioteca, você precisa iniciar o
                 <span className="font-semibold text-green-400"> Programa de Aceleração de Carreira</span>.
               </p>
 
@@ -106,7 +106,7 @@ const AppAccessModal = ({ isOpen, onClose, appName }) => {
                 <CreditCard className="w-5 h-5 mr-2" />
                 Iniciar Programa - R$ 29,90/mês
               </Button>
-              
+
               <Button
                 variant="ghost"
                 onClick={onClose}

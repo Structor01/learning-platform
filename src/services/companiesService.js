@@ -19,7 +19,7 @@ class CompaniesService {
       }
 
       const companies = await response.json();
-      
+
       return {
         success: true,
         companies: companies || [],
@@ -35,7 +35,7 @@ class CompaniesService {
         { id: 4, name: 'LinkAgroTech', corporate_name: 'LinkAgroTech Ltda' },
         { id: 5, name: 'Campo Nutrição Animal', corporate_name: 'Campo Nutrição' }
       ];
-      
+
       return {
         success: false,
         companies: mockCompanies,
@@ -59,7 +59,7 @@ class CompaniesService {
       }
 
       const companies = await response.json();
-      
+
       return {
         success: true,
         companies: companies || [],
@@ -67,7 +67,7 @@ class CompaniesService {
       };
 
     } catch (error) {
-      
+
       return {
         success: false,
         companies: [],
@@ -91,7 +91,7 @@ class CompaniesService {
       }
 
       const company = await response.json();
-      
+
       return {
         success: true,
         company: company,
@@ -99,7 +99,7 @@ class CompaniesService {
       };
 
     } catch (error) {
-      
+
       return {
         success: false,
         company: null,
@@ -125,7 +125,7 @@ class CompaniesService {
       }
 
       const company = await response.json();
-      
+
       return {
         success: true,
         company: company,
@@ -133,7 +133,7 @@ class CompaniesService {
       };
 
     } catch (error) {
-      
+
       return {
         success: false,
         company: null,
@@ -145,9 +145,9 @@ class CompaniesService {
 
   async updateCompany(id, companyData) {
     try {
-      console.log('🔍 Atualizando empresa:', { id, companyData });
-      console.log('🌐 URL:', `${this.API_BASE_URL}/api/companies/${id}`);
-      
+      ('🔍 Atualizando empresa:', { id, companyData });
+      ('🌐 URL:', `${this.API_BASE_URL}/api/companies/${id}`);
+
       const response = await fetch(`${this.API_BASE_URL}/api/companies/${id}`, {
         method: 'PUT',
         headers: {
@@ -156,7 +156,7 @@ class CompaniesService {
         body: JSON.stringify(companyData)
       });
 
-      console.log('📡 Status da resposta:', response.status);
+      ('📡 Status da resposta:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -164,8 +164,8 @@ class CompaniesService {
       }
 
       const company = await response.json();
-      console.log('✅ Empresa atualizada:', company);
-      
+      ('✅ Empresa atualizada:', company);
+
       return {
         success: true,
         company: company,
@@ -174,7 +174,7 @@ class CompaniesService {
 
     } catch (error) {
       console.error('❌ Erro ao atualizar empresa:', error);
-      
+
       return {
         success: false,
         company: null,
@@ -186,9 +186,9 @@ class CompaniesService {
 
   async deleteCompany(id) {
     try {
-      console.log('🔍 Excluindo empresa:', id);
-      console.log('🌐 URL:', `${this.API_BASE_URL}/api/companies/${id}`);
-      
+      ('🔍 Excluindo empresa:', id);
+      ('🌐 URL:', `${this.API_BASE_URL}/api/companies/${id}`);
+
       const response = await fetch(`${this.API_BASE_URL}/api/companies/${id}`, {
         method: 'DELETE',
         headers: {
@@ -196,15 +196,15 @@ class CompaniesService {
         }
       });
 
-      console.log('📡 Status da resposta:', response.status);
+      ('📡 Status da resposta:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(`Erro ao excluir empresa: ${response.status} - ${errorData.message || 'Erro desconhecido'}`);
       }
 
-      console.log('✅ Empresa excluída com sucesso');
-      
+      ('✅ Empresa excluída com sucesso');
+
       return {
         success: true,
         message: 'Empresa excluída com sucesso'
@@ -212,7 +212,7 @@ class CompaniesService {
 
     } catch (error) {
       console.error('❌ Erro ao excluir empresa:', error);
-      
+
       return {
         success: false,
         message: 'Erro ao excluir empresa',
@@ -223,19 +223,19 @@ class CompaniesService {
 
   async searchCompanies(filters = {}) {
     try {
-      console.log('🔍 Buscando empresas com filtros:', filters);
-      
+      ('🔍 Buscando empresas com filtros:', filters);
+
       const queryParams = new URLSearchParams();
-      
+
       if (filters.name) queryParams.append('name', filters.name);
       if (filters.cnpj) queryParams.append('cnpj', filters.cnpj);
       if (filters.status) queryParams.append('is_active', filters.status);
       if (filters.limit) queryParams.append('limit', filters.limit);
       if (filters.offset) queryParams.append('offset', filters.offset);
-      
+
       const url = `${this.API_BASE_URL}/api/companies/search?${queryParams.toString()}`;
-      console.log('🌐 URL:', url);
-      
+      ('🌐 URL:', url);
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -243,15 +243,15 @@ class CompaniesService {
         }
       });
 
-      console.log('📡 Status da resposta:', response.status);
+      ('📡 Status da resposta:', response.status);
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar empresas: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('✅ Empresas encontradas:', result);
-      
+      ('✅ Empresas encontradas:', result);
+
       return {
         success: true,
         companies: result.companies || result || [],
@@ -261,7 +261,7 @@ class CompaniesService {
 
     } catch (error) {
       console.error('❌ Erro ao buscar empresas:', error);
-      
+
       return {
         success: false,
         companies: [],
@@ -274,9 +274,9 @@ class CompaniesService {
 
   async checkDependencies(id) {
     try {
-      console.log('🔍 Verificando dependências da empresa:', id);
-      console.log('🌐 URL:', `${this.API_BASE_URL}/api/companies/${id}/dependencies`);
-      
+      ('🔍 Verificando dependências da empresa:', id);
+      ('🌐 URL:', `${this.API_BASE_URL}/api/companies/${id}/dependencies`);
+
       const response = await fetch(`${this.API_BASE_URL}/api/companies/${id}/dependencies`, {
         method: 'GET',
         headers: {
@@ -284,15 +284,15 @@ class CompaniesService {
         }
       });
 
-      console.log('📡 Status da resposta:', response.status);
+      ('📡 Status da resposta:', response.status);
 
       if (!response.ok) {
         throw new Error(`Erro ao verificar dependências: ${response.status}`);
       }
 
       const dependencies = await response.json();
-      console.log('✅ Dependências verificadas:', dependencies);
-      
+      ('✅ Dependências verificadas:', dependencies);
+
       return {
         success: true,
         dependencies: dependencies,
@@ -302,7 +302,7 @@ class CompaniesService {
 
     } catch (error) {
       console.error('❌ Erro ao verificar dependências:', error);
-      
+
       return {
         success: false,
         dependencies: { jobs: 0, users: 0 },
@@ -327,7 +327,7 @@ class CompaniesService {
       }
 
       const result = await response.json();
-      
+
       return {
         success: true,
         count: result.count || 0,
@@ -335,7 +335,7 @@ class CompaniesService {
       };
 
     } catch (error) {
-      
+
       return {
         success: false,
         count: 0,
@@ -359,9 +359,9 @@ class CompaniesService {
       }
 
       const dependencies = await response.json();
-      
+
       const hasDeps = dependencies.jobs > 0 || dependencies.users > 0;
-      
+
       return {
         success: true,
         hasDependencies: hasDeps,
@@ -370,7 +370,7 @@ class CompaniesService {
       };
 
     } catch (error) {
-      
+
       // Retornar sem dependências em caso de erro
       return {
         success: false,
@@ -397,14 +397,14 @@ class CompaniesService {
       }
 
       const result = await response.json();
-      
+
       return {
         success: true,
         message: 'Empresa excluída com sucesso'
       };
 
     } catch (error) {
-      
+
       return {
         success: false,
         message: 'Erro ao excluir empresa',
@@ -429,7 +429,7 @@ class CompaniesService {
       }
 
       const company = await response.json();
-      
+
       return {
         success: true,
         company: company,
@@ -437,7 +437,7 @@ class CompaniesService {
       };
 
     } catch (error) {
-      
+
       return {
         success: false,
         company: null,

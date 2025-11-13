@@ -19,13 +19,13 @@ const PublicHeader = ({ title, subtitle }) => {
                 const userData = JSON.parse(savedUser);
                 setCurrentUser(userData);
                 setIsUserLoggedIn(true);
-                console.log('✅ PublicHeader carregou com usuário:', userData.name);
+                ('✅ PublicHeader carregou com usuário:', userData.name);
             } catch (error) {
                 console.error('❌ Erro ao recuperar login:', error);
                 handleLogout();
             }
         } else {
-            console.log('✅ PublicHeader carregou sem usuário logado');
+            ('✅ PublicHeader carregou sem usuário logado');
         }
     }, []);
 
@@ -42,7 +42,7 @@ const PublicHeader = ({ title, subtitle }) => {
         setCurrentUser(null);
         setShowDropdown(false);
 
-        console.log('👋 Usuário deslogado via PublicHeader');
+        ('👋 Usuário deslogado via PublicHeader');
     };
 
     const handleLogin = () => {

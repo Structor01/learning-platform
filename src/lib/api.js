@@ -22,7 +22,7 @@ export function api(path, init) {
   // Retorna a Promise do fetch para que possa ser tratada pelo chamador
   return fetch(url, config)
     .then(response => {
-      console.log(`📊 Resposta da API: ${response.status} ${response.statusText}`);
+      (`📊 Resposta da API: ${response.status} ${response.statusText}`);
       if (!response.ok) {
         throw new Error(`Erro na API: ${response.status} - ${response.statusText}`);
       }

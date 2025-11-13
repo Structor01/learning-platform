@@ -180,11 +180,11 @@ class MockInterviewService {
    */
   async uploadVideoResponse(interviewId, questionNumber, videoBlob, faceAnalysisData = [], userId = null, liveTranscription = null) {
     try {
-      console.log(`📤 Iniciando upload - Entrevista: ${interviewId}, Pergunta: ${questionNumber}, Usuário: ${userId}`);
-      console.log(`📦 VideoBlob - Tamanho: ${videoBlob.size} bytes, Tipo: ${videoBlob.type}`);
-      console.log(`🧠 Face Analysis Data: ${faceAnalysisData.length} pontos`);
+      (`📤 Iniciando upload - Entrevista: ${interviewId}, Pergunta: ${questionNumber}, Usuário: ${userId}`);
+      (`📦 VideoBlob - Tamanho: ${videoBlob.size} bytes, Tipo: ${videoBlob.type}`);
+      (`🧠 Face Analysis Data: ${faceAnalysisData.length} pontos`);
       if (liveTranscription) {
-        console.log(`📝 Transcrição ao vivo: ${liveTranscription.substring(0, 50)}...`);
+        (`📝 Transcrição ao vivo: ${liveTranscription.substring(0, 50)}...`);
       }
 
       // Validações
@@ -224,18 +224,18 @@ class MockInterviewService {
         formData.append('liveTranscription', liveTranscription);
       }
 
-      console.log(`📁 Arquivo: ${fileName}`);
-      console.log(`🔢 Número da pergunta: ${questionNumber}`);
+      (`📁 Arquivo: ${fileName}`);
+      (`🔢 Número da pergunta: ${questionNumber}`);
 
       const url = `${this.baseUrl}/api/mock-interviews/${interviewId}/responses/upload-video`;
-      console.log(`🌐 URL: ${url}`);
+      (`🌐 URL: ${url}`);
 
       const response = await fetch(url, {
         method: 'POST',
         body: formData
       });
 
-      console.log(`📨 Status da resposta: ${response.status}`);
+      (`📨 Status da resposta: ${response.status}`);
 
       if (!response.ok) {
         let errorData;
@@ -277,7 +277,7 @@ class MockInterviewService {
    */
   async completeInterview(interviewId) {
     try {
-      console.log(`🏁 Finalizando entrevista ${interviewId}...`);
+      (`🏁 Finalizando entrevista ${interviewId}...`);
 
       const response = await fetch(`${this.baseUrl}/api/mock-interviews/${interviewId}/complete`, {
         method: 'POST',
@@ -292,7 +292,7 @@ class MockInterviewService {
       }
 
       const result = await response.json();
-      console.log(`✅ Entrevista ${interviewId} finalizada com sucesso!`);
+      (`✅ Entrevista ${interviewId} finalizada com sucesso!`);
 
       return {
         success: true,

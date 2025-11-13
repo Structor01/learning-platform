@@ -18,7 +18,7 @@ const FaceAnalysis = ({ videoRef, isActive, onFaceDataChange }) => {
           faceapi.nets.faceExpressionNet.loadFromUri('/models')
         ]);
         setIsLoaded(true);
-        console.log('Modelos de análise facial carregados com sucesso');
+        ('Modelos de análise facial carregados com sucesso');
       } catch (error) {
         console.error('Erro ao carregar modelos:', error);
       }
@@ -39,10 +39,10 @@ const FaceAnalysis = ({ videoRef, isActive, onFaceDataChange }) => {
 
       if (detections.length > 0) {
         const detection = detections[0];
-        
+
         // Encontrar a expressão dominante
         const expressions = detection.expressions;
-        const dominantExpression = Object.keys(expressions).reduce((a, b) => 
+        const dominantExpression = Object.keys(expressions).reduce((a, b) =>
           expressions[a] > expressions[b] ? a : b
         );
 
@@ -222,13 +222,13 @@ const FaceAnalysis = ({ videoRef, isActive, onFaceDataChange }) => {
                 }[emotion] || emotion;
 
                 const percentage = Math.round(value * 100);
-                
+
                 return (
                   <div key={emotion} className="flex items-center justify-between">
                     <span className="text-xs text-gray-300">{emotionPt}</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-16 bg-gray-600 rounded-full h-1">
-                        <div 
+                        <div
                           className="bg-purple-400 h-1 rounded-full transition-all duration-300"
                           style={{ width: `${percentage}%` }}
                         ></div>

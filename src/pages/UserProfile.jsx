@@ -58,7 +58,7 @@ const UserProfile = () => {
 
   useEffect(() => {
     if (user) {
-      console.log("Dados do usuário no contexto:", user);
+      ("Dados do usuário no contexto:", user);
       setName(user.name || "");
       setRole(user.role || "Executivo de Vendas");
       setLinkedin(user.linkedin || "");
@@ -151,7 +151,7 @@ const UserProfile = () => {
 
         if (response.ok) {
           const userData = await response.json();
-          console.log("Dados do usuário carregados:", userData);
+          ("Dados do usuário carregados:", userData);
 
           // Atualizar os estados locais com os dados do servidor
           setName(userData.name || "");
@@ -233,7 +233,7 @@ const UserProfile = () => {
 
       // Converter para base64
       const base64Image = await convertToBase64(file);
-      
+
       // Salvar no backend
       const token = accessToken || sessionStorage.getItem("accessToken");
       if (!token) {
@@ -257,15 +257,15 @@ const UserProfile = () => {
       }
 
       const responseData = await response.json();
-      
+
       // Atualizar estado local
       setProfileImage(base64Image);
-      
+
       // Atualizar contexto do usuário
       await updateUser({ profile_image: base64Image });
-      
+
       alert("Foto de perfil atualizada com sucesso!");
-      
+
     } catch (error) {
       console.error("Erro ao fazer upload da imagem:", error);
       alert("Erro ao atualizar foto de perfil. Tente novamente.");
@@ -365,20 +365,20 @@ const UserProfile = () => {
   // Substitua a função handleSaveLinks no seu UserProfile.jsx
 
   const handleSaveLinks = async () => {
-    console.log("API_BASE_URL:", API_BASE_URL);
-    console.log("URL completa:", `${API_BASE_URL}/api/users/curriculo`);
+    ("API_BASE_URL:", API_BASE_URL);
+    ("URL completa:", `${API_BASE_URL}/api/users/curriculo`);
 
     const tokenFromSession = sessionStorage.getItem("accessToken");
-    console.log("Token do sessionStorage:", tokenFromSession?.substring(0, 20));
-    console.log("Token do contexto:", accessToken?.substring(0, 20));
-    console.log("Tokens são iguais?", tokenFromSession === accessToken);
+    ("Token do sessionStorage:", tokenFromSession?.substring(0, 20));
+    ("Token do contexto:", accessToken?.substring(0, 20));
+    ("Tokens são iguais?", tokenFromSession === accessToken);
 
     try {
       setIsSavingLinks(true);
 
       const token = accessToken || sessionStorage.getItem("accessToken");
-      console.log("sessionStorage:", Object.keys(sessionStorage));
-      console.log("localStorage:", Object.keys(localStorage));
+      ("sessionStorage:", Object.keys(sessionStorage));
+      ("localStorage:", Object.keys(localStorage));
 
       if (!token) {
         console.error("Token não encontrado no sessionStorage");
@@ -386,17 +386,17 @@ const UserProfile = () => {
         return;
       }
 
-      console.log("Token encontrado:", token ? "✓" : "✗");
-      console.log("Token completo:", token);
-      console.log("Primeiros caracteres do token:", token?.substring(0, 20));
-      console.log("Tamanho do token:", token?.length);
+      ("Token encontrado:", token ? "✓" : "✗");
+      ("Token completo:", token);
+      ("Primeiros caracteres do token:", token?.substring(0, 20));
+      ("Tamanho do token:", token?.length);
 
       // Se há um arquivo para upload
       if (curriculoFile) {
         const formData = new FormData();
         formData.append("file", curriculoFile);
 
-        console.log("Enviando FormData:", {
+        ("Enviando FormData:", {
           arquivo: curriculoFile.name,
         });
 
@@ -408,7 +408,7 @@ const UserProfile = () => {
           body: formData,
         });
 
-        console.log("Resposta status:", response.status);
+        ("Resposta status:", response.status);
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -417,20 +417,20 @@ const UserProfile = () => {
         }
 
         const responseData = await response.json();
-        console.log("Dados da resposta:", responseData);
+        ("Dados da resposta:", responseData);
       }
 
       // Sempre atualizar LinkedIn (seja com arquivo ou não)  
       let updateData = {};
-      
+
       if (linkedin && linkedin.trim()) {
-        console.log("LinkedIn será atualizado:", linkedin);
+        ("LinkedIn será atualizado:", linkedin);
         updateData.linkedin = linkedin.trim();
       }
 
       // Se tiver dados para atualizar, faça uma única chamada
       if (Object.keys(updateData).length > 0) {
-        console.log("Atualizando dados do usuário:", updateData);
+        ("Atualizando dados do usuário:", updateData);
         await updateUser(updateData);
       }
 
@@ -491,8 +491,8 @@ const UserProfile = () => {
 
   // curriculoUrl é um Buffer no backend, então verificamos se existe (objeto ou string)
   const hasCurriculo = Boolean(
-    user?.curriculo_url || 
-    curriculoUrl || 
+    user?.curriculo_url ||
+    curriculoUrl ||
     curriculoUrl === "exists" ||
     (typeof curriculoUrl === 'object' && curriculoUrl !== null)
   );
@@ -674,9 +674,9 @@ const UserProfile = () => {
                 <div className="relative mb-4">
                   <div className="relative">
                     <Avatar className="w-24 h-24 mx-auto border-4 border-green-500">
-                      <AvatarImage 
-                        src={profileImage || user?.userLegacy?.image || "/placeholder-avatar.jpg"} 
-                        alt={name} 
+                      <AvatarImage
+                        src={profileImage || user?.userLegacy?.image || "/placeholder-avatar.jpg"}
+                        alt={name}
                       />
                       <AvatarFallback className="bg-green-600 text-white text-2xl">
                         {name
@@ -685,7 +685,7 @@ const UserProfile = () => {
                           .join("")}
                       </AvatarFallback>
                     </Avatar>
-                    
+
                     {/* Botão de upload de imagem */}
                     <div className="">
                       <label
@@ -709,7 +709,7 @@ const UserProfile = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                     <CheckCircle className="w-5 h-5 text-white" />
                   </div>
@@ -1060,14 +1060,14 @@ const UserProfile = () => {
                                 {trait === "openness"
                                   ? "Abertura"
                                   : trait === "conscientiousness"
-                                  ? "Conscienciosidade"
-                                  : trait === "extraversion"
-                                  ? "Extroversão"
-                                  : trait === "agreeableness"
-                                  ? "Amabilidade"
-                                  : trait === "neuroticism"
-                                  ? "Neuroticismo"
-                                  : trait}
+                                    ? "Conscienciosidade"
+                                    : trait === "extraversion"
+                                      ? "Extroversão"
+                                      : trait === "agreeableness"
+                                        ? "Amabilidade"
+                                        : trait === "neuroticism"
+                                          ? "Neuroticismo"
+                                          : trait}
                               </span>
                               <div className="flex items-center space-x-2">
                                 <div className="w-20 bg-gray-200 rounded-full h-2">
@@ -1108,14 +1108,14 @@ const UserProfile = () => {
                                 {style === "autocratic"
                                   ? "Autocrático"
                                   : style === "democratic"
-                                  ? "Democrático"
-                                  : style === "transformational"
-                                  ? "Transformacional"
-                                  : style === "transactional"
-                                  ? "Transacional"
-                                  : style === "servant"
-                                  ? "Servidor"
-                                  : style}
+                                    ? "Democrático"
+                                    : style === "transformational"
+                                      ? "Transformacional"
+                                      : style === "transactional"
+                                        ? "Transacional"
+                                        : style === "servant"
+                                          ? "Servidor"
+                                          : style}
                               </span>
                               <div className="flex items-center space-x-2">
                                 <div className="w-20 bg-gray-200 rounded-full h-2">
@@ -1167,11 +1167,10 @@ const UserProfile = () => {
                             {track.name}
                           </span>
                           <span
-                            className={`text-xs px-2 py-1 rounded-full ${
-                              track.status === "Em andamento"
+                            className={`text-xs px-2 py-1 rounded-full ${track.status === "Em andamento"
                                 ? "bg-green-100 text-green-700 border border-green-300"
                                 : "bg-gray-100 text-gray-600 border border-gray-300"
-                            }`}
+                              }`}
                           >
                             {track.status}
                           </span>

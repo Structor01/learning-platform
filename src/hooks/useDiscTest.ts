@@ -28,47 +28,47 @@ export const useDiscTest = () => {
   const [error, setError] = useState<string | null>(null);
 
   const getQuestions = useCallback(async (): Promise<DiscQuestion[]> => {
-  try {
-    setLoading(true);
-    setError(null);
+    try {
+      setLoading(true);
+      setError(null);
 
-    const response = await api("api/tests/questions");
+      const response = await api("api/tests/questions");
 
-    return response;  
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar perguntas';
-    console.error('❌ Erro ao carregar perguntas:', err);
-    setError(errorMessage);
-    throw err;
-  } finally {
-    setLoading(false);
-  }
-}, []);
+      return response;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar perguntas';
+      console.error('❌ Erro ao carregar perguntas:', err);
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
 
-const saveTestAnswers = useCallback(async (testResultData: any) => {
-  try {
-    setLoading(true);
-    setError(null);
+  const saveTestAnswers = useCallback(async (testResultData: any) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    console.log('🔍 Salvando resultado completo do teste:', testResultData);
-    
-    const response = await api("api/tests/results", {  
-      method: 'POST',
-      body: JSON.stringify(testResultData),
-    });
+      ('🔍 Salvando resultado completo do teste:', testResultData);
 
-    console.log('✅ Resultado salvo com sucesso:', response);
-    return response;
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Erro ao salvar resultado';
-    console.error('❌ Erro ao salvar resultado:', err);
-    setError(errorMessage);
-    throw err;
-  } finally {
-    setLoading(false);
-  }
-}, []);
+      const response = await api("api/tests/results", {
+        method: 'POST',
+        body: JSON.stringify(testResultData),
+      });
+
+      ('✅ Resultado salvo com sucesso:', response);
+      return response;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao salvar resultado';
+      console.error('❌ Erro ao salvar resultado:', err);
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const submitTest = useCallback(async (answers: DiscAnswer[]) => {
     if (!user?.id) {
@@ -79,11 +79,11 @@ const saveTestAnswers = useCallback(async (testResultData: any) => {
       setLoading(true);
       setError(null);
 
-      console.log('🔍 Enviando teste DISC para usuário:', user.id);
-      console.log('🔍 Respostas formatadas:', answers);
+      ('🔍 Enviando teste DISC para usuário:', user.id);
+      ('🔍 Respostas formatadas:', answers);
 
       const result = await discApiService.submitDiscTest(user.id, answers);
-      console.log('✅ Teste DISC enviado com sucesso:', result);
+      ('✅ Teste DISC enviado com sucesso:', result);
 
       // Disparar evento personalizado para notificar outros componentes
       window.dispatchEvent(new CustomEvent('discTestCompleted', {
@@ -111,7 +111,7 @@ const saveTestAnswers = useCallback(async (testResultData: any) => {
       setError(null);
 
       const result = await discApiService.getUserDiscResult(user.id);
-      console.log('✅ Resultado do usuário carregado:', result);
+      ('✅ Resultado do usuário carregado:', result);
 
       return result;
     } catch (err) {
@@ -136,7 +136,7 @@ const saveTestAnswers = useCallback(async (testResultData: any) => {
       const result = await discApiService.getUserDiscResult(user.id);
       const completed = !!result;
 
-      console.log('✅ Status de conclusão verificado:', { completed, hasResult: completed });
+      ('✅ Status de conclusão verificado:', { completed, hasResult: completed });
 
       return { completed, hasResult: completed };
     } catch (err) {

@@ -2,10 +2,10 @@ export const uploadToCloudinary = async (file, folder = 'profiles') => {
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
-    console.log('🔍 Debug Cloudinary:');
-    console.log('  - CLOUD_NAME:', cloudName);
-    console.log('  - UPLOAD_PRESET:', uploadPreset);
-    console.log('  - URL completa:', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
+    ('🔍 Debug Cloudinary:');
+    ('  - CLOUD_NAME:', cloudName);
+    ('  - UPLOAD_PRESET:', uploadPreset);
+    ('  - URL completa:', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
 
     if (!cloudName || !uploadPreset) {
         throw new Error('Variáveis de ambiente do Cloudinary não configuradas!');
@@ -25,7 +25,7 @@ export const uploadToCloudinary = async (file, folder = 'profiles') => {
             }
         );
 
-        console.log('📡 Cloudinary response status:', response.status);
+        ('📡 Cloudinary response status:', response.status);
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
@@ -34,7 +34,7 @@ export const uploadToCloudinary = async (file, folder = 'profiles') => {
         }
 
         const data = await response.json();
-        console.log('✅ Upload success:', data.secure_url);
+        ('✅ Upload success:', data.secure_url);
         return data.secure_url;
     } catch (error) {
         console.error('❌ Erro ao fazer upload no Cloudinary:', error);

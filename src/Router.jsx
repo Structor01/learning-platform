@@ -62,7 +62,7 @@ function AppContent() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const { user, accessToken, isLoading } = useAuth();
-  console.log("🔐 Auth user no AppContent:", user);
+  ("🔐 Auth user no AppContent:", user);
 
 
   // useEffect(() => {
@@ -182,7 +182,7 @@ function AppContent() {
           onClose={() => setIsAddTrilhaOpen(false)}
           //NESTTTT
           //onSubmit={(data) => {
-          //console.log("Dados da nova trilha:", data);
+          //("Dados da nova trilha:", data);
           //setIsAddTrilhaOpen(false);
           // Aqui você pode chamar sua API NestJS para salvar
           //}}

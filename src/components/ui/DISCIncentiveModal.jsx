@@ -18,11 +18,11 @@ const DISCIncentiveModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const handleStartTest = () => {
-    console.log("🔍 DISCIncentiveModal - handleStartTest chamado");
-    console.log("🔍 Fechando modal e navegando para /teste-disc");
+    ("🔍 DISCIncentiveModal - handleStartTest chamado");
+    ("🔍 Fechando modal e navegando para /teste-disc");
     onClose();
     setTimeout(() => {
-      console.log("🔍 Navegando para /teste-disc");
+      ("🔍 Navegando para /teste-disc");
       navigate('/teste-disc');
     }, 100);
   };

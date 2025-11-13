@@ -43,28 +43,28 @@ class PhantomBusterService {
   // Extrair keywords relevantes da vaga
   extractKeywords(job) {
     const keywords = [];
-    
+
     // Adicionar título da vaga
     if (job.title) {
       keywords.push(job.title);
     }
-    
+
     // Adicionar empresa
     if (job.company) {
       keywords.push(job.company);
     }
-    
+
     // Extrair palavras-chave da descrição
     if (job.description) {
       const relevantTerms = this.extractRelevantTermsFromDescription(job.description);
       keywords.push(...relevantTerms);
     }
-    
+
     // Adicionar termos específicos do agronegócio se aplicável
     if (this.isAgroJob(job)) {
       keywords.push('agronegócio', 'agricultura', 'agro', 'fazenda', 'rural');
     }
-    
+
     return keywords.join(' ').substring(0, 100); // Limitar tamanho
   }
 
@@ -79,19 +79,19 @@ class PhantomBusterService {
   extractRelevantTermsFromDescription(description) {
     const relevantTerms = [];
     const text = description.toLowerCase();
-    
+
     // Tecnologias e habilidades comuns
     const techTerms = ['python', 'java', 'javascript', 'react', 'node', 'sql', 'aws', 'docker'];
     const skillTerms = ['engenheiro', 'desenvolvedor', 'analista', 'gerente', 'coordenador', 'especialista'];
-    
+
     techTerms.forEach(term => {
       if (text.includes(term)) relevantTerms.push(term);
     });
-    
+
     skillTerms.forEach(term => {
       if (text.includes(term)) relevantTerms.push(term);
     });
-    
+
     return relevantTerms.slice(0, 5); // Limitar a 5 termos
   }
 
@@ -104,7 +104,7 @@ class PhantomBusterService {
       origin: 'FACETED_SEARCH',
       sid: 'btX'
     });
-    
+
     return `${baseUrl}?${params.toString()}`;
   }
 
@@ -113,8 +113,8 @@ class PhantomBusterService {
     try {
       const keywords = this.extractKeywords(job);
       const searchUrl = this.buildLinkedInSearchUrl(keywords);
-      
-      console.log('Iniciando busca Phantom Buster:', {
+
+      ('Iniciando busca Phantom Buster:', {
         jobId: job.id,
         keywords,
         searchUrl
@@ -134,11 +134,11 @@ class PhantomBusterService {
       }
 
       const phantoms = await listResponse.json();
-      console.log('Phantoms disponíveis:', phantoms);
+      ('Phantoms disponíveis:', phantoms);
 
       // Procurar pelo phantom LinkedIn Search Export
-      const linkedinPhantom = phantoms.find(p => 
-        p.name && p.name.toLowerCase().includes('linkedin') && 
+      const linkedinPhantom = phantoms.find(p =>
+        p.name && p.name.toLowerCase().includes('linkedin') &&
         p.name.toLowerCase().includes('search')
       );
 
@@ -149,9 +149,9 @@ class PhantomBusterService {
           'linkedin-search-export',
           'LinkedIn Search Export'
         ];
-        
-        console.log('Tentando IDs comuns do LinkedIn phantom...');
-        
+
+        ('Tentando IDs comuns do LinkedIn phantom...');
+
         for (const phantomId of commonIds) {
           try {
             const testResponse = await fetch(`${this.baseUrl}/phantoms/${phantomId}/launch`, {
@@ -168,11 +168,11 @@ class PhantomBusterService {
                 }
               })
             });
-            
+
             if (testResponse.ok) {
               const result = await testResponse.json();
-              console.log('Phantom lançado com sucesso usando ID:', phantomId);
-              
+              ('Phantom lançado com sucesso usando ID:', phantomId);
+
               // Salvar informações da busca localmente
               this.saveSearchInfo(job.id, {
                 phantomId: result.id,
@@ -190,11 +190,11 @@ class PhantomBusterService {
               };
             }
           } catch (error) {
-            console.log(`ID ${phantomId} não funcionou:`, error.message);
+            (`ID ${phantomId} não funcionou:`, error.message);
             continue;
           }
         }
-        
+
         throw new Error(`Phantom LinkedIn Search Export não encontrado. 
         
 Phantoms disponíveis: ${phantoms.map(p => p.name).join(', ')}
@@ -205,7 +205,7 @@ Para resolver:
 3. Ou verifique se o phantom está ativo na sua conta`);
       }
 
-      console.log('Phantom encontrado:', linkedinPhantom);
+      ('Phantom encontrado:', linkedinPhantom);
 
       // Agora usar o endpoint correto para lançar o phantom
       const response = await fetch(`${this.baseUrl}/phantoms/${linkedinPhantom.id}/launch`, {
@@ -235,7 +235,7 @@ Para resolver:
       }
 
       const result = await response.json();
-      
+
       // Salvar informações da busca localmente
       this.saveSearchInfo(job.id, {
         phantomId: result.id,
@@ -313,7 +313,7 @@ Para resolver:
   async processSearchResults(phantomId) {
     try {
       const status = await this.checkSearchStatus(phantomId);
-      
+
       if (status.status === 'finished' && status.output) {
         // Processar dados dos perfis encontrados
         const profiles = status.output.map(profile => ({

@@ -29,7 +29,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
-    console.log("🔍 Loginage useEffect disparado - user:", !!user, "accessToken:", !!accessToken, "step:", step);
+    ("🔍 Loginage useEffect disparado - user:", !!user, "accessToken:", !!accessToken, "step:", step);
   }, [user, navigate, step]);
 
   const handleLoginSubmit = async (e) => {
@@ -64,11 +64,9 @@ const LoginPage = () => {
     setErrorMsg("");
 
     try {
-      console.log("🔍 Tentando fazer login com:", trimmedEmail);
+      ("🔍 Tentando fazer login com:", trimmedEmail);
       const loggedUser = await login(trimmedEmail, trimmedPassword);
-      console.log("🔍 Login realizado com sucesso:", loggedUser);
-
-      localStorage.setItem("email", trimmedEmail);
+      ("🔍 Login realizado com sucesso:", loggedUser);
 
       // Identificação automática do tipo de usuário e redirecionamento
       const userType = loggedUser.userType || USER_TYPES.CANDIDATE;

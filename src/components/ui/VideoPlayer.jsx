@@ -2,13 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  Maximize, 
-  SkipBack, 
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Maximize,
+  SkipBack,
   SkipForward,
   Settings,
   Crown,
@@ -75,14 +75,14 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
         window.outerWidth - window.innerWidth > threshold
       ) {
         console.clear();
-        console.log('%cAcesso não autorizado detectado!', 'color: red; font-size: 20px; font-weight: bold;');
+        ('%cAcesso não autorizado detectado!', 'color: red; font-size: 20px; font-weight: bold;');
       }
     };
 
     // Adicionar event listeners
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('contextmenu', handleContextMenu);
-    
+
     // Verificar DevTools periodicamente
     const devToolsInterval = setInterval(detectDevTools, 1000);
 
@@ -168,7 +168,7 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
         return;
       }
     }
-    
+
     const video = videoRef.current;
     const seekTime = (e.target.value / 100) * duration;
     video.currentTime = seekTime;
@@ -205,7 +205,7 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
 
   const downloadVideo = () => {
     // Funcionalidade de download removida por segurança
-    console.log('Download não permitido');
+    ('Download não permitido');
   };
 
   const formatTime = (time) => {
@@ -258,7 +258,7 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-black text-white pt-20"
       style={{
         userSelect: 'none',
@@ -273,7 +273,7 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
       onSelectStart={(e) => e.preventDefault()}
     >
       {/* Video Container */}
-      <div 
+      <div
         ref={containerRef}
         className="relative w-full h-screen"
         onMouseMove={handleMouseMove}
@@ -303,7 +303,7 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
         )}
 
         {/* Overlay de proteção contra captura */}
-        <div 
+        <div
           className="absolute inset-0 pointer-events-none z-10"
           style={{
             background: 'transparent',
@@ -361,10 +361,9 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
         )}
 
         {/* Controls Overlay */}
-        <div 
-          className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 transition-opacity duration-300 ${
-            showControls ? 'opacity-100' : 'opacity-0'
-          }`}
+        <div
+          className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'
+            }`}
         >
           {/* Top Bar */}
           <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between">
@@ -423,27 +422,27 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
                 <div className="w-full h-1 bg-white/30 rounded-full">
                   {/* Max Progress for Free Users */}
                   {!isSmartPlayer && !hasAccess && (
-                    <div 
+                    <div
                       className="absolute top-0 left-0 h-1 bg-white/50 rounded-full"
                       style={{ width: `${getMaxProgress()}%` }}
                     />
                   )}
                   {/* Current Progress */}
-                  <div 
+                  <div
                     className="h-1 bg-white rounded-full transition-all duration-300"
                     style={{ width: `${getProgressPercentage()}%` }}
                   />
                 </div>
-                
+
                 {/* Preview Limit Indicator */}
                 {!isSmartPlayer && !hasAccess && (
-                  <div 
+                  <div
                     className="absolute top-0 w-3 h-3 bg-yellow-400 rounded-full transform -translate-y-1 -translate-x-1.5 border-2 border-black"
                     style={{ left: `${getMaxProgress()}%` }}
                   />
                 )}
               </div>
-              
+
               <input
                 type="range"
                 min="0"
@@ -503,7 +502,7 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
                       <Volume2 className="w-5 h-5" />
                     )}
                   </Button>
-                  
+
                   <input
                     type="range"
                     min="0"
@@ -540,7 +539,7 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
                     Assinar para Continuar
                   </Button>
                 )}
-                
+
                 <Button
                   onClick={toggleFullscreen}
                   variant="ghost"
@@ -566,7 +565,7 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
             <div className="lg:col-span-2">
               <h2 className="text-2xl font-bold mb-4">{course.title}</h2>
               <p className="text-gray-300 mb-6">{course.description}</p>
-              
+
               <div className="flex items-center gap-6 text-sm text-gray-400">
                 <span>👨‍🏫 {course.instructor}</span>
                 <span>⏱️ {course.duration}</span>
@@ -580,7 +579,7 @@ const VideoPlayer = ({ course, onBack, isSmartPlayer = false }) => {
                 <div className="mt-6 p-4 bg-blue-900/30 rounded-lg border border-blue-500/30">
                   <h3 className="text-blue-300 font-semibold mb-2">🎬 Smart Player Ativo</h3>
                   <p className="text-blue-100 text-sm">
-                    Você está usando o Smart Player com funcionalidades avançadas: 
+                    Você está usando o Smart Player com funcionalidades avançadas:
                     controle de velocidade, qualidade adaptativa e proteção avançada contra cópia.
                     O conteúdo está protegido contra download e captura não autorizada.
                   </p>

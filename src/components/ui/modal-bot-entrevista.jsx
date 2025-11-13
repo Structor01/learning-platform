@@ -1,35 +1,35 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "../utils/api";
 
-export const BotEntrevistaModal = ({ isOpen = true, onClose = () => {}, userId }) => {
-  const [ entrevista, setEntrevista ] = useState(null);
-  const [ entrevistaNotFound, setEntrevistaNotFound ] = useState(false);
-  const [ carregando, setCarregando ] = useState(false);
+export const BotEntrevistaModal = ({ isOpen = true, onClose = () => { }, userId }) => {
+  const [entrevista, setEntrevista] = useState(null);
+  const [entrevistaNotFound, setEntrevistaNotFound] = useState(false);
+  const [carregando, setCarregando] = useState(false);
   const baseUrl = API_URL;
-  
-  
+
+
   useEffect(() => {
     const fetchEntrevista = async () => {
       try {
         setCarregando(true);
         setEntrevistaNotFound(false);
-        
+
         if (!userId) {
           setCarregando(false);
           setEntrevistaNotFound(true);
           return;
         }
-        
+
         const response = await fetch(`${baseUrl}/api/bot/get-entrevista/${userId}`);
 
         if (!response.ok) {
           setEntrevistaNotFound(true);
           throw new Error(`Erro ao buscar entrevista: ${response.status}`);
         }
-        
+
         const result = await response.json();
-        console.log("✅ Resposta da API:", result);
-        
+        ("✅ Resposta da API:", result);
+
         // Verificamos se temos dados válidos
         if (result.success && result.data) {
           setEntrevista(result.data);
@@ -45,7 +45,7 @@ export const BotEntrevistaModal = ({ isOpen = true, onClose = () => {}, userId }
         setCarregando(false);
       }
     };
-    
+
     if (isOpen) {
       fetchEntrevista();
     }
@@ -64,7 +64,7 @@ export const BotEntrevistaModal = ({ isOpen = true, onClose = () => {}, userId }
       </div>
     );
   }
-  
+
   if (entrevistaNotFound) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -92,18 +92,18 @@ export const BotEntrevistaModal = ({ isOpen = true, onClose = () => {}, userId }
     email: "Não informado",
     telefone: "Não informado",
     linkdein: "Não informado",
-    
+
     curso: "Não informado",
-    
+
     area_atual_agro: "Não informado",
     area_atuacao_futura: "Não informado",
-    
+
     posicao_atual: "Não informado",
     se_trabalha: "Não informado",
     salario_atual: "Não informado",
     mudanca: "Não informado",
     parceiros: "Não informado",
-    
+
     ingles_fluente: "Não informado",
     outra_lingua: "Não informado",
     lideranca: "Não informado",
@@ -111,7 +111,7 @@ export const BotEntrevistaModal = ({ isOpen = true, onClose = () => {}, userId }
     diferencial: "Não informado",
     desafio_atual: "Não informado",
   };
-  
+
 
 
   return (
@@ -124,15 +124,15 @@ export const BotEntrevistaModal = ({ isOpen = true, onClose = () => {}, userId }
               � Respostas da Entrevista
             </h2>
             <p className="text-gray-400 mt-1">
-              Enviado em {entrevista?.submitted_at 
-    ? new Date(entrevista.submitted_at).toLocaleDateString('pt-BR', { 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric', 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      }).replace(',', ' às')
-    : "Data não disponível"}
+              Enviado em {entrevista?.submitted_at
+                ? new Date(entrevista.submitted_at).toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }).replace(',', ' às')
+                : "Data não disponível"}
             </p>
           </div>
           <button

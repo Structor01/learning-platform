@@ -21,12 +21,12 @@ const TesteDISCPage = () => {
   useEffect(() => {
     const loadQuestions = async () => {
       try {
-        console.log('🔍 Carregando perguntas do DISC...');
-        console.log('🔍 API_URL sendo usada:', import.meta.env.VITE_API_URL);
+        ('🔍 Carregando perguntas do DISC...');
+        ('🔍 API_URL sendo usada:', import.meta.env.VITE_API_URL);
         const apiQuestions = await getQuestions();
-        
-        console.log('✅ Perguntas carregadas:', apiQuestions);
-        console.log('📊 Total de perguntas carregadas:', apiQuestions?.length || 0);
+
+        ('✅ Perguntas carregadas:', apiQuestions);
+        ('📊 Total de perguntas carregadas:', apiQuestions?.length || 0);
 
         setQuestions(apiQuestions);
         setQuestionsLoaded(true);
@@ -55,12 +55,12 @@ const TesteDISCPage = () => {
     }
   };
   const calculateResults = (finalResponses) => {
-    console.log('🔍 Calculando resultados do teste...');
-    
+    ('🔍 Calculando resultados do teste...');
+
     const discCounts = { D: 0, I: 0, S: 0, C: 0 };
     const bigFiveScores = { O: 0, C: 0, E: 0, A: 0, N: 0 };
     const ieScores = { autoconsciencia: 0, autorregulacao: 0, automotivacao: 0, empatia: 0, habilidade_social: 0 };
-    
+
     // Contadores para cada tipo de teste
     const discQuestionCount = { D: 0, I: 0, S: 0, C: 0 };
     const bigFiveQuestionCount = { O: 0, C: 0, E: 0, A: 0, N: 0 };
@@ -69,7 +69,7 @@ const TesteDISCPage = () => {
     // Processar cada resposta
     Object.entries(finalResponses).forEach(([questionIndex, selectedOptionId]) => {
       const question = questions[parseInt(questionIndex)];
-      
+
       if (question.question_type === 'disc') {
         // Para DISC, usar scoring_weights
         const weights = question.scoring_weights[selectedOptionId];
@@ -79,7 +79,7 @@ const TesteDISCPage = () => {
           });
         }
         discQuestionCount[question.dimension]++;
-        
+
       } else if (question.question_type === 'big_five') {
         // Para Big Five, usar scoring_weights direto
         const score = question.scoring_weights[selectedOptionId];
@@ -87,7 +87,7 @@ const TesteDISCPage = () => {
           bigFiveScores[question.dimension] += score;
           bigFiveQuestionCount[question.dimension]++;
         }
-        
+
       } else if (question.question_type === 'ie') {
         // Para IE, usar scoring_weights direto
         const score = question.scoring_weights[selectedOptionId];
@@ -106,7 +106,7 @@ const TesteDISCPage = () => {
     });
 
     // Determinar perfil DISC dominante
-    const dominantDisc = Object.entries(discCounts).reduce((a, b) => 
+    const dominantDisc = Object.entries(discCounts).reduce((a, b) =>
       discCounts[a[0]] > discCounts[b[0]] ? a : b
     )[0];
 
@@ -159,14 +159,14 @@ const TesteDISCPage = () => {
       }
     };
 
-    console.log('✅ Resultados calculados:', results);
+    ('✅ Resultados calculados:', results);
     return results;
   };
 
   const submitAnswers = async (finalResponses) => {
     try {
-      console.log('🔍 TesteDISC - Processando respostas...');
-      console.log('🔍 TesteDISC - Respostas finais:', finalResponses);
+      ('🔍 TesteDISC - Processando respostas...');
+      ('🔍 TesteDISC - Respostas finais:', finalResponses);
 
       // Calcular resultados no frontend
       const calculatedResults = calculateResults(finalResponses);
@@ -175,37 +175,37 @@ const TesteDISCPage = () => {
       const completedAt = new Date();
       const startedAt = testStartTime || completedAt;
       const durationSeconds = Math.floor((completedAt - startedAt) / 1000);
-      
+
       const testResultData = {
         // Campos obrigatórios da API
         userId: user?.id || 1917, // ID do usuário do contexto de autenticação
         testTypeId: 1, // ID do tipo de teste DISC
-        testName: "Teste Psicológico Unificado", 
+        testName: "Teste Psicológico Unificado",
         startedAt: startedAt.toISOString(), // Data real de início
         completedAt: completedAt.toISOString(), // Data de conclusão
         durationSeconds: durationSeconds, // Duração real em segundos
         totalQuestions: questions.length,
-        
+
         // Campos do formato original
         testCategory: "DISC_UNIFIED",
-        score: calculatedResults.disc.counts[calculatedResults.disc.perfil], 
-        percentage: calculatedResults.disc.percentages[calculatedResults.disc.perfil], 
-        status: "completed", 
-        
+        score: calculatedResults.disc.counts[calculatedResults.disc.perfil],
+        percentage: calculatedResults.disc.percentages[calculatedResults.disc.perfil],
+        status: "completed",
+
         // Campos específicos para teste DISC:
         discDPercentage: calculatedResults.disc.percentages.D,
         discIPercentage: calculatedResults.disc.percentages.I,
         discSPercentage: calculatedResults.disc.percentages.S,
         discCPercentage: calculatedResults.disc.percentages.C,
         dominantProfile: calculatedResults.disc.perfil,
-        
+
         // Dados adicionais:
         rawAnswers: finalResponses,
         detailedResults: calculatedResults,
         testAnswers: Object.entries(finalResponses).map(([questionIndex, selectedOptionId]) => {
           const question = questions[parseInt(questionIndex)];
           const selectedText = question.options[selectedOptionId];
-          
+
           return {
             questionId: question.id,
             questionText: question.question_text,
@@ -218,7 +218,7 @@ const TesteDISCPage = () => {
         })
       };
 
-      console.log('🔍 Dados formatados para salvar:', testResultData);
+      ('🔍 Dados formatados para salvar:', testResultData);
 
       // Formato para exibição na tela
       const result = {
@@ -233,15 +233,15 @@ const TesteDISCPage = () => {
       // Salvar no backend usando o hook
       try {
         await saveTestAnswers(testResultData);
-        console.log('✅ Resultados salvos no backend com sucesso');
+        ('✅ Resultados salvos no backend com sucesso');
       } catch (saveError) {
         console.error('⚠️ Erro ao salvar no backend (continuando mesmo assim):', saveError);
-        
+
         // Tentar salvar via testService como fallback
         try {
           const { default: testService } = await import('@/services/testDiscService/testService');
           await testService.saveTestResult(testResultData);
-          console.log('✅ Dados salvos via testService (fallback)');
+          ('✅ Dados salvos via testService (fallback)');
         } catch (fallbackError) {
           console.error('❌ Falha também no testService:', fallbackError);
         }
@@ -307,7 +307,7 @@ const TesteDISCPage = () => {
                     Perfil {testResult.result.disc.perfil} - {
                       {
                         'D': 'Dominante',
-                        'I': 'Influente', 
+                        'I': 'Influente',
                         'S': 'Estável',
                         'C': 'Consciencioso'
                       }[testResult.result.disc.perfil] || 'Desconhecido'
@@ -318,7 +318,7 @@ const TesteDISCPage = () => {
                       const typeNames = {
                         'D': 'Dominante',
                         'I': 'Influente',
-                        'S': 'Estável', 
+                        'S': 'Estável',
                         'C': 'Consciencioso'
                       };
                       return (
@@ -341,7 +341,7 @@ const TesteDISCPage = () => {
                   {testResult.result.bigFive.scores && Object.entries(testResult.result.bigFive.scores).map(([trait, score]) => {
                     const traitNames = {
                       'O': 'Abertura à Experiência',
-                      'C': 'Conscienciosidade', 
+                      'C': 'Conscienciosidade',
                       'E': 'Extroversão',
                       'A': 'Amabilidade',
                       'N': 'Neuroticismo'
@@ -466,7 +466,7 @@ const TesteDISCPage = () => {
 
               {/* Options */}
               <div className="space-y-4">
-                {questions[currentQuestion]?.options ? 
+                {questions[currentQuestion]?.options ?
                   Object.entries(questions[currentQuestion].options).map(([optionId, optionText]) => (
                     <button
                       key={optionId}
@@ -497,7 +497,7 @@ const TesteDISCPage = () => {
           </div>
         </div>
       )}
-      
+
 
       {/* Loading Overlay */}
       {loading && (

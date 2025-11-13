@@ -49,13 +49,13 @@ const MinhasCandidaturasPage = () => {
   // Estados para validação de requisitos
   const [showRequirementsModal, setShowRequirementsModal] = useState(false);
   const [pendingCandidatura, setPendingCandidatura] = useState(null);
-  
+
   // Hook de validação dos requisitos
-  const { 
-    validateInterviewRequirements, 
-    isValidating, 
+  const {
+    validateInterviewRequirements,
+    isValidating,
     validationResult,
-    setValidationResult 
+    setValidationResult
   } = useInterviewValidation();
 
   // Verificar autenticação
@@ -83,7 +83,7 @@ const MinhasCandidaturasPage = () => {
 
     try {
       setLoading(true);
-      console.log("🔍 Buscando candidaturas para usuário ID:", user.id);
+      ("🔍 Buscando candidaturas para usuário ID:", user.id);
 
       const response = await axios.get(
         `${API_URL}/api/candidaturas/usuario/${user.id}`,
@@ -94,8 +94,8 @@ const MinhasCandidaturasPage = () => {
         }
       );
 
-      console.log("📋 Candidaturas recebidas:", response.data);
-      console.log("📊 Primeira candidatura (exemplo):", response.data[0]);
+      ("📋 Candidaturas recebidas:", response.data);
+      ("📊 Primeira candidatura (exemplo):", response.data[0]);
 
       let candidaturas = response.data;
 
@@ -107,7 +107,7 @@ const MinhasCandidaturasPage = () => {
 
           // Se não encontrar por candidatura_id, buscar por user_id + vaga_id
           if (!interviewData.success || !interviewData.interviews || interviewData.interviews.length === 0) {
-            console.log(`🔍 Buscando entrevistas por user_id para candidatura ${candidatura.id}...`);
+            (`🔍 Buscando entrevistas por user_id para candidatura ${candidatura.id}...`);
             const userInterviews = await interviewService.getUserInterviews(user.id);
 
             if (userInterviews.success && userInterviews.interviews) {
@@ -122,7 +122,7 @@ const MinhasCandidaturasPage = () => {
                 interviews: filteredInterviews
               };
 
-              console.log(`📊 Encontradas ${filteredInterviews.length} entrevistas por user_id para candidatura ${candidatura.id}`);
+              (`📊 Encontradas ${filteredInterviews.length} entrevistas por user_id para candidatura ${candidatura.id}`);
             }
           }
 
@@ -136,7 +136,7 @@ const MinhasCandidaturasPage = () => {
             candidatura.temEntrevista = entrevistasOrdenadas.length > 0;
             candidatura.entrevistaCompleta = entrevistasOrdenadas.some(e => e.status === 'completed');
 
-            console.log(`📊 Candidatura ${candidatura.id}: ${entrevistasOrdenadas.length} entrevistas encontradas`);
+            (`📊 Candidatura ${candidatura.id}: ${entrevistasOrdenadas.length} entrevistas encontradas`);
           } else {
             candidatura.entrevistas = [];
             candidatura.temEntrevista = false;
@@ -165,19 +165,19 @@ const MinhasCandidaturasPage = () => {
 
   // Função para validar requisitos antes de iniciar entrevista
   const handleInterviewValidation = async (candidatura) => {
-    console.log('🔍 MinhasCandidaturasPage - Validando requisitos para entrevista...');
-    
+    ('🔍 MinhasCandidaturasPage - Validando requisitos para entrevista...');
+
     try {
       const validation = await validateInterviewRequirements();
-      
+
       if (!validation.isValid) {
-        console.log('❌ Requisitos não atendidos:', validation.missingRequirements);
+        ('❌ Requisitos não atendidos:', validation.missingRequirements);
         setPendingCandidatura(candidatura);
         setShowRequirementsModal(true);
         return false;
       }
-      
-      console.log('✅ Todos os requisitos atendidos, iniciando entrevista...');
+
+      ('✅ Todos os requisitos atendidos, iniciando entrevista...');
       return true;
     } catch (error) {
       console.error('❌ Erro na validação dos requisitos:', error);
@@ -188,13 +188,13 @@ const MinhasCandidaturasPage = () => {
   // Função para revalidar requisitos
   const handleRetryValidation = async () => {
     try {
-      console.log('🔄 Revalidando requisitos...');
+      ('🔄 Revalidando requisitos...');
       const validation = await validateInterviewRequirements();
-      
+
       if (validation.isValid) {
-        console.log('✅ Requisitos agora estão completos!');
+        ('✅ Requisitos agora estão completos!');
         setShowRequirementsModal(false);
-        
+
         // Iniciar entrevista com a candidatura pendente
         if (pendingCandidatura) {
           handleStartInterview(pendingCandidatura);
@@ -221,7 +221,7 @@ const MinhasCandidaturasPage = () => {
         return;
       }
 
-      console.log('✅ Backend disponível, criando entrevista...');
+      ('✅ Backend disponível, criando entrevista...');
 
       // Criar entrevista no backend COM candidatura_id
       const createResult = await interviewService.createInterview(
@@ -236,13 +236,13 @@ const MinhasCandidaturasPage = () => {
         const interviewId = createResult.interview.id;
         setCurrentInterviewId(interviewId);
 
-        console.log(`✅ Entrevista criada com sucesso! ID: ${interviewId}`);
-        console.log(`📋 Dados da entrevista:`, createResult.interview);
+        (`✅ Entrevista criada com sucesso! ID: ${interviewId}`);
+        (`📋 Dados da entrevista:`, createResult.interview);
 
         // Usar perguntas do backend da entrevista criada
         const backendQuestions = createResult.interview.questions || [];
 
-        console.log(`📝 Perguntas do backend: ${backendQuestions.length}`);
+        (`📝 Perguntas do backend: ${backendQuestions.length}`);
 
         // Converter perguntas do backend para formato do frontend
         const formattedQuestions = backendQuestions.map((q, index) => ({
@@ -255,12 +255,12 @@ const MinhasCandidaturasPage = () => {
         // Ordenar por order para garantir sequência correta
         formattedQuestions.sort((a, b) => a.order - b.order);
 
-        console.log(`📝 Perguntas formatadas:`, formattedQuestions.map(q => `${q.order}: ${q.question.substring(0, 50)}...`));
+        (`📝 Perguntas formatadas:`, formattedQuestions.map(q => `${q.order}: ${q.question.substring(0, 50)}...`));
 
         setInterviewQuestions(formattedQuestions);
         setCurrentQuestion(0);
 
-        console.log(`✅ Entrevista criada! ID: ${createResult.interview.id}. ${formattedQuestions.length} perguntas preparadas. Clique em "Iniciar Gravação" para começar.`);
+        (`✅ Entrevista criada! ID: ${createResult.interview.id}. ${formattedQuestions.length} perguntas preparadas. Clique em "Iniciar Gravação" para começar.`);
       } else {
         throw new Error(createResult.error || 'Erro ao criar entrevista');
       }
@@ -290,13 +290,13 @@ const MinhasCandidaturasPage = () => {
         return;
       }
 
-      console.log(`🏁 Finalizando entrevista ${currentInterviewId}...`);
+      (`🏁 Finalizando entrevista ${currentInterviewId}...`);
 
       // Finalizar entrevista no backend
       const finishResult = await interviewService.finishInterview(currentInterviewId);
 
       if (finishResult.success) {
-        console.log(`✅ Entrevista ${currentInterviewId} finalizada com sucesso!`);
+        (`✅ Entrevista ${currentInterviewId} finalizada com sucesso!`);
 
         // Reset states
         setCurrentInterviewId(null);
@@ -309,7 +309,7 @@ const MinhasCandidaturasPage = () => {
 
         // Recarregar mais rapidamente
         setTimeout(async () => {
-          console.log('🔄 Recarregando candidaturas após entrevista...');
+          ('🔄 Recarregando candidaturas após entrevista...');
           // Recarregar candidaturas para mostrar status atualizado
           await fetchCandidaturas();
         }, 1000);
@@ -351,10 +351,10 @@ const MinhasCandidaturasPage = () => {
         throw new Error('Nenhuma entrevista ativa encontrada');
       }
 
-      console.log(`🎬 Processando resposta da pergunta ${questionIndex + 1}`);
-      console.log(`📋 Entrevista ID: ${currentInterviewId}`);
-      console.log(`📦 Video blob - Tamanho: ${videoBlob?.size} bytes, Tipo: ${videoBlob?.type}`);
-      console.log(`🧠 Dados faciais: ${faceAnalysisData?.length} pontos`);
+      (`🎬 Processando resposta da pergunta ${questionIndex + 1}`);
+      (`📋 Entrevista ID: ${currentInterviewId}`);
+      (`📦 Video blob - Tamanho: ${videoBlob?.size} bytes, Tipo: ${videoBlob?.type}`);
+      (`🧠 Dados faciais: ${faceAnalysisData?.length} pontos`);
 
       // Verificar se o blob é válido
       if (!videoBlob || videoBlob.size === 0) {
@@ -366,7 +366,7 @@ const MinhasCandidaturasPage = () => {
       const currentQuestionData = interviewQuestions[questionIndex];
       const questionOrder = currentQuestionData?.order || (questionIndex + 1);
 
-      console.log(`📊 Pergunta ${questionIndex + 1}: ID=${currentQuestionData?.id}, Order=${questionOrder}`);
+      (`📊 Pergunta ${questionIndex + 1}: ID=${currentQuestionData?.id}, Order=${questionOrder}`);
 
       // Upload do vídeo para o backend com processamento IA
       const uploadResult = await interviewService.uploadVideoResponse(
@@ -382,7 +382,7 @@ const MinhasCandidaturasPage = () => {
       }
 
       // Aguardar processamento IA no backend
-      console.log(`🔄 Aguardando processamento IA para resposta ${uploadResult.responseId}...`);
+      (`🔄 Aguardando processamento IA para resposta ${uploadResult.responseId}...`);
 
       const processingResult = await interviewService.waitForProcessingCompletion(
         currentInterviewId,
@@ -411,7 +411,7 @@ const MinhasCandidaturasPage = () => {
           `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados` :
           '\n\nAnálise apenas textual (sem dados comportamentais)';
 
-        console.log(`✅ Resposta processada com IA no backend! Transcrição: "${processingResult.transcription?.substring(0, 80)}..." Pontuação: ${processingResult.analysisScore}/10${faceInfo}`);
+        (`✅ Resposta processada com IA no backend! Transcrição: "${processingResult.transcription?.substring(0, 80)}..." Pontuação: ${processingResult.analysisScore}/10${faceInfo}`);
       } else {
         console.error(`❌ Erro no processamento IA: ${processingResult.error}`);
 
@@ -609,7 +609,7 @@ const MinhasCandidaturasPage = () => {
       const fileName = `entrevista_${interviewData.job?.nome || 'vaga'}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
 
-      console.log(`✅ PDF gerado com sucesso: ${fileName}`);
+      (`✅ PDF gerado com sucesso: ${fileName}`);
       return { success: true, fileName };
 
     } catch (error) {
@@ -621,27 +621,27 @@ const MinhasCandidaturasPage = () => {
   // ✅ FUNÇÃO ASYNC PARA BUSCAR EMPRESA
   const buscarEmpresa = async (candidatura) => {
     try {
-      console.log(
+      (
         "🔍 Iniciando busca da empresa para candidatura:",
         candidatura
       );
 
       // Primeira tentativa: buscar dados completos da vaga
       try {
-        console.log("📄 Buscando dados da vaga ID:", candidatura.vaga_id);
+        ("📄 Buscando dados da vaga ID:", candidatura.vaga_id);
         const vagaResponse = await axios.get(
           `${API_URL}/api/vagas/${candidatura.vaga_id}`
         );
-        console.log("✅ Dados da vaga:", vagaResponse.data);
+        ("✅ Dados da vaga:", vagaResponse.data);
 
         const empresaId = vagaResponse.data.company_id;
         if (empresaId) {
-          console.log("🏢 Empresa ID encontrado na vaga:", empresaId);
+          ("🏢 Empresa ID encontrado na vaga:", empresaId);
           navigate(`/empresa/${empresaId}`);
           return;
         }
       } catch (vagaError) {
-        console.log(
+        (
           "⚠️ Não foi possível buscar vaga, tentando por nome da empresa..."
         );
       }
@@ -649,10 +649,10 @@ const MinhasCandidaturasPage = () => {
       // Segunda tentativa: buscar empresa por nome
       const nomeEmpresa = candidatura.vaga?.empresa;
       if (nomeEmpresa) {
-        console.log("🔎 Buscando empresa por nome:", nomeEmpresa);
+        ("🔎 Buscando empresa por nome:", nomeEmpresa);
 
         const empresasResponse = await axios.get(`${API_URL}/api/companies`);
-        console.log("📋 Empresas disponíveis:", empresasResponse.data);
+        ("📋 Empresas disponíveis:", empresasResponse.data);
 
         // Buscar empresa com nome exato ou similar
         const empresa = empresasResponse.data.find((emp) => {
@@ -673,10 +673,10 @@ const MinhasCandidaturasPage = () => {
         });
 
         if (empresa) {
-          console.log("✅ Empresa encontrada por nome:", empresa);
+          ("✅ Empresa encontrada por nome:", empresa);
           navigate(`/empresa/${empresa.id}`);
         } else {
-          console.log("❌ Empresa não encontrada na lista");
+          ("❌ Empresa não encontrada na lista");
           alert(`❌ Empresa "${nomeEmpresa}" não encontrada na base de dados.`);
         }
       } else {
@@ -742,8 +742,8 @@ const MinhasCandidaturasPage = () => {
       <div className="min-h-screen bg-white">
         <Navbar
           currentView="candidaturas"
-          onViewChange={(view) => console.log("View changed:", view)}
-          onAddTrilha={() => console.log("Add trilha")}
+          onViewChange={(view) => ("View changed:", view)}
+          onAddTrilha={() => ("Add trilha")}
         />
         <div className="pt-16 min-h-screen flex items-center justify-center">
           <div className="text-center">
@@ -769,8 +769,8 @@ const MinhasCandidaturasPage = () => {
       {/* Navbar */}
       <Navbar
         currentView="candidaturas"
-        onViewChange={(view) => console.log("View changed:", view)}
-        onAddTrilha={() => console.log("Add trilha")}
+        onViewChange={(view) => ("View changed:", view)}
+        onAddTrilha={() => ("Add trilha")}
       />
 
       {/* Content */}

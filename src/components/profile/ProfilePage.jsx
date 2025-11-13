@@ -13,13 +13,13 @@ import { toast } from 'sonner';
 // ✅ Patch genérico para qualquer endpoint de profile (usando o helper api())
 const patchProfile = async (path, data = {}) => {
     const fullPath = `/api/profile${path}`;
-    console.log(`🔄 Fazendo PATCH para: ${fullPath}`, data);
+    (`🔄 Fazendo PATCH para: ${fullPath}`, data);
     try {
         const result = await api(fullPath, {
             method: "PATCH",
             body: JSON.stringify(data),
         });
-        console.log(`✅ Resposta do PATCH ${fullPath}:`, result);
+        (`✅ Resposta do PATCH ${fullPath}:`, result);
         return result;
     } catch (error) {
         console.error(`❌ Erro ao fazer PATCH ${fullPath}:`, error);
@@ -28,7 +28,7 @@ const patchProfile = async (path, data = {}) => {
 };
 
 const ProfilePage = () => {
-    const { user, updateUser, isLoading } = useAuth();
+    const { user, updateUser, setUserData, isLoading } = useAuth();
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [hasLoadedProfile, setHasLoadedProfile] = useState(false); // ← ADICIONA
 
@@ -40,51 +40,45 @@ const ProfilePage = () => {
         skills: [],
     });
 
-    // ✅ Carregar dados iniciais do usuário e sincronizar quando mudarem
     useEffect(() => {
         const loadProfileData = async () => {
-            if (!user || hasLoadedProfile) return; // ← JÁ TEM
+            if (!user?.id || hasLoadedProfile) return;
 
             try {
                 const profile = await api('/api/profile', { method: 'GET' });
 
+                setUserData({
+                    name: profile.name,
+                    role: profile.role,
+                    location: profile.location
+                });
+
                 const parseJsonField = (field) => {
                     if (!field) return [];
                     if (typeof field === 'string') {
-                        try {
-                            return JSON.parse(field);
-                        } catch {
-                            return [];
-                        }
+                        try { return JSON.parse(field); } catch { return []; }
                     }
                     if (Array.isArray(field)) return field;
                     return [];
                 };
 
-                const normalized = {
+                setProfileData({
                     about: profile.about || "",
                     experiences: parseJsonField(profile.experiences),
                     education: parseJsonField(profile.education),
                     skills: parseJsonField(profile.skills),
-                };
+                });
 
-                console.log("✅ ProfilePage - Dados normalizados:", normalized);
-                setProfileData(normalized);
-                setHasLoadedProfile(true); // ✅ ADICIONA ISSO
+                setHasLoadedProfile(true);
 
             } catch (error) {
                 console.error("❌ Erro ao carregar perfil:", error);
-                setProfileData({
-                    about: user.about || "",
-                    experiences: user.experiences || [],
-                    education: user.education || [],
-                    skills: user.skills || [],
-                });
+                setHasLoadedProfile(true);
             }
         };
 
         loadProfileData();
-    }, [user, hasLoadedProfile]); // ✅ ADICIONA hasLoadedProfile AQUI
+    }, [user?.id, hasLoadedProfile]);
 
     // ✅ Upload de imagem -> usa PATCH /banner
     const handleBannerUpload = async (event) => {
@@ -116,7 +110,7 @@ const ProfilePage = () => {
                 await patchProfile("/banner", {
                     banner_image: imageUrl,
                 });
-                console.log("✅ PATCH /banner bem-sucedido");
+                ("✅ PATCH /banner bem-sucedido");
             } catch (backendError) {
                 console.warn("⚠️ Backend falhou:", backendError);
             }
@@ -163,7 +157,7 @@ const ProfilePage = () => {
                 await patchProfile("/profile-image", {
                     profile_image: imageUrl,
                 });
-                console.log("✅ PATCH /profile-image bem-sucedido");
+                ("✅ PATCH /profile-image bem-sucedido");
             } catch (backendError) {
                 console.warn("⚠️ Backend falhou:", backendError);
             }
@@ -190,14 +184,14 @@ const ProfilePage = () => {
                 await patchProfile("/banner", {
                     banner_image: null,
                 });
-                console.log("✅ PATCH /banner (delete) bem-sucedido");
+                ("✅ PATCH /banner (delete) bem-sucedido");
             } catch (backendError) {
                 console.warn("⚠️ Backend falhou ao deletar, mas vamos remover localmente:", backendError);
             }
 
             // ✅ Atualizar o user context removendo a imagem + mantendo todos os dados anteriores
             const updatedUser = { ...user, banner_image: null };
-            console.log("🗑️ Removendo imagem do localStorage");
+            ("🗑️ Removendo imagem do localStorage");
             await updateUser(updatedUser);
 
             toast.success("Foto de perfil removida!");
@@ -210,25 +204,25 @@ const ProfilePage = () => {
     // ✅ Atualizar SOBRE -> PATCH /about
     const handleUpdateAbout = async (data) => {
         try {
-            console.log("📝 Iniciando atualização de about com dados:", data.about);
+            ("📝 Iniciando atualização de about com dados:", data.about);
 
             // 1. Atualizar o estado local imediatamente (otimista)
             setProfileData(prev => ({ ...prev, about: data.about }));
 
             // 2. Sincronizar com o context do usuário PRIMEIRO (isso salva no localStorage)
             const updatedUser = { ...user, about: data.about };
-            console.log("📝 Salvando user com about no localStorage");
+            ("📝 Salvando user com about no localStorage");
             await updateUser(updatedUser);
 
             // 3. Fazer a requisição ao backend (tenta persistir no BD)
             try {
                 await patchProfile("/about", { about: data.about });
-                console.log("✅ PATCH /about bem-sucedido");
+                ("✅ PATCH /about bem-sucedido");
             } catch (backendError) {
                 console.warn("⚠️ Backend falhou, mas dados estão salvos localmente:", backendError);
             }
 
-            console.log("✅ Usuário context atualizado com about:", updatedUser.about);
+            ("✅ Usuário context atualizado com about:", updatedUser.about);
 
         } catch (error) {
             console.error("❌ Erro ao atualizar sobre:", error);
@@ -241,7 +235,7 @@ const ProfilePage = () => {
     // ✅ Atualizar EXPERIÊNCIAS -> PATCH /experiences
     const handleUpdateExperiences = async (experiences) => {
         try {
-            console.log('💼 Atualizando com', experiences.length, 'experiências');
+            ('💼 Atualizando com', experiences.length, 'experiências');
 
             // ✅ Atualiza estado local PRIMEIRO
             setProfileData(prev => ({ ...prev, experiences }));
@@ -251,7 +245,7 @@ const ProfilePage = () => {
 
             try {
                 await patchProfile("/experiences", { experiences });
-                console.log("✅ PATCH /experiences bem-sucedido");
+                ("✅ PATCH /experiences bem-sucedido");
             } catch (backendError) {
                 console.warn("⚠️ Backend falhou:", backendError);
             }
@@ -266,25 +260,25 @@ const ProfilePage = () => {
     // ✅ Atualizar EDUCAÇÃO -> PATCH /education
     const handleUpdateEducation = async (education) => {
         try {
-            console.log("🎓 Iniciando atualização de educação com", education.length, "items");
+            ("🎓 Iniciando atualização de educação com", education.length, "items");
 
             // 1. Atualizar o estado local imediatamente (otimista)
             setProfileData(prev => ({ ...prev, education }));
 
             // 2. Sincronizar com o context do usuário PRIMEIRO (isso salva no localStorage)
             const updatedUser = { ...user, education };
-            console.log("🎓 Salvando user com educação no localStorage");
+            ("🎓 Salvando user com educação no localStorage");
             await updateUser(updatedUser);
 
             // 3. Fazer a requisição ao backend (tenta persistir no BD)
             try {
                 await patchProfile("/education", { education });
-                console.log("✅ PATCH /education bem-sucedido");
+                ("✅ PATCH /education bem-sucedido");
             } catch (backendError) {
                 console.warn("⚠️ Backend falhou, mas dados estão salvos localmente:", backendError);
             }
 
-            console.log("✅ Usuário context atualizado");
+            ("✅ Usuário context atualizado");
         } catch (error) {
             console.error("❌ Erro ao atualizar formação:", error);
             // Reverter o estado local em caso de erro
@@ -296,31 +290,49 @@ const ProfilePage = () => {
     // ✅ Atualizar SKILLS -> PATCH /skills
     const handleUpdateSkills = async (skills) => {
         try {
-            console.log("⚡ Iniciando atualização de skills com", skills.length, "items");
+            ("⚡ Iniciando atualização de skills com", skills.length, "items");
 
             // 1. Atualizar o estado local imediatamente (otimista)
             setProfileData(prev => ({ ...prev, skills }));
 
             // 2. Sincronizar com o context do usuário PRIMEIRO (isso salva no localStorage)
             const updatedUser = { ...user, skills };
-            console.log("⚡ Salvando user com skills no localStorage");
+            ("⚡ Salvando user com skills no localStorage");
             await updateUser(updatedUser);
 
             // 3. Fazer a requisição ao backend (tenta persistir no BD)
             try {
                 await patchProfile("/skills", { skills });
-                console.log("✅ PATCH /skills bem-sucedido");
+                ("✅ PATCH /skills bem-sucedido");
             } catch (backendError) {
                 console.warn("⚠️ Backend falhou, mas dados estão salvos localmente:", backendError);
             }
 
-            console.log("✅ Usuário context atualizado");
+            ("✅ Usuário context atualizado");
 
         } catch (error) {
             console.error("❌ Erro ao atualizar habilidades:", error);
             // Reverter o estado local em caso de erro
             setProfileData(prev => ({ ...prev, skills: user?.skills || [] }));
 
+        }
+    };
+
+    // ✅ Atualizar PERFIL (nome + profissão)
+    const handleUpdateProfile = async (data) => {
+        try {
+            setUserData({ name: data.name, role: data.role, location: data.location });
+
+            await patchProfile("/basic-info", {
+                name: data.name,
+                role: data.role,
+                location: data.location
+            });
+
+            toast.success("Perfil atualizado!");
+        } catch (error) {
+            console.error("❌ Erro ao atualizar perfil:", error);
+            toast.error("Erro ao atualizar perfil");
         }
     };
 
@@ -345,7 +357,7 @@ const ProfilePage = () => {
                     <div className="lg:col-span-8 space-y-4 md:space-y-6">
                         <ProfileHeader
                             user={user}
-                            onUpdateUser={updateUser}
+                            onUpdateUser={handleUpdateProfile}
                             onImageUpload={handleImageUpload}
                             onDeleteImage={handleDeleteImage}
                             isUploadingImage={isUploadingImage}

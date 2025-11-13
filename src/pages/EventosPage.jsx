@@ -43,7 +43,7 @@ const EventosPage = () => {
     const fetchEventos = async () => {
         try {
             setLoading(true);
-            console.log('📅 Buscando eventos...');
+            ('📅 Buscando eventos...');
 
             const response = await axios.get(`${API_URL}/api/events`, {
                 params: {
@@ -52,7 +52,7 @@ const EventosPage = () => {
                 }
             });
 
-            console.log('✅ Eventos carregados:', response.data);
+            ('✅ Eventos carregados:', response.data);
 
             // A API retorna um array direto de eventos
             if (Array.isArray(response.data)) {

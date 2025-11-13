@@ -3,10 +3,10 @@ class CoresignalService {
     // API Key da Coresignal
     this.apiKey = 'G6HG4KYGzuuCYTRJrWDN9uP0jH24e8Yf';
     this.baseUrl = 'https://api.coresignal.com/cdapi/v2';
-    
+
     // Configurar URL do backend baseado no ambiente
     this.backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-    
+
     if (!this.apiKey) {
       console.warn('⚠️ API Key Coresignal não configurada. Funcionalidades de busca limitadas.');
     }
@@ -27,7 +27,7 @@ class CoresignalService {
         ...filters
       });
 
-      console.log('🔍 Iniciando busca Coresignal:', keywords);
+      ('🔍 Iniciando busca Coresignal:', keywords);
 
       const response = await fetch(`${this.baseUrl}/search/filter/person?${searchParams}`, {
         method: 'GET',
@@ -41,7 +41,7 @@ class CoresignalService {
       }
 
       const data = await response.json();
-      console.log('✅ Busca Coresignal concluída:', data.length || 0, 'resultados');
+      ('✅ Busca Coresignal concluída:', data.length || 0, 'resultados');
 
       return this.formatResults(data, keywords);
     } catch (error) {
@@ -96,8 +96,8 @@ class CoresignalService {
   }
 
   getMockResults(keywords) {
-    console.log('🎭 Usando resultados mock para:', keywords);
-    
+    ('🎭 Usando resultados mock para:', keywords);
+
     return [
       {
         id: 'mock_1',
@@ -155,7 +155,7 @@ class CoresignalService {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Busca salva no backend:', result.id);
+        ('✅ Busca salva no backend:', result.id);
         return result;
       } else {
         console.warn('⚠️ Erro ao salvar no backend:', response.status);
@@ -168,7 +168,7 @@ class CoresignalService {
   }
 
   async getCandidatesFromBackend(jobId) {
-      return [];
+    return [];
   }
 
   async saveInterviewResult(jobId, candidateId, interviewData) {
@@ -188,7 +188,7 @@ class CoresignalService {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('✅ Resultado da entrevista salvo:', result.id);
+        ('✅ Resultado da entrevista salvo:', result.id);
         return result;
       } else {
         console.warn('⚠️ Erro ao salvar entrevista:', response.status);
@@ -204,7 +204,7 @@ class CoresignalService {
   saveToLocalStorage(key, data) {
     try {
       localStorage.setItem(key, JSON.stringify(data));
-      console.log('💾 Dados salvos no localStorage:', key);
+      ('💾 Dados salvos no localStorage:', key);
     } catch (error) {
       console.error('❌ Erro ao salvar no localStorage:', error);
     }
@@ -222,13 +222,13 @@ class CoresignalService {
 
   // Função  // Função principal para buscar candidatos no LinkedIn (com ChatGPT + Coresignal)
   async searchLinkedInPeople(job) {
-    console.log('🔍 Iniciando busca LinkedIn para vaga:', job.title);
+    ('🔍 Iniciando busca LinkedIn para vaga:', job.title);
 
     try {
       // 1. Verificar se já existe busca recente
       const existingSearch = await this.getExistingSearch(job.id);
       if (existingSearch.status === 'completed') {
-        console.log('✅ Usando busca existente do', existingSearch.source);
+        ('✅ Usando busca existente do', existingSearch.source);
         return {
           success: true,
           profiles: existingSearch.candidates,
@@ -241,15 +241,15 @@ class CoresignalService {
       }
 
       // 2. Usar ChatGPT para gerar parâmetros de busca otimizados
-      console.log('🤖 Gerando parâmetros de busca com ChatGPT...');
+      ('🤖 Gerando parâmetros de busca com ChatGPT...');
       const searchParams = await this.generateSearchParamsWithChatGPT(job);
-      
+
       // 3. Executar busca na Coresignal com parâmetros otimizados
-      console.log('🔍 Executando busca na Coresignal...');
+      ('🔍 Executando busca na Coresignal...');
       const profiles = await this.searchPeopleWithParams(searchParams);
 
       // 4. Analisar adequação dos candidatos com IA
-      console.log('🧠 Analisando adequação dos candidatos...');
+      ('🧠 Analisando adequação dos candidatos...');
       const rankedProfiles = await this.rankCandidatesWithAI(profiles, job);
 
       // 5. Salvar resultados
@@ -267,8 +267,8 @@ class CoresignalService {
       // Salvar no localStorage como backup
       this.saveToLocalStorage(`candidates_${job.id}`, searchData);
 
-      console.log('✅ Busca LinkedIn concluída:', rankedProfiles.length, 'candidatos encontrados');
-      
+      ('✅ Busca LinkedIn concluída:', rankedProfiles.length, 'candidatos encontrados');
+
       return {
         success: true,
         profiles: rankedProfiles,
@@ -281,7 +281,7 @@ class CoresignalService {
 
     } catch (error) {
       console.error('❌ Erro na busca LinkedIn:', error);
-      
+
       // Fallback para resultados mock
       const mockProfiles = this.getMockResults(job.title);
       return {
@@ -334,7 +334,7 @@ class CoresignalService {
       // Importar chatgptService dinamicamente para evitar dependência circular
       const { default: chatgptService } = await import('./chatgptService.js');
       const response = await chatgptService.generateText(prompt);
-      
+
       // Tentar fazer parse do JSON retornado
       let searchParams;
       try {
@@ -350,7 +350,7 @@ class CoresignalService {
         searchParams = this.generateFallbackParams(job);
       }
 
-      console.log('✅ Parâmetros gerados pelo ChatGPT:', searchParams);
+      ('✅ Parâmetros gerados pelo ChatGPT:', searchParams);
       return searchParams;
 
     } catch (error) {
@@ -380,34 +380,34 @@ class CoresignalService {
   // Extrair skills da descrição
   extractSkillsFromDescription(text) {
     const commonSkills = [
-      'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'SQL', 'Excel', 
+      'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'SQL', 'Excel',
       'PowerBI', 'Tableau', 'Salesforce', 'SAP', 'AWS', 'Azure', 'Docker',
       'Kubernetes', 'Git', 'Agile', 'Scrum', 'Marketing', 'Vendas'
     ];
-    
+
     const foundSkills = [];
     const lowerText = text.toLowerCase();
-    
+
     commonSkills.forEach(skill => {
       if (lowerText.includes(skill.toLowerCase())) {
         foundSkills.push(skill);
       }
     });
-    
+
     return foundSkills.slice(0, 5); // Máximo 5 skills
   }
 
   // Inferir indústria baseada na área
   inferIndustry(area) {
     if (!area) return 'tecnologia';
-    
+
     const areaLower = area.toLowerCase();
     if (areaLower.includes('agro')) return 'agricultura';
     if (areaLower.includes('tech') || areaLower.includes('ti')) return 'tecnologia';
     if (areaLower.includes('marketing')) return 'marketing';
     if (areaLower.includes('vendas')) return 'vendas';
     if (areaLower.includes('financ')) return 'financeiro';
-    
+
     return 'geral';
   }
 
@@ -429,7 +429,7 @@ class CoresignalService {
                   query: searchParams.title_keywords.join(' OR '),
                   fields: [
                     "job_title",
-                    "description", 
+                    "description",
                     "job_description"
                   ],
                   default_operator: "OR"
@@ -450,7 +450,7 @@ class CoresignalService {
         }
       };
 
-      console.log('🔍 Executando busca Coresignal v2 para obter IDs...');
+      ('🔍 Executando busca Coresignal v2 para obter IDs...');
 
       const searchResponse = await fetch(`${this.baseUrl}/employee_clean/search/es_dsl`, {
         method: 'POST',
@@ -466,10 +466,10 @@ class CoresignalService {
       }
 
       const employeeIds = await searchResponse.json();
-      console.log('✅ IDs encontrados:', employeeIds.length);
+      ('✅ IDs encontrados:', employeeIds.length);
 
       if (!employeeIds || employeeIds.length === 0) {
-        console.log('⚠️ Nenhum ID encontrado, usando resultados mock');
+        ('⚠️ Nenhum ID encontrado, usando resultados mock');
         return this.getMockResults(searchParams.title_keywords.join(' '));
       }
 
@@ -479,8 +479,8 @@ class CoresignalService {
 
       for (const id of topIds) {
         try {
-          console.log(`📋 Buscando detalhes do candidato ID: ${id}`);
-          
+          (`📋 Buscando detalhes do candidato ID: ${id}`);
+
           const detailResponse = await fetch(`${this.baseUrl}/employee_clean/collect/${id}`, {
             method: 'GET',
             headers: {
@@ -493,7 +493,7 @@ class CoresignalService {
             const candidateData = await detailResponse.json();
             const formattedProfile = this.formatCoresignalProfile(candidateData);
             profiles.push(formattedProfile);
-            console.log(`✅ Candidato adicionado: ${formattedProfile.name}`);
+            (`✅ Candidato adicionado: ${formattedProfile.name}`);
           } else {
             console.warn(`⚠️ Erro ao buscar detalhes do ID ${id}: ${detailResponse.status}`);
           }
@@ -502,7 +502,7 @@ class CoresignalService {
         }
       }
 
-      console.log('✅ Busca Coresignal v2 concluída:', profiles.length, 'perfis detalhados');
+      ('✅ Busca Coresignal v2 concluída:', profiles.length, 'perfis detalhados');
       return profiles;
 
     } catch (error) {
@@ -559,24 +559,24 @@ class CoresignalService {
   // Extrair skills do perfil
   extractSkillsFromProfile(data) {
     const skills = [];
-    
+
     // Extrair de diferentes campos
     const text = `${data.description || ''} ${data.job_title || ''} ${data.headline || ''}`.toLowerCase();
-    
+
     // Skills comuns para buscar
     const commonSkills = [
-      'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'SQL', 'Excel', 
+      'JavaScript', 'Python', 'Java', 'React', 'Node.js', 'SQL', 'Excel',
       'PowerBI', 'Tableau', 'Salesforce', 'SAP', 'AWS', 'Azure', 'Docker',
       'Kubernetes', 'Git', 'Agile', 'Scrum', 'Marketing', 'Vendas', 'Gestão',
       'Liderança', 'Agricultura', 'Agronegócio', 'Engenharia', 'Análise'
     ];
-    
+
     commonSkills.forEach(skill => {
       if (text.includes(skill.toLowerCase())) {
         skills.push(skill);
       }
     });
-    
+
     return skills.slice(0, 8); // Máximo 8 skills
   }
 
@@ -613,15 +613,15 @@ class CoresignalService {
   // Rankear candidatos usando IA
   async rankCandidatesWithAI(profiles, job) {
     try {
-      console.log('🧠 Analisando adequação de', profiles.length, 'candidatos...');
-      
+      ('🧠 Analisando adequação de', profiles.length, 'candidatos...');
+
       // Para cada candidato, calcular score de adequação
       const rankedProfiles = await Promise.all(
         profiles.map(async (profile, index) => {
           try {
             // Simular análise de adequação (pode ser substituído por IA real)
             const adequacyScore = this.calculateAdequacyScore(profile, job);
-            
+
             return {
               ...profile,
               adequacy_score: adequacyScore,
@@ -646,7 +646,7 @@ class CoresignalService {
         profile.rank = index + 1;
       });
 
-      console.log('✅ Candidatos rankeados por adequação');
+      ('✅ Candidatos rankeados por adequação');
       return rankedProfiles;
 
     } catch (error) {
@@ -697,7 +697,7 @@ class CoresignalService {
   calculateStringSimilarity(str1, str2) {
     const words1 = str1.split(' ');
     const words2 = str2.split(' ');
-    
+
     let matches = 0;
     words1.forEach(word1 => {
       words2.forEach(word2 => {
@@ -706,7 +706,7 @@ class CoresignalService {
         }
       });
     });
-    
+
     return matches / Math.max(words1.length, words2.length);
   }
 
@@ -718,63 +718,63 @@ class CoresignalService {
 
   extractKeywords(jobData) {
     const keywords = [];
-    
+
     // Extrair do título
     if (jobData.title) {
       keywords.push(jobData.title);
     }
-    
+
     // Extrair da empresa
     if (jobData.company) {
       keywords.push(jobData.company);
     }
-    
+
     // Extrair termos relevantes da descrição
     if (jobData.description) {
       const relevantTerms = this.extractRelevantTerms(jobData.description);
       keywords.push(...relevantTerms);
     }
-    
+
     // Adicionar termos específicos do agronegócio se aplicável
     if (jobData.area && jobData.area.toLowerCase().includes('agro')) {
       keywords.push('agronegócio', 'agricultura', 'agro');
     }
-    
+
     return keywords.join(' ').substring(0, 100); // Limitar tamanho
   }
 
   extractRelevantTerms(description) {
     const terms = [];
     const text = description.toLowerCase();
-    
+
     // Termos técnicos comuns
     const techTerms = ['python', 'java', 'javascript', 'react', 'node', 'sql', 'excel', 'powerbi'];
     techTerms.forEach(term => {
       if (text.includes(term)) terms.push(term);
     });
-    
+
     // Cargos e habilidades
     const skillTerms = ['engenheiro', 'analista', 'gerente', 'coordenador', 'especialista', 'consultor'];
     skillTerms.forEach(term => {
       if (text.includes(term)) terms.push(term);
     });
-    
+
     // Termos do agronegócio
     const agroTerms = ['agricultura', 'fazenda', 'rural', 'plantio', 'colheita', 'pecuária', 'irrigação'];
     agroTerms.forEach(term => {
       if (text.includes(term)) terms.push(term);
     });
-    
+
     return terms.slice(0, 5); // Máximo 5 termos
   }
 
   isRecentSearch(timestamp) {
     if (!timestamp) return false;
-    
+
     const searchTime = new Date(timestamp);
     const now = new Date();
     const hoursDiff = (now - searchTime) / (1000 * 60 * 60);
-    
+
     return hoursDiff < 24; // Considerar recente se menos de 24 horas
   }
 

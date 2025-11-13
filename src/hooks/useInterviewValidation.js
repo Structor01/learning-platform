@@ -11,7 +11,7 @@ export const useInterviewValidation = () => {
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
 
-  console.log('🔧 useInterviewValidation hook inicializado', {
+  ('🔧 useInterviewValidation hook inicializado', {
     hasUser: !!user,
     userId: user?.id,
     hasToken: !!accessToken
@@ -24,15 +24,15 @@ export const useInterviewValidation = () => {
     try {
       // Buscar token de diferentes fontes
       const token = accessToken || sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken') || localStorage.getItem('authToken');
-      
+
       if (!token) {
         console.warn('⚠️ Token não encontrado para verificação de currículo');
         return false;
       }
 
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      console.log(`🔍 Verificando currículo para usuário ${userId}...`);
-      
+      (`🔍 Verificando currículo para usuário ${userId}...`);
+
       const response = await fetch(`${API_URL}/api/users/${userId}/curriculo`, {
         method: 'HEAD', // Apenas verificar se existe, sem baixar
         headers: {
@@ -40,8 +40,8 @@ export const useInterviewValidation = () => {
           'Content-Type': 'application/json',
         },
       });
-      
-      console.log(`📄 Status da verificação de currículo: ${response.status}`);
+
+      (`📄 Status da verificação de currículo: ${response.status}`);
       return response.ok;
     } catch (error) {
       console.error('❌ Erro ao verificar currículo:', error);
@@ -54,11 +54,11 @@ export const useInterviewValidation = () => {
    */
   const checkDiscCompleted = useCallback(async (userId) => {
     try {
-      console.log(`🧠 Verificando teste DISC para usuário ${userId}...`);
-      
+      (`🧠 Verificando teste DISC para usuário ${userId}...`);
+
       // Buscar token de diferentes fontes
       const token = accessToken || sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken') || localStorage.getItem('authToken');
-      
+
       if (!token) {
         console.warn('⚠️ Token não encontrado para verificação de DISC');
         return false;
@@ -81,7 +81,7 @@ export const useInterviewValidation = () => {
 
       const discData = await response.json();
       const hasDisc = discData.tests && discData.tests.length > 0;
-      console.log(`📊 DISC encontrado: ${hasDisc}`, discData);
+      (`📊 DISC encontrado: ${hasDisc}`, discData);
       return hasDisc;
     } catch (error) {
       console.error('❌ Erro ao verificar DISC:', error);
@@ -103,10 +103,10 @@ export const useInterviewValidation = () => {
    * Função principal de validação
    */
   const validateInterviewRequirements = useCallback(async () => {
-    console.log('🔍 validateInterviewRequirements chamada');
-    
+    ('🔍 validateInterviewRequirements chamada');
+
     if (!user?.id) {
-      console.log('❌ Usuário não identificado:', user);
+      ('❌ Usuário não identificado:', user);
       return {
         isValid: false,
         missingRequirements: ['Usuário não identificado'],
@@ -119,18 +119,18 @@ export const useInterviewValidation = () => {
       };
     }
 
-    console.log('✅ Usuário encontrado, iniciando validação...');
+    ('✅ Usuário encontrado, iniciando validação...');
     setIsValidating(true);
-    
+
     try {
-      console.log('🔍 Validando requisitos para entrevista...', {
+      ('🔍 Validando requisitos para entrevista...', {
         userId: user.id,
         userName: user.name,
         userRole: user.role,
         hasLinkedin: !!(user.linkedin?.trim()),
         hasCurriculoUrl: !!(user.curriculo_url)
       });
-      
+
       // Executar todas as verificações em paralelo para melhor performance
       const [
         hasCurriculo,
@@ -144,10 +144,10 @@ export const useInterviewValidation = () => {
 
       // Verificar LinkedIn (dados já estão no contexto do usuário)
       const hasLinkedin = !!(user.linkedin && user.linkedin.trim().length > 0);
-      
-      console.log('📊 Resultados das verificações:', {
+
+      ('📊 Resultados das verificações:', {
         hasCurriculo,
-        hasDiscTest, 
+        hasDiscTest,
         hasBotCompleted,
         hasLinkedin
       });
@@ -161,19 +161,19 @@ export const useInterviewValidation = () => {
 
       // Lista de requisitos faltantes
       const missingRequirements = [];
-      
+
       if (!hasBotCompleted) {
         missingRequirements.push('Responder questionário inicial (Bot)');
       }
-      
+
       if (!hasDiscTest) {
         missingRequirements.push('Completar teste DISC');
       }
-      
+
       if (!hasCurriculo) {
         missingRequirements.push('Anexar currículo');
       }
-      
+
       if (!hasLinkedin) {
         missingRequirements.push('Preencher perfil do LinkedIn');
       }
@@ -187,8 +187,8 @@ export const useInterviewValidation = () => {
       };
 
       setValidationResult(result);
-      
-      console.log('✅ Validação concluída:', {
+
+      ('✅ Validação concluída:', {
         isValid,
         missing: missingRequirements.length,
         details
@@ -198,7 +198,7 @@ export const useInterviewValidation = () => {
 
     } catch (error) {
       console.error('❌ Erro na validação dos requisitos:', error);
-      
+
       const errorResult = {
         isValid: false,
         missingRequirements: ['Erro ao validar requisitos. Tente novamente.'],
@@ -239,7 +239,7 @@ export const useInterviewValidation = () => {
     const hasLinkedin = !!(user.linkedin && user.linkedin.trim().length > 0);
     // curriculoUrl pode ser um Buffer/objeto no backend
     const hasCurriculo = !!(
-      user.curriculo_url && 
+      user.curriculo_url &&
       (typeof user.curriculo_url === 'string' || typeof user.curriculo_url === 'object')
     );
     const hasBotCompleted = !!(user.role && user.name);
@@ -253,15 +253,15 @@ export const useInterviewValidation = () => {
     };
 
     const missingRequirements = [];
-    
+
     if (!hasBotCompleted) {
       missingRequirements.push('Responder questionário inicial (Bot)');
     }
-    
+
     if (!hasCurriculo) {
       missingRequirements.push('Anexar currículo');
     }
-    
+
     if (!hasLinkedin) {
       missingRequirements.push('Preencher perfil do LinkedIn');
     }

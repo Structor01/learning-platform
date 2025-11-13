@@ -28,7 +28,7 @@ const CompanyNavbar = ({ currentView, onViewChange, onSearch }) => {
     if (onSearch) {
       onSearch(searchQuery);
     }
-    console.log("Searching for:", searchQuery);
+    ("Searching for:", searchQuery);
   };
 
   const handleLogoClick = () => navigate("/dashboard-empresa");

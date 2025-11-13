@@ -30,11 +30,11 @@ const DetalhesVaga = () => {
     useEffect(() => {
         const fetchVaga = async () => {
             try {
-                console.log('🔍 Buscando detalhes da vaga:', vagaId);
-                console.log('🌐 URL:', `${API_URL}/api/recruitment/jobs/${vagaId}`);
+                ('🔍 Buscando detalhes da vaga:', vagaId);
+                ('🌐 URL:', `${API_URL}/api/recruitment/jobs/${vagaId}`);
 
                 const response = await axios.get(`${API_URL}/api/recruitment/jobs/${vagaId}`);
-                console.log('✅ Vaga carregada:', response.data);
+                ('✅ Vaga carregada:', response.data);
                 // Decodificar HTML entities na vaga
                 const vagaDecodificada = decodeVaga(response.data);
                 setVaga(vagaDecodificada);
@@ -87,14 +87,14 @@ const DetalhesVaga = () => {
     // ✅ CORRIGIDO: Função de candidatura (igual ao CompanyPage)
     const handleEnviarCandidatura = async (vaga) => {
         if (isSubmitting) {
-            console.log('⏳ Já enviando candidatura, ignorando clique...');
+            ('⏳ Já enviando candidatura, ignorando clique...');
             return;
         }
         setIsSubmitting(true);
 
         try {
             const vagaNome = vaga.title || vaga.nome;
-            console.log('🔄 Enviando candidatura:', {
+            ('🔄 Enviando candidatura:', {
                 usuario_id: user.id,
                 vaga_id: vaga.id,
                 vaga_nome: vagaNome,
@@ -108,7 +108,7 @@ const DetalhesVaga = () => {
                 headers: getAuthHeader()
             });
 
-            console.log('✅ Candidatura enviada:', response.data);
+            ('✅ Candidatura enviada:', response.data);
 
             // Adicionar na lista local
             setUserCandidaturas(prev => [...prev, response.data]);

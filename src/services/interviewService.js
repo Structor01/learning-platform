@@ -78,7 +78,7 @@ class InterviewService {
         status: 'in_progress'
       };
 
-      console.log('🚀 Criando entrevista com payload:', payload);
+      ('🚀 Criando entrevista com payload:', payload);
 
       const response = await fetch(`${this.baseUrl}/api/interviews`, {
         method: 'POST',
@@ -115,9 +115,9 @@ class InterviewService {
    */
   async uploadVideoResponse(interviewId, questionNumber, videoBlob, faceAnalysisData = []) {
     try {
-      console.log(`📤 Iniciando upload - Entrevista: ${interviewId}, Pergunta: ${questionNumber}`);
-      console.log(`📦 VideoBlob - Tamanho: ${videoBlob.size} bytes, Tipo: ${videoBlob.type}`);
-      console.log(`🧠 Face Analysis Data: ${faceAnalysisData.length} pontos`);
+      (`📤 Iniciando upload - Entrevista: ${interviewId}, Pergunta: ${questionNumber}`);
+      (`📦 VideoBlob - Tamanho: ${videoBlob.size} bytes, Tipo: ${videoBlob.type}`);
+      (`🧠 Face Analysis Data: ${faceAnalysisData.length} pontos`);
 
       // Verificar se os dados básicos estão corretos
       if (!interviewId) {
@@ -131,7 +131,7 @@ class InterviewService {
       }
 
       // Verificar e limpar tipo do blob
-      console.log(`🔍 Tipo original do blob: "${videoBlob.type}"`);
+      (`🔍 Tipo original do blob: "${videoBlob.type}"`);
 
       if (!videoBlob.type || !videoBlob.type.includes('video/')) {
         console.warn('⚠️ Tipo do blob não é reconhecido como vídeo, corrigindo...');
@@ -144,7 +144,7 @@ class InterviewService {
         videoBlob = new Blob([videoBlob], { type: baseType });
       }
 
-      console.log(`✅ Tipo final do blob: "${videoBlob.type}"`);
+      (`✅ Tipo final do blob: "${videoBlob.type}"`);
 
 
       const formData = new FormData();
@@ -160,18 +160,18 @@ class InterviewService {
       }
 
       const fileName = `interview_${interviewId}_q${questionNumber}${extension}`;
-      console.log(`📝 Nome do arquivo final: ${fileName}`);
-      console.log(`🎬 Tipo MIME final: ${videoBlob.type}`);
+      (`📝 Nome do arquivo final: ${fileName}`);
+      (`🎬 Tipo MIME final: ${videoBlob.type}`);
 
       formData.append('video', videoBlob, fileName);
       formData.append('questionNumber', questionNumber.toString());
       formData.append('faceAnalysisData', JSON.stringify(faceAnalysisData));
 
-      console.log(`📁 Arquivo: ${fileName}`);
-      console.log(`🔢 Número da pergunta: ${questionNumber}`);
+      (`📁 Arquivo: ${fileName}`);
+      (`🔢 Número da pergunta: ${questionNumber}`);
 
       const url = `${this.baseUrl}/api/mock-interviews/${interviewId}/responses/upload-video`;
-      console.log(`🌐 URL: ${url}`);
+      (`🌐 URL: ${url}`);
 
       const response = await fetch(url, {
         method: 'POST',
@@ -179,7 +179,7 @@ class InterviewService {
         // Não definir Content-Type - deixar o browser definir automaticamente com boundary
       });
 
-      console.log(`📨 Status da resposta: ${response.status}`);
+      (`📨 Status da resposta: ${response.status}`);
 
       if (!response.ok) {
         let errorData;
@@ -318,7 +318,7 @@ class InterviewService {
  */
   async finishInterview(interviewId) {
     try {
-      console.log(`🏁 Finalizando entrevista ${interviewId}...`);
+      (`🏁 Finalizando entrevista ${interviewId}...`);
 
       // ✅ CORREÇÃO: Usar o endpoint correto do backend
       const completeResponse = await fetch(`${this.baseUrl}/api/mock-interviews/${interviewId}/complete`, {
@@ -335,7 +335,7 @@ class InterviewService {
       }
 
       const result = await completeResponse.json();
-      console.log(`✅ Entrevista ${interviewId} finalizada com sucesso!`);
+      (`✅ Entrevista ${interviewId} finalizada com sucesso!`);
 
       // ✅ Opcional: Também gerar relatório se o backend suportar
       try {
@@ -346,7 +346,7 @@ class InterviewService {
 
           if (contentType && contentType.includes('application/json')) {
             const report = await reportResponse.json();
-            console.log(`📊 Relatório gerado com sucesso!`);
+            (`📊 Relatório gerado com sucesso!`);
 
             return {
               success: true,

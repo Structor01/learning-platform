@@ -44,7 +44,7 @@ import {
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import parse from 'html-react-parser';
-import {useAuth} from "@/contexts/AuthContext.jsx";
+import { useAuth } from "@/contexts/AuthContext.jsx";
 
 function JobDescription({ html }) {
   const cleanHtml = DOMPurify.sanitize(html);
@@ -78,7 +78,7 @@ const EditJobForm = ({ job, onSave, onCancel, companies }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       await onSave(formData);
     } catch (error) {
@@ -319,11 +319,11 @@ const RecrutamentoPage = () => {
   const fetchRecruitmentData = async () => {
     try {
       setLoading(true);
-      
+
 
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-      
+
       // Buscar dados reais da API
       const [jobsResponse, analyticsResponse, historyResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/api/recruitment/jobs`),
@@ -360,12 +360,12 @@ const RecrutamentoPage = () => {
       setSearchLoading(true);
       const job = jobs.find(job => job.id === jobId);
       setSelectedJob(job);
-      
-      console.log('🔍 Iniciando busca inteligente de candidatos com ChatGPT para vaga:', job.title);
-      
+
+      ('🔍 Iniciando busca inteligente de candidatos com ChatGPT para vaga:', job.title);
+
       // Usar o backend com ChatGPT para buscar candidatos automaticamente
       const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
-      
+
       const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/${jobId}/search-candidates`, {
         method: 'POST',
         headers: {
@@ -378,21 +378,21 @@ const RecrutamentoPage = () => {
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.candidates && result.candidates.length > 0) {
         setSearchResults(result.candidates);
         setShowSearchModal(true);
 
       } else {
         // Fallback para busca via frontend se backend falhar
-        console.log('⚠️ Backend não retornou candidatos, tentando busca via frontend...');
-        
+        ('⚠️ Backend não retornou candidatos, tentando busca via frontend...');
+
         const frontendResult = await coresignalService.searchLinkedInPeople(job);
-        
+
         if (frontendResult.success) {
           setSearchResults(frontendResult.profiles);
           setShowSearchModal(true);
-          console.log(`✅ Busca via frontend concluída! Perfis encontrados: ${frontendResult.total}`);
+          (`✅ Busca via frontend concluída! Perfis encontrados: ${frontendResult.total}`);
         } else {
           console.error(`❌ Erro na busca: ${frontendResult.message}`);
           // Mostrar dados mock como último recurso
@@ -411,13 +411,13 @@ const RecrutamentoPage = () => {
             }
           ]);
           setShowSearchModal(true);
-          console.log('📋 Exibindo dados de exemplo devido a erro na busca');
+          ('📋 Exibindo dados de exemplo devido a erro na busca');
         }
       }
-      
+
     } catch (error) {
       console.error('❌ Erro inesperado na busca de candidatos:', error);
-      
+
       // Fallback para dados mock em caso de erro
       setSearchResults([
         {
@@ -434,7 +434,7 @@ const RecrutamentoPage = () => {
         }
       ]);
       setShowSearchModal(true);
-      console.log('📋 Exibindo dados de exemplo devido a erro na conexão');
+      ('📋 Exibindo dados de exemplo devido a erro na conexão');
     } finally {
       setSearchLoading(false);
     }
@@ -444,7 +444,7 @@ const RecrutamentoPage = () => {
   const getCoresignalSearchStatus = (jobId) => {
     const existingSearch = coresignalService.getExistingSearch(jobId);
     if (!existingSearch) return null;
-    
+
     return {
       status: existingSearch.status,
       searchId: existingSearch.searchId,
@@ -459,18 +459,18 @@ const RecrutamentoPage = () => {
       setGeneratingQuestions(true);
       setInterviewJob(job);
       setShowInterviewModal(true);
-      
+
       // Criar entrevista no backend
       const createResult = await interviewService.createInterview(
-        job.id, 
+        job.id,
         user.name, // Nome será coletado no modal
-          user.email, // Email será coletado no modal
+        user.email, // Email será coletado no modal
         user.id // user_id fictício - será substituído por sistema de login real
       );
-      
+
       if (createResult.success) {
         setCurrentInterviewId(createResult.interview.id);
-        
+
         // Usar perguntas padrão por enquanto
         const defaultQuestions = [
           {
@@ -499,15 +499,15 @@ const RecrutamentoPage = () => {
             answered: false
           }
         ];
-        
+
         setInterviewQuestions(defaultQuestions);
         setCurrentQuestion(0);
-        
-        console.log(`✅ Entrevista criada! ID: ${createResult.interview.id}. ${defaultQuestions.length} perguntas preparadas. Clique em "Iniciar Gravação" para começar.`);
+
+        (`✅ Entrevista criada! ID: ${createResult.interview.id}. ${defaultQuestions.length} perguntas preparadas. Clique em "Iniciar Gravação" para começar.`);
       } else {
         throw new Error(createResult.error || 'Erro ao criar entrevista');
       }
-      
+
     } catch (error) {
       console.error('Erro ao preparar entrevista:', error);
       alert('❌ Erro ao preparar entrevista. Tente novamente.');
@@ -540,8 +540,8 @@ const RecrutamentoPage = () => {
       }
 
       // Aguardar processamento IA no backend
-      console.log(`🔄 Aguardando processamento IA para resposta ${uploadResult.responseId}...`);
-      
+      (`🔄 Aguardando processamento IA para resposta ${uploadResult.responseId}...`);
+
       const processingResult = await interviewService.waitForProcessingCompletion(
         currentInterviewId,
         uploadResult.responseId,
@@ -562,17 +562,17 @@ const RecrutamentoPage = () => {
           responseId: uploadResult.responseId,
           videoUrl: uploadResult.videoUrl
         };
-        
+
         setInterviewQuestions(updatedQuestions);
-        
-        const faceInfo = faceAnalysisData.length > 0 ? 
-          `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados` : 
+
+        const faceInfo = faceAnalysisData.length > 0 ?
+          `\n\nAnálise comportamental: ${faceAnalysisData.length} pontos coletados` :
           '\n\nAnálise apenas textual (sem dados comportamentais)';
-        
-        console.log(`✅ Resposta processada com IA no backend! Transcrição: "${processingResult.transcription?.substring(0, 80)}..." Pontuação: ${processingResult.analysisScore}/10${faceInfo}`);
+
+        (`✅ Resposta processada com IA no backend! Transcrição: "${processingResult.transcription?.substring(0, 80)}..." Pontuação: ${processingResult.analysisScore}/10${faceInfo}`);
       } else {
         console.error(`❌ Erro no processamento IA: ${processingResult.error}`);
-        
+
         // Fallback: marcar como respondida mesmo sem análise completa
         const updatedQuestions = [...interviewQuestions];
         updatedQuestions[questionIndex] = {
@@ -585,10 +585,10 @@ const RecrutamentoPage = () => {
           responseId: uploadResult.responseId,
           videoUrl: uploadResult.videoUrl
         };
-        
+
         setInterviewQuestions(updatedQuestions);
       }
-      
+
     } catch (error) {
       console.error('Erro ao processar vídeo:', error);
       console.error('❌ Erro ao processar resposta em vídeo.', error);
@@ -623,12 +623,12 @@ const RecrutamentoPage = () => {
       doc.setFontSize(20);
       doc.setFont(undefined, 'bold');
       yPosition = addText('RELATÓRIO DE ENTREVISTA SIMULADA', margin, yPosition);
-      
+
       yPosition += 10;
       doc.setFontSize(12);
       doc.setFont(undefined, 'normal');
       yPosition = addText(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, margin, yPosition);
-      
+
       // Linha separadora
       yPosition += 10;
       doc.line(margin, yPosition, pageWidth - margin, yPosition);
@@ -639,7 +639,7 @@ const RecrutamentoPage = () => {
       doc.setFontSize(16);
       doc.setFont(undefined, 'bold');
       yPosition = addText('INFORMAÇÕES DA VAGA', margin, yPosition);
-      
+
       yPosition += 5;
       doc.setFontSize(12);
       doc.setFont(undefined, 'normal');
@@ -654,7 +654,7 @@ const RecrutamentoPage = () => {
       doc.setFontSize(16);
       doc.setFont(undefined, 'bold');
       yPosition = addText('ESTATÍSTICAS GERAIS', margin, yPosition);
-      
+
       yPosition += 5;
       doc.setFontSize(12);
       doc.setFont(undefined, 'normal');
@@ -670,41 +670,41 @@ const RecrutamentoPage = () => {
       yPosition = addText('ANÁLISE DAS RESPOSTAS', margin, yPosition);
 
       const answeredQuestions = interviewData.questions.filter(q => q.answered);
-      
+
       answeredQuestions.forEach((question, index) => {
         yPosition += 10;
         yPosition = checkNewPage(yPosition, 50);
-        
+
         // Pergunta
         doc.setFontSize(12);
         doc.setFont(undefined, 'bold');
         yPosition = addText(`${index + 1}. ${question.question}`, margin, yPosition);
-        
+
         yPosition += 5;
         doc.setFont(undefined, 'normal');
-        
+
         if (question.analysis) {
           yPosition = addText(`Pontuação: ${question.analysis.score}/10`, margin + 10, yPosition);
-          
+
           if (question.analysis.strengths && question.analysis.strengths.length > 0) {
             yPosition = addText('Pontos Fortes:', margin + 10, yPosition);
             question.analysis.strengths.forEach(strength => {
               yPosition = addText(`• ${strength}`, margin + 15, yPosition);
             });
           }
-          
+
           if (question.analysis.improvements && question.analysis.improvements.length > 0) {
             yPosition = addText('Sugestões de Melhoria:', margin + 10, yPosition);
             question.analysis.improvements.forEach(improvement => {
               yPosition = addText(`• ${improvement}`, margin + 15, yPosition);
             });
           }
-          
+
           if (question.analysis.adequacy) {
             yPosition = addText(`Adequação à pergunta: ${question.analysis.adequacy}`, margin + 10, yPosition);
           }
         }
-        
+
         if (question.transcription) {
           yPosition += 5;
           yPosition = addText('Transcrição da resposta:', margin + 10, yPosition);
@@ -719,11 +719,11 @@ const RecrutamentoPage = () => {
         doc.setFontSize(16);
         doc.setFont(undefined, 'bold');
         yPosition = addText('RELATÓRIO FINAL', margin, yPosition);
-        
+
         yPosition += 5;
         doc.setFontSize(12);
         doc.setFont(undefined, 'normal');
-        
+
         // Dividir o relatório em seções se possível
         const reportSections = interviewData.report.split('\n\n');
         reportSections.forEach(section => {
@@ -742,11 +742,11 @@ const RecrutamentoPage = () => {
         doc.setFontSize(16);
         doc.setFont(undefined, 'bold');
         yPosition = addText('ANÁLISE COMPORTAMENTAL', margin, yPosition);
-        
+
         yPosition += 5;
         doc.setFontSize(12);
         doc.setFont(undefined, 'normal');
-        
+
         const stats = interviewData.faceStatistics;
         yPosition = addText(`Confiança média: ${(stats.averageConfidence * 100).toFixed(1)}%`, margin, yPosition);
         yPosition = addText(`Emoção predominante: ${stats.dominantEmotion || 'Não identificada'}`, margin, yPosition);
@@ -766,10 +766,10 @@ const RecrutamentoPage = () => {
       // Salvar o PDF
       const fileName = `entrevista_${interviewData.job?.nome || 'vaga'}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
-      
-      console.log(`✅ PDF gerado com sucesso: ${fileName}`);
+
+      (`✅ PDF gerado com sucesso: ${fileName}`);
       return { success: true, fileName };
-      
+
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
       return { success: false, error: error.message };
@@ -811,12 +811,12 @@ const RecrutamentoPage = () => {
       if (completedInterviewData?.pdfData?.success) {
         // PDF já foi gerado, apenas baixar novamente
         const fileName = completedInterviewData.pdfData.fileName;
-        console.log(`📄 Baixando PDF: ${fileName}`);
+        (`📄 Baixando PDF: ${fileName}`);
       } else if (completedInterviewData?.interviewData) {
         // Gerar PDF novamente
         const pdfResult = generateInterviewPDF(completedInterviewData.interviewData);
         if (pdfResult.success) {
-          console.log(`📄 PDF gerado e baixado: ${pdfResult.fileName}`);
+          (`📄 PDF gerado e baixado: ${pdfResult.fileName}`);
         } else {
           throw new Error(pdfResult.error);
         }
@@ -851,23 +851,23 @@ const RecrutamentoPage = () => {
   const handleFinishInterview = async () => {
     try {
       const answeredQuestions = interviewQuestions.filter(q => q.answered);
-      
+
       if (answeredQuestions.length === 0) {
         console.warn('⚠️ Nenhuma pergunta foi respondida. Responda pelo menos uma pergunta antes de finalizar.');
         return;
       }
-      
+
       // Gerar relatório final com dados da Face API
       const reportResult = await chatgptService.generateFinalReport(
         interviewJob,
         interviewQuestions,
         { name: 'Candidato', email: 'candidato@email.com' }
       );
-      
+
       if (reportResult.success) {
         // Calcular estatísticas dos dados faciais
         const faceStats = calculateFaceStatistics(interviewQuestions);
-        
+
         // Salvar entrevista completa
         const interviewData = {
           job: interviewJob,
@@ -878,21 +878,21 @@ const RecrutamentoPage = () => {
           answeredCount: answeredQuestions.length,
           totalFaceDataPoints: faceStats.totalDataPoints
         };
-        
+
         const savedInterviews = JSON.parse(localStorage.getItem('completedInterviews') || '[]');
         savedInterviews.push(interviewData);
         localStorage.setItem('completedInterviews', JSON.stringify(savedInterviews));
-        
+
         // Gerar PDF com os resultados
         const pdfResult = generateInterviewPDF(interviewData);
-        
+
         if (pdfResult.success) {
-          console.log(`✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. PDF gerado: ${pdfResult.fileName}`);
+          (`✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. PDF gerado: ${pdfResult.fileName}`);
         } else {
-          console.log(`✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. Análise completa salva localmente.`);
+          (`✅ Entrevista finalizada com IA! ${answeredQuestions.length} perguntas respondidas. Relatório gerado com ChatGPT. Dados comportamentais: ${faceStats.totalDataPoints} pontos. Análise completa salva localmente.`);
           console.error(`⚠️ Erro ao gerar PDF: ${pdfResult.error}`);
         }
-        
+
         // Preparar dados para tela de finalização
         const completionData = {
           candidateName: 'Candidato',
@@ -906,7 +906,7 @@ const RecrutamentoPage = () => {
           pdfData: pdfResult.success ? pdfResult : null,
           interviewData: interviewData
         };
-        
+
         // Mostrar tela de finalização
         setCompletedInterviewData(completionData);
         setShowInterviewModal(false);
@@ -914,7 +914,7 @@ const RecrutamentoPage = () => {
       } else {
         console.error(`❌ Erro ao gerar relatório: ${reportResult.error}`);
       }
-      
+
     } catch (error) {
       console.error('Erro ao finalizar entrevista:', error);
       console.error('❌ Erro ao finalizar entrevista.', error);
@@ -927,22 +927,22 @@ const RecrutamentoPage = () => {
     let totalEmotions = {};
     let avgAge = 0;
     let genderCounts = {};
-    
+
     questions.forEach(q => {
       if (q.faceData && q.faceData.length > 0) {
         totalDataPoints += q.faceData.length;
-        
+
         q.faceData.forEach(data => {
           // Contar emoções
           if (data.dominantEmotion) {
             totalEmotions[data.dominantEmotion] = (totalEmotions[data.dominantEmotion] || 0) + 1;
           }
-          
+
           // Somar idades
           if (data.age) {
             avgAge += data.age;
           }
-          
+
           // Contar gêneros
           if (data.gender) {
             genderCounts[data.gender] = (genderCounts[data.gender] || 0) + 1;
@@ -950,13 +950,13 @@ const RecrutamentoPage = () => {
         });
       }
     });
-    
+
     return {
       totalDataPoints,
       avgAge: totalDataPoints > 0 ? Math.round(avgAge / totalDataPoints) : 0,
-      dominantEmotion: Object.keys(totalEmotions).reduce((a, b) => 
+      dominantEmotion: Object.keys(totalEmotions).reduce((a, b) =>
         totalEmotions[a] > totalEmotions[b] ? a : b, 'neutral'),
-      dominantGender: Object.keys(genderCounts).reduce((a, b) => 
+      dominantGender: Object.keys(genderCounts).reduce((a, b) =>
         genderCounts[a] > genderCounts[b] ? a : b, 'unknown'),
       emotionDistribution: totalEmotions,
       genderDistribution: genderCounts
@@ -974,7 +974,7 @@ const RecrutamentoPage = () => {
     }
 
     const searchStatus = getCoresignalSearchStatus(jobId);
-    
+
     if (!searchStatus) {
       return {
         text: 'Buscar no LinkedIn',
@@ -1007,11 +1007,11 @@ const RecrutamentoPage = () => {
 
   // Função para lidar com criação de nova vaga via IA
   const handleJobCreated = (newJob) => {
-    console.log('✅ Nova vaga criada:', newJob);
-    
+    ('✅ Nova vaga criada:', newJob);
+
     // Adicionar a nova vaga à lista
     setJobs(prevJobs => [newJob, ...prevJobs]);
-    
+
     // Atualizar analytics
     if (analytics) {
       setAnalytics(prev => ({
@@ -1020,14 +1020,14 @@ const RecrutamentoPage = () => {
         activeJobs: newJob.status === 'active' ? prev.activeJobs + 1 : prev.activeJobs
       }));
     }
-    
+
     // Recarregar dados para garantir sincronização
     fetchRecruitmentData();
   };
 
   // Função para abrir modal de edição
   const handleEditJob = (job) => {
-    console.log('✏️ Editando vaga:', job);
+    ('✏️ Editando vaga:', job);
     setEditingJob(job);
     setShowEditJobModal(true);
   };
@@ -1035,10 +1035,10 @@ const RecrutamentoPage = () => {
   // Função para salvar alterações da vaga
   const handleSaveJobEdit = async (updatedJobData) => {
     try {
-      console.log('💾 Salvando alterações da vaga:', updatedJobData);
-      
+      ('💾 Salvando alterações da vaga:', updatedJobData);
+
       const API_BASE_URL = import.meta.env.VITE_API_URL || "https://learning-platform-backend-2x39.onrender.com";
-      
+
       const response = await fetch(`${API_BASE_URL}/api/recruitment/jobs/${editingJob.id}`, {
         method: 'PATCH',
         headers: {
@@ -1052,11 +1052,11 @@ const RecrutamentoPage = () => {
       }
 
       const updatedJob = await response.json();
-      console.log('✅ Vaga atualizada:', updatedJob);
+      ('✅ Vaga atualizada:', updatedJob);
 
       // Atualizar a lista de vagas
-      setJobs(prevJobs => 
-        prevJobs.map(job => 
+      setJobs(prevJobs =>
+        prevJobs.map(job =>
           job.id === editingJob.id ? updatedJob : job
         )
       );
@@ -1148,478 +1148,478 @@ const RecrutamentoPage = () => {
         <>
           <Navbar />
           <div className="min-h-screen  bg-white  text-black  p-4  pt-20 ">
-        <div className="max-w-7xl  mx-auto ">
-          {/* Header */}
-          <div className="mb-8 ">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h1 className="text-3xl  font-bold  text-black  mb-2 ">
-                  Recrutamento LinkedIn Premium
-                </h1>
-                <p className="text-gray-600 ">
-                  Gestão de vagas e busca de candidatos via API real
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setShowAdminPage(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Administrar Entrevistas
-                </Button>
-                <Button
-                  onClick={() => setShowCreateJobModal(true)}
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Criar Vaga com IA
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Analytics Cards */}
-          {analytics && (
-            <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-4  gap-6  mb-8 ">
-              <Card className="bg-gray-50  border-gray-200 ">
-                <CardHeader className="flex flex-row  items-center justify-between  space-y-0  pb-2 ">
-                  <CardTitle className="text-sm  font-medium  text-gray-700 ">
-                    Total de Vagas
-                  </CardTitle>
-                  <Briefcase className="h-4 w-4  text-blue-600 " />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl  font-bold  text-black ">
-                    {analytics.totalJobs}
-                  </div>
-                  <p className="text-xs  text-green-600 ">
-                    {analytics.activeJobs} ativas
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-50  border-gray-200 ">
-                <CardHeader className="flex flex-row  items-center justify-between  space-y-0  pb-2 ">
-                  <CardTitle className="text-sm  font-medium  text-gray-700 ">
-                    Candidatos Encontrados
-                  </CardTitle>
-                  <Users className="h-4 w-4  text-green-600 " />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl  font-bold  text-black ">
-                    {analytics.totalCandidates}
-                  </div>
-                  <p className="text-xs  text-green-600 ">
-                    Via LinkedIn Premium
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-50  border-gray-200 ">
-                <CardHeader className="flex flex-row  items-center justify-between  space-y-0  pb-2 ">
-                  <CardTitle className="text-sm  font-medium  text-gray-700 ">
-                    Match Score Médio
-                  </CardTitle>
-                  <Target className="h-4 w-4  text-amber-600 " />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl  font-bold  text-black ">
-                    {analytics.averageMatchScore}%
-                  </div>
-                  <p className="text-xs  text-amber-600 ">
-                    Compatibilidade
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-50  border-gray-200 ">
-                <CardHeader className="flex flex-row  items-center justify-between  space-y-0  pb-2 ">
-                  <CardTitle className="text-sm  font-medium  text-gray-700 ">
-                    Total Aplicações
-                  </CardTitle>
-                  <TrendingUp className="h-4 w-4  text-purple-600 " />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl  font-bold  text-black ">
-                    {analytics.totalApplications || 0}
-                  </div>
-                  <p className="text-xs  text-purple-600 ">
-                    Candidaturas recebidas
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* Tabs */}
-          <div className="flex space-x-1  mb-6  bg-gray-100  p-1  rounded-lg ">
-            <Button
-              variant={activeTab === 'jobs' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('jobs')}
-              className={`flex-1  ${activeTab === 'jobs' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-black'} `}
-            >
-              <Briefcase className="h-4 w-4  mr-2 " />
-              Vagas ({jobs.length})
-            </Button>
-            <Button
-              variant={activeTab === 'history' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('history')}
-              className={`flex-1  ${activeTab === 'history' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-black'} `}
-            >
-              <Search className="h-4 w-4  mr-2 " />
-              Histórico ({searchHistory.length})
-            </Button>
-          </div>
-
-          {/* Vagas Tab */}
-          {activeTab === 'jobs' && (
-            <div className="space-y-6 ">
-              {jobs.length === 0 ? (
-                <Card className="bg-gray-50  border-gray-200 ">
-                  <CardContent className="text-center  py-12 ">
-                    <Briefcase className="h-12 w-12  text-gray-400  mx-auto  mb-4 " />
-                    <h3 className="text-lg  font-medium  text-black  mb-2 ">
-                      Nenhuma vaga encontrada
-                    </h3>
+            <div className="max-w-7xl  mx-auto ">
+              {/* Header */}
+              <div className="mb-8 ">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h1 className="text-3xl  font-bold  text-black  mb-2 ">
+                      Recrutamento LinkedIn Premium
+                    </h1>
                     <p className="text-gray-600 ">
-                      Verifique se a API está funcionando corretamente
+                      Gestão de vagas e busca de candidatos via API real
                     </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid gap-6 ">
-                  {jobs.map((job) => (
-                    <motion.div
-                      key={job.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
+                  </div>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setShowAdminPage(true)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
-                      <Card className="bg-white  border-gray-200  hover:border-blue-500  transition-colors ">
-                        <CardHeader>
-                          <div className="flex justify-between  items-start ">
-                            <div>
-                              <CardTitle className="text-black  text-xl  mb-2 ">
-                                {job.title}
-                              </CardTitle>
-                              <div className="flex items-center  gap-4  text-gray-700 ">
-                                <div className="flex items-center  gap-1 ">
-                                  <Building className="h-4 w-4 " />
-                                  {job.company}
-                                </div>
-                                <div className="flex items-center  gap-1 ">
-                                  <MapPin className="h-4 w-4 " />
-                                  {job.location}
-                                </div>
-                                <div className="flex items-center  gap-1 ">
-                                  <Calendar className="h-4 w-4 " />
-                                  {formatDate(job.created_at)}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex gap-2 ">
-                              <Badge className={`${getStatusColor(job.status)} text-white `}>
-                                {job.status}
-                              </Badge>
-                              <Badge variant="outline" className={getExperienceColor(job.experience_level)}>
-                                {job.experience_level}
-                              </Badge>
-                            </div>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4 ">
-                            <div>
-                              <h4 className="text-black  font-medium  mb-2 ">Descrição</h4>
-                              <JobDescription html={job.description} />
-                            </div>
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Administrar Entrevistas
+                    </Button>
+                    <Button
+                      onClick={() => setShowCreateJobModal(true)}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Criar Vaga com IA
+                    </Button>
+                  </div>
+                </div>
+              </div>
 
-                            <div className="grid grid-cols-1 md:!grid-cols-3  gap-4 ">
-                              <div className="flex items-center  gap-2  text-gray-700 ">
-                                <DollarSign className="h-4 w-4 " />
-                                <span className="text-sm ">{job.salary_range}</span>
-                              </div>
-                              <div className="flex items-center  gap-2  text-gray-700 ">
-                                <UserCheck className="h-4 w-4 " />
-                                <span className="text-sm ">{job.applications_count} aplicações</span>
-                              </div>
-                              <div className="flex items-center  gap-2  text-gray-700 ">
-                                <Eye className="h-4 w-4 " />
-                                <span className="text-sm ">{job.views_count} visualizações</span>
-                              </div>
-                            </div>
+              {/* Analytics Cards */}
+              {analytics && (
+                <div className="grid grid-cols-1 md:!grid-cols-2 lg:!grid-cols-4  gap-6  mb-8 ">
+                  <Card className="bg-gray-50  border-gray-200 ">
+                    <CardHeader className="flex flex-row  items-center justify-between  space-y-0  pb-2 ">
+                      <CardTitle className="text-sm  font-medium  text-gray-700 ">
+                        Total de Vagas
+                      </CardTitle>
+                      <Briefcase className="h-4 w-4  text-blue-600 " />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl  font-bold  text-black ">
+                        {analytics.totalJobs}
+                      </div>
+                      <p className="text-xs  text-green-600 ">
+                        {analytics.activeJobs} ativas
+                      </p>
+                    </CardContent>
+                  </Card>
 
-                            <div className="flex gap-2  pt-4 ">
-                              {(() => {
-                                const buttonContent = getSearchButtonContent(job.id);
-                                return (
-                                  <Button
-                                    onClick={() => handleLinkedInSearch(job.id)}
-                                    disabled={searchLoading}
-                                    className={buttonContent.className}
-                                  >
-                                    {buttonContent.icon}
-                                    {buttonContent.text}
-                                  </Button>
-                                );
-                              })()}
-                              <Button
-                                variant="outline"
-                                className="border-gray-300 text-gray-700 hover:bg-gray-100"
-                                onClick={() => window.open(`${window.location.origin}/vagas/${job.id}`, '_blank')}
-                              >
-                                <Eye className="h-4 w-4 mr-2" />
-                                Ver Detalhes
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => handleEditJob(job)}
-                                className="border-green-600  text-green-700  hover:bg-green-100"
-                              >
-                                <Edit className="h-4 w-4  mr-2 " />
-                                Editar
-                              </Button>
-                            </div>
+                  <Card className="bg-gray-50  border-gray-200 ">
+                    <CardHeader className="flex flex-row  items-center justify-between  space-y-0  pb-2 ">
+                      <CardTitle className="text-sm  font-medium  text-gray-700 ">
+                        Candidatos Encontrados
+                      </CardTitle>
+                      <Users className="h-4 w-4  text-green-600 " />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl  font-bold  text-black ">
+                        {analytics.totalCandidates}
+                      </div>
+                      <p className="text-xs  text-green-600 ">
+                        Via LinkedIn Premium
+                      </p>
+                    </CardContent>
+                  </Card>
 
-                            {/* Botão Fazer Entrevista */}
-                            <div className="mt-4">
-                              <InterviewButton
-                                job={job}
-                                variant="default"
-                                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                                fullWidth={true}
-                                buttonText="Fazer Entrevista"
-                                onInterviewStart={(jobData) => {
-                                  console.log('🎬 Entrevista iniciada para:', jobData.title);
-                                }}
-                                onInterviewComplete={(interviewId, jobData) => {
-                                  console.log('✅ Entrevista concluída:', interviewId, 'para vaga:', jobData.title);
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
+                  <Card className="bg-gray-50  border-gray-200 ">
+                    <CardHeader className="flex flex-row  items-center justify-between  space-y-0  pb-2 ">
+                      <CardTitle className="text-sm  font-medium  text-gray-700 ">
+                        Match Score Médio
+                      </CardTitle>
+                      <Target className="h-4 w-4  text-amber-600 " />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl  font-bold  text-black ">
+                        {analytics.averageMatchScore}%
+                      </div>
+                      <p className="text-xs  text-amber-600 ">
+                        Compatibilidade
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="bg-gray-50  border-gray-200 ">
+                    <CardHeader className="flex flex-row  items-center justify-between  space-y-0  pb-2 ">
+                      <CardTitle className="text-sm  font-medium  text-gray-700 ">
+                        Total Aplicações
+                      </CardTitle>
+                      <TrendingUp className="h-4 w-4  text-purple-600 " />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl  font-bold  text-black ">
+                        {analytics.totalApplications || 0}
+                      </div>
+                      <p className="text-xs  text-purple-600 ">
+                        Candidaturas recebidas
+                      </p>
+                    </CardContent>
+                  </Card>
                 </div>
               )}
-            </div>
-          )}
 
-          {/* Histórico Tab */}
-          {activeTab === 'history' && (
-            <div className="space-y-6 ">
-              <Card className="bg-white  border-gray-200 ">
-                <CardHeader>
-                  <CardTitle className="text-black ">Histórico de Buscas LinkedIn</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {searchHistory.length === 0 ? (
-                    <div className="text-center  py-8 ">
-                      <Search className="h-12 w-12  text-gray-400  mx-auto  mb-4 " />
-                      <h3 className="text-lg  font-medium  text-black  mb-2 ">
-                        Nenhuma busca realizada
-                      </h3>
-                      <p className="text-gray-600 ">
-                        Realize buscas nas vagas para ver o histórico aqui
-                      </p>
-                    </div>
+              {/* Tabs */}
+              <div className="flex space-x-1  mb-6  bg-gray-100  p-1  rounded-lg ">
+                <Button
+                  variant={activeTab === 'jobs' ? 'default' : 'ghost'}
+                  onClick={() => setActiveTab('jobs')}
+                  className={`flex-1  ${activeTab === 'jobs' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-black'} `}
+                >
+                  <Briefcase className="h-4 w-4  mr-2 " />
+                  Vagas ({jobs.length})
+                </Button>
+                <Button
+                  variant={activeTab === 'history' ? 'default' : 'ghost'}
+                  onClick={() => setActiveTab('history')}
+                  className={`flex-1  ${activeTab === 'history' ? 'bg-blue-600 text-white' : 'text-gray-700 hover:text-black'} `}
+                >
+                  <Search className="h-4 w-4  mr-2 " />
+                  Histórico ({searchHistory.length})
+                </Button>
+              </div>
+
+              {/* Vagas Tab */}
+              {activeTab === 'jobs' && (
+                <div className="space-y-6 ">
+                  {jobs.length === 0 ? (
+                    <Card className="bg-gray-50  border-gray-200 ">
+                      <CardContent className="text-center  py-12 ">
+                        <Briefcase className="h-12 w-12  text-gray-400  mx-auto  mb-4 " />
+                        <h3 className="text-lg  font-medium  text-black  mb-2 ">
+                          Nenhuma vaga encontrada
+                        </h3>
+                        <p className="text-gray-600 ">
+                          Verifique se a API está funcionando corretamente
+                        </p>
+                      </CardContent>
+                    </Card>
                   ) : (
-                    <div className="space-y-4 ">
-                      {searchHistory.map((search) => (
-                        <div
-                          key={search.id}
-                          className="flex justify-between  items-center  p-4  bg-gray-50  rounded-lg "
+                    <div className="grid gap-6 ">
+                      {jobs.map((job) => (
+                        <motion.div
+                          key={job.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3 }}
                         >
-                          <div>
-                            <h4 className="text-black  font-medium ">
-                              {search.job_title}
-                            </h4>
-                            <p className="text-gray-600  text-sm ">
-                              {search.job_company} • {search.location} • {search.experience_level}
-                            </p>
-                            <p className="text-gray-500  text-xs ">
-                              Keywords: {search.keywords}
-                            </p>
-                          </div>
-                          <div className="text-right ">
-                            <div className="text-black  font-medium ">
-                              {search.candidates_found} candidatos
-                            </div>
-                            <div className="text-gray-600  text-sm ">
-                              {formatDate(search.created_at)}
-                            </div>
-                          </div>
-                        </div>
+                          <Card className="bg-white  border-gray-200  hover:border-blue-500  transition-colors ">
+                            <CardHeader>
+                              <div className="flex justify-between  items-start ">
+                                <div>
+                                  <CardTitle className="text-black  text-xl  mb-2 ">
+                                    {job.title}
+                                  </CardTitle>
+                                  <div className="flex items-center  gap-4  text-gray-700 ">
+                                    <div className="flex items-center  gap-1 ">
+                                      <Building className="h-4 w-4 " />
+                                      {job.company}
+                                    </div>
+                                    <div className="flex items-center  gap-1 ">
+                                      <MapPin className="h-4 w-4 " />
+                                      {job.location}
+                                    </div>
+                                    <div className="flex items-center  gap-1 ">
+                                      <Calendar className="h-4 w-4 " />
+                                      {formatDate(job.created_at)}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 ">
+                                  <Badge className={`${getStatusColor(job.status)} text-white `}>
+                                    {job.status}
+                                  </Badge>
+                                  <Badge variant="outline" className={getExperienceColor(job.experience_level)}>
+                                    {job.experience_level}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-4 ">
+                                <div>
+                                  <h4 className="text-black  font-medium  mb-2 ">Descrição</h4>
+                                  <JobDescription html={job.description} />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:!grid-cols-3  gap-4 ">
+                                  <div className="flex items-center  gap-2  text-gray-700 ">
+                                    <DollarSign className="h-4 w-4 " />
+                                    <span className="text-sm ">{job.salary_range}</span>
+                                  </div>
+                                  <div className="flex items-center  gap-2  text-gray-700 ">
+                                    <UserCheck className="h-4 w-4 " />
+                                    <span className="text-sm ">{job.applications_count} aplicações</span>
+                                  </div>
+                                  <div className="flex items-center  gap-2  text-gray-700 ">
+                                    <Eye className="h-4 w-4 " />
+                                    <span className="text-sm ">{job.views_count} visualizações</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex gap-2  pt-4 ">
+                                  {(() => {
+                                    const buttonContent = getSearchButtonContent(job.id);
+                                    return (
+                                      <Button
+                                        onClick={() => handleLinkedInSearch(job.id)}
+                                        disabled={searchLoading}
+                                        className={buttonContent.className}
+                                      >
+                                        {buttonContent.icon}
+                                        {buttonContent.text}
+                                      </Button>
+                                    );
+                                  })()}
+                                  <Button
+                                    variant="outline"
+                                    className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                                    onClick={() => window.open(`${window.location.origin}/vagas/${job.id}`, '_blank')}
+                                  >
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Ver Detalhes
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => handleEditJob(job)}
+                                    className="border-green-600  text-green-700  hover:bg-green-100"
+                                  >
+                                    <Edit className="h-4 w-4  mr-2 " />
+                                    Editar
+                                  </Button>
+                                </div>
+
+                                {/* Botão Fazer Entrevista */}
+                                <div className="mt-4">
+                                  <InterviewButton
+                                    job={job}
+                                    variant="default"
+                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                                    fullWidth={true}
+                                    buttonText="Fazer Entrevista"
+                                    onInterviewStart={(jobData) => {
+                                      ('🎬 Entrevista iniciada para:', jobData.title);
+                                    }}
+                                    onInterviewComplete={(interviewId, jobData) => {
+                                      ('✅ Entrevista concluída:', interviewId, 'para vaga:', jobData.title);
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                </div>
+              )}
 
-          {/* Modal de Resultados da Busca LinkedIn */}
-          {showSearchModal && (
-            <div className="fixed inset-0  bg-black bg-opacity-50  flex items-center justify-center  z-50  p-4 ">
-              <div className="bg-white  rounded-lg  max-w-4xl  w-full  max-h-[80vh]  overflow-y-auto ">
-                <div className="p-6 ">
-                  <div className="flex justify-between  items-center  mb-6 ">
-                    <h2 className="text-2xl  font-bold  text-black ">
-                      Candidatos Encontrados - {selectedJob?.title}
-                    </h2>
+              {/* Histórico Tab */}
+              {activeTab === 'history' && (
+                <div className="space-y-6 ">
+                  <Card className="bg-white  border-gray-200 ">
+                    <CardHeader>
+                      <CardTitle className="text-black ">Histórico de Buscas LinkedIn</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {searchHistory.length === 0 ? (
+                        <div className="text-center  py-8 ">
+                          <Search className="h-12 w-12  text-gray-400  mx-auto  mb-4 " />
+                          <h3 className="text-lg  font-medium  text-black  mb-2 ">
+                            Nenhuma busca realizada
+                          </h3>
+                          <p className="text-gray-600 ">
+                            Realize buscas nas vagas para ver o histórico aqui
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4 ">
+                          {searchHistory.map((search) => (
+                            <div
+                              key={search.id}
+                              className="flex justify-between  items-center  p-4  bg-gray-50  rounded-lg "
+                            >
+                              <div>
+                                <h4 className="text-black  font-medium ">
+                                  {search.job_title}
+                                </h4>
+                                <p className="text-gray-600  text-sm ">
+                                  {search.job_company} • {search.location} • {search.experience_level}
+                                </p>
+                                <p className="text-gray-500  text-xs ">
+                                  Keywords: {search.keywords}
+                                </p>
+                              </div>
+                              <div className="text-right ">
+                                <div className="text-black  font-medium ">
+                                  {search.candidates_found} candidatos
+                                </div>
+                                <div className="text-gray-600  text-sm ">
+                                  {formatDate(search.created_at)}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Modal de Resultados da Busca LinkedIn */}
+              {showSearchModal && (
+                <div className="fixed inset-0  bg-black bg-opacity-50  flex items-center justify-center  z-50  p-4 ">
+                  <div className="bg-white  rounded-lg  max-w-4xl  w-full  max-h-[80vh]  overflow-y-auto ">
+                    <div className="p-6 ">
+                      <div className="flex justify-between  items-center  mb-6 ">
+                        <h2 className="text-2xl  font-bold  text-black ">
+                          Candidatos Encontrados - {selectedJob?.title}
+                        </h2>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setShowSearchModal(false)}
+                          className="text-gray-600 hover:text-black "
+                        >
+                          ✕
+                        </Button>
+                      </div>
+
+                      <div className="grid gap-4 ">
+                        {searchResults.map((candidate) => (
+                          <Card key={candidate.id} className="bg-gray-50  border-gray-300 ">
+                            <CardContent className="p-4 ">
+                              <div className="flex items-start  gap-4 ">
+                                <img
+                                  src={candidate.pictureUrl || candidate.imageUrl || '/default-avatar.png'}
+                                  alt={candidate.name}
+                                  className="w-16 h-16  rounded-full "
+                                />
+                                <div className="flex-1 ">
+                                  <div className="flex justify-between  items-start  mb-2 ">
+                                    <div>
+                                      <h3 className="text-black  font-medium  text-lg ">
+                                        {candidate.name}
+                                      </h3>
+                                      <p className="text-gray-700 ">{candidate.title}</p>
+                                      <p className="text-gray-600  text-sm ">
+                                        {candidate.company} • {candidate.location}
+                                      </p>
+                                      {candidate.lastExperience && (
+                                        <p className="text-gray-500 text-xs">{candidate.lastExperience}</p>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center  gap-2 ">
+                                      <Badge className="bg-green-600  text-white ">
+                                        {Math.round((candidate.confidence ?? 0.7) * 100)}% match
+                                      </Badge>
+                                      <Star className="h-4 w-4  text-yellow-400 " />
+                                    </div>
+                                  </div>
+
+                                  <p className="text-gray-300  text-sm  mb-3 ">
+                                    {candidate.summary}
+                                  </p>
+
+                                  <div className="flex flex-wrap  gap-2  mb-3 ">
+                                    {candidate.skills.map((skill, index) => (
+                                      <Badge key={index} variant="outline" className="text-blue-300  border-blue-500 ">
+                                        {skill}
+                                      </Badge>
+                                    ))}
+                                  </div>
+
+                                  <div className="flex gap-2 ">
+                                    {candidate.profileUrl && (
+                                      <Button
+                                        size="sm"
+                                        className="bg-blue-600 hover:bg-blue-700  text-white "
+                                        onClick={() => window.open(candidate.profileUrl, '_blank')}
+                                      >
+                                        <ExternalLink className="h-4 w-4  mr-1 " />
+                                        LinkedIn
+                                      </Button>
+                                    )}
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-gray-600  text-gray-300  hover:bg-gray-600 "
+                                    >
+                                      <Mail className="h-4 w-4  mr-1 " />
+                                      Email
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="border-gray-600  text-gray-300  hover:bg-gray-600 "
+                                    >
+                                      <Phone className="h-4 w-4  mr-1 " />
+                                      Contato
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal de Entrevista com IA */}
+            <InterviewModal
+              isOpen={showInterviewModal}
+              onClose={() => setShowInterviewModal(false)}
+              job={interviewJob}
+              questions={interviewQuestions}
+              onVideoResponse={handleVideoResponse}
+              onFinishInterview={handleFinishInterview}
+              generatingQuestions={generatingQuestions}
+            />
+
+            {/* Modal de Criação de Vaga com IA */}
+            <CreateJobWithAIModal
+              isOpen={showCreateJobModal}
+              onClose={() => setShowCreateJobModal(false)}
+              onJobCreated={handleJobCreated}
+            />
+
+            {/* Modal de Edição de Vaga */}
+            {showEditJobModal && editingJob && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                  {/* Header */}
+                  <div className="flex items-center justify-between p-6 border-b border-gray-700">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-orange-600 rounded-lg">
+                        <Edit className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-white">Editar Vaga</h2>
+                        <p className="text-gray-400 text-sm">
+                          Atualize as informações da vaga
+                        </p>
+                      </div>
+                    </div>
                     <Button
                       variant="ghost"
-                      onClick={() => setShowSearchModal(false)}
-                      className="text-gray-600 hover:text-black "
+                      size="sm"
+                      onClick={handleCancelEdit}
+                      className="text-gray-400 hover:text-white"
                     >
-                      ✕
+                      <X className="h-5 w-5" />
                     </Button>
                   </div>
 
-                  <div className="grid gap-4 ">
-                    {searchResults.map((candidate) => (
-                      <Card key={candidate.id} className="bg-gray-50  border-gray-300 ">
-                        <CardContent className="p-4 ">
-                          <div className="flex items-start  gap-4 ">
-                            <img
-                              src={candidate.pictureUrl || candidate.imageUrl || '/default-avatar.png'}
-                              alt={candidate.name}
-                              className="w-16 h-16  rounded-full "
-                            />
-                            <div className="flex-1 ">
-                              <div className="flex justify-between  items-start  mb-2 ">
-                                <div>
-                                  <h3 className="text-black  font-medium  text-lg ">
-                                    {candidate.name}
-                                  </h3>
-                                  <p className="text-gray-700 ">{candidate.title}</p>
-                                  <p className="text-gray-600  text-sm ">
-                                    {candidate.company} • {candidate.location}
-                                  </p>
-                                  {candidate.lastExperience && (
-                                    <p className="text-gray-500 text-xs">{candidate.lastExperience}</p>
-                                  )}
-                                </div>
-                                <div className="flex items-center  gap-2 ">
-                                  <Badge className="bg-green-600  text-white ">
-                                    {Math.round((candidate.confidence ?? 0.7) * 100)}% match
-                                  </Badge>
-                                  <Star className="h-4 w-4  text-yellow-400 " />
-                                </div>
-                              </div>
-                              
-                              <p className="text-gray-300  text-sm  mb-3 ">
-                                {candidate.summary}
-                              </p>
-                              
-                              <div className="flex flex-wrap  gap-2  mb-3 ">
-                                {candidate.skills.map((skill, index) => (
-                                  <Badge key={index} variant="outline" className="text-blue-300  border-blue-500 ">
-                                    {skill}
-                                  </Badge>
-                                ))}
-                              </div>
-                              
-                              <div className="flex gap-2 ">
-                                {candidate.profileUrl && (
-                                  <Button
-                                    size="sm"
-                                    className="bg-blue-600 hover:bg-blue-700  text-white "
-                                    onClick={() => window.open(candidate.profileUrl, '_blank')}
-                                  >
-                                    <ExternalLink className="h-4 w-4  mr-1 " />
-                                    LinkedIn
-                                  </Button>
-                                )}
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-gray-600  text-gray-300  hover:bg-gray-600 "
-                                >
-                                  <Mail className="h-4 w-4  mr-1 " />
-                                  Email
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-gray-600  text-gray-300  hover:bg-gray-600 "
-                                >
-                                  <Phone className="h-4 w-4  mr-1 " />
-                                  Contato
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                  {/* Content */}
+                  <div className="p-6">
+                    <EditJobForm
+                      job={editingJob}
+                      onSave={handleSaveJobEdit}
+                      onCancel={handleCancelEdit}
+                      companies={companies}
+                    />
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Modal de Entrevista com IA */}
-        <InterviewModal
-          isOpen={showInterviewModal}
-          onClose={() => setShowInterviewModal(false)}
-          job={interviewJob}
-          questions={interviewQuestions}
-          onVideoResponse={handleVideoResponse}
-          onFinishInterview={handleFinishInterview}
-          generatingQuestions={generatingQuestions}
-        />
-
-        {/* Modal de Criação de Vaga com IA */}
-        <CreateJobWithAIModal
-          isOpen={showCreateJobModal}
-          onClose={() => setShowCreateJobModal(false)}
-          onJobCreated={handleJobCreated}
-        />
-
-        {/* Modal de Edição de Vaga */}
-        {showEditJobModal && editingJob && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-700">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-600 rounded-lg">
-                    <Edit className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">Editar Vaga</h2>
-                    <p className="text-gray-400 text-sm">
-                      Atualize as informações da vaga
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCancelEdit}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-
-              {/* Content */}
-              <div className="p-6">
-                <EditJobForm 
-                  job={editingJob}
-                  onSave={handleSaveJobEdit}
-                  onCancel={handleCancelEdit}
-                  companies={companies}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+            )}
           </div>
         </>
       )}

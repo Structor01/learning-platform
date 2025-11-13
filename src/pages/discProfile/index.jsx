@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import discApiService from "@/services/testDiscService/discApi"; 
+import discApiService from "@/services/testDiscService/discApi";
 import aiReportService from "@/services/testDiscService/aiReportService";
 import { useAuth } from "@/contexts/AuthContext";
 import './print.css';
@@ -33,8 +33,8 @@ const DISCProfilePage = () => {
   const [aiReport, setAiReport] = useState(null);
   const [generatingReport, setGeneratingReport] = useState(false);
 
-  console.log('Tests:', tests);
-  console.log('Selected test:', selectedTest);
+  ('Tests:', tests);
+  ('Selected test:', selectedTest);
 
   // Função para buscar dados do teste
   const fetchTestData = async (userid) => {
@@ -52,12 +52,12 @@ const DISCProfilePage = () => {
   // Função para selecionar e exibir teste específico
   const handleTestSelection = async (testId) => {
     const test = tests.find(t => t.id === parseInt(testId));
-    
+
     // Limpar estado anterior
     setAiReport(null);
     setSelectedTest(test);
     setSelectedTestId(testId);
-    
+
     // Gera o relatório IA automaticamente quando um teste é selecionado
     if (test && user) {
       setGeneratingReport(true);
@@ -88,7 +88,7 @@ const DISCProfilePage = () => {
   const getDiscProfileName = (type) => {
     const names = {
       'D': 'Dominante',
-      'I': 'Influente', 
+      'I': 'Influente',
       'S': 'Estável',
       'C': 'Consciencioso'
     };
@@ -100,7 +100,7 @@ const DISCProfilePage = () => {
     const names = {
       'O': 'Abertura à Experiência',
       'C': 'Conscienciosidade',
-      'E': 'Extroversão', 
+      'E': 'Extroversão',
       'A': 'Amabilidade',
       'N': 'Neuroticismo'
     };
@@ -245,7 +245,7 @@ const DISCProfilePage = () => {
   // Função para gerar relatório com IA
   const generateAIReport = async () => {
     if (!selectedTest) return;
-    
+
     setGeneratingReport(true);
     try {
       const report = await aiReportService.generateDetailedReport(selectedTest, {
@@ -254,7 +254,7 @@ const DISCProfilePage = () => {
       });
       setAiReport(report);
 
-      console.log('AI Report:', report);
+      ('AI Report:', report);
     } catch (error) {
       console.error('Erro ao gerar relatório:', error);
       // Fallback para relatório básico
@@ -291,7 +291,7 @@ const DISCProfilePage = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Seletor de teste */}
         <div className="no-print">
-          <TestSelector 
+          <TestSelector
             tests={tests}
             selectedTestId={selectedTestId}
             onTestSelection={handleTestSelection}
@@ -308,55 +308,55 @@ const DISCProfilePage = () => {
         {selectedTest ? (
           <div className="space-y-1 print-content">
             {/* Cabeçalho do Relatório */}
-            <ReportHeader 
+            <ReportHeader
               selectedTest={selectedTest}
               user={user}
               getDiscProfileName={getDiscProfileName}
             />
 
             {/* Características Gerais */}
-            <CharacteristicsSection 
+            <CharacteristicsSection
               aiReport={aiReport}
               generatingReport={generatingReport}
             />
 
             {/* Pontos Fortes */}
-            <StrengthsSection 
+            <StrengthsSection
               strengths={getProfileStrengths()}
               aiReport={aiReport}
               generatingReport={generatingReport}
             />
 
             {/* Áreas de Desenvolvimento */}
-            <DevelopmentAreasSection 
+            <DevelopmentAreasSection
               developmentAreas={getProfileDevelopmentAreas()}
               aiReport={aiReport}
               generatingReport={generatingReport}
             />
 
             {/* Estilo de Comunicação */}
-            <CommunicationSection 
+            <CommunicationSection
               communicationStyle={getCommunicationStyle()}
               aiReport={aiReport}
               generatingReport={generatingReport}
             />
 
             {/* Ambiente de Trabalho Ideal */}
-            <WorkEnvironmentSection 
+            <WorkEnvironmentSection
               workEnvironment={getIdealWorkEnvironment()}
               aiReport={aiReport}
               generatingReport={generatingReport}
             />
 
             {/* Big Five Chart */}
-            <BigFiveChart 
+            <BigFiveChart
               selectedTest={selectedTest}
               getBigFiveName={getBigFiveName}
               generatingReport={generatingReport}
             />
 
             {/* Emotional Intelligence Chart */}
-            <EmotionalIntelligenceChart 
+            <EmotionalIntelligenceChart
               selectedTest={selectedTest}
               getIEDimensionName={getIEDimensionName}
               generatingReport={generatingReport}
@@ -364,7 +364,7 @@ const DISCProfilePage = () => {
 
             {/* Botões de Ação */}
             <div className="no-print">
-              <ActionButtons 
+              <ActionButtons
                 aiReport={aiReport}
                 generatingReport={generatingReport}
                 onGenerateReport={generateAIReport}
@@ -378,7 +378,7 @@ const DISCProfilePage = () => {
           </div>
         ) : (
           /* Estado sem teste selecionado */
-          <EmptyState 
+          <EmptyState
             tests={tests}
             onNewTest={() => navigate('/teste-disc')}
           />

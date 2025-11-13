@@ -283,7 +283,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
           const discProfile = await discApiService.getUserDiscProfile(user.id);
           if (discProfile) {
             const convertedProfile = discApiService.convertApiDataToProfile(discProfile);
-            console.log("🔍 Dashboard - Perfil DISC encontrado na nova API:", convertedProfile);
+            ("🔍 Dashboard - Perfil DISC encontrado na nova API:", convertedProfile);
             setDiscProfile(convertedProfile);
             return;
           }
@@ -293,7 +293,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
         // Fallback: Tentar buscar testes psicológicos do usuário (API antiga)
         const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 50);
-        console.log("🔍 Dashboard - Testes encontrados (API antiga):", userTests);
+        ("🔍 Dashboard - Testes encontrados (API antiga):", userTests);
 
         if (userTests && userTests.length > 0) {
           // Encontrar o teste DISC/unified mais recente
@@ -307,7 +307,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
 
           if (discTest) {
-            console.log("🔍 Dashboard - Teste DISC encontrado:", discTest);
+            ("🔍 Dashboard - Teste DISC encontrado:", discTest);
 
             // Tentar extrair dados DISC de diferentes fontes
             let discType = null;
@@ -375,7 +375,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                 counts: discCounts
               };
 
-              console.log("🔍 Dashboard - Perfil DISC montado a partir de dados reais:", discProfile);
+              ("🔍 Dashboard - Perfil DISC montado a partir de dados reais:", discProfile);
               setDiscProfile(discProfile);
               return;
             }
@@ -456,7 +456,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         localStorage.removeItem(cacheKey);
         localStorage.removeItem(profileCacheKey);
 
-        console.log("🔍 Dashboard - Cache limpo, recarregando perfil com dados frescos");
+        ("🔍 Dashboard - Cache limpo, recarregando perfil com dados frescos");
 
         // Forçar recarregamento com dados frescos da API
         setTimeout(() => {
@@ -474,14 +474,14 @@ const Dashboard = ({ onCourseSelect = [] }) => {
               const discProfile = await discApiService.getUserDiscProfile(user.id);
               if (discProfile) {
                 const convertedProfile = discApiService.convertApiDataToProfile(discProfile);
-                console.log("🔍 Dashboard - Recarregamento: Perfil DISC da nova API:", convertedProfile);
+                ("🔍 Dashboard - Recarregamento: Perfil DISC da nova API:", convertedProfile);
                 setDiscProfile(convertedProfile);
                 return;
               }
 
               // Fallback para API antiga - buscar testes psicológicos mais recentes
               const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 10);
-              console.log("🔍 Dashboard - Recarregamento: Testes encontrados:", userTests);
+              ("🔍 Dashboard - Recarregamento: Testes encontrados:", userTests);
 
               if (userTests && userTests.length > 0) {
                 // Encontrar o teste DISC mais recente
@@ -547,7 +547,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                       counts: discCounts
                     };
 
-                    console.log("🔍 Dashboard - Perfil DISC recarregado com dados reais:", discProfile);
+                    ("🔍 Dashboard - Perfil DISC recarregado com dados reais:", discProfile);
                     setDiscProfile(discProfile);
                   }
                 }

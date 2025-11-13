@@ -13,7 +13,7 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
   const [isCompleted, setIsCompleted] = useState(false);
   const messagesEndRef = useRef(null);
 
-   const expirationHours = 24;
+  const expirationHours = 24;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -33,82 +33,82 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
     try {
       setIsLoading(true);
       setError(null);
-     
-      console.log('🚀 Inicializando chat para usuário:', userId);
 
-        let sessionData;
-        try {
-          sessionData = JSON.parse(localStorage.getItem('agroskills:guestSession'));
-        } catch {
-          // Se houver erro ao fazer parse do JSON, sessionData será null
-          sessionData = null;
-        }
-        
-        let guestSessionId;
+      ('🚀 Inicializando chat para usuário:', userId);
 
-        if (sessionData &&  new Date(sessionData.expiry) > new Date()) {
-          guestSessionId = sessionData.sessionId;
-          console.log('🔑 Usando sessão existente:', guestSessionId);
-        }else{
-          guestSessionId = (userId ? `agroskill_${userId}` : `agroskill_${Date.now()}`); // --- IGNORE ---
-          console.log('🆕 Criando nova sessão:', guestSessionId);
+      let sessionData;
+      try {
+        sessionData = JSON.parse(localStorage.getItem('agroskills:guestSession'));
+      } catch {
+        // Se houver erro ao fazer parse do JSON, sessionData será null
+        sessionData = null;
+      }
 
-           // Calcular data de expiração
-          const expiresAt = new Date();
-          expiresAt.setHours(expiresAt.getHours() + expirationHours);
-          
-          // Salvar no localStorage com data de expiração
-          localStorage.setItem('agroskills:guestSession', JSON.stringify({
-            id: guestSessionId,
-            createdAt: new Date().toISOString(),
-            expiresAt: expiresAt.toISOString()
-          }));
-        }
+      let guestSessionId;
 
-        setSessionId(guestSessionId);
+      if (sessionData && new Date(sessionData.expiry) > new Date()) {
+        guestSessionId = sessionData.sessionId;
+        ('🔑 Usando sessão existente:', guestSessionId);
+      } else {
+        guestSessionId = (userId ? `agroskill_${userId}` : `agroskill_${Date.now()}`); // --- IGNORE ---
+        ('🆕 Criando nova sessão:', guestSessionId);
 
-        // Determinar se é uma sessão existente (para mensagem de boas-vindas)
-        let isReturningUser = sessionData && sessionData.id === guestSessionId;
+        // Calcular data de expiração
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + expirationHours);
+
+        // Salvar no localStorage com data de expiração
+        localStorage.setItem('agroskills:guestSession', JSON.stringify({
+          id: guestSessionId,
+          createdAt: new Date().toISOString(),
+          expiresAt: expiresAt.toISOString()
+        }));
+      }
+
+      setSessionId(guestSessionId);
+
+      // Determinar se é uma sessão existente (para mensagem de boas-vindas)
+      let isReturningUser = sessionData && sessionData.id === guestSessionId;
 
 
 
 
       try {
-          setIsLoading(true);
-          const initialResponse = await botService.sendMessageGeneric(guestSessionId, 
-            "Ola. Quem e voce?");
-          
-          // Adicionar resposta do bot como primeira mensagem
-          const botMessage = {
-            id: Date.now(),
-            content: initialResponse.message,
-            isBot: true,
-            timestamp: new Date()
-          };
-          
-          setMessages([botMessage]);
-        } catch (error) {
-          console.error("Erro ao obter saudação inicial:", error);
-          
-          // Se falhar, usar mensagem padrão
-          let content = isReturningUser
-            ? "Olá, prazer em vê-lo novamente! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?"
-            : "Olá! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?"
-          
-          const welcomeMessage = {
-            id: Date.now(),
-            content: content,
-            isBot: true,
-            timestamp: new Date()
-          };
-          
-          setMessages([welcomeMessage]);
-        } finally {
-          setIsLoading(false);
-        }
+        setIsLoading(true);
+        const initialResponse = await botService.sendMessageGeneric(guestSessionId,
+          "Ola. Quem e voce?");
+
+        // Adicionar resposta do bot como primeira mensagem
+        const botMessage = {
+          id: Date.now(),
+          content: initialResponse.message,
+          isBot: true,
+          timestamp: new Date()
+        };
+
+        setMessages([botMessage]);
       } catch (error) {
-        console.error('Erro ao inicializar chat:', error);
+        console.error("Erro ao obter saudação inicial:", error);
+
+        // Se falhar, usar mensagem padrão
+        let content = isReturningUser
+          ? "Olá, prazer em vê-lo novamente! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?"
+          : "Olá! Sou o assistente virtual da AgroSkills. Estou aqui para te ajudar a descobrir mais sobre suas habilidades e interesses profissionais no agronegócio. Vamos conversar?"
+
+        const welcomeMessage = {
+          id: Date.now(),
+          content: content,
+          isBot: true,
+          timestamp: new Date()
+        };
+
+        setMessages([welcomeMessage]);
       } finally {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error('Erro ao inicializar chat:', error);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -120,7 +120,7 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
 
     try {
       setError(null);
-      
+
       // Adicionar mensagem do usuário
       const userMessage = {
         id: Date.now(),
@@ -128,15 +128,15 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
         isBot: false,
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, userMessage]);
       setIsTyping(true);
 
       // Enviar mensagem para o bot
       const response = await botService.sendMessageGeneric(sessionId, messageContent);
-      
+
       setIsTyping(false);
-      
+
       // Adicionar resposta do bot
       const botMessage = {
         id: Date.now() + 1,
@@ -146,13 +146,13 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
         step: response.step,
         collectedData: response.collectedData
       };
-      
+
       setMessages(prev => [...prev, botMessage]);
-      
+
       // Verificar se a conversa foi concluída
       if (response.isCompleted) {
         setIsCompleted(true);
-        console.log('✅ Conversa concluída. Dados coletados:', response.collectedData);
+        ('✅ Conversa concluída. Dados coletados:', response.collectedData);
       }
 
     } catch (error) {
@@ -180,19 +180,18 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
   }
 
   return (
-    <div className={`fixed bottom-4 right-4 bg-white rounded-lg shadow-2xl border border-gray-200 transition-all duration-300 ${
-      isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'
-    } z-50`}>
-      
+    <div className={`fixed bottom-4 right-4 bg-white rounded-lg shadow-2xl border border-gray-200 transition-all duration-300 ${isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'
+      } z-50`}>
+
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b bg-blue-600 text-white rounded-t-lg">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <img
-                  src="/iza.png"
-                  alt="Iza Recrutadora"
-                  className="w-200% h-full object-cover rounded-full"
-              />
+            <img
+              src="/iza.png"
+              alt="Iza Recrutadora"
+              className="w-200% h-full object-cover rounded-full"
+            />
           </div>
           <div>
             <h3 className="font-semibold text-sm">IZA</h3>
@@ -201,7 +200,7 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {!isCompleted && (
             <button
@@ -212,7 +211,7 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
               <RefreshCw className="w-4 h-4" />
             </button>
           )}
-          
+
           <button
             onClick={onMinimize}
             className="p-1 hover:bg-blue-500 rounded transition-colors"
@@ -220,7 +219,7 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
           >
             {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
           </button>
-          
+
           <button
             onClick={onClose}
             className="p-1 hover:bg-blue-500 rounded transition-colors"
@@ -252,24 +251,24 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
                     timestamp={message.timestamp}
                   />
                 ))}
-                
+
                 {isTyping && (
                   <MessageBubble isBot={true} isTyping={true} />
                 )}
-                
+
                 {error && (
                   <div className="bg-red-100 border border-red-300 text-red-700 px-4 py-3 rounded mb-4">
                     <p className="text-sm">{error}</p>
                   </div>
                 )}
-                
+
                 {isCompleted && (
                   <div className="bg-green-100 border border-green-300 text-green-700 px-4 py-3 rounded mb-4">
                     <p className="text-sm font-semibold">✅ Pré-entrevista concluída!</p>
                     <p className="text-xs mt-1">Seu perfil foi atualizado e você receberá sugestões de vagas personalizadas.</p>
                   </div>
                 )}
-                
+
                 <div ref={messagesEndRef} />
               </>
             )}
@@ -281,7 +280,7 @@ const ChatBot = ({ userId, isOpen, onClose, onMinimize, isMinimized }) => {
               onSendMessage={sendMessage}
               disabled={isLoading || isTyping}
               placeholder={isTyping ? "O assistente está digitando..." : "Digite sua resposta..."}
-              
+
             />
           )}
         </>

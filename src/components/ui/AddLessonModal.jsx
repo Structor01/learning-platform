@@ -30,7 +30,7 @@ export const AddLessonModal = ({ moduleId, onClose, onSave }) => {
             formData.append('description', description);
             formData.append('videoFile', videoFile);
 
-            console.log('>>> ENVIANDO ARQUIVO PARA UPLOAD');
+            ('>>> ENVIANDO ARQUIVO PARA UPLOAD');
             onSave(formData);
         }
         // OPÇÃO 2: Se só tem URL, envia JSON simples
@@ -42,7 +42,7 @@ export const AddLessonModal = ({ moduleId, onClose, onSave }) => {
                 videoUrl: videoUrl.trim()
             };
 
-            console.log('>>> ENVIANDO URL DIRETA');
+            ('>>> ENVIANDO URL DIRETA');
             onSave(jsonData);
         }
     };

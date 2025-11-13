@@ -4,8 +4,8 @@ import { Video, Loader, ExternalLink, Shield } from 'lucide-react';
 import { useInterviewValidation } from '@/hooks/useInterviewValidation';
 import InterviewRequirementsModal from './InterviewRequirementsModal';
 
-const InterviewButton = ({ 
-  job, 
+const InterviewButton = ({
+  job,
   variant = "default",
   size = "default",
   className = "",
@@ -17,19 +17,19 @@ const InterviewButton = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [showRequirementsModal, setShowRequirementsModal] = useState(false);
-  
+
   // Hook de validação dos requisitos
-  const { 
-    validateInterviewRequirements, 
-    isValidating, 
+  const {
+    validateInterviewRequirements,
+    isValidating,
     validationResult,
-    setValidationResult 
+    setValidationResult
   } = useInterviewValidation();
 
   // Função para validar requisitos e iniciar entrevista
   const handleStartInterview = async () => {
-    console.log('🚀 InterviewButton - handleStartInterview chamado');
-    
+    ('🚀 InterviewButton - handleStartInterview chamado');
+
     if (!job) {
       console.error('❌ Dados da vaga não encontrados');
       return;
@@ -37,21 +37,21 @@ const InterviewButton = ({
 
     try {
       setLoading(true);
-      console.log('⏳ Loading definido como true');
-      
-      console.log('🔍 Iniciando validação de requisitos para entrevista...');
-      
+      ('⏳ Loading definido como true');
+
+      ('🔍 Iniciando validação de requisitos para entrevista...');
+
       // Validar requisitos antes de prosseguir
       const validation = await validateInterviewRequirements();
-      
+
       if (!validation.isValid) {
-        console.log('❌ Requisitos não atendidos:', validation.missingRequirements);
+        ('❌ Requisitos não atendidos:', validation.missingRequirements);
         setShowRequirementsModal(true);
         return;
       }
-      
-      console.log('✅ Todos os requisitos atendidos, iniciando entrevista...');
-      
+
+      ('✅ Todos os requisitos atendidos, iniciando entrevista...');
+
       // Callback opcional quando entrevista inicia
       if (onInterviewStart) {
         onInterviewStart(job);
@@ -60,7 +60,7 @@ const InterviewButton = ({
       // Preparar dados para passar via URL
       const jobData = encodeURIComponent(JSON.stringify(job));
       let interviewUrl = `/entrevista?job=${jobData}`;
-      
+
       // Adicionar ID da candidatura se disponível
       if (candidaturaId) {
         interviewUrl += `&candidatura=${candidaturaId}`;
@@ -68,18 +68,18 @@ const InterviewButton = ({
 
       // Abrir em nova aba
       const newWindow = window.open(interviewUrl, '_blank');
-      
+
       if (!newWindow) {
         // Fallback se popup foi bloqueado
         console.warn('⚠️ Popup bloqueado, redirecionando na mesma aba');
         window.location.href = interviewUrl;
       } else {
-        
+
         // Opcional: escutar quando a aba é fechada
         const checkClosed = setInterval(() => {
           if (newWindow.closed) {
             clearInterval(checkClosed);
-            
+
             // Callback opcional quando entrevista é fechada/completa
             if (onInterviewComplete) {
               onInterviewComplete(null, job);
@@ -87,7 +87,7 @@ const InterviewButton = ({
           }
         }, 1000);
       }
-      
+
     } catch (error) {
       console.error('Erro ao abrir entrevista:', error);
       alert('❌ Erro ao abrir entrevista. Tente novamente.');
@@ -99,11 +99,11 @@ const InterviewButton = ({
   // Função para revalidar requisitos
   const handleRetryValidation = async () => {
     try {
-      console.log('🔄 Revalidando requisitos...');
+      ('🔄 Revalidando requisitos...');
       const validation = await validateInterviewRequirements();
-      
+
       if (validation.isValid) {
-        console.log('✅ Requisitos agora estão completos!');
+        ('✅ Requisitos agora estão completos!');
         setShowRequirementsModal(false);
         // Opcional: iniciar entrevista automaticamente
         // handleStartInterview();
@@ -129,8 +129,8 @@ const InterviewButton = ({
         ) : (
           <Video className="h-4 w-4 mr-2" />
         )}
-        {isProcessing 
-          ? isValidating ? 'Validando...' : 'Abrindo...' 
+        {isProcessing
+          ? isValidating ? 'Validando...' : 'Abrindo...'
           : buttonText
         }
         {!isProcessing && <ExternalLink className="h-3 w-3 ml-2 opacity-70" />}

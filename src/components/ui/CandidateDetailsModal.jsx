@@ -49,11 +49,11 @@ const CandidateDetailsModal = ({ isOpen, candidatura, onClose }) => {
 
         setLoading(true);
         try {
-            console.log('🔍 Verificando dados do candidato já disponíveis...');
+            ('🔍 Verificando dados do candidato já disponíveis...');
 
             // OTIMIZAÇÃO: Usar dados já carregados do LEFT JOIN primeiro
             if (candidatura.usuario && Object.keys(candidatura.usuario).length > 2) {
-                console.log('✅ Usando dados já carregados do LEFT JOIN!');
+                ('✅ Usando dados já carregados do LEFT JOIN!');
                 setCandidateDetails({
                     ...candidatura.usuario,
                     // Garantir compatibilidade com diferentes formatos
@@ -62,8 +62,8 @@ const CandidateDetailsModal = ({ isOpen, candidatura, onClose }) => {
                 });
             } else {
                 // Fallback: buscar dados completos apenas se necessário
-                console.log('⚠️ Dados incompletos, fazendo busca adicional...');
-                
+                ('⚠️ Dados incompletos, fazendo busca adicional...');
+
                 const token = localStorage.getItem("accessToken") || accessToken;
 
                 if (!token) {
@@ -85,14 +85,14 @@ const CandidateDetailsModal = ({ isOpen, candidatura, onClose }) => {
 
                 if (userResponse.ok) {
                     const userData = await userResponse.json();
-                    console.log('📋 Dados completos obtidos via API:', userData);
+                    ('📋 Dados completos obtidos via API:', userData);
                     setCandidateDetails(userData);
                 } else {
                     console.error('❌ Erro ao buscar dados do usuário:', {
                         status: userResponse.status,
                         statusText: userResponse.statusText
                     });
-                    
+
                     // Use dados básicos como fallback
                     setCandidateDetails({
                         nome: candidatura.usuario?.nome || candidatura.usuario?.name || 'Nome não disponível',
@@ -423,15 +423,15 @@ const CandidateDetailsModal = ({ isOpen, candidatura, onClose }) => {
                                 {/* Skills/Competências */}
                                 {(() => {
                                     // Buscar competências de múltiplas fontes
-                                    const skills = candidateDetails?.skills || 
-                                                  candidateDetails?.competencias || 
-                                                  candidatura?.usuario?.skills || 
-                                                  candidatura?.usuario?.competencias;
-                                    
-                                    console.log('🔍 Competências encontradas:', skills);
-                                    
+                                    const skills = candidateDetails?.skills ||
+                                        candidateDetails?.competencias ||
+                                        candidatura?.usuario?.skills ||
+                                        candidatura?.usuario?.competencias;
+
+                                    ('🔍 Competências encontradas:', skills);
+
                                     if (!skills) return null;
-                                    
+
                                     let skillsArray = [];
                                     if (typeof skills === 'string') {
                                         // Dividir por vírgula, ponto e vírgula ou quebra de linha
@@ -439,9 +439,9 @@ const CandidateDetailsModal = ({ isOpen, candidatura, onClose }) => {
                                     } else if (Array.isArray(skills)) {
                                         skillsArray = skills.filter(s => s && s.toString().trim());
                                     }
-                                    
+
                                     if (skillsArray.length === 0) return null;
-                                    
+
                                     return (
                                         <div className="mt-4">
                                             <h6 className="text-white font-semibold mb-3 flex items-center gap-2">

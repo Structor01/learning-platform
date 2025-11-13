@@ -96,7 +96,7 @@ const Paywall = ({ contentTitle, contentType = 'curso', onClose }) => {
 
   const handleSubscribe = (planId) => {
     // Aqui seria integrado com o Stripe
-    console.log('Iniciando assinatura do plano:', planId);
+    ('Iniciando assinatura do plano:', planId);
     // Por enquanto, simular ativação da assinatura
     setTimeout(() => {
       alert('Assinatura ativada com sucesso! (Simulação)');
@@ -115,21 +115,21 @@ const Paywall = ({ contentTitle, contentType = 'curso', onClose }) => {
           >
             ✕
           </button>
-          
+
           <div className="text-center">
             <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-2 mb-4">
               <Crown className="w-4 h-4 text-yellow-400" />
               <span className="text-sm font-medium">Conteúdo Premium</span>
             </div>
-            
+
             <h1 className="text-3xl font-bold mb-2">
               Desbloqueie "{contentTitle}"
             </h1>
-            
+
             <p className={`text-lg ${getDiscColor()} font-medium mb-2`}>
               Personalizado para perfil {user?.discProfile?.predominant || 'DISC'}
             </p>
-            
+
             <p className="text-white/80 max-w-2xl mx-auto">
               {getPersonalizedMessage()}
             </p>
@@ -151,7 +151,7 @@ const Paywall = ({ contentTitle, contentType = 'curso', onClose }) => {
               </p>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center gap-3 p-4 bg-white rounded-lg">
               <Clock className="w-5 h-5 text-blue-500" />
@@ -160,7 +160,7 @@ const Paywall = ({ contentTitle, contentType = 'curso', onClose }) => {
                 <p className="text-sm text-gray-600">Sem limitações de tempo</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-4 bg-white rounded-lg">
               <Award className="w-5 h-5 text-green-500" />
               <div>
@@ -168,7 +168,7 @@ const Paywall = ({ contentTitle, contentType = 'curso', onClose }) => {
                 <p className="text-sm text-gray-600">Reconhecida pelo mercado</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-4 bg-white rounded-lg">
               <Shield className="w-5 h-5 text-purple-500" />
               <div>
@@ -194,11 +194,10 @@ const Paywall = ({ contentTitle, contentType = 'curso', onClose }) => {
             {plans.map((plan) => (
               <Card
                 key={plan.id}
-                className={`relative cursor-pointer transition-all duration-300 hover:shadow-xl ${
-                  selectedPlan === plan.id
+                className={`relative cursor-pointer transition-all duration-300 hover:shadow-xl ${selectedPlan === plan.id
                     ? 'ring-2 ring-purple-500 shadow-lg'
                     : 'hover:shadow-lg'
-                } ${plan.popular ? 'border-purple-500' : ''}`}
+                  } ${plan.popular ? 'border-purple-500' : ''}`}
                 onClick={() => setSelectedPlan(plan.id)}
               >
                 {plan.popular && (
@@ -213,15 +212,15 @@ const Paywall = ({ contentTitle, contentType = 'curso', onClose }) => {
                   <div className={`w-12 h-12 ${plan.color} rounded-xl flex items-center justify-center text-white mx-auto mb-4`}>
                     {plan.icon}
                   </div>
-                  
+
                   <CardTitle className="text-xl font-bold text-gray-900">
                     {plan.name}
                   </CardTitle>
-                  
+
                   <p className="text-gray-600 text-sm">
                     {plan.description}
                   </p>
-                  
+
                   <div className="mt-4">
                     <span className="text-3xl font-bold text-gray-900">
                       R$ {plan.price.toFixed(2).replace('.', ',')}
@@ -242,11 +241,10 @@ const Paywall = ({ contentTitle, contentType = 'curso', onClose }) => {
 
                   <Button
                     onClick={() => handleSubscribe(plan.id)}
-                    className={`w-full ${
-                      plan.popular
+                    className={`w-full ${plan.popular
                         ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'
                         : 'bg-gray-900 hover:bg-gray-800'
-                    } text-white`}
+                      } text-white`}
                   >
                     {selectedPlan === plan.id ? 'Assinar Agora' : 'Selecionar'}
                   </Button>
