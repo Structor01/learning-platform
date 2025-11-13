@@ -2,41 +2,66 @@ import { useState, useEffect } from "react";
 import { Briefcase, Plus, Edit2, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const ProfileExperience = ({ experiences = [], onUpdate }) => {
     const [experiencesList, setExperiencesList] = useState(experiences);
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
+    const [deleteId, setDeleteId] = useState(null);
     const [formData, setFormData] = useState({
         title: "",
         company: "",
         employmentType: "",
         location: "",
-        startDate: "",           // ✅ CORRETO
-        endDate: "",             // ✅ CORRETO
-        currentlyWorking: false, // ✅ ADICIONA ISSO
+        startDate: "",
+        endDate: "",
+        currentlyWorking: false,
         description: "",
     });
 
     useEffect(() => {
-        setExperiencesList(experiences);
+        // ✅ Garante que cada experiência tem um ID
+        const withIds = experiences.map(exp => ({
+            ...exp,
+            id: exp.id || Date.now() + Math.random() // Gera ID se não existir
+        }));
+        setExperiencesList(withIds);
     }, [experiences]);
 
-    // FUNÇÃO PARA CONVERTER ARRAY EM TEXTO
-    const convertToText = (expArray) => {
-        return expArray
-            .map(exp => {
-                const lines = [
-                    `Cargo: ${exp.title}`,
-                    `Empresa: ${exp.company}`,
-                    exp.employmentType && `Tipo: ${exp.employmentType}`,
-                    exp.location && `Local: ${exp.location}`,
-                    `Período: ${exp.startDate} - ${exp.currentlyWorking ? 'Atual' : exp.endDate}`,
-                    exp.description && `Descrição: ${exp.description}`
-                ].filter(Boolean);
-                return lines.join('\n');
-            })
-            .join('\n\n---\n\n');
+    // ✅ NOVA FUNÇÃO: Agrupa experiências por empresa
+    const groupByCompany = (experiences) => {
+        const grouped = {};
+
+        experiences.forEach(exp => {
+            if (!grouped[exp.company]) {
+                grouped[exp.company] = {
+                    company: exp.company,
+                    positions: []
+                };
+            }
+            grouped[exp.company].positions.push(exp);
+        });
+
+        // Ordena posições por data (mais recente primeiro)
+        Object.values(grouped).forEach(company => {
+            company.positions.sort((a, b) => {
+                const dateA = new Date(a.startDate);
+                const dateB = new Date(b.startDate);
+                return dateB - dateA;
+            });
+        });
+
+        return Object.values(grouped);
     };
 
     const handleSubmit = () => {
@@ -49,46 +74,28 @@ const ProfileExperience = ({ experiences = [], onUpdate }) => {
             updated = [...experiencesList, { ...formData, id: Date.now() }];
         }
 
-        ("🔥 ProfileExperience - updated:", updated);
-        ("🔥 ProfileExperience - updated JSON:", JSON.stringify(updated));
         setExperiencesList(updated);
-        onUpdate(updated); // ← SEM convertToText
+        onUpdate(updated);
         resetForm();
     };
 
-    const handleDelete = async (id) => {
-        ('🔴 handleDelete CHAMADO com id:', id);
-        ('🔴 Lista ANTES do delete:', experiencesList);
+    const handleDelete = async () => {
+        if (!deleteId) return;
 
-        if (!window.confirm('Tem certeza que deseja deletar esta experiência?')) {
-            ('🔴 Usuário cancelou');
-            return;
-        }
-
-        ('🔴 Usuário confirmou, deletando...');
-
-        const updated = experiencesList.filter(exp => exp.id !== id);
-
-        ('🔴 Lista DEPOIS do filter:', updated);
-        ('🔴 Chamando setExperiencesList...');
-
+        const updated = experiencesList.filter(exp => exp.id !== deleteId);
         setExperiencesList(updated);
-
-        ('🔴 Chamando onUpdate...');
         await onUpdate(updated);
-
-        ('🔴 Delete concluído!');
+        setDeleteId(null); // ✅ Fecha o modal
     };
-
     const resetForm = () => {
         setFormData({
             title: "",
             company: "",
             employmentType: "",
             location: "",
-            startDate: "",           // ✅ CORRETO
-            endDate: "",             // ✅ CORRETO
-            currentlyWorking: false, // ✅ ADICIONA ISSO
+            startDate: "",
+            endDate: "",
+            currentlyWorking: false,
             description: "",
         });
         setIsAdding(false);
@@ -115,6 +122,27 @@ const ProfileExperience = ({ experiences = [], onUpdate }) => {
             return `${remainingMonths} ${remainingMonths > 1 ? 'meses' : 'mês'}`;
         }
     };
+
+    // ✅ Calcula duração total na empresa
+    const calculateCompanyDuration = (positions) => {
+        if (!positions.length) return "";
+
+        const sortedPositions = [...positions].sort((a, b) =>
+            new Date(a.startDate) - new Date(b.startDate)
+        );
+
+        const firstStart = sortedPositions[0].startDate;
+        const hasCurrentPosition = positions.some(p => p.currentlyWorking);
+        const lastEnd = hasCurrentPosition ? null :
+            sortedPositions.reduce((latest, pos) => {
+                const endDate = new Date(pos.endDate);
+                return endDate > new Date(latest) ? pos.endDate : latest;
+            }, sortedPositions[0].endDate);
+
+        return calculateDuration(firstStart, lastEnd, hasCurrentPosition);
+    };
+
+    const groupedExperiences = groupByCompany(experiencesList);
 
     return (
         <Card className="bg-white border-gray-200 rounded-xl hover:shadow-md transition-shadow">
@@ -273,65 +301,116 @@ const ProfileExperience = ({ experiences = [], onUpdate }) => {
                         </Button>
                     </div>
                 ) : (
-                    experiencesList.map((exp) => (
-                        <div key={exp.id} className="flex gap-3 md:gap-4 pb-4 md:pb-6 border-b border-gray-200 last:border-0 last:pb-0">
-                            <div className="flex-shrink-0">
-                                <div className="w-10 md:w-12 h-10 md:h-12 bg-green-50 rounded flex items-center justify-center">
-                                    <Briefcase className="w-5 md:w-6 h-5 md:h-6 text-green-600" />
+                    groupedExperiences.map((companyGroup) => (
+                        <div key={companyGroup.company} className="pb-6 border-b border-gray-200 last:border-0 last:pb-0">
+                            {/* ✅ HEADER DA EMPRESA */}
+                            <div className="flex gap-3 md:gap-4 mb-4">
+                                <div className="flex-shrink-0">
+                                    <div className="w-10 md:w-12 h-10 md:h-12 bg-green-50 rounded flex items-center justify-center">
+                                        <Briefcase className="w-5 md:w-6 h-5 md:h-6 text-green-600" />
+                                    </div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-base md:text-lg font-semibold text-gray-900">
+                                        {companyGroup.company}
+                                    </h3>
+                                    <p className="text-xs md:text-sm text-gray-600">
+                                        {calculateCompanyDuration(companyGroup.positions)}
+                                    </p>
                                 </div>
                             </div>
 
-                            <div className="flex-1 min-w-0">
-                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                                    <div className="min-w-0">
-                                        <h3 className="text-base md:text-lg font-semibold text-gray-900 truncate">
-                                            {exp.title}
-                                        </h3>
-                                        <p className="text-sm md:text-base text-gray-700 truncate">{exp.company}</p>
-                                        <p className="text-xs md:text-sm text-gray-600 mt-1">
-                                            {new Date(exp.startDate).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })} - {' '}
-                                            {exp.currentlyWorking ? 'Presente' : new Date(exp.endDate).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}
-                                            {' • '}
-                                            {calculateDuration(exp.startDate, exp.endDate, exp.currentlyWorking)}
-                                        </p>
-                                        {exp.location && (
-                                            <p className="text-xs md:text-sm text-gray-600 truncate">{exp.location}</p>
+                            {/* ✅ POSIÇÕES */}
+                            <div className="ml-14 md:ml-16 space-y-4">
+                                {companyGroup.positions.map((position) => (
+                                    <div key={position.id} className="relative">
+                                        {/* Linha conectora */}
+                                        {companyGroup.positions.length > 1 && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-200 -ml-7" />
                                         )}
-                                    </div>
 
-                                    <div className="flex gap-2 flex-shrink-0">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                                setFormData(exp);
-                                                setEditingId(exp.id);
-                                            }}
-                                            className="text-gray-600 hover:bg-green-50 hover:text-green-600 transition-colors"
-                                        >
-                                            <Edit2 className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDelete(exp.id)}
-                                            className="text-red-600 hover:bg-red-50 transition-colors"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
+                                        {/* Bullet point */}
+                                        {companyGroup.positions.length > 1 && (
+                                            <div className="absolute left-0 top-2 w-2 h-2 rounded-full bg-gray-300 -ml-[29px]" />
+                                        )}
 
-                                {exp.description && (
-                                    <p className="mt-3 text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                        {exp.description}
-                                    </p>
-                                )}
+                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="text-base font-semibold text-gray-900">
+                                                    {position.title}
+                                                </h4>
+                                                <p className="text-sm text-gray-600">
+                                                    {position.employmentType && (
+                                                        <span className="capitalize">{position.employmentType.replace('-', ' ')} • </span>
+                                                    )}
+                                                    {new Date(position.startDate).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })} - {' '}
+                                                    {position.currentlyWorking ? 'o momento' : new Date(position.endDate).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}
+                                                    {' • '}
+                                                    {calculateDuration(position.startDate, position.endDate, position.currentlyWorking)}
+                                                </p>
+                                                {position.location && (
+                                                    <p className="text-sm text-gray-600">{position.location}</p>
+                                                )}
+                                                {position.description && (
+                                                    <p className="mt-2 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                                        {position.description}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="flex gap-2 flex-shrink-0">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setFormData(position);
+                                                        setEditingId(position.id);
+                                                    }}
+                                                    className="text-gray-600 hover:bg-green-50 hover:text-green-600 transition-colors"
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        console.log("🔍 Clicou para deletar ID:", position.id);
+                                                        setDeleteId(position.id);
+                                                        console.log("🔍 deleteId setado");
+                                                    }}
+                                                    className="text-red-600 hover:bg-red-50 transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     ))
                 )}
             </CardContent>
+            {/* Modal de confirmação de delete */}
+            <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+                <AlertDialogContent className="max-w-md">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Deletar experiência?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta ação não pode ser desfeita. A experiência será removida permanentemente do seu perfil.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            Deletar
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Card>
     );
 };
