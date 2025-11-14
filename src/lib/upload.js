@@ -1,6 +1,6 @@
 import { API_URL } from '@/components/utils/api';
 
-export const uploadImage = async (file, folder = 'profiles') => {
+export const uploadImage = async (file, folder = 'profile_image') => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('folder', folder);

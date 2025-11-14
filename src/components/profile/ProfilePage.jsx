@@ -149,7 +149,7 @@ const ProfilePage = () => {
 
             // Upload direto pro Cloudinary
 
-            const imageUrl = await uploadImage(file, 'profile_images');
+            const imageUrl = await uploadImage(file, 'profile_image');
 
             // Salvar URL no localStorage
             const updatedUser = { ...user, profile_image: imageUrl };
@@ -159,7 +159,6 @@ const ProfilePage = () => {
             await patchProfile("/profile-image", {
                 profile_image: imageUrl,
             });
-            console.log("✅ PATCH /profile-image bem-sucedido");
 
             toast.success("Foto de perfil atualizada!");
         } catch (error) {
