@@ -156,14 +156,10 @@ const ProfilePage = () => {
             await updateUser(updatedUser);
 
             // Salvar URL no backend
-            try {
-                await patchProfile("/profile-image", {
-                    profile_image: imageUrl,
-                });
-                console.log("✅ PATCH /profile-image bem-sucedido");
-            } catch (backendError) {
-                console.warn("⚠️ Backend falhou:", backendError);
-            }
+            await patchProfile("/profile-image", {
+                profile_image: imageUrl,
+            });
+            console.log("✅ PATCH /profile-image bem-sucedido");
 
             toast.success("Foto de perfil atualizada!");
         } catch (error) {
