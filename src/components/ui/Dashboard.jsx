@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import testService from "@/services/testDiscService/testService";
-import discApiService from "@/services/testDiscService/discApi";
 import { useNavigate } from "react-router-dom";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Play, Clock, Award, X, Sun, Moon, HelpCircle } from "lucide-react";
@@ -11,10 +10,8 @@ import TrilhaRequirementModal from "./TrilhaRequirementModal";
 import { HeroVideoDialog } from "./hero-video-dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@radix-ui/react-progress";
-import axios from "axios";
-import { API_URL } from "@/components/utils/api"; // certifique-se de que este caminho está correto
+import { API_URL } from "@/components/utils/api";
 import { MapPin, Briefcase, Building2, Newspaper } from "lucide-react";
-import api from "@/services/api.js";
 import InterviewPromptModal from "@/components/ui/InterviewPromptModal.jsx";
 // testService já está sendo importado na linha 2
 
@@ -99,18 +96,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
         // Primeira tentativa: API principal
         try {
-          const response = await fetch(`${API_URL}/api/recruitment/jobs`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(accessToken && { 'Authorization': `Bearer ${accessToken}` })
-            },
-            timeout: 10000 // 10 segundos timeout
-          });
-
-          if (response.ok) {
-            vagasData = await response.json();
-          }
+          vagasData = await api('/api/recruitment/jobs');
         } catch (apiError) {
           console.warn('API principal falhou, tentando alternativa:', apiError.message);
         }
@@ -163,17 +149,12 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         setLoadingNoticias(true);
         setNoticiasRecentes([]);
 
-        const response = await axios.get(`${API_URL}/api/news`, {
-          params: {
-            page: 1,
-            limit: 6
-          }
-        });
+        const response = await api('/api/news?page=1&limit=6');
 
         // A API retorna: { data: [...], total: X, page: Y, totalPages: Z }
-        if (response.data.data && Array.isArray(response.data.data)) {
+        if (response.data && Array.isArray(response.data)) {
           // Normalizar os campos da API
-          const normalizedNews = response.data.data.map(item => ({
+          const normalizedNews = response.data.map(item => ({
             ...item,
             titulo: item.titulo || item.summary || 'Sem título',
             descricao: item.descricao || item.summary || '',
@@ -199,12 +180,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
         setLoadingEventos(true);
         setEventosRecentes([]);
 
-        const response = await axios.get(`${API_URL}/api/events`, {
-          params: {
-            page: 1,
-            limit: 6
-          }
-        });
+        const response = await api('/api/events?page=1&limit=6');
 
         // A API retorna um array direto de eventos
         if (Array.isArray(response.data)) {
@@ -278,159 +254,64 @@ const Dashboard = ({ onCourseSelect = [] }) => {
       if (!user?.id || !accessToken) return;
 
       try {
-        // Primeiro tentar buscar usando a nova API DISC
-        try {
-          const discProfile = await discApiService.getUserDiscProfile(user.id);
-          if (discProfile) {
-            const convertedProfile = discApiService.convertApiDataToProfile(discProfile);
-            ("🔍 Dashboard - Perfil DISC encontrado na nova API:", convertedProfile);
-            setDiscProfile(convertedProfile);
-            return;
-          }
-        } catch (apiError) {
-          console.warn("⚠️ Dashboard - Nova API não disponível, tentando API antiga:", apiError);
-        }
+        // Usar a API de resultados de testes que está funcionando
+        const testResults = await api(`/api/tests/results/user/${user.id}`);
 
-        // Fallback: Tentar buscar testes psicológicos do usuário (API antiga)
-        const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 50);
-        ("🔍 Dashboard - Testes encontrados (API antiga):", userTests);
+        if (testResults && testResults.length > 0) {
+          // Filtrar apenas testes DISC completados
+          const discTests = testResults.filter(test => {
+            const isDiscTest = test.testCategory === 'DISC_UNIFIED' || 
+                             test.testName?.toLowerCase().includes('disc') ||
+                             test.testCategory?.toLowerCase().includes('disc') ||
+                             test.dominantProfile; // Se tem dominantProfile, é DISC
+            return isDiscTest && test.status === 'completed';
+          });
 
-        if (userTests && userTests.length > 0) {
-          // Encontrar o teste DISC/unified mais recente
-          const discTest = userTests
-            .filter(test => {
-              const testType = test.test_type?.toLowerCase();
-              return (testType === 'disc' || testType === 'unified') && test.status === 'completed';
-            })
-            .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))[0];
+          if (discTests.length > 0) {
+            // Pegar o teste mais recente
+            const latestTest = discTests.sort((a, b) => 
+              new Date(b.completedAt) - new Date(a.completedAt)
+            )[0];
 
+            // Extrair dados DISC do teste
+            let discType = latestTest.dominantProfile || 'D';
+            let dominantPercentage = 0;
 
-
-          if (discTest) {
-            ("🔍 Dashboard - Teste DISC encontrado:", discTest);
-
-            // Tentar extrair dados DISC de diferentes fontes
-            let discType = null;
-            let discCounts = null;
-
-            // 1. Verificar se tem disc_scores
-            if (discTest.disc_scores) {
-              let discScores;
-              try {
-                discScores = typeof discTest.disc_scores === 'string'
-                  ? JSON.parse(discTest.disc_scores)
-                  : discTest.disc_scores;
-              } catch (parseError) {
-                console.warn("🔍 Dashboard - Erro ao parsear disc_scores:", parseError);
-                discScores = discTest.disc_scores;
-              }
-
-              if (discScores && discScores.type) {
-                discType = discScores.type;
-                discCounts = discScores.counts || { D: 0, I: 0, S: 0, C: 0 };
-              }
-            }
-
-            // 2. Verificar se tem result.disc
-            if (!discType && discTest.result?.disc) {
-              const discResult = discTest.result.disc;
-              if (discResult.perfil) {
-                // Extrair tipo do perfil textual
-                const perfilLower = discResult.perfil.toLowerCase();
-                if (perfilLower.includes('dominante')) discType = 'D';
-                else if (perfilLower.includes('influente')) discType = 'I';
-                else if (perfilLower.includes('estável') || perfilLower.includes('estavel')) discType = 'S';
-                else if (perfilLower.includes('conforme') || perfilLower.includes('consciencioso')) discType = 'C';
-              }
-              discCounts = discResult.counts || { D: 0, I: 0, S: 0, C: 0 };
-            }
-
-            // 3. Verificar se tem perfil_disc direto
-            if (!discType && discTest.perfil_disc) {
-              const perfilLower = discTest.perfil_disc.toLowerCase();
-              if (perfilLower.includes('dominante')) discType = 'D';
-              else if (perfilLower.includes('influente')) discType = 'I';
-              else if (perfilLower.includes('estável') || perfilLower.includes('estavel')) discType = 'S';
-              else if (perfilLower.includes('conforme') || perfilLower.includes('consciencioso')) discType = 'C';
-            }
-
-            if (discType) {
-              // Calcular porcentagem baseada nos counts se disponível
-              let percentage = 0;
-              if (discCounts) {
-                const total = Object.values(discCounts).reduce((sum, val) => sum + val, 0);
-                if (total > 0) {
-                  percentage = Math.round((discCounts[discType] / total) * 100);
-                }
-              }
-
-              const discProfile = {
-                type: discType,
-                name: getDiscName(discType),
-                description: getDiscDescription(discType),
-                percentage: percentage,
-                characteristics: getDiscCharacteristics(discType),
-                strengths: getDiscStrengths(discType),
-                improvements: getDiscImprovements(discType),
-                counts: discCounts
+            // Usar percentagens diretas do teste
+            if (latestTest.discDPercentage !== undefined) {
+              const percentages = {
+                D: latestTest.discDPercentage || 0,
+                I: latestTest.discIPercentage || 0,
+                S: latestTest.discSPercentage || 0,
+                C: latestTest.discCPercentage || 0
               };
-
-              ("🔍 Dashboard - Perfil DISC montado a partir de dados reais:", discProfile);
-              setDiscProfile(discProfile);
-              return;
+              
+              dominantPercentage = percentages[discType] || 0;
+            } else if (latestTest.detailedResults?.disc?.percentages) {
+              // Fallback para dados detalhados
+              const percentages = latestTest.detailedResults.disc.percentages;
+              dominantPercentage = percentages[discType] || 0;
             }
+
+            const discProfile = {
+              type: discType,
+              name: getDiscName(discType),
+              description: getDiscDescription(discType),
+              percentage: dominantPercentage,
+              characteristics: getDiscCharacteristics(discType),
+              strengths: getDiscStrengths(discType),
+              improvements: getDiscImprovements(discType)
+            };
+
+            setDiscProfile(discProfile);
+          } else {
+            setDiscProfile(null);
           }
-        }
-
-        // Se não encontrou nos dados da API, verificar cache local
-        const cacheKey = `disc_completed_${user.id}`;
-        const profileCacheKey = `disc_profile_${user.id}`;
-        const hasCompletedCache = localStorage.getItem(cacheKey) === 'true';
-
-        if (hasCompletedCache) {
-          // Tentar recuperar perfil salvo no localStorage
-          const savedProfile = localStorage.getItem(profileCacheKey);
-
-          if (savedProfile) {
-            try {
-              const discProfile = JSON.parse(savedProfile);
-              setDiscProfile(discProfile);
-              return;
-            } catch (parseError) {
-
-            }
-          }
-
-          // Usar hash do ID do usuário para garantir consistência
-          const userId = user.id;
-          const userHash = userId.toString().split('').reduce((a, b) => {
-            a = ((a << 5) - a) + b.charCodeAt(0);
-            return a & a;
-          }, 0);
-
-          const exampleTypes = ['D', 'I', 'S', 'C'];
-          const consistentType = exampleTypes[Math.abs(userHash) % exampleTypes.length];
-          const consistentPercentage = 70 + (Math.abs(userHash) % 20);
-
-          const generatedProfile = {
-            type: consistentType,
-            name: getDiscName(consistentType),
-            description: getDiscDescription(consistentType),
-            percentage: consistentPercentage,
-            characteristics: getDiscCharacteristics(consistentType),
-            strengths: getDiscStrengths(consistentType),
-            improvements: getDiscImprovements(consistentType)
-          };
-
-          // Salvar o perfil gerado no cache para próximas sessões
-          localStorage.setItem(profileCacheKey, JSON.stringify(generatedProfile));
-          setDiscProfile(generatedProfile);
         } else {
           setDiscProfile(null);
         }
-
       } catch (error) {
-        console.error('🔍 Dashboard - Erro ao buscar perfil DISC:', error);
+        console.error('Erro ao buscar perfil DISC:', error);
         setDiscProfile(null);
       }
     };
@@ -467,96 +348,60 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
     const reloadDiscProfile = () => {
       if (user?.id && accessToken) {
-        setTimeout(() => {
-          const fetchDiscProfile = async () => {
-            try {
-              // Tentar nova API primeiro
-              const discProfile = await discApiService.getUserDiscProfile(user.id);
-              if (discProfile) {
-                const convertedProfile = discApiService.convertApiDataToProfile(discProfile);
-                ("🔍 Dashboard - Recarregamento: Perfil DISC da nova API:", convertedProfile);
-                setDiscProfile(convertedProfile);
-                return;
-              }
+        setTimeout(async () => {
+          try {
+            // Usar a mesma API que está funcionando
+            const testResults = await api(`/api/tests/results/user/${user.id}`);
 
-              // Fallback para API antiga - buscar testes psicológicos mais recentes
-              const userTests = await testService.getUserPsychologicalTests(user.id, 'completed', 10);
-              ("🔍 Dashboard - Recarregamento: Testes encontrados:", userTests);
+            if (testResults && testResults.length > 0) {
+              // Filtrar apenas testes DISC completados
+              const discTests = testResults.filter(test => {
+                const isDiscTest = test.testCategory === 'DISC_UNIFIED' || 
+                               test.testName?.toLowerCase().includes('disc') ||
+                               test.testCategory?.toLowerCase().includes('disc') ||
+                               test.dominantProfile;
+                return isDiscTest && test.status === 'completed';
+              });
 
-              if (userTests && userTests.length > 0) {
-                // Encontrar o teste DISC mais recente
-                const discTest = userTests
-                  .filter(test => {
-                    const testType = test.test_type?.toLowerCase();
-                    return (testType === 'disc' || testType === 'unified') && test.status === 'completed';
-                  })
-                  .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at))[0];
+              if (discTests.length > 0) {
+                // Pegar o teste mais recente
+                const latestTest = discTests.sort((a, b) => 
+                  new Date(b.completedAt) - new Date(a.completedAt)
+                )[0];
 
-                if (discTest) {
-                  // Usar a mesma lógica de extração que usamos acima
-                  let discType = null;
-                  let discCounts = null;
+                // Extrair dados DISC
+                let discType = latestTest.dominantProfile || 'D';
+                let dominantPercentage = 0;
 
-                  // Verificar disc_scores
-                  if (discTest.disc_scores) {
-                    let discScores;
-                    try {
-                      discScores = typeof discTest.disc_scores === 'string'
-                        ? JSON.parse(discTest.disc_scores)
-                        : discTest.disc_scores;
-                    } catch (parseError) {
-                      discScores = discTest.disc_scores;
-                    }
-
-                    if (discScores && discScores.type) {
-                      discType = discScores.type;
-                      discCounts = discScores.counts || { D: 0, I: 0, S: 0, C: 0 };
-                    }
-                  }
-
-                  // Verificar result.disc
-                  if (!discType && discTest.result?.disc) {
-                    const discResult = discTest.result.disc;
-                    if (discResult.perfil) {
-                      const perfilLower = discResult.perfil.toLowerCase();
-                      if (perfilLower.includes('dominante')) discType = 'D';
-                      else if (perfilLower.includes('influente')) discType = 'I';
-                      else if (perfilLower.includes('estável') || perfilLower.includes('estavel')) discType = 'S';
-                      else if (perfilLower.includes('conforme') || perfilLower.includes('consciencioso')) discType = 'C';
-                    }
-                    discCounts = discResult.counts || { D: 0, I: 0, S: 0, C: 0 };
-                  }
-
-                  if (discType) {
-                    let percentage = 75;
-                    if (discCounts) {
-                      const total = Object.values(discCounts).reduce((sum, val) => sum + val, 0);
-                      if (total > 0) {
-                        percentage = Math.round((discCounts[discType] / total) * 100);
-                      }
-                    }
-
-                    const discProfile = {
-                      type: discType,
-                      name: getDiscName(discType),
-                      description: getDiscDescription(discType),
-                      percentage: percentage,
-                      characteristics: getDiscCharacteristics(discType),
-                      strengths: getDiscStrengths(discType),
-                      improvements: getDiscImprovements(discType),
-                      counts: discCounts
-                    };
-
-                    ("🔍 Dashboard - Perfil DISC recarregado com dados reais:", discProfile);
-                    setDiscProfile(discProfile);
-                  }
+                if (latestTest.discDPercentage !== undefined) {
+                  const percentages = {
+                    D: latestTest.discDPercentage || 0,
+                    I: latestTest.discIPercentage || 0,
+                    S: latestTest.discSPercentage || 0,
+                    C: latestTest.discCPercentage || 0
+                  };
+                  dominantPercentage = percentages[discType] || 0;
+                } else if (latestTest.detailedResults?.disc?.percentages) {
+                  const percentages = latestTest.detailedResults.disc.percentages;
+                  dominantPercentage = percentages[discType] || 0;
                 }
+
+                const discProfile = {
+                  type: discType,
+                  name: getDiscName(discType),
+                  description: getDiscDescription(discType),
+                  percentage: dominantPercentage,
+                  characteristics: getDiscCharacteristics(discType),
+                  strengths: getDiscStrengths(discType),
+                  improvements: getDiscImprovements(discType)
+                };
+
+                setDiscProfile(discProfile);
               }
-            } catch (error) {
-              console.error('🔍 Dashboard - Erro ao recarregar perfil DISC:', error);
             }
-          };
-          fetchDiscProfile();
+          } catch (error) {
+            console.error('Erro ao recarregar perfil DISC:', error);
+          }
         }, 1000); // Aguarda 1 segundo para garantir que os dados foram salvos
       }
     };
@@ -584,23 +429,14 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
         // Verificar se já completou entrevista simulada via API
         try {
-          const response = await fetch(`${API_URL}/api/interviews/user/${user.id}`, {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            // Se tem entrevistas completadas, não mostrar o modal
-            if (Array.isArray(data) && data.length > 0) {
-              const hasCompleted = data.some(interview => interview.status === 'completed');
-              if (hasCompleted) {
-                setHasCompletedInterview(true);
-                localStorage.setItem(`interview_completed_${user.id}`, 'true');
-                return;
-              }
+          const data = await api(`/api/interviews/user/${user.id}`);
+          // Se tem entrevistas completadas, não mostrar o modal
+          if (Array.isArray(data) && data.length > 0) {
+            const hasCompleted = data.some(interview => interview.status === 'completed');
+            if (hasCompleted) {
+              setHasCompletedInterview(true);
+              localStorage.setItem(`interview_completed_${user.id}`, 'true');
+              return;
             }
           }
         } catch (apiError) {
