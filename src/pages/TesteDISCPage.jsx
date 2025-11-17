@@ -309,7 +309,7 @@ const TesteDISCPage = () => {
                         'D': 'Dominante',
                         'I': 'Influente',
                         'S': 'Estável',
-                        'C': 'Consciencioso'
+                        'C': 'Conforme'
                       }[testResult.result.disc.perfil] || 'Desconhecido'
                     }
                   </h4>
@@ -319,7 +319,7 @@ const TesteDISCPage = () => {
                         'D': 'Dominante',
                         'I': 'Influente',
                         'S': 'Estável',
-                        'C': 'Consciencioso'
+                        'C': 'Conforme'
                       };
                       return (
                         <div key={type} className="text-center">
