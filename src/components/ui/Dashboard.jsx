@@ -356,7 +356,7 @@ const Dashboard = ({ onCourseSelect = [] }) => {
 
             if (discType) {
               // Calcular porcentagem baseada nos counts se disponível
-              let percentage = 75;
+              let percentage = 0;
               if (discCounts) {
                 const total = Object.values(discCounts).reduce((sum, val) => sum + val, 0);
                 if (total > 0) {
