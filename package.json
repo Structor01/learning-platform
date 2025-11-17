@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "cross-env VITE_API_URL=https://learning-platform-backend-2x39.onrender.com vite build",
     "serve": "cross-env VITE_API_URL=https://learning-platform-backend-2x39.onrender.com vite build && firebase serve --port 5000",
-    "build:deploy": "cross-env VITE_API_URL=https://learning-platform-backend-2x39.onrender.com vite build && firebase deploy && git add . && git commit && git push",
+    "build:deploy": "cross-env VITE_API_URL=https://learning-platform-backend-2x39.onrender.com vite build && firebase deploy",
     "lint": "eslint .",
     "preview": "vite preview"
   },

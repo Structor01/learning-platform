@@ -736,12 +736,12 @@ const Dashboard = ({ onCourseSelect = [] }) => {
   // Funções auxiliares para DISC
   const getDiscName = (type) => {
     const names = {
-      D: "Dominância",
-      I: "Influência",
-      S: "Estabilidade",
-      C: "Conformidade"
+      D: "Dominante",
+      I: "Influente",
+      S: "Estável",
+      C: "Conforme"
     };
-    return names[type] || "Dominância";
+    return names[type] || "Dominante";
   };
 
   const getDiscDescription = (type) => {
@@ -1419,16 +1419,16 @@ const Dashboard = ({ onCourseSelect = [] }) => {
     const colors = {
       Dominante: "bg-red-500",
       Dominância: "bg-red-500",
-      Influente: "bg-green-500",
-      Influência: "bg-green-500",
-      Estável: "bg-blue-500",
-      Estabilidade: "bg-blue-500",
-      Conforme: "bg-orange-500",
-      Conformidade: "bg-orange-500",
+      Influente: "bg-yellow-500",
+      Influência: "bg-yellow-500",
+      Estável: "bg-green-500",
+      Estabilidade: "bg-green-500",
+      Conforme: "bg-blue-500",
+      Conformidade: "bg-blue-500",
       D: "bg-red-500",
-      I: "bg-green-500",
-      S: "bg-blue-500",
-      C: "bg-orange-500",
+      I: "bg-yellow-500",
+      S: "bg-green-500",
+      C: "bg-blue-500",
     };
     return colors[profile] || "bg-gray-500";
   };
@@ -1516,8 +1516,8 @@ const Dashboard = ({ onCourseSelect = [] }) => {
                               style={{
                                 width: `${disc.percentage}%`,
                                 background: disc.type === 'D' ? 'linear-gradient(90deg, #EF4444, #DC2626)' :
-                                  disc.type === 'I' ? 'linear-gradient(90deg, #10B981, #059669)' :
-                                    disc.type === 'S' ? 'linear-gradient(90deg, #3B82F6, #2563EB)' : 'linear-gradient(90deg, #F59E0B, #D97706)',
+                                  disc.type === 'I' ? 'linear-gradient(90deg, #EAB308, #CA8A04)' :
+                                    disc.type === 'S' ? 'linear-gradient(90deg, #10B981, #059669)' : 'linear-gradient(90deg, #3B82F6, #2563EB)',
                               }}
                             ></div>
                           </div>
