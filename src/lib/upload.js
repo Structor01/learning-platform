@@ -1,4 +1,4 @@
-import { API_URL } from '@/components/utils/api';
+import { getApiUrl } from '@/components/utils/api';
 
 export const uploadImage = async (file, folder = 'profile_image') => {
     const formData = new FormData();
@@ -7,8 +7,9 @@ export const uploadImage = async (file, folder = 'profile_image') => {
 
     try {
         const token = localStorage.getItem('accessToken');
+        const apiUrl = getApiUrl();  // ← Use isso!
 
-        const response = await fetch(`${API_URL}/api/profile/upload-image`, {
+        const response = await fetch(`${apiUrl}/api/profile/upload-image`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
