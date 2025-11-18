@@ -34,6 +34,10 @@ export const uploadImage = async (file, folder = 'profile_image') => {
     formData.append('file', file);
     formData.append('folder', folder);
 
+    console.log('📤 Iniciando upload...');
+    console.log('🌐 getApiUrl():', getApiUrl());
+    console.log('📁 FormData keys:', Array.from(formData.keys()));
+
     const result = await api('/api/profile/upload-image', {
         method: 'POST',
         body: formData,
