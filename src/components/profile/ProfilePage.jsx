@@ -147,8 +147,6 @@ const ProfilePage = () => {
         try {
             setIsUploadingImage(true);
 
-            // Upload direto pro Cloudinary
-
             const imageUrl = await uploadImage(file, 'profile_image');
 
             // Salvar URL no localStorage

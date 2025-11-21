@@ -3,19 +3,22 @@ export function api(path, init) {
   const accessToken = localStorage.getItem('accessToken')
 
   // Acessa a variável de ambiente de forma segura com fallback
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+  const baseUrl = import.meta.env.VITE_API_URL_DEV || 'http://localhost:3001'
   const apiPrefix = ''
 
   // Verifica se o path já é uma URL completa
   const url = path.startsWith('http') ? path : new URL(apiPrefix.concat(path), baseUrl).toString()
 
 
+  // Se o body é FormData, não defina Content-Type (o navegador vai fazer isso automaticamente)
+  const isFormData = init?.body instanceof FormData
+
   const config = {
     ...init,
     headers: {
       ...init?.headers,
       'Authorization': accessToken ? `Bearer ${accessToken}` : '',
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     }
   }
 
