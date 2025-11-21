@@ -3,7 +3,7 @@ export function api(path, init) {
   const accessToken = localStorage.getItem('accessToken')
 
   // Acessa a variável de ambiente de forma segura com fallback
-  const baseUrl = import.meta.env.VITE_API_URL_DEV || 'http://localhost:3001'
+  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
   const apiPrefix = ''
 
   // Verifica se o path já é uma URL completa
